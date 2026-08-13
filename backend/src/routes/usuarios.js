@@ -73,6 +73,14 @@ async function validarDadosCadastrais(dados, env, idAtual = null) {
   return resultado;
 }
 
+function ehSuperadminRaiz(usuario) {
+  return Number(usuario.id) === 1;
+}
+
+function podeGerenciarUsuario(usuarioLogado, usuarioAlvo) {
+  return ehSuperadminRaiz(usuarioLogado) || Number(usuarioAlvo.criado_por) === Number(usuarioLogado.id);
+}
+
 export async function processarUsuarios(request, env, ctx) {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -179,7 +187,7 @@ export async function processarUsuarios(request, env, ctx) {
   if (metodo === "POST") {
     try {
       const dados = await request.json();
-      const perfil = dados.perfil === "superadmin" ? "superadmin" : "comum";
+      const perfil = dados.perfil === "superadmin" && ehSuperadminRaiz(usuarioLogado) ? "superadmin" : "comum";
 
       if (!dados.usuario || !dados.senha) {
         return new Response(JSON.stringify({ erro: "Usuário e senha obrigatórios." }), { status: 400 });
@@ -243,7 +251,13 @@ export async function processarUsuarios(request, env, ctx) {
         return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil FROM usuarios WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil, criado_por FROM usuarios WHERE id = ?`).bind(id).all();
+      if (alvo.length > 0 && !podeGerenciarUsuario(usuarioLogado, alvo[0])) {
+        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+      }
+      if (alvo.length > 0 && alvo[0].perfil === "superadmin" && !ehSuperadminRaiz(usuarioLogado)) {
+        return new Response(JSON.stringify({ erro: "Somente o administrador principal pode gerenciar outros administradores." }), { status: 403 });
+      }
       if (alvo.length === 0) {
         return new Response(JSON.stringify({ erro: "Usuário não encontrado." }), { status: 404 });
       }
@@ -263,6 +277,9 @@ export async function processarUsuarios(request, env, ctx) {
 
       if (dados.perfil) {
         const novoPerfil = dados.perfil === "superadmin" ? "superadmin" : "comum";
+        if (novoPerfil === "superadmin" && !ehSuperadminRaiz(usuarioLogado)) {
+          return new Response(JSON.stringify({ erro: "Somente o administrador principal pode conceder perfil de administrador." }), { status: 403 });
+        }
 
         // Impede remover o último superadmin do sistema (evitaria travar o painel pra sempre)
         if (alvo[0].perfil === "superadmin" && novoPerfil !== "superadmin") {
@@ -341,7 +358,13 @@ export async function processarUsuarios(request, env, ctx) {
         return new Response(JSON.stringify({ erro: "Você não pode desativar a própria conta." }), { status: 400 });
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil, ativo FROM usuarios WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil, ativo, criado_por FROM usuarios WHERE id = ?`).bind(id).all();
+      if (alvo.length > 0 && !podeGerenciarUsuario(usuarioLogado, alvo[0])) {
+        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+      }
+      if (alvo.length > 0 && alvo[0].perfil === "superadmin" && !ehSuperadminRaiz(usuarioLogado)) {
+        return new Response(JSON.stringify({ erro: "Somente o administrador principal pode gerenciar outros administradores." }), { status: 403 });
+      }
       if (alvo.length === 0) {
         return new Response(JSON.stringify({ erro: "Usuário não encontrado." }), { status: 404 });
       }
@@ -383,7 +406,13 @@ export async function processarUsuarios(request, env, ctx) {
         return new Response(JSON.stringify({ erro: "Você não pode excluir a própria conta enquanto está logado nela." }), { status: 400 });
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil FROM usuarios WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil, criado_por FROM usuarios WHERE id = ?`).bind(id).all();
+      if (alvo.length > 0 && !podeGerenciarUsuario(usuarioLogado, alvo[0])) {
+        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+      }
+      if (alvo.length > 0 && alvo[0].perfil === "superadmin" && !ehSuperadminRaiz(usuarioLogado)) {
+        return new Response(JSON.stringify({ erro: "Somente o administrador principal pode gerenciar outros administradores." }), { status: 403 });
+      }
       if (alvo.length === 0) {
         return new Response(JSON.stringify({ erro: "Usuário não encontrado." }), { status: 404 });
       }

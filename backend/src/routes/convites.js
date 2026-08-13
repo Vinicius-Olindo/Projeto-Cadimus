@@ -7,6 +7,10 @@ import { obterUsuarioDaSessao } from "../utils/sessao.js";
 const DURACAO_CONVITE_MS = 3 * 60 * 60 * 1000; // 3 horas
 const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
+function ehSuperadminRaiz(usuario) {
+  return Number(usuario.id) === 1;
+}
+
 export async function processarConvites(request, env, ctx) {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -79,7 +83,7 @@ export async function processarConvites(request, env, ctx) {
       return new Response(JSON.stringify({ erro: "Informe um e-mail válido." }), { status: 400 });
     }
 
-    const perfilFinal = perfil === "superadmin" ? "superadmin" : "comum";
+    const perfilFinal = perfil === "superadmin" && ehSuperadminRaiz(usuarioLogado) ? "superadmin" : "comum";
 
     try {
       // Verifica se já existe usuário com esse e-mail
@@ -136,6 +140,14 @@ export async function processarConvites(request, env, ctx) {
     }
 
     try {
+      const { results: alvo } = await env.DB.prepare(`SELECT criado_por FROM convites WHERE id = ?`).bind(id).all();
+      if (alvo.length === 0) {
+        return new Response(JSON.stringify({ erro: "Convite nÃ£o encontrado." }), { status: 404 });
+      }
+      if (!ehSuperadminRaiz(usuarioLogado) && Number(alvo[0].criado_por) !== Number(usuarioLogado.id)) {
+        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+      }
+
       await env.DB.prepare(`DELETE FROM convites WHERE id = ?`).bind(id).run();
       return new Response(JSON.stringify({ mensagem: "Convite removido." }), { status: 200 });
     } catch (erro) {
@@ -175,6 +187,10 @@ async function aceitarConvite(body, env) {
     }
 
     const convite = results[0];
+
+    if (convite.perfil === "superadmin" && Number(convite.criado_por) !== 1) {
+      return new Response(JSON.stringify({ erro: "Convite administrativo invÃ¡lido. Solicite um novo convite." }), { status: 403 });
+    }
 
     if (convite.usado_em) {
       return new Response(JSON.stringify({ erro: "Este convite já foi utilizado." }), { status: 410 });
