@@ -4,6 +4,31 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 
+async function calcularSaldoCarteira(env, carteiraId) {
+  const { results } = await env.DB.prepare(
+    `SELECT
+       (
+         SELECT COALESCE(SUM(CASE WHEN tipo = 'receita' THEN valor ELSE -valor END), 0)
+         FROM lancamentos
+         WHERE carteira_id = ? AND status = 'pago'
+       )
+       - (
+         SELECT COALESCE(SUM(valor), 0)
+         FROM transferencias
+         WHERE carteira_origem_id = ?
+       )
+       + (
+         SELECT COALESCE(SUM(valor), 0)
+         FROM transferencias
+         WHERE carteira_destino_id = ?
+       ) AS saldo`,
+  )
+    .bind(carteiraId, carteiraId, carteiraId)
+    .all();
+
+  return results[0]?.saldo || 0;
+}
+
 export async function processarTransferencias(request, env, ctx) {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -100,14 +125,9 @@ export async function processarTransferencias(request, env, ctx) {
         return new Response(JSON.stringify({ erro: "Acesso negado à carteira de destino." }), { status: 403 });
       }
 
-      // Verificar saldo da carteira de origem
-      const { results: saldoResult } = await env.DB.prepare(
-        `SELECT COALESCE(SUM(CASE WHEN tipo = 'receita' THEN valor ELSE 0 END), 0) -
-                COALESCE(SUM(CASE WHEN tipo = 'despesa' THEN valor ELSE 0 END), 0) AS saldo
-         FROM lancamentos WHERE carteira_id = ?`
-      ).bind(dados.carteira_origem_id).all();
-
-      const saldo = saldoResult[0]?.saldo || 0;
+      // Verificar saldo da carteira de origem considerando lançamentos pagos
+      // e transferências já realizadas.
+      const saldo = await calcularSaldoCarteira(env, dados.carteira_origem_id);
       if (saldo < dados.valor) {
         return new Response(JSON.stringify({ erro: "Saldo insuficiente na carteira de origem." }), { status: 400 });
       }
