@@ -1,4 +1,5 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 
 export async function processarCartoesCredito(request, env, ctx) {
   const url = new URL(request.url);
@@ -9,9 +10,18 @@ export async function processarCartoesCredito(request, env, ctx) {
     return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
   }
 
-  // GET /api/cartoes-credito — listar cartões do usuário
+  const carteirasPermitidas = await obterCarteirasDoUsuario(env, usuario.id);
+
+  // GET /api/cartoes-credito — listar cartões das carteiras permitidas
   if (method === "GET") {
     const carteiraId = url.searchParams.get("carteira_id");
+
+    if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
+      return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+    }
+    if (carteirasPermitidas.length === 0) {
+      return new Response(JSON.stringify([]), { status: 200 });
+    }
 
     let query = `SELECT c.*,
       (SELECT COUNT(*) FROM compras_parceladas cp
@@ -19,12 +29,15 @@ export async function processarCartoesCredito(request, env, ctx) {
       (SELECT COALESCE(SUM(cp.valor_parcela), 0) FROM compras_parceladas cp
        WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as gasto_atual
       FROM cartoes_credito c
-      WHERE c.criado_por = ? AND c.ativo = 1`;
-    const params = [usuario.id];
+      WHERE c.ativo = 1`;
+    const params = [];
 
     if (carteiraId) {
       query += ` AND c.carteira_id = ?`;
       params.push(Number(carteiraId));
+    } else {
+      query += ` AND c.carteira_id IN (${carteirasPermitidas.map(() => "?").join(",")})`;
+      params.push(...carteirasPermitidas);
     }
 
     query += ` ORDER BY c.nome`;
@@ -44,6 +57,10 @@ export async function processarCartoesCredito(request, env, ctx) {
 
     if (dia_fechamento < 1 || dia_fechamento > 31 || dia_vencimento < 1 || dia_vencimento > 31) {
       return new Response(JSON.stringify({ erro: "Dias devem estar entre 1 e 31." }), { status: 400 });
+    }
+
+    if (!carteirasPermitidas.includes(Number(carteira_id))) {
+      return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
     }
 
     const { success } = await env.DB.prepare(
@@ -69,6 +86,12 @@ export async function processarCartoesCredito(request, env, ctx) {
     const id = Number(url.searchParams.get("id"));
     if (!id) return new Response(JSON.stringify({ erro: "ID obrigatório." }), { status: 400 });
 
+    const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM cartoes_credito WHERE id = ? AND ativo = 1`).bind(id).all();
+    if (alvo.length === 0) return new Response(JSON.stringify({ erro: "Cartão não encontrado." }), { status: 404 });
+    if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
+      return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+    }
+
     const body = await request.json();
     const campos = [];
     const params = [];
@@ -82,9 +105,9 @@ export async function processarCartoesCredito(request, env, ctx) {
 
     if (campos.length === 0) return new Response(JSON.stringify({ erro: "Nenhum campo para atualizar." }), { status: 400 });
 
-    params.push(id, usuario.id);
+    params.push(id);
     await env.DB.prepare(
-      `UPDATE cartoes_credito SET ${campos.join(", ")} WHERE id = ? AND criado_por = ?`
+      `UPDATE cartoes_credito SET ${campos.join(", ")} WHERE id = ?`
     ).bind(...params).run();
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
@@ -95,9 +118,15 @@ export async function processarCartoesCredito(request, env, ctx) {
     const id = Number(url.searchParams.get("id"));
     if (!id) return new Response(JSON.stringify({ erro: "ID obrigatório." }), { status: 400 });
 
+    const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM cartoes_credito WHERE id = ? AND ativo = 1`).bind(id).all();
+    if (alvo.length === 0) return new Response(JSON.stringify({ erro: "Cartão não encontrado." }), { status: 404 });
+    if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
+      return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+    }
+
     await env.DB.prepare(
-      `UPDATE cartoes_credito SET ativo = 0 WHERE id = ? AND criado_por = ?`
-    ).bind(id, usuario.id).run();
+      `UPDATE cartoes_credito SET ativo = 0 WHERE id = ?`
+    ).bind(id).run();
 
     return new Response(JSON.stringify({ ok: true }), { status: 200 });
   }
