@@ -60,7 +60,7 @@ function tratarSessaoExpirada(resposta) {
   return false;
 }
 
-function formatarDataHora(dataISO) {
+function formatarDataHoraLegado(dataISO) {
   if (!dataISO) return "—";
   try {
     const normalizado = dataISO.replace(" ", "T");
@@ -2748,7 +2748,7 @@ function configurarModal() {
 // ==========================================
 
 // --- ANIMAÇÃO DE CONTAGEM (números "sobem" até o valor final) ---
-const formatadorBRL = new Intl.NumberFormat("pt-BR", { style: "currency", currency: "BRL" });
+const formatadorBRL = window.CadimusFormatadores.formatadorBRL;
 const valoresAnimadosAtuais = new WeakMap();
 
 function animarValorMonetario(elemento, valorFinal) {

@@ -26,10 +26,7 @@ function criarLinhaLancamento(lancamento) {
   div.setAttribute("data-id", lancamento.id);
 
   // Formata o valor para a moeda local (Real)
-  const valorFormatado = new Intl.NumberFormat("pt-BR", {
-    style: "currency",
-    currency: "BRL",
-  }).format(lancamento.valor);
+  const valorFormatado = formatarMoedaBRL(lancamento.valor);
 
   // Formata a data de compra para exibição brasileira
   const dataObjeto = new Date(lancamento.data_compra);
