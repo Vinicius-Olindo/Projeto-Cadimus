@@ -2,6 +2,7 @@
 // carteiras.js - Listagem e criação de carteiras (contas)
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 // Filtra e confirma no banco quais ids recebidos são de usuários que existem
 // de verdade (usado tanto na criação quanto na edição de membros).
@@ -112,6 +113,18 @@ export async function processarCarteiras(request, env, ctx) {
         await env.DB.prepare(`INSERT INTO usuarios_carteiras (usuario_id, carteira_id, papel) VALUES (?, ?, 'membro')`).bind(membroId, novaCarteiraId).run();
       }
 
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "carteira.criada",
+        entidade: "carteira",
+        entidadeId: novaCarteiraId,
+        carteiraId: novaCarteiraId,
+        metadata: {
+          tipo,
+          membros: membrosValidos.length,
+        },
+      });
+
       return new Response(JSON.stringify({ id: novaCarteiraId, nome, tipo }), { status: 201 });
     } catch (erro) {
       console.error("Erro:", erro);
@@ -164,6 +177,18 @@ export async function processarCarteiras(request, env, ctx) {
       for (const id of paraAdicionar) {
         await env.DB.prepare(`INSERT INTO usuarios_carteiras (usuario_id, carteira_id, papel) VALUES (?, ?, 'membro')`).bind(id, carteiraId).run();
       }
+
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "carteira.membros_atualizados",
+        entidade: "carteira",
+        entidadeId: Number(carteiraId),
+        carteiraId: Number(carteiraId),
+        metadata: {
+          adicionados: paraAdicionar.length,
+          removidos: paraRemover.length,
+        },
+      });
 
       return new Response(JSON.stringify({ mensagem: "Membros atualizados com sucesso!" }), { status: 200 });
     } catch (erro) {
@@ -221,6 +246,14 @@ export async function processarCarteiras(request, env, ctx) {
       }
 
       // Limpa tudo que referencia essa carteira antes de excluí-la
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "carteira.excluida",
+        entidade: "carteira",
+        entidadeId: Number(carteiraId),
+        carteiraId: Number(carteiraId),
+      });
+
       await env.DB.prepare(`DELETE FROM despesas_fixas WHERE carteira_id = ?`).bind(carteiraId).run();
       await env.DB.prepare(`DELETE FROM compras_parceladas WHERE carteira_id = ?`).bind(carteiraId).run();
       await env.DB.prepare(`DELETE FROM metas_categoria WHERE carteira_id = ?`).bind(carteiraId).run();

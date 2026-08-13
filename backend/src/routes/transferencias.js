@@ -3,6 +3,7 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 function dataISOValida(valor) {
   return typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor);
@@ -167,6 +168,17 @@ export async function processarTransferencias(request, env, ctx) {
         )
         .run();
 
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "transferencia.criada",
+        entidade: "transferencia",
+        entidadeId: resultado.meta?.last_row_id || null,
+        carteiraId: Number(dados.carteira_origem_id),
+        metadata: {
+          carteira_destino_id: Number(dados.carteira_destino_id),
+        },
+      });
+
       return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Transferência realizada com sucesso!" }), { status: 201 });
     } catch (erro) {
       console.error("Erro:", erro);
@@ -197,6 +209,17 @@ export async function processarTransferencias(request, env, ctx) {
       }
 
       await env.DB.prepare(`DELETE FROM transferencias WHERE id = ?`).bind(id).run();
+
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "transferencia.excluida",
+        entidade: "transferencia",
+        entidadeId: Number(id),
+        carteiraId: alvo[0].carteira_origem_id,
+        metadata: {
+          carteira_destino_id: alvo[0].carteira_destino_id,
+        },
+      });
 
       return new Response(JSON.stringify({ mensagem: "Transferência apagada." }), { status: 200 });
     } catch (erro) {

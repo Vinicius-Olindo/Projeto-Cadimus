@@ -3,6 +3,7 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 export async function processarMetas(request, env, ctx) {
   const metodo = request.method;
@@ -121,6 +122,24 @@ export async function processarMetas(request, env, ctx) {
         .bind(dados.carteira_id, categoria, valorLimite, dataLimite, usuarioLogado.id)
         .run();
 
+      const { results: metaSalva } = await env.DB.prepare(
+        `SELECT id FROM metas_categoria WHERE carteira_id = ? AND LOWER(categoria) = LOWER(?)`,
+      )
+        .bind(dados.carteira_id, categoria)
+        .all();
+
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "meta.salva",
+        entidade: "meta",
+        entidadeId: metaSalva[0]?.id || resultado.meta?.last_row_id || null,
+        carteiraId: Number(dados.carteira_id),
+        metadata: {
+          categoria,
+          tem_data_limite: Boolean(dataLimite),
+        },
+      });
+
       return new Response(JSON.stringify({ mensagem: "Meta salva com sucesso!" }), { status: 200 });
     } catch (erro) {
       console.error("Erro:", erro);
@@ -145,6 +164,14 @@ export async function processarMetas(request, env, ctx) {
       if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
         return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
       }
+
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "meta.excluida",
+        entidade: "meta",
+        entidadeId: Number(id),
+        carteiraId: alvo[0].carteira_id,
+      });
 
       await env.DB.prepare(`DELETE FROM meta_depositos WHERE meta_id = ?`).bind(id).run();
       await env.DB.prepare(`DELETE FROM metas_categoria WHERE id = ?`).bind(id).run();
@@ -239,6 +266,18 @@ export async function processarMetaDepositos(request, env, ctx) {
         .bind(metaId, valor, descricao, usuarioLogado.id)
         .run();
 
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "meta_deposito.criado",
+        entidade: "meta_deposito",
+        entidadeId: resultado.meta?.last_row_id || null,
+        carteiraId: meta[0].carteira_id,
+        metadata: {
+          meta_id: Number(metaId),
+          tem_descricao: Boolean(descricao),
+        },
+      });
+
       return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Depósito registrado!" }), { status: 201 });
     } catch (erro) {
       console.error("Erro:", erro);
@@ -270,6 +309,17 @@ export async function processarMetaDepositos(request, env, ctx) {
       }
 
       await env.DB.prepare(`DELETE FROM meta_depositos WHERE id = ?`).bind(id).run();
+
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "meta_deposito.excluido",
+        entidade: "meta_deposito",
+        entidadeId: Number(id),
+        carteiraId: deposito[0].carteira_id,
+        metadata: {
+          meta_id: deposito[0].meta_id,
+        },
+      });
 
       return new Response(JSON.stringify({ mensagem: "Depósito removido." }), { status: 200 });
     } catch (erro) {
