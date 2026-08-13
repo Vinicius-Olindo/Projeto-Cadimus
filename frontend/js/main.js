@@ -5818,6 +5818,13 @@ function configurarZonaDePerigo() {
 
   if (!btnAbrir || !modal || !btnFechar || !btnConfirmar || !campoConfirmacao) return;
 
+  btnAbrir.innerText = "Limpeza global desativada";
+  btnAbrir.title = "A limpeza global foi removida do fluxo normal por segurança.";
+  btnAbrir.addEventListener("click", async () => {
+    await mostrarAviso("A limpeza global de dados foi desativada por segurança. Para manutenção, use uma rotina administrativa isolada, com backup e auditoria.");
+  });
+  return;
+
   function fecharModalZerarDados() {
     modal.style.display = "none";
     liberarFoco();

@@ -18,6 +18,9 @@ export async function processarLimpezaDados(request, env, ctx) {
   if (usuarioLogado.perfil !== "superadmin") {
     return new Response(JSON.stringify({ erro: "Acesso restrito a administradores." }), { status: 403 });
   }
+  if (env.PERMITE_ZERAR_DADOS_GLOBAIS !== "true") {
+    return new Response(JSON.stringify({ erro: "A limpeza global de dados está desativada no produto. Use uma rotina administrativa isolada e com backup para manutenção." }), { status: 403 });
+  }
 
   try {
     const dados = await request.json().catch(() => ({}));
