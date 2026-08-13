@@ -1808,8 +1808,14 @@ function configurarModalComprasParceladas() {
       return;
     }
 
-    const valorParcela = total / parcelas;
-    preview.textContent = `= ${parcelas}x de ${formatadorBRL.format(valorParcela)}`;
+    const totalCentavos = Math.round(total * 100);
+    const centavosBase = Math.floor(totalCentavos / parcelas);
+    const centavosUltima = totalCentavos - centavosBase * (parcelas - 1);
+    const valorParcela = centavosBase / 100;
+    const valorUltimaParcela = centavosUltima / 100;
+    preview.textContent = valorParcela === valorUltimaParcela
+      ? `= ${parcelas}x de ${formatadorBRL.format(valorParcela)}`
+      : `= ${parcelas - 1}x de ${formatadorBRL.format(valorParcela)} + 1x de ${formatadorBRL.format(valorUltimaParcela)}`;
     preview.style.display = "block";
   }
 
@@ -1841,14 +1847,15 @@ function configurarModalComprasParceladas() {
 
       const valorTotal = parseFloat(campoValorTotal.value);
       const totalParcelas = parseInt(campoTotalParcelas.value, 10);
-      // O valor de cada parcela é calculado aqui (total ÷ parcelas); o backend guarda
-      // um valor fixo por parcela, então pode sobrar/faltar poucos centavos no total
-      // exato — é a mesma simplificação que a maioria dos apps de finanças faz.
-      const valorParcela = Math.round((valorTotal / totalParcelas) * 100) / 100;
+      // O backend recebe o valor total e distribui os centavos, deixando a
+      // última parcela ajustar qualquer diferença de arredondamento.
+      const totalCentavos = Math.round(valorTotal * 100);
+      const valorParcela = Math.floor(totalCentavos / totalParcelas) / 100;
 
       const corpo = {
         carteira_id: carteiraId,
         descricao: document.getElementById("parcelada-descricao").value.trim(),
+        valor_total: valorTotal,
         valor_parcela: valorParcela,
         total_parcelas: totalParcelas,
         dia_vencimento: parseInt(document.getElementById("parcelada-dia").value, 10),

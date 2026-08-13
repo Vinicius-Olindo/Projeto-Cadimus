@@ -64,17 +64,27 @@ export async function processarComprasParceladas(request, env, ctx) {
       }
 
       const descricao = (dados.descricao || "").trim();
-      const valorParcela = parseFloat(dados.valor_parcela);
       const diaVencimento = parseInt(dados.dia_vencimento, 10);
       const totalParcelas = parseInt(dados.total_parcelas, 10);
       const anoInicio = parseInt(dados.ano_inicio, 10);
       const mesInicio = parseInt(dados.mes_inicio, 10);
+      const valorTotalInformado = parseFloat(dados.valor_total);
+      const valorParcelaInformado = parseFloat(dados.valor_parcela);
+      const valorTotal = Number.isFinite(valorTotalInformado)
+        ? valorTotalInformado
+        : valorParcelaInformado * totalParcelas;
+      const valorParcela = Number.isFinite(valorTotal) && totalParcelas > 0
+        ? Math.floor(Math.round(valorTotal * 100) / totalParcelas) / 100
+        : valorParcelaInformado;
 
       if (!descricao) {
         return new Response(JSON.stringify({ erro: "Informe uma descrição." }), { status: 400 });
       }
+      if (!Number.isFinite(valorTotal) || valorTotal <= 0) {
+        return new Response(JSON.stringify({ erro: "Informe o valor total da compra." }), { status: 400 });
+      }
       if (!Number.isFinite(valorParcela) || valorParcela <= 0) {
-        return new Response(JSON.stringify({ erro: "Informe o valor da parcela." }), { status: 400 });
+        return new Response(JSON.stringify({ erro: "Valor de parcela inválido." }), { status: 400 });
       }
       if (!Number.isInteger(diaVencimento) || diaVencimento < 1 || diaVencimento > 28) {
         return new Response(JSON.stringify({ erro: "Escolha um dia de vencimento entre 1 e 28." }), { status: 400 });
@@ -97,10 +107,10 @@ export async function processarComprasParceladas(request, env, ctx) {
 
       const resultado = await env.DB.prepare(
         `INSERT INTO compras_parceladas
-         (carteira_id, descricao, valor_parcela, categoria, meio_pagamento, dia_vencimento, total_parcelas, ano_inicio, mes_inicio, criado_por)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (carteira_id, descricao, valor_total, valor_parcela, categoria, meio_pagamento, dia_vencimento, total_parcelas, ano_inicio, mes_inicio, criado_por)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-        .bind(dados.carteira_id, descricao, valorParcela, dados.categoria, dados.meio_pagamento, diaVencimento, totalParcelas, anoInicio, mesInicio, usuarioLogado.id)
+        .bind(dados.carteira_id, descricao, valorTotal, valorParcela, dados.categoria, dados.meio_pagamento, diaVencimento, totalParcelas, anoInicio, mesInicio, usuarioLogado.id)
         .run();
 
       // Gera todas as N parcelas de uma vez (inclusive as de meses futuros) — diferente da
