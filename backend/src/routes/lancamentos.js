@@ -6,6 +6,7 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { gerarLancamentosFixosDoMes } from "../utils/despesasFixas.js";
 import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.js";
+import { registrarAuditoria } from "../utils/auditoria.js";
 
 export async function processarLancamentos(request, env, ctx) {
   const metodo = request.method;
@@ -127,7 +128,7 @@ export async function processarLancamentos(request, env, ctx) {
                 (descricao, valor, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, nota)
                 VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
-      await env.DB.prepare(query)
+      const insertResult = await env.DB.prepare(query)
         .bind(
           dados.descricao,
           dados.valor,
@@ -141,6 +142,19 @@ export async function processarLancamentos(request, env, ctx) {
           dados.nota || "",
         )
         .run();
+
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "lancamento.criado",
+        entidade: "lancamento",
+        entidadeId: insertResult.meta?.last_row_id || null,
+        carteiraId: Number(dados.carteira_id),
+        metadata: {
+          tipo: dados.tipo || null,
+          status: dados.status || null,
+          categoria: dados.categoria || null,
+        },
+      });
 
       return new Response(JSON.stringify({ mensagem: "Salvo com sucesso!" }), { status: 201 });
     } catch (erro) {
@@ -211,6 +225,17 @@ export async function processarLancamentos(request, env, ctx) {
         .bind(...valores)
         .run();
 
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "lancamento.atualizado",
+        entidade: "lancamento",
+        entidadeId: Number(id),
+        carteiraId: alvo[0].carteira_id,
+        metadata: {
+          campos: camposEnviados,
+        },
+      });
+
       return new Response(JSON.stringify({ mensagem: "Atualizado com sucesso." }), { status: 200 });
     } catch (erro) {
       console.error("Erro:", erro);
@@ -242,6 +267,14 @@ export async function processarLancamentos(request, env, ctx) {
       }
 
       await env.DB.prepare(`DELETE FROM lancamentos WHERE id = ?`).bind(idParaApagar).run();
+
+      await registrarAuditoria(env, {
+        usuarioId: usuarioLogado.id,
+        acao: "lancamento.excluido",
+        entidade: "lancamento",
+        entidadeId: Number(idParaApagar),
+        carteiraId: results[0].carteira_id,
+      });
 
       return new Response(JSON.stringify({ mensagem: "Lançamento apagado." }), { status: 200 });
     } catch (erro) {
@@ -315,6 +348,20 @@ export async function processarLancamentos(request, env, ctx) {
         valores.push(id);
         await env.DB.prepare(`UPDATE lancamentos SET ${campos.join(", ")} WHERE id = ?`).bind(...valores).run();
         atualizados++;
+      }
+
+      if (atualizados > 0) {
+        await registrarAuditoria(env, {
+          usuarioId: usuarioLogado.id,
+          acao: "lancamento.lote_atualizado",
+          entidade: "lancamento",
+          metadata: {
+            ids,
+            status: status || null,
+            categoria: categoria || null,
+            atualizados,
+          },
+        });
       }
 
       return new Response(JSON.stringify({ mensagem: `${atualizados} lançamento(s) atualizado(s).` }), { status: 200 });
