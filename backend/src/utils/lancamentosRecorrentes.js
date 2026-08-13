@@ -2,43 +2,89 @@
 // lancamentosRecorrentes.js (utils) - Geração automática de lançamentos recorrentes
 // ==========================================
 
-/**
- * Calcula a próxima data de ocorrência baseado na frequência
- */
-function calcularProximaData(dataAtual, frequencia, diaSemana, diaMes) {
-  const data = new Date(dataAtual + "T12:00:00");
+function dataIso(ano, mes, dia) {
+  return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+}
 
-  switch (frequencia) {
-    case "semanal": {
-      data.setDate(data.getDate() + 7);
-      return data.toISOString().slice(0, 10);
+function ultimoDiaDoMes(ano, mes) {
+  return new Date(ano, mes, 0).getDate();
+}
+
+function somarDias(dataStr, dias) {
+  const data = new Date(`${dataStr}T12:00:00`);
+  data.setDate(data.getDate() + dias);
+  return data.toISOString().slice(0, 10);
+}
+
+function ajustarInicioSemanal(rec) {
+  const diaSemana = Number(rec.dia_semana);
+  if (!Number.isInteger(diaSemana) || diaSemana < 0 || diaSemana > 6) return rec.data_inicio;
+
+  const data = new Date(`${rec.data_inicio}T12:00:00`);
+  const delta = (diaSemana - data.getDay() + 7) % 7;
+  data.setDate(data.getDate() + delta);
+  return data.toISOString().slice(0, 10);
+}
+
+function diferencaMeses(inicio, anoAlvo, mesAlvo) {
+  const anoInicio = Number(inicio.slice(0, 4));
+  const mesInicio = Number(inicio.slice(5, 7));
+  return (anoAlvo - anoInicio) * 12 + (mesAlvo - mesInicio);
+}
+
+function ocorrenciaMensal(rec, ano, mes, intervaloMeses) {
+  const diff = diferencaMeses(rec.data_inicio, ano, mes);
+  if (diff < 0 || diff % intervaloMeses !== 0) return [];
+
+  const diaBase = rec.dia_mes || Number(rec.data_inicio.slice(8, 10)) || 1;
+  const dia = Math.min(Math.max(diaBase, 1), 28);
+  const data = dataIso(ano, mes, dia);
+
+  if (data < rec.data_inicio) return [];
+  if (rec.data_fim && data > rec.data_fim) return [];
+
+  return [data];
+}
+
+function ocorrenciasPorIntervaloDeDias(rec, ano, mes, intervaloDias, dataInicial = rec.data_inicio) {
+  const inicioMes = dataIso(ano, mes, 1);
+  const fimMes = dataIso(ano, mes, ultimoDiaDoMes(ano, mes));
+  const ocorrencias = [];
+
+  let data = dataInicial;
+  while (data <= fimMes) {
+    if (data >= inicioMes && (!rec.data_fim || data <= rec.data_fim)) {
+      ocorrencias.push(data);
     }
-    case "quinzenal": {
-      data.setDate(data.getDate() + 14);
-      return data.toISOString().slice(0, 10);
-    }
-    case "mensal": {
-      data.setMonth(data.getMonth() + 1);
-      if (diaMes) data.setDate(Math.min(diaMes, 28));
-      return data.toISOString().slice(0, 10);
-    }
-    case "trimestral": {
-      data.setMonth(data.getMonth() + 3);
-      if (diaMes) data.setDate(Math.min(diaMes, 28));
-      return data.toISOString().slice(0, 10);
-    }
-    case "anual": {
-      data.setFullYear(data.getFullYear() + 1);
-      if (diaMes) data.setDate(Math.min(diaMes, 28));
-      return data.toISOString().slice(0, 10);
-    }
+    data = somarDias(data, intervaloDias);
+  }
+
+  return ocorrencias;
+}
+
+function obterOcorrenciasDoMes(rec, ano, mes) {
+  if (rec.data_inicio > dataIso(ano, mes, ultimoDiaDoMes(ano, mes))) return [];
+  if (rec.data_fim && rec.data_fim < dataIso(ano, mes, 1)) return [];
+
+  switch (rec.frequencia) {
+    case "semanal":
+      return ocorrenciasPorIntervaloDeDias(rec, ano, mes, 7, ajustarInicioSemanal(rec));
+    case "quinzenal":
+      return ocorrenciasPorIntervaloDeDias(rec, ano, mes, 14);
+    case "mensal":
+      return ocorrenciaMensal(rec, ano, mes, 1);
+    case "trimestral":
+      return ocorrenciaMensal(rec, ano, mes, 3);
+    case "anual":
+      return ocorrenciaMensal(rec, ano, mes, 12);
     default:
-      return data.toISOString().slice(0, 10);
+      return [];
   }
 }
 
 /**
- * Para cada recorrência ativa, garante que exista um lançamento para o mês/ano pedido.
+ * Para cada recorrência ativa, garante que todos os lançamentos esperados do
+ * mês consultado existam. A idempotência é por recorrência + data exata.
  */
 export async function gerarLancamentosRecorrentesDoMes(env, carteiraIds, ano, mes) {
   const anoNum = Number(ano);
@@ -53,58 +99,25 @@ export async function gerarLancamentosRecorrentesDoMes(env, carteiraIds, ano, me
 
   if (recorrentes.length === 0) return;
 
-  const chaveMes = `${anoNum}-${String(mesNum).padStart(2, "0")}`;
-
   for (const rec of recorrentes) {
-    // Verifica se a data de início é anterior ou igual ao mês consultado
-    if (rec.data_inicio > `${chaveMes}-31`) continue;
+    const ocorrencias = obterOcorrenciasDoMes(rec, anoNum, mesNum);
+    if (ocorrencias.length === 0) continue;
 
-    // Verifica se já passou da data fim
-    if (rec.data_fim && rec.data_fim < `${chaveMes}-01`) continue;
+    for (const dataCompra of ocorrencias) {
+      const { results: existente } = await env.DB.prepare(
+        `SELECT id FROM lancamentos WHERE recorrencia_id = ? AND data_compra = ?`,
+      )
+        .bind(rec.id, dataCompra)
+        .all();
 
-    // Calcula a próxima data esperada
-    const proximaData = calcularProximaData(rec.data_inicio, rec.frequencia, rec.dia_semana, rec.dia_mes);
-    const proximoMes = proximaData.slice(0, 7);
+      if (existente.length > 0) continue;
 
-    // Se o próximo mês não é o mês consultado, pula
-    // Para frequências como semanal/quinzenal, pode haver múltiplas ocorrências no mesmo mês
-    // Nesse caso, verificamos se alguma ocorrência cai neste mês
-    let deveGerar = false;
-
-    if (rec.frequencia === "mensal" || rec.frequencia === "trimestral" || rec.frequencia === "anual") {
-      deveGerar = proximoMes === chaveMes;
-    } else {
-      // Para semanal e quinzenal, verifica se alguma ocorrência cai neste mês
-      let dataVerificacao = rec.data_inicio;
-      while (dataVerificacao <= `${chaveMes}-31`) {
-        if (dataVerificacao >= `${chaveMes}-01` && dataVerificacao <= `${chaveMes}-31`) {
-          deveGerar = true;
-          break;
-        }
-        dataVerificacao = calcularProximaData(dataVerificacao, rec.frequencia, rec.dia_semana, rec.dia_mes);
-      }
+      await env.DB.prepare(
+        `INSERT INTO lancamentos (descricao, valor, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, recorrencia_id)
+         VALUES (?, ?, ?, ?, ?, ?, 'pendente', ?, ?, ?)`,
+      )
+        .bind(rec.descricao, rec.valor, dataCompra, rec.tipo, rec.categoria, rec.meio_pagamento, rec.carteira_id, rec.criado_por, rec.id)
+        .run();
     }
-
-    if (!deveGerar) continue;
-
-    // Verifica se já existe lançamento para esta recorrência neste mês
-    const { results: existente } = await env.DB.prepare(
-      `SELECT id FROM lancamentos WHERE recorrencia_id = ? AND strftime('%Y-%m', data_compra) = ?`,
-    )
-      .bind(rec.id, chaveMes)
-      .all();
-
-    if (existente.length > 0) continue;
-
-    // Gera o lançamento
-    const diaSeguro = rec.dia_mes ? Math.min(Math.max(rec.dia_mes, 1), 28) : 1;
-    const dataCompra = `${chaveMes}-${String(diaSeguro).padStart(2, "0")}`;
-
-    await env.DB.prepare(
-      `INSERT INTO lancamentos (descricao, valor, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, recorrencia_id)
-       VALUES (?, ?, ?, ?, ?, ?, 'pendente', ?, ?, ?)`,
-    )
-      .bind(rec.descricao, rec.valor, dataCompra, rec.tipo, rec.categoria, rec.meio_pagamento, rec.carteira_id, rec.criado_por, rec.id)
-      .run();
   }
 }
