@@ -4,6 +4,10 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 
+function dataISOValida(valor) {
+  return typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor);
+}
+
 async function calcularSaldoCarteira(env, carteiraId) {
   const { results } = await env.DB.prepare(
     `SELECT
@@ -46,6 +50,8 @@ export async function processarTransferencias(request, env, ctx) {
       const mes = url.searchParams.get("mes");
       const ano = url.searchParams.get("ano");
       const carteiraId = url.searchParams.get("carteira_id");
+      const dataInicio = url.searchParams.get("data_inicio");
+      const dataFim = url.searchParams.get("data_fim");
 
       let query = `
         SELECT t.*,
@@ -78,6 +84,22 @@ export async function processarTransferencias(request, env, ctx) {
       if (mes && ano) {
         query += ` AND strftime('%m', t.data_transferencia) = ? AND strftime('%Y', t.data_transferencia) = ?`;
         params.push(mes.padStart(2, "0"), ano);
+      }
+
+      if (dataInicio) {
+        if (!dataISOValida(dataInicio)) {
+          return new Response(JSON.stringify({ erro: "data_inicio invÃ¡lida." }), { status: 400 });
+        }
+        query += ` AND t.data_transferencia >= ?`;
+        params.push(dataInicio);
+      }
+
+      if (dataFim) {
+        if (!dataISOValida(dataFim)) {
+          return new Response(JSON.stringify({ erro: "data_fim invÃ¡lida." }), { status: 400 });
+        }
+        query += ` AND t.data_transferencia <= ?`;
+        params.push(dataFim);
       }
 
       query += ` ORDER BY t.data_transferencia DESC`;

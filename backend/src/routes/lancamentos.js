@@ -8,6 +8,32 @@ import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
 
+function dataISOValida(valor) {
+  return typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor);
+}
+
+async function gerarLancamentosDoPeriodo(env, carteirasAlvo, dataInicio, dataFim) {
+  if (!dataISOValida(dataInicio) || !dataISOValida(dataFim)) return;
+
+  const inicio = new Date(`${dataInicio}T12:00:00`);
+  const fim = new Date(`${dataFim}T12:00:00`);
+  if (Number.isNaN(inicio.getTime()) || Number.isNaN(fim.getTime()) || inicio > fim) return;
+
+  const cursor = new Date(inicio.getFullYear(), inicio.getMonth(), 1);
+  const limite = new Date(fim.getFullYear(), fim.getMonth(), 1);
+  let mesesProcessados = 0;
+
+  while (cursor <= limite && mesesProcessados < 24) {
+    const ano = String(cursor.getFullYear());
+    const mes = String(cursor.getMonth() + 1).padStart(2, "0");
+    await gerarLancamentosFixosDoMes(env, carteirasAlvo, ano, mes);
+    await gerarLancamentosParceladosDoMes(env, carteirasAlvo, ano, mes);
+    await gerarLancamentosRecorrentesDoMes(env, carteirasAlvo, ano, mes);
+    cursor.setMonth(cursor.getMonth() + 1);
+    mesesProcessados++;
+  }
+}
+
 export async function processarLancamentos(request, env, ctx) {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -29,6 +55,11 @@ export async function processarLancamentos(request, env, ctx) {
       const mes = url.searchParams.get("mes");
       const ano = url.searchParams.get("ano");
       const carteiraId = url.searchParams.get("carteira_id");
+      const dataInicio = url.searchParams.get("data_inicio");
+      const dataFim = url.searchParams.get("data_fim");
+      const categoria = url.searchParams.get("categoria");
+      const tipo = url.searchParams.get("tipo");
+      const status = url.searchParams.get("status");
 
       if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
         return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
@@ -48,6 +79,9 @@ export async function processarLancamentos(request, env, ctx) {
         await gerarLancamentosFixosDoMes(env, carteirasAlvo, ano, mes);
         await gerarLancamentosParceladosDoMes(env, carteirasAlvo, ano, mes);
         await gerarLancamentosRecorrentesDoMes(env, carteirasAlvo, ano, mes);
+      } else if (dataInicio && dataFim && !despesaFixaId && !compraParceladaId && !recorrenciaId) {
+        const carteirasAlvo = carteiraId ? [Number(carteiraId)] : carteirasPermitidas;
+        await gerarLancamentosDoPeriodo(env, carteirasAlvo, dataInicio, dataFim);
       }
 
       let query = `
@@ -70,6 +104,37 @@ export async function processarLancamentos(request, env, ctx) {
       if (mes && ano) {
         query += ` AND strftime('%m', l.data_compra) = ? AND strftime('%Y', l.data_compra) = ?`;
         params.push(mes.padStart(2, "0"), ano);
+      }
+
+      if (dataInicio) {
+        if (!dataISOValida(dataInicio)) {
+          return new Response(JSON.stringify({ erro: "data_inicio invÃ¡lida." }), { status: 400 });
+        }
+        query += ` AND l.data_compra >= ?`;
+        params.push(dataInicio);
+      }
+
+      if (dataFim) {
+        if (!dataISOValida(dataFim)) {
+          return new Response(JSON.stringify({ erro: "data_fim invÃ¡lida." }), { status: 400 });
+        }
+        query += ` AND l.data_compra <= ?`;
+        params.push(dataFim);
+      }
+
+      if (categoria) {
+        query += ` AND LOWER(l.categoria) = LOWER(?)`;
+        params.push(categoria);
+      }
+
+      if (tipo) {
+        query += ` AND l.tipo = ?`;
+        params.push(tipo);
+      }
+
+      if (status) {
+        query += ` AND l.status = ?`;
+        params.push(status);
       }
 
       if (despesaFixaId) {
