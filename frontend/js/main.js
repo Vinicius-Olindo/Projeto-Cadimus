@@ -914,6 +914,7 @@ function configurarModalTransferencia() {
       const valor = parseFloat(document.getElementById("transferencia-valor").value);
       const data = document.getElementById("transferencia-data").value;
       const descricao = document.getElementById("transferencia-descricao").value.trim();
+      const idempotencyKey = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
 
       // Validações locais
       if (!origemId || !destinoId) {
@@ -940,6 +941,7 @@ function configurarModalTransferencia() {
           carteira_origem_id: origemId,
           carteira_destino_id: destinoId,
           descricao,
+          idempotency_key: idempotencyKey,
         }),
       });
 

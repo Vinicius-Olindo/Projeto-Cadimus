@@ -33,18 +33,14 @@ export async function processarTransferencias(request, env, ctx) {
   const metodo = request.method;
   const url = new URL(request.url);
 
-  // Toda operação exige login
   const usuarioLogado = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuarioLogado) {
     return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
   }
 
-  // Só pode operar nas carteiras às quais tem acesso
   const carteirasPermitidas = await obterCarteirasDoUsuario(env, usuarioLogado.id);
 
-  // ==========================================
-  // 1. BUSCAR TRANSFERÊNCIAS (GET)
-  // ==========================================
+  // 1. Buscar transferências
   if (metodo === "GET") {
     try {
       const mes = url.searchParams.get("mes");
@@ -64,7 +60,6 @@ export async function processarTransferencias(request, env, ctx) {
       `;
       const params = [];
 
-      // Filtrar por carteira (origem OU destino)
       if (carteiraId) {
         if (!carteirasPermitidas.includes(Number(carteiraId))) {
           return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
@@ -72,7 +67,6 @@ export async function processarTransferencias(request, env, ctx) {
         query += ` AND (t.carteira_origem_id = ? OR t.carteira_destino_id = ?)`;
         params.push(carteiraId, carteiraId);
       } else {
-        // Filtrar pelas carteiras do usuário
         if (carteirasPermitidas.length === 0) {
           return new Response(JSON.stringify([]), { status: 200 });
         }
@@ -81,7 +75,6 @@ export async function processarTransferencias(request, env, ctx) {
         params.push(...carteirasPermitidas, ...carteirasPermitidas);
       }
 
-      // Filtrar por mês/ano
       if (mes && ano) {
         query += ` AND strftime('%m', t.data_transferencia) = ? AND strftime('%Y', t.data_transferencia) = ?`;
         params.push(mes.padStart(2, "0"), ano);
@@ -97,90 +90,86 @@ export async function processarTransferencias(request, env, ctx) {
     }
   }
 
-  // ==========================================
-  // 2. CRIAR TRANSFERÊNCIA (POST)
-  // ==========================================
+  // 2. Criar transferência
   if (metodo === "POST") {
     try {
       const dados = await request.json();
+      const idempotencyKey = typeof dados.idempotency_key === "string" ? dados.idempotency_key.trim() : "";
 
-      // Validações
       if (!dados.valor || dados.valor <= 0) {
         return new Response(JSON.stringify({ erro: "Valor inválido." }), { status: 400 });
       }
-
       if (!dados.carteira_origem_id || !dados.carteira_destino_id) {
         return new Response(JSON.stringify({ erro: "Selecione as carteiras de origem e destino." }), { status: 400 });
       }
-
       if (dados.carteira_origem_id === dados.carteira_destino_id) {
         return new Response(JSON.stringify({ erro: "As carteiras de origem e destino devem ser diferentes." }), { status: 400 });
       }
-
       if (!carteirasPermitidas.includes(Number(dados.carteira_origem_id))) {
         return new Response(JSON.stringify({ erro: "Acesso negado à carteira de origem." }), { status: 403 });
       }
-
       if (!carteirasPermitidas.includes(Number(dados.carteira_destino_id))) {
         return new Response(JSON.stringify({ erro: "Acesso negado à carteira de destino." }), { status: 403 });
       }
 
-      // Verificar saldo da carteira de origem considerando lançamentos pagos
-      // e transferências já realizadas.
+      if (idempotencyKey) {
+        const { results: existente } = await env.DB.prepare(
+          `SELECT id FROM transferencias WHERE idempotency_key = ? AND criado_por = ?`,
+        )
+          .bind(idempotencyKey, usuarioLogado.id)
+          .all();
+
+        if (existente.length > 0) {
+          return new Response(JSON.stringify({ id: existente[0].id, mensagem: "Transferência já registrada.", idempotente: true }), { status: 200 });
+        }
+      }
+
       const saldo = await calcularSaldoCarteira(env, dados.carteira_origem_id);
       if (saldo < dados.valor) {
         return new Response(JSON.stringify({ erro: "Saldo insuficiente na carteira de origem." }), { status: 400 });
       }
 
-      // Inserir a transferência (não cria lançamentos — é um registro próprio)
-      const query = `
-        INSERT INTO transferencias (valor, data_transferencia, carteira_origem_id, carteira_destino_id, descricao, criado_por)
-        VALUES (?, ?, ?, ?, ?, ?)
-      `;
-      await env.DB.prepare(query)
+      const resultado = await env.DB.prepare(
+        `INSERT INTO transferencias
+         (valor, data_transferencia, carteira_origem_id, carteira_destino_id, descricao, criado_por, idempotency_key)
+         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+      )
         .bind(
           dados.valor,
           dados.data_transferencia || new Date().toISOString().split("T")[0],
           dados.carteira_origem_id,
           dados.carteira_destino_id,
           dados.descricao || "",
-          usuarioLogado.id
+          usuarioLogado.id,
+          idempotencyKey || null,
         )
         .run();
 
-      return new Response(JSON.stringify({ mensagem: "Transferência realizada com sucesso!" }), { status: 201 });
+      return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Transferência realizada com sucesso!" }), { status: 201 });
     } catch (erro) {
       console.error("Erro:", erro);
       return new Response(JSON.stringify({ erro: "Erro ao criar transferência." }), { status: 500 });
     }
   }
 
-  // ==========================================
-  // 3. APAGAR TRANSFERÊNCIA (DELETE)
-  // ==========================================
+  // 3. Apagar transferência
   if (metodo === "DELETE") {
     try {
       const id = url.searchParams.get("id");
-
       if (!id) {
         return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
       }
 
-      // Verificar se a transferência existe e o usuário tem acesso
       const { results: alvo } = await env.DB.prepare(
-        `SELECT carteira_origem_id, carteira_destino_id, criado_por FROM transferencias WHERE id = ?`
+        `SELECT carteira_origem_id, carteira_destino_id, criado_por FROM transferencias WHERE id = ?`,
       ).bind(id).all();
 
       if (alvo.length === 0) {
         return new Response(JSON.stringify({ erro: "Transferência não encontrada." }), { status: 404 });
       }
-
-      // Verificar permissão: só quem criou ou superadmin pode apagar
       if (alvo[0].criado_por !== usuarioLogado.id && usuarioLogado.perfil !== "superadmin") {
         return new Response(JSON.stringify({ erro: "Só quem realizou (ou um administrador) pode excluir esta transferência." }), { status: 403 });
       }
-
-      // Verificar acesso às carteiras
       if (!carteirasPermitidas.includes(alvo[0].carteira_origem_id) || !carteirasPermitidas.includes(alvo[0].carteira_destino_id)) {
         return new Response(JSON.stringify({ erro: "Acesso negado a uma das carteiras." }), { status: 403 });
       }
