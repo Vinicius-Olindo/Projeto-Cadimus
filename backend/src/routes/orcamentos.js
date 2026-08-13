@@ -39,14 +39,14 @@ export async function processarOrcamentos(request, env, ctx) {
                COALESCE(gasto.total_gasto, 0) AS total_gasto
         FROM orcamentos o
         LEFT JOIN (
-          SELECT categoria, SUM(valor) AS total_gasto
+          SELECT carteira_id, LOWER(categoria) AS categoria_normalizada, SUM(valor) AS total_gasto
           FROM lancamentos
           WHERE tipo = 'despesa'
             AND status = 'pago'
             AND strftime('%m', data_compra) = ?
             AND strftime('%Y', data_compra) = ?
-          GROUP BY categoria
-        ) gasto ON LOWER(gasto.categoria) = LOWER(o.categoria)
+          GROUP BY carteira_id, LOWER(categoria)
+        ) gasto ON gasto.carteira_id = o.carteira_id AND gasto.categoria_normalizada = LOWER(o.categoria)
         WHERE o.mes = ? AND o.ano = ?
       `;
       const params = [mes.padStart(2, "0"), ano, mes, ano];
