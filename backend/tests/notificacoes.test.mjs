@@ -175,3 +175,78 @@ test("marcar notificacoes como lidas altera apenas notificacoes do usuario", asy
   assert.deepEqual(await res.json(), { ok: true });
   assert.deepEqual(updateArgs, [1]);
 });
+
+test("gerar notificacoes automaticas cria alertas de vencimentos e metas das carteiras permitidas", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersBase([
+    {
+      type: "all",
+      match: "SELECT * FROM despesas_fixas WHERE ativo = 1",
+      reply: () => [{
+        id: 11,
+        carteira_id: 10,
+        descricao: "Internet",
+        dia_vencimento: 14,
+        valor_centavos: 9990,
+      }],
+    },
+    {
+      type: "all",
+      match: "SELECT * FROM compras_parceladas WHERE ativo = 1",
+      reply: () => [{
+        id: 12,
+        carteira_id: 10,
+        descricao: "Notebook",
+        dia_vencimento: 16,
+        valor_parcela_centavos: 33333,
+      }],
+    },
+    {
+      type: "all",
+      match: "SELECT * FROM lancamentos WHERE status != 'pago'",
+      reply: () => [{
+        id: 13,
+        carteira_id: 10,
+        descricao: "Mercado",
+        data_compra: "2026-08-13",
+        valor_centavos: 12345,
+      }],
+    },
+    {
+      type: "all",
+      match: "FROM metas_categoria m",
+      reply: () => [{
+        id: 14,
+        carteira_id: 10,
+        categoria: "Reserva",
+        data_limite: "2026-08-20",
+        valor_limite_centavos: 100000,
+        depositado_centavos: 25000,
+      }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO notificacoes",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarNotificacoes(
+    request("POST", "https://cadimus.test/api/notificacoes/gerar", {
+      data_referencia: "2026-08-14",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 200);
+  assert.deepEqual(await res.json(), { geradas: 4 });
+  assert.deepEqual(inserts.map((args) => args[2]), ["fixa", "parcelada", "lancamento", "meta"]);
+  assert.ok(inserts.every((args) => args[0] === 1));
+  assert.ok(inserts.every((args) => args[1] === 10));
+  assert.ok(inserts.some((args) => args[9] === "despesa_fixa:11:vencimento:2026-08"));
+  assert.ok(inserts.some((args) => args[9] === "meta:14:prazo:2026-08-20"));
+});

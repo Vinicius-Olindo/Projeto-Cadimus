@@ -3195,6 +3195,16 @@ async function buscarNotificacoesPersistidas(status = "nao_lida") {
   return resposta.json();
 }
 
+async function gerarNotificacoesAutomaticas() {
+  const resposta = await fetch(`${API_URL}/api/notificacoes/gerar`, {
+    method: "POST",
+    headers: headersAutenticados(),
+    body: JSON.stringify({}),
+  });
+  if (!resposta.ok) throw new Error("Falha ao gerar notificacoes.");
+  return resposta.json();
+}
+
 function renderizarListaNotificacoesPersistidas(notificacoes, resumo = {}) {
   const badge = document.getElementById("notificacao-badge");
   const lista = document.getElementById("lista-notificacoes");
@@ -3234,18 +3244,19 @@ async function renderizarNotificacoes() {
   if (lista) lista.innerHTML = '<div class="notificacao-vazio">Carregando notificaÃ§Ãµes...</div>';
 
   try {
-    await sincronizarNotificacoesLocais();
+    await gerarNotificacoesAutomaticas();
     const dados = await buscarNotificacoesPersistidas("todas");
     renderizarListaNotificacoesPersistidas(dados.notificacoes || [], dados.resumo || {});
   } catch (erro) {
     console.error("Erro ao renderizar notificacoes:", erro);
+    await sincronizarNotificacoesLocais();
     renderizarNotificacoesLocal();
   }
 }
 
 async function atualizarBadgeNotificacoes() {
   try {
-    await sincronizarNotificacoesLocais();
+    await gerarNotificacoesAutomaticas();
     const dados = await buscarNotificacoesPersistidas("nao_lida");
     const badge = document.getElementById("notificacao-badge");
     if (!badge) return;

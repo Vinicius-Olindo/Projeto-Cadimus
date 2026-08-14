@@ -80,6 +80,176 @@ async function salvarNotificacao(env, notificacao) {
     .run();
 }
 
+function inicioDoDia(data) {
+  return new Date(data.getFullYear(), data.getMonth(), data.getDate());
+}
+
+function formatarDataChave(data) {
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}`;
+}
+
+function formatarDataIso(data) {
+  return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
+}
+
+function diferencaDias(dataEvento, dataReferencia) {
+  return Math.round((inicioDoDia(dataEvento) - inicioDoDia(dataReferencia)) / 86400000);
+}
+
+function avisoPorData(dataEvento, dataReferencia, janelaDias = 3) {
+  const diff = diferencaDias(dataEvento, dataReferencia);
+  if (diff === 0) return { texto: "Vence hoje", severidade: "aviso", urgencia: 1 };
+  if (diff > 0 && diff <= janelaDias) return { texto: `Vence em ${diff} dia${diff > 1 ? "s" : ""}`, severidade: "aviso", urgencia: 2 };
+  if (diff < 0 && diff >= -janelaDias) return { texto: `Venceu ha ${Math.abs(diff)} dia${Math.abs(diff) > 1 ? "s" : ""}`, severidade: "perigo", urgencia: 0 };
+  return null;
+}
+
+function dataDoMesPorDia(dataReferencia, dia) {
+  const diaSeguro = Math.min(Math.max(Number(dia) || 1, 1), 28);
+  return new Date(dataReferencia.getFullYear(), dataReferencia.getMonth(), diaSeguro);
+}
+
+function reaisDeCentavos(centavos) {
+  return (Number(centavos) || 0) / 100;
+}
+
+function moeda(valor) {
+  return reaisDeCentavos(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
+}
+
+async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas, dataReferencia = new Date()) {
+  if (!carteirasPermitidas.length) return 0;
+
+  const placeholders = carteirasPermitidas.map(() => "?").join(",");
+  const chaveMes = formatarDataChave(dataReferencia);
+  const notificacoes = [];
+
+  const { results: despesasFixas } = await env.DB.prepare(
+    `SELECT * FROM despesas_fixas WHERE ativo = 1 AND carteira_id IN (${placeholders})`,
+  )
+    .bind(...carteirasPermitidas)
+    .all();
+
+  for (const fixa of despesasFixas) {
+    const dataEvento = dataDoMesPorDia(dataReferencia, fixa.dia_vencimento);
+    const aviso = avisoPorData(dataEvento, dataReferencia);
+    if (!aviso) continue;
+    const valorCentavos = fixa.valor_centavos ?? Math.round((Number(fixa.valor) || 0) * 100);
+    notificacoes.push({
+      usuario_id: usuarioId,
+      carteira_id: fixa.carteira_id,
+      tipo: "fixa",
+      titulo: fixa.descricao,
+      mensagem: `${aviso.texto} · ${moeda(valorCentavos)}`,
+      status: "nao_lida",
+      severidade: aviso.severidade,
+      entidade: "despesa_fixa",
+      entidade_id: fixa.id,
+      chave_unica: `despesa_fixa:${fixa.id}:vencimento:${chaveMes}`,
+      url_acao: null,
+      data_evento: formatarDataIso(dataEvento),
+    });
+  }
+
+  const { results: comprasParceladas } = await env.DB.prepare(
+    `SELECT * FROM compras_parceladas WHERE ativo = 1 AND carteira_id IN (${placeholders})`,
+  )
+    .bind(...carteirasPermitidas)
+    .all();
+
+  for (const compra of comprasParceladas) {
+    const dataEvento = dataDoMesPorDia(dataReferencia, compra.dia_vencimento);
+    const aviso = avisoPorData(dataEvento, dataReferencia);
+    if (!aviso) continue;
+    const valorCentavos = compra.valor_parcela_centavos ?? Math.round((Number(compra.valor_parcela) || 0) * 100);
+    notificacoes.push({
+      usuario_id: usuarioId,
+      carteira_id: compra.carteira_id,
+      tipo: "parcelada",
+      titulo: compra.descricao,
+      mensagem: `${aviso.texto} · ${moeda(valorCentavos)}`,
+      status: "nao_lida",
+      severidade: aviso.severidade,
+      entidade: "compra_parcelada",
+      entidade_id: compra.id,
+      chave_unica: `compra_parcelada:${compra.id}:vencimento:${chaveMes}`,
+      url_acao: null,
+      data_evento: formatarDataIso(dataEvento),
+    });
+  }
+
+  const { results: lancamentos } = await env.DB.prepare(
+    `SELECT * FROM lancamentos WHERE status != 'pago' AND carteira_id IN (${placeholders})`,
+  )
+    .bind(...carteirasPermitidas)
+    .all();
+
+  for (const lancamento of lancamentos) {
+    if (!lancamento.data_compra) continue;
+    const dataEvento = new Date(`${lancamento.data_compra}T12:00:00`);
+    const aviso = avisoPorData(dataEvento, dataReferencia);
+    if (!aviso) continue;
+    const valorCentavos = lancamento.valor_centavos ?? Math.round((Number(lancamento.valor) || 0) * 100);
+    notificacoes.push({
+      usuario_id: usuarioId,
+      carteira_id: lancamento.carteira_id,
+      tipo: "lancamento",
+      titulo: lancamento.descricao,
+      mensagem: `${aviso.texto} · ${moeda(valorCentavos)}`,
+      status: "nao_lida",
+      severidade: aviso.severidade,
+      entidade: "lancamento",
+      entidade_id: lancamento.id,
+      chave_unica: `lancamento:${lancamento.id}:vencimento:${lancamento.data_compra}`,
+      url_acao: null,
+      data_evento: lancamento.data_compra,
+    });
+  }
+
+  const { results: metas } = await env.DB.prepare(
+    `SELECT m.*,
+       COALESCE((SELECT SUM(COALESCE(md.valor_centavos, ROUND(md.valor * 100))) FROM meta_depositos md WHERE md.meta_id = m.id), 0) AS depositado_centavos
+     FROM metas_categoria m
+     WHERE m.data_limite IS NOT NULL AND m.carteira_id IN (${placeholders})`,
+  )
+    .bind(...carteirasPermitidas)
+    .all();
+
+  for (const meta of metas) {
+    const valorLimiteCentavos = meta.valor_limite_centavos ?? Math.round((Number(meta.valor_limite) || 0) * 100);
+    const faltaCentavos = Math.max(0, valorLimiteCentavos - (Number(meta.depositado_centavos) || 0));
+    if (faltaCentavos <= 0) continue;
+
+    const dataEvento = new Date(`${meta.data_limite}T12:00:00`);
+    const diff = diferencaDias(dataEvento, dataReferencia);
+    let aviso = null;
+    if (diff < 0) aviso = { texto: `Meta passou do prazo. Faltava ${moeda(faltaCentavos)}`, severidade: "perigo" };
+    else if (diff <= 7) aviso = { texto: `Meta vence em ${diff} dia${diff !== 1 ? "s" : ""}. Falta ${moeda(faltaCentavos)}`, severidade: "aviso" };
+    if (!aviso) continue;
+
+    notificacoes.push({
+      usuario_id: usuarioId,
+      carteira_id: meta.carteira_id,
+      tipo: "meta",
+      titulo: `Meta: ${meta.categoria}`,
+      mensagem: aviso.texto,
+      status: "nao_lida",
+      severidade: aviso.severidade,
+      entidade: "meta",
+      entidade_id: meta.id,
+      chave_unica: `meta:${meta.id}:prazo:${meta.data_limite}`,
+      url_acao: null,
+      data_evento: meta.data_limite,
+    });
+  }
+
+  for (const notificacao of notificacoes) {
+    await salvarNotificacao(env, notificacao);
+  }
+
+  return notificacoes.length;
+}
+
 export async function processarNotificacoes(request, env, ctx) {
   const usuario = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuario) return json({ erro: "Nao autenticado." }, 401);
@@ -125,6 +295,19 @@ export async function processarNotificacoes(request, env, ctx) {
       .all();
 
     return json({ notificacoes: results, resumo: resumo[0] || { nao_lidas: 0, total: 0 } });
+  }
+
+  if (metodo === "POST" && url.pathname.endsWith("/gerar")) {
+    const carteirasPermitidas = await obterCarteirasDoUsuario(env, usuario.id);
+    let dataReferencia = new Date();
+    try {
+      const dados = await request.json();
+      if (dados?.data_referencia) dataReferencia = new Date(`${dados.data_referencia}T12:00:00`);
+    } catch {
+      // Corpo opcional.
+    }
+    const geradas = await gerarNotificacoesAutomaticas(env, usuario.id, carteirasPermitidas, dataReferencia);
+    return json({ geradas });
   }
 
   if (metodo === "POST" && url.pathname.endsWith("/sincronizar")) {
