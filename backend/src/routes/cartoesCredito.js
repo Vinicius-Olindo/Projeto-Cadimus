@@ -27,7 +27,7 @@ export async function processarCartoesCredito(request, env, ctx) {
     let query = `SELECT c.*,
       (SELECT COUNT(*) FROM compras_parceladas cp
        WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as parcelas_ativas,
-      (SELECT COALESCE(SUM(cp.valor_parcela), 0) FROM compras_parceladas cp
+      (SELECT COALESCE(SUM(COALESCE(cp.valor_parcela_centavos, ROUND(cp.valor_parcela * 100))), 0) / 100.0 FROM compras_parceladas cp
        WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as gasto_atual,
       (SELECT COALESCE(SUM(COALESCE(cp.valor_parcela_centavos, ROUND(cp.valor_parcela * 100))), 0) FROM compras_parceladas cp
        WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as gasto_atual_centavos

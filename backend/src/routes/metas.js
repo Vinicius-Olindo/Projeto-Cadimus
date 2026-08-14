@@ -55,7 +55,7 @@ export async function processarMetas(request, env, ctx) {
         const { results: depositosResults } = await env.DB.prepare(
           `SELECT
              meta_id,
-             COALESCE(SUM(valor), 0) AS total,
+             COALESCE(SUM(COALESCE(valor_centavos, ROUND(valor * 100))), 0) / 100.0 AS total,
              COALESCE(SUM(COALESCE(valor_centavos, ROUND(valor * 100))), 0) AS total_centavos
            FROM meta_depositos
            WHERE meta_id IN (${placeholders})

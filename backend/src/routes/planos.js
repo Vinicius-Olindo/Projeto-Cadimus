@@ -58,7 +58,7 @@ export async function processarPlanos(request, env, ctx) {
         const { results: depositosResults } = await env.DB.prepare(
           `SELECT
              plano_id,
-             COALESCE(SUM(valor), 0) AS total,
+             COALESCE(SUM(COALESCE(valor_centavos, ROUND(valor * 100))), 0) / 100.0 AS total,
              COALESCE(SUM(COALESCE(valor_centavos, ROUND(valor * 100))), 0) AS total_centavos
            FROM plano_depositos
            WHERE plano_id IN (${placeholders})

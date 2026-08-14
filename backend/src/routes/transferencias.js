@@ -14,25 +14,30 @@ async function calcularSaldoCarteira(env, carteiraId) {
   const { results } = await env.DB.prepare(
     `SELECT
        (
-         SELECT COALESCE(SUM(CASE WHEN tipo = 'receita' THEN valor ELSE -valor END), 0)
+         SELECT COALESCE(SUM(
+           CASE
+             WHEN tipo = 'receita' THEN COALESCE(valor_centavos, ROUND(valor * 100))
+             ELSE -COALESCE(valor_centavos, ROUND(valor * 100))
+           END
+         ), 0)
          FROM lancamentos
          WHERE carteira_id = ? AND status = 'pago'
        )
        - (
-         SELECT COALESCE(SUM(valor), 0)
+         SELECT COALESCE(SUM(COALESCE(valor_centavos, ROUND(valor * 100))), 0)
          FROM transferencias
          WHERE carteira_origem_id = ?
        )
        + (
-         SELECT COALESCE(SUM(valor), 0)
+         SELECT COALESCE(SUM(COALESCE(valor_centavos, ROUND(valor * 100))), 0)
          FROM transferencias
          WHERE carteira_destino_id = ?
-       ) AS saldo`,
+       ) AS saldo_centavos`,
   )
     .bind(carteiraId, carteiraId, carteiraId)
     .all();
 
-  return results[0]?.saldo || 0;
+  return centavosParaReais(results[0]?.saldo_centavos || 0);
 }
 
 export async function processarTransferencias(request, env, ctx) {

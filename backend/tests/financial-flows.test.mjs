@@ -2,6 +2,7 @@ import test from "node:test";
 import assert from "node:assert/strict";
 
 import { gerarTodasParcelasDaCompra } from "../src/utils/comprasParceladas.js";
+import { gerarLancamentosFixosDoMes } from "../src/utils/despesasFixas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../src/utils/lancamentosRecorrentes.js";
 import { processarLancamentos } from "../src/routes/lancamentos.js";
 import { processarOrcamentos } from "../src/routes/orcamentos.js";
@@ -133,6 +134,46 @@ test("compras parceladas distribuem centavos e preservam o total", async () => {
   assert.deepEqual(lancamentos.map((l) => l.valor_centavos), [33333, 33333, 33334]);
   assert.equal(lancamentos.reduce((soma, item) => soma + Math.round(item.valor * 100), 0), 100000);
   assert.deepEqual(lancamentos.map((l) => l.data_compra), ["2026-11-10", "2026-12-10", "2027-01-10"]);
+});
+
+test("despesas fixas geradas usam centavos como fonte do valor", async () => {
+  const lancamentos = [];
+  const db = new FakeD1([
+    {
+      type: "all",
+      match: "SELECT * FROM despesas_fixas WHERE ativo = 1",
+      reply: () => [{
+        id: 3,
+        descricao: "Internet",
+        valor: 99.98,
+        valor_centavos: 9999,
+        tipo: "despesa",
+        categoria: "Casa",
+        meio_pagamento: "Debito",
+        dia_vencimento: 5,
+        carteira_id: 10,
+        criado_por: 1,
+        criado_em: "2026-08-01T00:00:00.000Z",
+      }],
+    },
+    {
+      type: "all",
+      match: "SELECT id FROM lancamentos WHERE despesa_fixa_id = ?",
+      reply: () => [],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ args }) => {
+        lancamentos.push({ valor: args[1], valor_centavos: args[2] });
+        return { meta: { last_row_id: lancamentos.length } };
+      },
+    },
+  ]);
+
+  await gerarLancamentosFixosDoMes({ DB: db }, [10], "2026", "08");
+
+  assert.deepEqual(lancamentos, [{ valor: 99.99, valor_centavos: 9999 }]);
 });
 
 test("recorrências semanais geram ocorrências do mês sem duplicar", async () => {
@@ -296,8 +337,8 @@ test("criação de transferência faz escrita dupla em reais e centavos", async 
   const db = new FakeD1(handlersAutenticados([
     {
       type: "all",
-      match: "AS saldo",
-      reply: () => [{ saldo: 1000 }],
+      match: "AS saldo_centavos",
+      reply: () => [{ saldo_centavos: 100000 }],
     },
     {
       type: "run",

@@ -44,7 +44,7 @@ export async function processarOrcamentos(request, env, ctx) {
           SELECT
             carteira_id,
             LOWER(categoria) AS categoria_normalizada,
-            SUM(valor) AS total_gasto,
+            SUM(COALESCE(valor_centavos, ROUND(valor * 100))) / 100.0 AS total_gasto,
             SUM(COALESCE(valor_centavos, ROUND(valor * 100))) AS total_gasto_centavos
           FROM lancamentos
           WHERE tipo = 'despesa'

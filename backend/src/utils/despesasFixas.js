@@ -7,7 +7,7 @@
  * um lançamento para o mês/ano pedido. Não duplica (verifica por despesa_fixa_id)
  * e nunca gera lançamento pra um mês que ainda não começou.
  */
-import { reaisParaCentavos } from "./dinheiro.js";
+import { centavosParaReais, reaisParaCentavos } from "./dinheiro.js";
 
 export async function gerarLancamentosFixosDoMes(env, carteiraIds, ano, mes) {
   const anoNum = Number(ano);
@@ -39,12 +39,13 @@ export async function gerarLancamentosFixosDoMes(env, carteiraIds, ano, mes) {
     const diaSeguro = Math.min(Math.max(fixa.dia_vencimento, 1), 28);
     const dataCompra = `${chaveMes}-${String(diaSeguro).padStart(2, "0")}`;
     const valorCentavos = fixa.valor_centavos ?? reaisParaCentavos(fixa.valor);
+    const valor = centavosParaReais(valorCentavos);
 
     await env.DB.prepare(
       `INSERT INTO lancamentos (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, despesa_fixa_id)
        VALUES (?, ?, ?, ?, ?, ?, ?, 'pendente', ?, ?, ?)`,
     )
-      .bind(fixa.descricao, fixa.valor, valorCentavos, dataCompra, fixa.tipo, fixa.categoria, fixa.meio_pagamento, fixa.carteira_id, fixa.criado_por, fixa.id)
+      .bind(fixa.descricao, valor, valorCentavos, dataCompra, fixa.tipo, fixa.categoria, fixa.meio_pagamento, fixa.carteira_id, fixa.criado_por, fixa.id)
       .run();
   }
 }
