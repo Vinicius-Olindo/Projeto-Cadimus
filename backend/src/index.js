@@ -16,6 +16,7 @@ import { processarTransferencias } from "./routes/transferencias.js";
 import { processarOrcamentos } from "./routes/orcamentos.js";
 import { processarLimpezaDados } from "./routes/manutencao.js";
 import { processarCartoesCredito } from "./routes/cartoesCredito.js";
+import { processarNotificacoes } from "./routes/notificacoes.js";
 
 // ==========================================
 // HELPER: adiciona os headers de CORS à resposta e força Content-Type JSON.
@@ -162,6 +163,13 @@ export default {
       // ==========================================
       if (url.pathname.startsWith("/api/cartoes-credito")) {
         return comCors(await processarCartoesCredito(request, env, ctx), frontendUrl, request);
+      }
+
+      // ==========================================
+      // ROTA 15: NOTIFICACOES
+      // ==========================================
+      if (url.pathname.startsWith("/api/notificacoes")) {
+        return comCors(await processarNotificacoes(request, env, ctx), frontendUrl, request);
       }
 
       // ==========================================

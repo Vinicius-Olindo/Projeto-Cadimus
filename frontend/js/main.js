@@ -1671,7 +1671,7 @@ async function carregarPainelDespesasFixas() {
     console.error("Erro ao carregar despesas fixas:", erro);
   }
 
-  renderizarNotificacoes();
+  atualizarBadgeNotificacoes();
 }
 
 // Calcula se o vencimento está próximo (até 3 dias), hoje, ou já passou (até 3 dias atrás)
@@ -2033,7 +2033,7 @@ async function carregarPainelComprasParceladas() {
     console.error("Erro ao carregar compras parceladas:", erro);
   }
 
-  renderizarNotificacoes();
+  atualizarBadgeNotificacoes();
 }
 
 // ==========================================
@@ -3007,6 +3007,7 @@ function verificarNotificacoes() {
   const notificacoes = [];
   const hoje = new Date();
   const diaAtual = hoje.getDate();
+  const carteiraId = Number(document.getElementById("seletor-carteira")?.value || 0) || null;
 
   despesasFixasCarregadas.forEach((fixa) => {
     if (!fixa.ativo) return;
@@ -3014,12 +3015,19 @@ function verificarNotificacoes() {
     if (aviso) {
       notificacoes.push({
         tipo: "fixa",
+        titulo: fixa.descricao,
         descricao: fixa.descricao,
+        mensagem: `${aviso.texto} · ${formatadorBRL.format(valorMonetario(fixa))}`,
         valor: valorMonetario(fixa),
         dia: fixa.dia_vencimento,
         texto: aviso.texto,
         atrasado: aviso.atrasado,
         urgencia: aviso.atrasado ? 0 : diaAtual === fixa.dia_vencimento ? 1 : 2,
+        severidade: aviso.atrasado ? "perigo" : "aviso",
+        carteira_id: carteiraId,
+        entidade: "despesa_fixa",
+        entidade_id: fixa.id,
+        chave_unica: `despesa_fixa:${fixa.id}:vencimento:${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`,
       });
     }
   });
@@ -3030,12 +3038,19 @@ function verificarNotificacoes() {
     if (aviso) {
       notificacoes.push({
         tipo: "parcelada",
+        titulo: compra.descricao,
         descricao: compra.descricao,
+        mensagem: `${aviso.texto} · ${formatadorBRL.format(valorMonetario(compra, "valor_parcela"))}`,
         valor: valorMonetario(compra, "valor_parcela"),
         dia: compra.dia_vencimento,
         texto: aviso.texto,
         atrasado: aviso.atrasado,
         urgencia: aviso.atrasado ? 0 : diaAtual === compra.dia_vencimento ? 1 : 2,
+        severidade: aviso.atrasado ? "perigo" : "aviso",
+        carteira_id: carteiraId,
+        entidade: "compra_parcelada",
+        entidade_id: compra.id,
+        chave_unica: `compra_parcelada:${compra.id}:vencimento:${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`,
       });
     }
   });
@@ -3061,12 +3076,20 @@ function verificarNotificacoes() {
     if (texto) {
       notificacoes.push({
         tipo: "lancamento",
+        titulo: lanc.descricao,
         descricao: lanc.descricao,
+        mensagem: `${texto} · ${formatadorBRL.format(valorMonetario(lanc))}`,
         valor: valorMonetario(lanc),
         dia: dataLanc.getUTCDate(),
         texto,
         atrasado,
         urgencia: atrasado ? 0 : diffDias === 0 ? 1 : 2,
+        severidade: atrasado ? "perigo" : "aviso",
+        carteira_id: carteiraId,
+        entidade: "lancamento",
+        entidade_id: lanc.id,
+        data_evento: lanc.data_compra,
+        chave_unica: `lancamento:${lanc.id}:vencimento:${lanc.data_compra}`,
       });
     }
   });
@@ -3092,12 +3115,20 @@ function verificarNotificacoes() {
       if (texto) {
         notificacoes.push({
           tipo: "meta",
+          titulo: `Meta: ${meta.categoria}`,
           descricao: meta.categoria,
+          mensagem: texto,
           valor: valorMonetario(meta, "falta"),
           dia: dataLimite.getUTCDate(),
           texto,
           atrasado,
           urgencia: atrasado ? 0 : diffDias <= 7 ? 2 : 3,
+          severidade: atrasado ? "perigo" : "aviso",
+          carteira_id: carteiraId,
+          entidade: "meta",
+          entidade_id: meta.id,
+          data_evento: meta.data_limite,
+          chave_unica: `meta:${meta.id}:prazo:${meta.data_limite}`,
         });
       }
     });
@@ -3107,7 +3138,7 @@ function verificarNotificacoes() {
   return notificacoes;
 }
 
-function renderizarNotificacoes() {
+function renderizarNotificacoesLocal() {
   const notificacoes = verificarNotificacoes();
   const badge = document.getElementById("notificacao-badge");
   const lista = document.getElementById("lista-notificacoes");
@@ -3141,6 +3172,102 @@ function renderizarNotificacoes() {
   }).join("");
 }
 
+async function sincronizarNotificacoesLocais() {
+  const notificacoes = verificarNotificacoes();
+  if (notificacoes.length === 0) return;
+
+  try {
+    await fetch(`${API_URL}/api/notificacoes/sincronizar`, {
+      method: "POST",
+      headers: headersAutenticados(),
+      body: JSON.stringify({ notificacoes }),
+    });
+  } catch (erro) {
+    console.warn("Nao foi possivel sincronizar notificacoes:", erro);
+  }
+}
+
+async function buscarNotificacoesPersistidas(status = "nao_lida") {
+  const resposta = await fetch(`${API_URL}/api/notificacoes?status=${encodeURIComponent(status)}&limite=50`, {
+    headers: headersAutenticados(false),
+  });
+  if (!resposta.ok) throw new Error("Falha ao buscar notificacoes.");
+  return resposta.json();
+}
+
+function renderizarListaNotificacoesPersistidas(notificacoes, resumo = {}) {
+  const badge = document.getElementById("notificacao-badge");
+  const lista = document.getElementById("lista-notificacoes");
+  if (!badge || !lista) return;
+
+  if (Number(resumo.nao_lidas || 0) > 0) badge.classList.add("com-alertas");
+  else badge.classList.remove("com-alertas");
+
+  if (notificacoes.length === 0) {
+    lista.innerHTML = '<div class="notificacao-vazio">Nenhuma notificaÃ§Ã£o nova.</div>';
+    return;
+  }
+
+  lista.innerHTML = notificacoes.map((n) => {
+    const perigo = n.severidade === "perigo";
+    const iconeClasse = perigo ? "atrasado" : n.severidade === "aviso" ? "hoje" : "proximo";
+    const svgIcone = perigo
+      ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
+      : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
+    const tipoLabel = n.tipo === "fixa" ? "Fixa" : n.tipo === "parcelada" ? "Parcelada" : n.tipo === "meta" ? "Meta" : "Lancamento";
+    const statusLabel = n.status === "nao_lida" ? "Nova" : n.status === "arquivada" ? "Arquivada" : "Lida";
+
+    return `
+      <div class="notificacao-item" data-id="${n.id}">
+        <div class="notificacao-icone ${iconeClasse}">${svgIcone}</div>
+        <div class="notificacao-info">
+          <div class="notificacao-descricao">${escaparHtml(n.titulo)}</div>
+          <div class="notificacao-detalhe">${tipoLabel} Â· ${statusLabel} Â· ${escaparHtml(n.mensagem)}</div>
+        </div>
+      </div>
+    `;
+  }).join("");
+}
+
+async function renderizarNotificacoes() {
+  const lista = document.getElementById("lista-notificacoes");
+  if (lista) lista.innerHTML = '<div class="notificacao-vazio">Carregando notificaÃ§Ãµes...</div>';
+
+  try {
+    await sincronizarNotificacoesLocais();
+    const dados = await buscarNotificacoesPersistidas("todas");
+    renderizarListaNotificacoesPersistidas(dados.notificacoes || [], dados.resumo || {});
+  } catch (erro) {
+    console.error("Erro ao renderizar notificacoes:", erro);
+    renderizarNotificacoesLocal();
+  }
+}
+
+async function atualizarBadgeNotificacoes() {
+  try {
+    await sincronizarNotificacoesLocais();
+    const dados = await buscarNotificacoesPersistidas("nao_lida");
+    const badge = document.getElementById("notificacao-badge");
+    if (!badge) return;
+    if (Number(dados.resumo?.nao_lidas || 0) > 0) badge.classList.add("com-alertas");
+    else badge.classList.remove("com-alertas");
+  } catch {
+    const badge = document.getElementById("notificacao-badge");
+    if (badge && verificarNotificacoes().length > 0) badge.classList.add("com-alertas");
+  }
+}
+
+async function marcarNotificacoesComoLidas() {
+  try {
+    await fetch(`${API_URL}/api/notificacoes/lidas`, {
+      method: "PATCH",
+      headers: headersAutenticados(false),
+    });
+  } catch (erro) {
+    console.warn("Nao foi possivel marcar notificacoes como lidas:", erro);
+  }
+}
+
 function configurarNotificacoes() {
   const btn = document.getElementById("btn-notificacoes");
   const modal = document.getElementById("modal-notificacoes");
@@ -3148,10 +3275,12 @@ function configurarNotificacoes() {
   const badge = document.getElementById("notificacao-badge");
   if (!btn || !modal) return;
 
-  btn.addEventListener("click", (e) => {
+  btn.addEventListener("click", async (e) => {
     e.stopPropagation();
     modal.style.display = "flex";
-    renderizarNotificacoes();
+    await renderizarNotificacoes();
+    await marcarNotificacoesComoLidas();
+    atualizarBadgeNotificacoes();
     trapFoco(modal);
   });
 
