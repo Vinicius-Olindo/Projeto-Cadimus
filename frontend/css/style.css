@@ -574,6 +574,12 @@ button:active {
 /* Avatar dropdown wrapper */
 .avatar-dropdown-wrapper {
   position: relative;
+  margin-left: 8px;
+}
+
+.tema-switch + .acoes-topo-divider {
+  margin-left: 6px;
+  margin-right: 2px;
 }
 
 /* Dropdown do avatar */
