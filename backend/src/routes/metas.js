@@ -84,8 +84,11 @@ export async function processarMetas(request, env, ctx) {
         return {
           ...meta,
           total_depositado: totalDepositado,
+          total_depositado_centavos: totalDepositadoCentavos,
           falta,
+          falta_centavos: faltaCentavos,
           guarda_semanal,
+          guarda_semanal_centavos: guarda_semanal === null ? null : Math.ceil(faltaCentavos / semanas_restantes),
           semanas_restantes,
         };
       });

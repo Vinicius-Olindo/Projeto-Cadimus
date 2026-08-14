@@ -87,8 +87,11 @@ export async function processarPlanos(request, env, ctx) {
         return {
           ...plano,
           depositado,
+          depositado_centavos: depositadoCentavos,
           falta,
+          falta_centavos: faltaCentavos,
           parcela_mensal,
+          parcela_mensal_centavos: parcela_mensal === null ? null : Math.ceil(faltaCentavos / meses_restantes),
           meses_restantes,
           percentual: valorAlvoCentavos > 0 ? Math.min(100, Math.round((depositadoCentavos / valorAlvoCentavos) * 100)) : 0,
         };

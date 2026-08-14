@@ -2380,7 +2380,7 @@ async function carregarDadosDeposito(metaId) {
   if (!meta) return;
 
   const valorDepositado = await obterTotalDepositado(metaId);
-  const valorMeta = meta.valor_limite;
+  const valorMeta = valorMonetario(meta, "valor_limite");
   const percentual = Math.min((valorDepositado / valorMeta) * 100, 100);
 
   document.getElementById("deposito-valor-depositado").textContent = formatadorBRL.format(valorDepositado);
@@ -2406,7 +2406,7 @@ async function obterTotalDepositado(metaId) {
     });
     if (!resposta.ok) return 0;
     const depositos = await resposta.json();
-    return depositos.reduce((soma, d) => soma + d.valor, 0);
+    return somarValoresMonetarios(depositos);
   } catch {
     return 0;
   }
@@ -3689,10 +3689,11 @@ function renderizarResumoCategorias(totaisPorCategoria) {
     let textoValor = valorFormatado;
 
     if (meta) {
-      const percentualMeta = (valor / meta.valor_limite) * 100;
+      const valorMeta = valorMonetario(meta, "valor_limite");
+      const percentualMeta = (valor / valorMeta) * 100;
       percentualLargura = Math.min(percentualMeta, 100);
       classeCor = percentualMeta >= 100 ? "barra-estourou" : percentualMeta >= 80 ? "barra-atencao" : "barra-ok";
-      textoValor = `${valorFormatado} / ${formatadorBRL.format(meta.valor_limite)}`;
+      textoValor = `${valorFormatado} / ${formatadorBRL.format(valorMeta)}`;
     } else {
       percentualLargura = Math.round((valor / maiorValor) * 100);
     }
@@ -3705,13 +3706,13 @@ function renderizarResumoCategorias(totaisPorCategoria) {
     linha.className = "categoria-barra-linha";
     linha.innerHTML = `
       <div class="categoria-barra-topo">
-        <strong class="${categoria !== "Outras" ? "categoria-barra-nome" : ""} ${meta ? "barra-meta-clicavel" : ""}" data-categoria="${escaparHtml(categoria)}" data-meta="${meta ? meta.valor_limite : ""}" data-datalimite="${meta?.data_limite || ""}">
+        <strong class="${categoria !== "Outras" ? "categoria-barra-nome" : ""} ${meta ? "barra-meta-clicavel" : ""}" data-categoria="${escaparHtml(categoria)}" data-meta="${meta ? valorMonetario(meta, "valor_limite") : ""}" data-datalimite="${meta?.data_limite || ""}">
           ${escaparHtml(categoria)} ${iconeMeta}
         </strong>
         <span class="categoria-barra-valor">${textoValor}</span>
-        ${meta && meta.data_limite && meta.falta > 0 ? `<span class="badge-semana">~${formatadorBRL.format(meta.guarda_semanal)}/sem.</span>` : ""}
+        ${meta && meta.data_limite && meta.falta > 0 ? `<span class="badge-semana">~${formatadorBRL.format(valorMonetario(meta, "guarda_semanal"))}/sem.</span>` : ""}
       </div>
-      <div class="categoria-barra-trilho ${meta ? "barra-meta-clicavel" : ""}" data-categoria="${escaparHtml(categoria)}" data-meta="${meta ? meta.valor_limite : ""}">
+      <div class="categoria-barra-trilho ${meta ? "barra-meta-clicavel" : ""}" data-categoria="${escaparHtml(categoria)}" data-meta="${meta ? valorMonetario(meta, "valor_limite") : ""}">
         <div class="categoria-barra-preenchimento ${classeCor}" data-largura="${percentualLargura}"></div>
       </div>
     `;
@@ -4919,7 +4920,7 @@ function renderizarDistribuicaoPlano(salario) {
   let totalPlanos = 0;
 
   if (typeof despesasFixasCarregadas !== "undefined") {
-    despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += f.valor || 0; });
+    despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
   }
   if (typeof comprasParceladasCarregadas !== "undefined") {
     comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
@@ -5060,8 +5061,9 @@ function renderizarOrcamentosPlano() {
   }
 
   container.innerHTML = orcamentosCarregados.map((o) => {
-    const gasto = o.gasto_atual || 0;
-    const pct = o.valor_limite > 0 ? Math.min((gasto / o.valor_limite) * 100, 100) : 0;
+    const gasto = valorMonetario(o, "gasto_atual");
+    const limite = valorMonetario(o, "valor_limite");
+    const pct = limite > 0 ? Math.min((gasto / limite) * 100, 100) : 0;
     const cor = pct >= 90 ? "var(--cor-despesa)" : pct >= 70 ? "var(--cor-pendente)" : "var(--cor-receita)";
     return `
       <div class="plano-lista-item">
@@ -5074,7 +5076,7 @@ function renderizarOrcamentosPlano() {
             <span style="font-size:0.7rem;color:${cor}">${pct.toFixed(0)}%</span>
           </div>
         </div>
-        <div class="plano-lista-valor" style="color:${cor}">${formatadorBRL.format(gasto)} / ${formatadorBRL.format(o.valor_limite)}</div>
+        <div class="plano-lista-valor" style="color:${cor}">${formatadorBRL.format(gasto)} / ${formatadorBRL.format(limite)}</div>
       </div>`;
   }).join("");
 }
@@ -5105,7 +5107,7 @@ function renderizarReceitasPlano() {
           <div class="plano-lista-detalhe">${new Date(r.data_compra + "T12:00:00").toLocaleDateString("pt-BR")} · ${escaparHtml(r.categoria || "")}</div>
         </div>
         <span class="plano-lista-status ${statusCls}">${statusLabel}</span>
-        <span class="plano-lista-valor" style="color:var(--cor-receita)">+${formatadorBRL.format(r.valor)}</span>
+        <span class="plano-lista-valor" style="color:var(--cor-receita)">+${formatadorBRL.format(valorMonetario(r))}</span>
       </div>`;
   }).join("");
 }
@@ -5118,12 +5120,12 @@ function renderizarDespesasPlano() {
   const itens = [];
   if (typeof despesasFixasCarregadas !== "undefined") {
     despesasFixasCarregadas.filter((f) => f.ativo).forEach((f) => {
-      itens.push({ nome: f.descricao, valor: f.valor, cat: f.categoria, freq: "Mensal", tipo: "fixa" });
+      itens.push({ nome: f.descricao, valor: valorMonetario(f), cat: f.categoria, freq: "Mensal", tipo: "fixa" });
     });
   }
   if (typeof comprasParceladasCarregadas !== "undefined") {
     comprasParceladasCarregadas.filter((c) => c.ativo).forEach((c) => {
-      itens.push({ nome: c.descricao, valor: c.valor_parcela, cat: c.categoria, freq: `Parcela ${c.parcela_atual || 1}/${c.total_parcelas}`, tipo: "parcela" });
+      itens.push({ nome: c.descricao, valor: valorMonetario(c, "valor_parcela"), cat: c.categoria, freq: `Parcela ${c.parcela_atual || 1}/${c.total_parcelas}`, tipo: "parcela" });
     });
   }
 
@@ -5156,11 +5158,12 @@ function renderizarComparacaoPlano() {
   const header = `<div class="plano-comp-linha plano-comp-header"><span>Categoria</span><span style="text-align:right">Planejado</span><span style="text-align:right">Real</span><span style="text-align:right">Diferença</span></div>`;
 
   const linhas = orcamentosCarregados.map((o) => {
-    const real = o.gasto_atual || 0;
-    const diff = real - o.valor_limite;
+    const real = valorMonetario(o, "gasto_atual");
+    const limite = valorMonetario(o, "valor_limite");
+    const diff = real - limite;
     const diffLabel = diff > 0 ? `+${formatadorBRL.format(diff)}` : diff < 0 ? formatadorBRL.format(diff) : "—";
     const cls = diff > 0 ? "positivo" : diff < 0 ? "negativo" : "";
-    return `<div class="plano-comp-linha"><span class="plano-comp-categoria">${escaparHtml(o.categoria)}</span><span class="plano-comp-valor">${formatadorBRL.format(o.valor_limite)}</span><span class="plano-comp-valor">${formatadorBRL.format(real)}</span><span class="plano-comp-diferenca ${cls}">${diffLabel}</span></div>`;
+    return `<div class="plano-comp-linha"><span class="plano-comp-categoria">${escaparHtml(o.categoria)}</span><span class="plano-comp-valor">${formatadorBRL.format(limite)}</span><span class="plano-comp-valor">${formatadorBRL.format(real)}</span><span class="plano-comp-diferenca ${cls}">${diffLabel}</span></div>`;
   }).join("");
 
   container.innerHTML = header + linhas;
@@ -5390,7 +5393,7 @@ function abrirModalPlano(plano) {
     document.getElementById("plano-editando-id").value = plano.id;
     document.getElementById("plano-nome").value = plano.nome;
     document.getElementById("plano-descricao").value = plano.descricao || "";
-    document.getElementById("plano-valor-alvo").value = plano.valor_alvo;
+    document.getElementById("plano-valor-alvo").value = valorMonetario(plano, "valor_alvo");
     document.getElementById("plano-data-limite").value = plano.data_limite || "";
     document.getElementById("plano-prioridade").value = plano.prioridade;
     document.getElementById("plano-icone").value = plano.icone;
@@ -5541,11 +5544,11 @@ function renderizarMetasPlano() {
         </div>
         <div class="plano-meta-detalhes">
           <span>${percentual}% concluído${temPrazo ? ` · Prazo: ${new Date(meta.data_limite + "T12:00:00").toLocaleDateString("pt-BR")}` : ""}</span>
-          ${temPrazo && meta.falta > 0 ? `<span class="plano-meta-badge-semana">~${formatadorBRL.format(meta.guarda_semanal)}/sem.</span>` : ""}
+          ${temPrazo && meta.falta > 0 ? `<span class="plano-meta-badge-semana">~${formatadorBRL.format(valorMonetario(meta, "guarda_semanal"))}/sem.</span>` : ""}
         </div>
         <div class="plano-meta-acoes">
           <button type="button" class="btn-link-adicionar plano-btn-depositar" data-id="${meta.id}" data-categoria="${escaparHtml(meta.categoria)}">Depositar</button>
-          <button type="button" class="btn-link-adicionar plano-btn-editar" data-categoria="${escaparHtml(meta.categoria)}" data-valor="${meta.valor_limite}" data-datalimite="${meta.data_limite || ""}">Editar</button>
+          <button type="button" class="btn-link-adicionar plano-btn-editar" data-categoria="${escaparHtml(meta.categoria)}" data-valor="${valorMonetario(meta, "valor_limite")}" data-datalimite="${meta.data_limite || ""}">Editar</button>
         </div>
       </div>
     `;
@@ -6905,8 +6908,8 @@ async function carregarLancamentosPeriodo(inicio, fim) {
 
 /* --- KPIs --- */
 function renderizarKPIsRelatorio(lancamentos, mesAnterior) {
-  const receitas = lancamentos.filter((l) => l.tipo === "receita").reduce((s, l) => s + (l.valor || 0), 0);
-  const despesas = lancamentos.filter((l) => l.tipo === "despesa").reduce((s, l) => s + (l.valor || 0), 0);
+  const receitas = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "receita"));
+  const despesas = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "despesa"));
   const saldo = receitas - despesas;
   const economia = receitas > 0 ? Math.round((saldo / receitas) * 100) : 0;
 
@@ -6922,7 +6925,7 @@ function renderizarKPIsRelatorio(lancamentos, mesAnterior) {
   // Maior gasto
   const porCategoria = {};
   lancamentos.filter((l) => l.tipo === "despesa").forEach((l) => {
-    porCategoria[l.categoria] = (porCategoria[l.categoria] || 0) + (l.valor || 0);
+    porCategoria[l.categoria] = (porCategoria[l.categoria] || 0) + valorMonetario(l);
   });
   const maior = Object.entries(porCategoria).sort((a, b) => b[1] - a[1])[0];
   if (el("rel-kpi-maior-gasto") && maior) {
@@ -6934,8 +6937,8 @@ function renderizarKPIsRelatorio(lancamentos, mesAnterior) {
 
   // Tendências
   carregarLancamentosPeriodo(mesAnterior.inicio, mesAnterior.fim).then((ant) => {
-    const recAnt = ant.filter((l) => l.tipo === "receita").reduce((s, l) => s + (l.valor || 0), 0);
-    const despAnt = ant.filter((l) => l.tipo === "despesa").reduce((s, l) => s + (l.valor || 0), 0);
+    const recAnt = somarValoresMonetarios(ant.filter((l) => l.tipo === "receita"));
+    const despAnt = somarValoresMonetarios(ant.filter((l) => l.tipo === "despesa"));
     if (el("rel-kpi-receitas-tendencia") && recAnt > 0) {
       const pct = ((receitas - recAnt) / recAnt * 100).toFixed(0);
       const cls = pct >= 0 ? "tendencia-positiva" : "tendencia-negativa";
@@ -6958,8 +6961,8 @@ function renderizarFluxoCaixa(lancamentos, periodo) {
 
   const meses = obterMesesPeriodo(periodo);
   const dados = meses.map((m) => {
-    const rec = lancamentos.filter((l) => l.tipo === "receita" && l.data_compra?.startsWith(m.key)).reduce((s, l) => s + (l.valor || 0), 0);
-    const desp = lancamentos.filter((l) => l.tipo === "despesa" && l.data_compra?.startsWith(m.key)).reduce((s, l) => s + (l.valor || 0), 0);
+    const rec = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "receita" && l.data_compra?.startsWith(m.key)));
+    const desp = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "despesa" && l.data_compra?.startsWith(m.key)));
     return { ...m, receitas: rec, despesas: desp, saldo: rec - desp };
   });
 
@@ -7002,8 +7005,8 @@ function renderizarBarrasReceitasDespesas(lancamentos, periodo) {
 
   const meses = obterMesesPeriodo(periodo);
   const dados = meses.map((m) => {
-    const rec = lancamentos.filter((l) => l.tipo === "receita" && l.data_compra?.startsWith(m.key)).reduce((s, l) => s + (l.valor || 0), 0);
-    const desp = lancamentos.filter((l) => l.tipo === "despesa" && l.data_compra?.startsWith(m.key)).reduce((s, l) => s + (l.valor || 0), 0);
+    const rec = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "receita" && l.data_compra?.startsWith(m.key)));
+    const desp = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "despesa" && l.data_compra?.startsWith(m.key)));
     return { ...m, receitas: rec, despesas: desp };
   });
 
@@ -7036,7 +7039,7 @@ function renderizarDonutCategorias(lancamentos) {
   if (despesas.length === 0) { svgEl.innerHTML = '<div class="plano-vazio">Sem despesas no período.</div>'; legEl.innerHTML = ""; return; }
 
   const porCategoria = {};
-  despesas.forEach((l) => { porCategoria[l.categoria] = (porCategoria[l.categoria] || 0) + (l.valor || 0); });
+  despesas.forEach((l) => { porCategoria[l.categoria] = (porCategoria[l.categoria] || 0) + valorMonetario(l); });
   const total = Object.values(porCategoria).reduce((s, v) => s + v, 0);
   const categorias = Object.entries(porCategoria).sort((a, b) => b[1] - a[1]);
 
@@ -7069,8 +7072,8 @@ function renderizarIndicadoresFinanceiros(lancamentos, periodo) {
 
   const rec = lancamentos.filter((l) => l.tipo === "receita");
   const desp = lancamentos.filter((l) => l.tipo === "despesa");
-  const totalRec = rec.reduce((s, l) => s + (l.valor || 0), 0);
-  const totalDesp = desp.reduce((s, l) => s + (l.valor || 0), 0);
+  const totalRec = somarValoresMonetarios(rec);
+  const totalDesp = somarValoresMonetarios(desp);
   const meses = Math.max(1, obterMesesPeriodo(periodo).length);
   const ticketRec = rec.length > 0 ? totalRec / rec.length : 0;
   const ticketDesp = desp.length > 0 ? totalDesp / desp.length : 0;
@@ -7081,8 +7084,8 @@ function renderizarIndicadoresFinanceiros(lancamentos, periodo) {
     { nome: "Receita média mensal", valor: formatadorBRL.format(totalRec / meses), icone: "📊", cor: "var(--cor-receita)" },
     { nome: "Despesa média mensal", valor: formatadorBRL.format(totalDesp / meses), icone: "📉", cor: "var(--cor-despesa)" },
     { nome: "Saldo médio", valor: formatadorBRL.format((totalRec - totalDesp) / meses), icone: "💰", cor: "var(--cor-marca)" },
-    { nome: "Maior gasto do período", valor: formatadorBRL.format(Math.max(...desp.map((l) => l.valor || 0), 0)), icone: "🔺", cor: "var(--cor-despesa)" },
-    { nome: "Maior receita", valor: formatadorBRL.format(Math.max(...rec.map((l) => l.valor || 0), 0)), icone: "🔺", cor: "var(--cor-receita)" },
+    { nome: "Maior gasto do período", valor: formatadorBRL.format(Math.max(...desp.map((l) => valorMonetario(l)), 0)), icone: "🔺", cor: "var(--cor-despesa)" },
+    { nome: "Maior receita", valor: formatadorBRL.format(Math.max(...rec.map((l) => valorMonetario(l)), 0)), icone: "🔺", cor: "var(--cor-receita)" },
     { nome: "Ticket médio despesas", valor: formatadorBRL.format(ticketDesp), icone: "🧾", cor: "var(--cor-texto)" },
     { nome: "Ticket médio receitas", valor: formatadorBRL.format(ticketRec), icone: "🧾", cor: "var(--cor-texto)" },
     { nome: "Total transações", valor: String(lancamentos.length), icone: "📋", cor: "var(--cor-marca)" },
@@ -7106,7 +7109,7 @@ function calcularDiasNegativos(lancamentos) {
   lancamentos.forEach((l) => {
     if (!l.data_compra) return;
     if (!porDia[l.data_compra]) porDia[l.data_compra] = 0;
-    porDia[l.data_compra] += (l.tipo === "receita" ? 1 : -1) * (l.valor || 0);
+    porDia[l.data_compra] += (l.tipo === "receita" ? 1 : -1) * valorMonetario(l);
   });
   return Object.values(porDia).filter((v) => v < 0).length;
 }
@@ -7125,7 +7128,7 @@ function renderizarEvolucaoCategorias(lancamentos, periodo) {
   const W = 600, H = 200, P = 40;
   const dados = meses.map((m) => {
     const obj = { label: m.label };
-    cats.forEach((c) => { obj[c] = lancamentos.filter((l) => l.tipo === "despesa" && l.categoria === c && l.data_compra?.startsWith(m.key)).reduce((s, l) => s + (l.valor || 0), 0); });
+    cats.forEach((c) => { obj[c] = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "despesa" && l.categoria === c && l.data_compra?.startsWith(m.key))); });
     return obj;
   });
 
@@ -7159,7 +7162,7 @@ function renderizarRankingCategorias(lancamentos) {
 
   const porCategoria = {};
   lancamentos.filter((l) => l.tipo === "despesa").forEach((l) => {
-    porCategoria[l.categoria] = (porCategoria[l.categoria] || 0) + (l.valor || 0);
+    porCategoria[l.categoria] = (porCategoria[l.categoria] || 0) + valorMonetario(l);
   });
   const total = Object.values(porCategoria).reduce((s, v) => s + v, 0);
   const ranking = Object.entries(porCategoria).sort((a, b) => b[1] - a[1]);
@@ -7193,8 +7196,8 @@ function renderizarTabelaContas(lancamentos) {
   lancamentos.forEach((l) => {
     const conta = l.carteira_nome || l.carteira_id || "Sem conta";
     if (!porConta[conta]) porConta[conta] = { entradas: 0, saidas: 0 };
-    if (l.tipo === "receita") porConta[conta].entradas += l.valor || 0;
-    else if (l.tipo === "despesa") porConta[conta].saidas += l.valor || 0;
+    if (l.tipo === "receita") porConta[conta].entradas += valorMonetario(l);
+    else if (l.tipo === "despesa") porConta[conta].saidas += valorMonetario(l);
   });
 
   const contas = Object.entries(porConta);
@@ -7215,7 +7218,7 @@ function renderizarTabelaFormasPagamento(lancamentos) {
   const porForma = {};
   lancamentos.filter((l) => l.tipo === "despesa").forEach((l) => {
     const forma = l.forma_pagamento || "Não informado";
-    porForma[forma] = (porForma[forma] || 0) + (l.valor || 0);
+    porForma[forma] = (porForma[forma] || 0) + valorMonetario(l);
   });
 
   const total = Object.values(porForma).reduce((s, v) => s + v, 0);
@@ -7235,7 +7238,7 @@ function renderizarMaioresDespesas(lancamentos) {
   const container = document.getElementById("rel-tabela-maiores-despesas");
   if (!container) return;
 
-  const despesas = lancamentos.filter((l) => l.tipo === "despesa").sort((a, b) => (b.valor || 0) - (a.valor || 0)).slice(0, 15);
+  const despesas = lancamentos.filter((l) => l.tipo === "despesa").sort((a, b) => valorMonetario(b) - valorMonetario(a)).slice(0, 15);
   if (despesas.length === 0) { container.innerHTML = '<div class="plano-vazio">Sem despesas.</div>'; return; }
 
   container.innerHTML = `<table class="rel-tabela"><thead><tr><th>Descrição</th><th>Categoria</th><th>Data</th><th class="col-valor">Valor</th></tr></thead><tbody>${
@@ -7247,7 +7250,7 @@ function renderizarMaioresReceitas(lancamentos) {
   const container = document.getElementById("rel-tabela-maiores-receitas");
   if (!container) return;
 
-  const receitas = lancamentos.filter((l) => l.tipo === "receita").sort((a, b) => (b.valor || 0) - (a.valor || 0)).slice(0, 15);
+  const receitas = lancamentos.filter((l) => l.tipo === "receita").sort((a, b) => valorMonetario(b) - valorMonetario(a)).slice(0, 15);
   if (receitas.length === 0) { container.innerHTML = '<div class="plano-vazio">Sem receitas.</div>'; return; }
 
   container.innerHTML = `<table class="rel-tabela"><thead><tr><th>Descrição</th><th>Categoria</th><th>Data</th><th class="col-valor">Valor</th></tr></thead><tbody>${
@@ -7272,12 +7275,12 @@ function renderizarComparativoPeriodos(lancamentos, mesAnterior) {
   const container = document.getElementById("rel-comparacao-periodos");
   if (!container) return;
 
-  const recAtual = lancamentos.filter((l) => l.tipo === "receita").reduce((s, l) => s + (l.valor || 0), 0);
-  const despAtual = lancamentos.filter((l) => l.tipo === "despesa").reduce((s, l) => s + (l.valor || 0), 0);
+  const recAtual = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "receita"));
+  const despAtual = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "despesa"));
 
   carregarLancamentosPeriodo(mesAnterior.inicio, mesAnterior.fim).then((ant) => {
-    const recAnt = ant.filter((l) => l.tipo === "receita").reduce((s, l) => s + (l.valor || 0), 0);
-    const despAnt = ant.filter((l) => l.tipo === "despesa").reduce((s, l) => s + (l.valor || 0), 0);
+    const recAnt = somarValoresMonetarios(ant.filter((l) => l.tipo === "receita"));
+    const despAnt = somarValoresMonetarios(ant.filter((l) => l.tipo === "despesa"));
     const ecoAtual = recAtual - despAtual;
     const ecoAnt = recAnt - despAnt;
 
@@ -7329,8 +7332,8 @@ function renderizarInsights(lancamentos, mesAnterior) {
   const insights = [];
   const desp = lancamentos.filter((l) => l.tipo === "despesa");
   const rec = lancamentos.filter((l) => l.tipo === "receita");
-  const totalDesp = desp.reduce((s, l) => s + (l.valor || 0), 0);
-  const totalRec = rec.reduce((s, l) => s + (l.valor || 0), 0);
+  const totalDesp = somarValoresMonetarios(desp);
+  const totalRec = somarValoresMonetarios(rec);
 
   // Insight: despesas maiores que receitas
   if (totalDesp > totalRec && totalRec > 0) {
@@ -7341,8 +7344,8 @@ function renderizarInsights(lancamentos, mesAnterior) {
   carregarLancamentosPeriodo(mesAnterior.inicio, mesAnterior.fim).then((ant) => {
     const despAnt = ant.filter((l) => l.tipo === "despesa");
     const catAtual = {}, catAnt = {};
-    desp.forEach((l) => { catAtual[l.categoria] = (catAtual[l.categoria] || 0) + (l.valor || 0); });
-    despAnt.forEach((l) => { catAnt[l.categoria] = (catAnt[l.categoria] || 0) + (l.valor || 0); });
+    desp.forEach((l) => { catAtual[l.categoria] = (catAtual[l.categoria] || 0) + valorMonetario(l); });
+    despAnt.forEach((l) => { catAnt[l.categoria] = (catAnt[l.categoria] || 0) + valorMonetario(l); });
 
     Object.keys(catAtual).forEach((cat) => {
       if (catAnt[cat] && catAtual[cat] > catAnt[cat] * 1.15) {
@@ -7360,13 +7363,13 @@ function renderizarInsights(lancamentos, mesAnterior) {
 
     // Economia
     const ecoAtual = totalRec - totalDesp;
-    const ecoAnt = rec.reduce((s, l) => s + (l.valor || 0), 0) - despAnt.reduce((s, l) => s + (l.valor || 0), 0);
+    const ecoAnt = somarValoresMonetarios(rec) - somarValoresMonetarios(despAnt);
     if (ecoAtual > ecoAnt && ecoAnt > 0) {
       insights.push({ tipo: "ok", texto: `Sua economia cresceu ${((ecoAtual - ecoAnt) / ecoAnt * 100).toFixed(0)}% em relação ao período anterior.` });
     }
 
     // Fixas > 60% renda
-    const fixas = typeof despesasFixasCarregadas !== "undefined" ? despesasFixasCarregadas.filter((f) => f.ativo).reduce((s, f) => s + (f.valor || 0), 0) : 0;
+    const fixas = typeof despesasFixasCarregadas !== "undefined" ? somarValoresMonetarios(despesasFixasCarregadas.filter((f) => f.ativo)) : 0;
     if (totalRec > 0 && fixas / totalRec > 0.6) {
       insights.push({ tipo: "alerta", texto: `As despesas fixas representam ${((fixas / totalRec) * 100).toFixed(0)}% da sua renda.` });
     }
@@ -7517,8 +7520,8 @@ function exportarRelatorioJSON() {
 
 function exportarRelatorioPDF() {
   const { lancamentos, periodo } = relatorioDados;
-  const totalRec = lancamentos.filter((l) => l.tipo === "receita").reduce((s, l) => s + (l.valor || 0), 0);
-  const totalDesp = lancamentos.filter((l) => l.tipo === "despesa").reduce((s, l) => s + (l.valor || 0), 0);
+  const totalRec = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "receita"));
+  const totalDesp = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "despesa"));
   const saldo = totalRec - totalDesp;
 
   let html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Relatório Financeiro</title><style>
