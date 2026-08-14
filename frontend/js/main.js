@@ -1141,7 +1141,7 @@ function configurarModalCartaoCredito() {
       document.getElementById("cartao-ultimos4").value = editar.ultimos4 || "";
       document.getElementById("cartao-dia-fechamento").value = editar.dia_fechamento;
       document.getElementById("cartao-dia-vencimento").value = editar.dia_vencimento;
-      document.getElementById("cartao-limite").value = editar.limite || "";
+      document.getElementById("cartao-limite").value = valorMonetario(editar, "limite") || "";
     }
 
     modal.style.display = "flex";
@@ -1516,7 +1516,7 @@ async function editarDespesaFixa(id) {
 
   document.getElementById("fixa-editando-id").value = fixa.id;
   document.getElementById("fixa-descricao").value = fixa.descricao;
-  document.getElementById("fixa-valor").value = fixa.valor;
+  document.getElementById("fixa-valor").value = valorMonetario(fixa);
   document.getElementById("fixa-dia").value = fixa.dia_vencimento;
   document.getElementById("fixa-categoria").value = fixa.categoria;
   document.getElementById("fixa-meio-pagamento").value = fixa.meio_pagamento;
@@ -2662,7 +2662,7 @@ async function editarLancamento(id) {
   document.getElementById("lancamento-editando-id").value = lancamento.id;
   document.getElementById("tipo-gasto").value = lancamento.tipo;
   document.getElementById("descricao").value = lancamento.descricao;
-  document.getElementById("valor").value = lancamento.valor;
+  document.getElementById("valor").value = valorMonetario(lancamento);
   document.getElementById("data-compra").value = String(lancamento.data_compra).slice(0, 10);
   document.getElementById("categoria").value = lancamento.categoria;
   document.getElementById("meio-pagamento").value = lancamento.meio_pagamento;
@@ -3013,7 +3013,7 @@ function verificarNotificacoes() {
       notificacoes.push({
         tipo: "fixa",
         descricao: fixa.descricao,
-        valor: fixa.valor,
+        valor: valorMonetario(fixa),
         dia: fixa.dia_vencimento,
         texto: aviso.texto,
         atrasado: aviso.atrasado,
@@ -3029,7 +3029,7 @@ function verificarNotificacoes() {
       notificacoes.push({
         tipo: "parcelada",
         descricao: compra.descricao,
-        valor: compra.valor_parcela,
+        valor: valorMonetario(compra, "valor_parcela"),
         dia: compra.dia_vencimento,
         texto: aviso.texto,
         atrasado: aviso.atrasado,
@@ -3060,7 +3060,7 @@ function verificarNotificacoes() {
       notificacoes.push({
         tipo: "lancamento",
         descricao: lanc.descricao,
-        valor: lanc.valor,
+        valor: valorMonetario(lanc),
         dia: dataLanc.getUTCDate(),
         texto,
         atrasado,
@@ -3081,17 +3081,17 @@ function verificarNotificacoes() {
       let atrasado = false;
 
       if (diffDias < 0) {
-        texto = `Meta "${meta.categoria}" passou do prazo! Faltava ${formatadorBRL.format(meta.falta)}`;
+        texto = `Meta "${meta.categoria}" passou do prazo! Faltava ${formatadorBRL.format(valorMonetario(meta, "falta"))}`;
         atrasado = true;
       } else if (diffDias <= 7) {
-        texto = `Meta "${meta.categoria}": faltam ${formatadorBRL.format(meta.falta)} (${meta.semanas_restantes} sem.)`;
+        texto = `Meta "${meta.categoria}": faltam ${formatadorBRL.format(valorMonetario(meta, "falta"))} (${meta.semanas_restantes} sem.)`;
       }
 
       if (texto) {
         notificacoes.push({
           tipo: "meta",
           descricao: meta.categoria,
-          valor: meta.falta,
+          valor: valorMonetario(meta, "falta"),
           dia: dataLimite.getUTCDate(),
           texto,
           atrasado,

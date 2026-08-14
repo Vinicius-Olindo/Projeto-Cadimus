@@ -203,8 +203,8 @@ function renderizarPreviewImportacao() {
 
 function atualizarResumoImportacao() {
   const selecionadas = importarTransacoes.filter((t) => t.selecionada);
-  const receitas = selecionadas.filter((t) => t.tipo === "receita").reduce((s, t) => s + t.valor, 0);
-  const despesas = selecionadas.filter((t) => t.tipo === "despesa").reduce((s, t) => s + t.valor, 0);
+  const receitas = somarValoresMonetarios(selecionadas.filter((t) => t.tipo === "receita"));
+  const despesas = somarValoresMonetarios(selecionadas.filter((t) => t.tipo === "despesa"));
   const resumo = document.getElementById("importar-resumo");
   if (resumo) {
     const partes = [];

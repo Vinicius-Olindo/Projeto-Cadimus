@@ -191,7 +191,7 @@ async function editarRecorrencia(id) {
 
   document.getElementById("recorrencia-editando-id").value = rec.id;
   document.getElementById("recorrencia-descricao").value = rec.descricao;
-  document.getElementById("recorrencia-valor").value = rec.valor;
+  document.getElementById("recorrencia-valor").value = valorMonetario(rec);
   document.getElementById("recorrencia-tipo").value = rec.tipo;
   document.getElementById("recorrencia-frequencia").value = rec.frequencia;
   document.getElementById("recorrencia-dia-semana").value = rec.dia_semana || 0;
