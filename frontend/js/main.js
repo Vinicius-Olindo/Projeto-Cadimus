@@ -3008,6 +3008,8 @@ function verificarNotificacoes() {
   const hoje = new Date();
   const diaAtual = hoje.getDate();
   const carteiraId = Number(document.getElementById("seletor-carteira")?.value || 0) || null;
+  const chaveDia = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}-${String(hoje.getDate()).padStart(2, "0")}`;
+  const chaveMes = `${hoje.getFullYear()}-${String(hoje.getMonth() + 1).padStart(2, "0")}`;
 
   despesasFixasCarregadas.forEach((fixa) => {
     if (!fixa.ativo) return;
@@ -3027,7 +3029,7 @@ function verificarNotificacoes() {
         carteira_id: carteiraId,
         entidade: "despesa_fixa",
         entidade_id: fixa.id,
-        chave_unica: `despesa_fixa:${fixa.id}:vencimento:${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`,
+        chave_unica: `despesa_fixa:${fixa.id}:vencimento:${chaveMes}:lembrete:${chaveDia}`,
       });
     }
   });
@@ -3050,7 +3052,7 @@ function verificarNotificacoes() {
         carteira_id: carteiraId,
         entidade: "compra_parcelada",
         entidade_id: compra.id,
-        chave_unica: `compra_parcelada:${compra.id}:vencimento:${new Date().getFullYear()}-${String(new Date().getMonth() + 1).padStart(2, "0")}`,
+        chave_unica: `compra_parcelada:${compra.id}:vencimento:${chaveMes}:lembrete:${chaveDia}`,
       });
     }
   });
@@ -3089,7 +3091,7 @@ function verificarNotificacoes() {
         entidade: "lancamento",
         entidade_id: lanc.id,
         data_evento: lanc.data_compra,
-        chave_unica: `lancamento:${lanc.id}:vencimento:${lanc.data_compra}`,
+        chave_unica: `lancamento:${lanc.id}:vencimento:${lanc.data_compra}:lembrete:${chaveDia}`,
       });
     }
   });
@@ -3128,7 +3130,7 @@ function verificarNotificacoes() {
           entidade: "meta",
           entidade_id: meta.id,
           data_evento: meta.data_limite,
-          chave_unica: `meta:${meta.id}:prazo:${meta.data_limite}`,
+          chave_unica: `meta:${meta.id}:prazo:${meta.data_limite}:lembrete:${chaveDia}`,
         });
       }
     });

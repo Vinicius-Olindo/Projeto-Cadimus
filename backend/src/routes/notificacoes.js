@@ -122,6 +122,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
 
   const placeholders = carteirasPermitidas.map(() => "?").join(",");
   const chaveMes = formatarDataChave(dataReferencia);
+  const chaveDia = formatarDataIso(dataReferencia);
   const notificacoes = [];
 
   const { results: despesasFixas } = await env.DB.prepare(
@@ -145,7 +146,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
       severidade: aviso.severidade,
       entidade: "despesa_fixa",
       entidade_id: fixa.id,
-      chave_unica: `despesa_fixa:${fixa.id}:vencimento:${chaveMes}`,
+      chave_unica: `despesa_fixa:${fixa.id}:vencimento:${chaveMes}:lembrete:${chaveDia}`,
       url_acao: null,
       data_evento: formatarDataIso(dataEvento),
     });
@@ -172,7 +173,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
       severidade: aviso.severidade,
       entidade: "compra_parcelada",
       entidade_id: compra.id,
-      chave_unica: `compra_parcelada:${compra.id}:vencimento:${chaveMes}`,
+      chave_unica: `compra_parcelada:${compra.id}:vencimento:${chaveMes}:lembrete:${chaveDia}`,
       url_acao: null,
       data_evento: formatarDataIso(dataEvento),
     });
@@ -200,7 +201,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
       severidade: aviso.severidade,
       entidade: "lancamento",
       entidade_id: lancamento.id,
-      chave_unica: `lancamento:${lancamento.id}:vencimento:${lancamento.data_compra}`,
+      chave_unica: `lancamento:${lancamento.id}:vencimento:${lancamento.data_compra}:lembrete:${chaveDia}`,
       url_acao: null,
       data_evento: lancamento.data_compra,
     });
@@ -237,7 +238,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
       severidade: aviso.severidade,
       entidade: "meta",
       entidade_id: meta.id,
-      chave_unica: `meta:${meta.id}:prazo:${meta.data_limite}`,
+      chave_unica: `meta:${meta.id}:prazo:${meta.data_limite}:lembrete:${chaveDia}`,
       url_acao: null,
       data_evento: meta.data_limite,
     });

@@ -247,6 +247,38 @@ test("gerar notificacoes automaticas cria alertas de vencimentos e metas das car
   assert.deepEqual(inserts.map((args) => args[2]), ["fixa", "parcelada", "lancamento", "meta"]);
   assert.ok(inserts.every((args) => args[0] === 1));
   assert.ok(inserts.every((args) => args[1] === 10));
-  assert.ok(inserts.some((args) => args[9] === "despesa_fixa:11:vencimento:2026-08"));
-  assert.ok(inserts.some((args) => args[9] === "meta:14:prazo:2026-08-20"));
+  assert.ok(inserts.some((args) => args[9] === "despesa_fixa:11:vencimento:2026-08:lembrete:2026-08-14"));
+  assert.ok(inserts.some((args) => args[9] === "meta:14:prazo:2026-08-20:lembrete:2026-08-14"));
+});
+
+test("upsert de notificacao nao reabre alerta ja lido no mesmo dia", async () => {
+  let sqlUsado = "";
+  const db = new FakeD1(handlersBase([
+    {
+      type: "run",
+      match: "INSERT INTO notificacoes",
+      reply: ({ sql }) => {
+        sqlUsado = sql;
+        return { meta: { last_row_id: 1 } };
+      },
+    },
+  ]));
+
+  const res = await processarNotificacoes(
+    request("POST", "https://cadimus.test/api/notificacoes/sincronizar", {
+      notificacoes: [{
+        tipo: "fixa",
+        titulo: "Internet",
+        mensagem: "Vence hoje",
+        carteira_id: 10,
+        chave_unica: "fixa:1:2026-08:lembrete:2026-08-14",
+      }],
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 200);
+  assert.match(sqlUsado, /ON CONFLICT\(usuario_id, chave_unica\)/);
+  assert.doesNotMatch(sqlUsado, /status = excluded\.status/);
 });
