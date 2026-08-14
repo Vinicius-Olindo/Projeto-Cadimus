@@ -49,6 +49,24 @@ function headersAutenticados(comJson = true) {
   return headers;
 }
 
+function obterCentavosMonetarios(campoId, opcoes = {}) {
+  const { vazioComoZero = false, ...opcoesDinheiro } = opcoes;
+  const campo = document.getElementById(campoId);
+  const valor = campo?.value;
+  if (vazioComoZero && (valor === null || valor === undefined || String(valor).trim() === "")) {
+    return 0;
+  }
+  return window.CadimusMoney.reaisParaCentavos(valor, opcoesDinheiro);
+}
+
+function montarPayloadMonetario(campoId, nomeCampo = "valor", opcoes = {}) {
+  const centavos = obterCentavosMonetarios(campoId, opcoes);
+  return {
+    [nomeCampo]: window.CadimusMoney.centavosParaReais(centavos),
+    [`${nomeCampo}_centavos`]: centavos,
+  };
+}
+
 // Se a API responder 401 (sessão inválida/expirada), desloga e volta pro login
 function tratarSessaoExpirada(resposta) {
   if (resposta.status === 401) {
@@ -911,7 +929,8 @@ function configurarModalTransferencia() {
     try {
       const origemId = Number(selectOrigem.value);
       const destinoId = Number(selectDestino.value);
-      const valor = parseFloat(document.getElementById("transferencia-valor").value);
+      const valorPayload = montarPayloadMonetario("transferencia-valor");
+      const valor = valorPayload.valor;
       const data = document.getElementById("transferencia-data").value;
       const descricao = document.getElementById("transferencia-descricao").value.trim();
       const idempotencyKey = crypto.randomUUID ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(16).slice(2)}`;
@@ -937,6 +956,7 @@ function configurarModalTransferencia() {
         headers: headersAutenticados(),
         body: JSON.stringify({
           valor,
+          valor_centavos: valorPayload.valor_centavos,
           data_transferencia: data,
           carteira_origem_id: origemId,
           carteira_destino_id: destinoId,
@@ -1024,7 +1044,8 @@ function configurarModalOrcamento() {
 
     try {
       const categoria = selectCategoria.value;
-      const valor = parseFloat(document.getElementById("orcamento-valor").value);
+      const valorPayload = montarPayloadMonetario("orcamento-valor");
+      const valor = valorPayload.valor;
       const mes = parseInt(document.getElementById("orcamento-mes").value);
       const ano = parseInt(document.getElementById("orcamento-ano").value);
       const carteiraId = document.getElementById("seletor-carteira").value;
@@ -1045,6 +1066,7 @@ function configurarModalOrcamento() {
         body: JSON.stringify({
           categoria,
           valor,
+          valor_centavos: valorPayload.valor_centavos,
           mes,
           ano,
           carteira_id: Number(carteiraId),
@@ -1120,13 +1142,14 @@ function configurarModalCartaoCredito() {
 
     try {
       const carteiraId = document.getElementById("seletor-carteira").value;
+      const limitePayload = montarPayloadMonetario("cartao-limite", "limite", { vazioComoZero: true });
       const corpo = {
         nome: document.getElementById("cartao-nome").value.trim(),
         bandeira: document.getElementById("cartao-bandeira").value,
         ultimos4: document.getElementById("cartao-ultimos4").value.trim() || null,
         dia_fechamento: parseInt(document.getElementById("cartao-dia-fechamento").value),
         dia_vencimento: parseInt(document.getElementById("cartao-dia-vencimento").value),
-        limite: parseFloat(document.getElementById("cartao-limite").value) || 0,
+        ...limitePayload,
         carteira_id: Number(carteiraId),
       };
 
@@ -1512,9 +1535,10 @@ function configurarModalDespesasFixas() {
     btnSalvar.innerText = idEdicao ? "Salvando edição..." : "Salvando...";
 
     try {
+      const valorPayload = montarPayloadMonetario("fixa-valor");
       const corpo = {
         descricao: document.getElementById("fixa-descricao").value.trim(),
-        valor: parseFloat(document.getElementById("fixa-valor").value),
+        ...valorPayload,
         dia_vencimento: parseInt(document.getElementById("fixa-dia").value, 10),
         categoria: document.getElementById("fixa-categoria").value,
         meio_pagamento: document.getElementById("fixa-meio-pagamento").value,
@@ -1802,15 +1826,20 @@ function configurarModalComprasParceladas() {
   });
 
   function atualizarPreview() {
-    const total = parseFloat(campoValorTotal.value);
+    let totalCentavos;
+    try {
+      totalCentavos = window.CadimusMoney.reaisParaCentavos(campoValorTotal.value);
+    } catch {
+      preview.style.display = "none";
+      return;
+    }
     const parcelas = parseInt(campoTotalParcelas.value, 10);
 
-    if (!Number.isFinite(total) || total <= 0 || !Number.isInteger(parcelas) || parcelas < 2) {
+    if (totalCentavos <= 0 || !Number.isInteger(parcelas) || parcelas < 2) {
       preview.style.display = "none";
       return;
     }
 
-    const totalCentavos = Math.round(total * 100);
     const centavosBase = Math.floor(totalCentavos / parcelas);
     const centavosUltima = totalCentavos - centavosBase * (parcelas - 1);
     const valorParcela = centavosBase / 100;
@@ -1847,18 +1876,21 @@ function configurarModalComprasParceladas() {
       }
       const [anoInicio, mesInicio] = mesInicioValor.split("-").map(Number);
 
-      const valorTotal = parseFloat(campoValorTotal.value);
+      const valorTotalCentavos = window.CadimusMoney.reaisParaCentavos(campoValorTotal.value);
+      const valorTotal = window.CadimusMoney.centavosParaReais(valorTotalCentavos);
       const totalParcelas = parseInt(campoTotalParcelas.value, 10);
       // O backend recebe o valor total e distribui os centavos, deixando a
       // última parcela ajustar qualquer diferença de arredondamento.
-      const totalCentavos = Math.round(valorTotal * 100);
-      const valorParcela = Math.floor(totalCentavos / totalParcelas) / 100;
+      const valorParcelaCentavos = Math.floor(valorTotalCentavos / totalParcelas);
+      const valorParcela = window.CadimusMoney.centavosParaReais(valorParcelaCentavos);
 
       const corpo = {
         carteira_id: carteiraId,
         descricao: document.getElementById("parcelada-descricao").value.trim(),
         valor_total: valorTotal,
+        valor_total_centavos: valorTotalCentavos,
         valor_parcela: valorParcela,
+        valor_parcela_centavos: valorParcelaCentavos,
         total_parcelas: totalParcelas,
         dia_vencimento: parseInt(document.getElementById("parcelada-dia").value, 10),
         ano_inicio: anoInicio,
@@ -2239,7 +2271,8 @@ function configurarModalMeta() {
 
     const carteiraId = document.getElementById("seletor-carteira").value;
     const categoria = document.getElementById("meta-categoria-nome").value;
-    const valorLimite = parseFloat(document.getElementById("meta-valor").value);
+    const valorLimitePayload = montarPayloadMonetario("meta-valor", "valor_limite");
+    const valorLimite = valorLimitePayload.valor_limite;
     const dataLimite = document.getElementById("meta-data-limite").value || null;
     const btnSalvar = document.getElementById("btn-salvar-meta");
 
@@ -2250,7 +2283,7 @@ function configurarModalMeta() {
       const resposta = await fetch(`${API_URL}/api/metas`, {
         method: "POST",
         headers: headersAutenticados(),
-        body: JSON.stringify({ carteira_id: carteiraId, categoria, valor_limite: valorLimite, data_limite: dataLimite }),
+        body: JSON.stringify({ carteira_id: carteiraId, categoria, valor_limite: valorLimite, valor_limite_centavos: valorLimitePayload.valor_limite_centavos, data_limite: dataLimite }),
       });
 
       if (tratarSessaoExpirada(resposta)) return;
@@ -2442,7 +2475,8 @@ function configurarModalDeposito() {
   form.addEventListener("submit", async (evento) => {
     evento.preventDefault();
     const metaId = Number(document.getElementById("deposito-meta-id").value);
-    const valor = parseFloat(document.getElementById("deposito-valor").value);
+    const valorPayload = montarPayloadMonetario("deposito-valor");
+    const valor = valorPayload.valor;
     const descricao = document.getElementById("deposito-descricao").value.trim();
     const btn = document.getElementById("btn-confirmar-deposito");
 
@@ -2455,7 +2489,7 @@ function configurarModalDeposito() {
       const resposta = await fetch(`${API_URL}/api/metas-depositos`, {
         method: "POST",
         headers: headersAutenticados(),
-        body: JSON.stringify({ meta_id: metaId, valor, descricao }),
+        body: JSON.stringify({ meta_id: metaId, valor, valor_centavos: valorPayload.valor_centavos, descricao }),
       });
 
       if (tratarSessaoExpirada(resposta)) return;
@@ -2680,10 +2714,12 @@ function configurarModal() {
         adicionarCategoriaAoSelect(nomeCategoria);
       }
 
+      const valorPayload = montarPayloadMonetario("valor");
       const pacoteDados = {
         tipo: document.getElementById("tipo-gasto").value,
         descricao: document.getElementById("descricao").value,
-        valor: parseFloat(document.getElementById("valor").value),
+        valor: valorPayload.valor,
+        valor_centavos: valorPayload.valor_centavos,
         data_compra: document.getElementById("data-compra").value,
         categoria: nomeCategoria,
         meio_pagamento: document.getElementById("meio-pagamento").value,
@@ -5277,7 +5313,7 @@ function configurarModalPlano() {
     const dados = {
       nome: document.getElementById("plano-nome").value.trim(),
       descricao: document.getElementById("plano-descricao").value.trim(),
-      valor_alvo: parseFloat(document.getElementById("plano-valor-alvo").value) || 0,
+      ...montarPayloadMonetario("plano-valor-alvo", "valor_alvo"),
       data_limite: document.getElementById("plano-data-limite").value || null,
       prioridade: document.getElementById("plano-prioridade").value,
       icone: document.getElementById("plano-icone").value,
@@ -5378,7 +5414,8 @@ function configurarModalPlanoDeposito() {
   form.addEventListener("submit", async (e) => {
     e.preventDefault();
     const planoId = document.getElementById("plano-dep-id").value;
-    const valor = parseFloat(document.getElementById("plano-dep-valor").value) || 0;
+    const valorPayload = montarPayloadMonetario("plano-dep-valor");
+    const valor = valorPayload.valor;
     const descricao = document.getElementById("plano-dep-descricao").value.trim();
 
     if (!valor || valor <= 0) return mostrarToast("Informe um valor válido.", "erro");
@@ -5387,7 +5424,7 @@ function configurarModalPlanoDeposito() {
       const resposta = await fetch(`${API_URL}/api/planos-depositos`, {
         method: "POST",
         headers: headersAutenticados(),
-        body: JSON.stringify({ plano_id: Number(planoId), valor, descricao }),
+        body: JSON.stringify({ plano_id: Number(planoId), valor, valor_centavos: valorPayload.valor_centavos, descricao }),
       });
 
       if (tratarSessaoExpirada(resposta)) return;

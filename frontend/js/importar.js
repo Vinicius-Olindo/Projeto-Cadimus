@@ -41,6 +41,7 @@ function parseOFX(texto) {
       data,
       descricao: name,
       valor: Math.abs(amount),
+      valor_centavos: window.CadimusMoney.reaisParaCentavos(Math.abs(amount)),
       tipo,
       selecionada: true,
     });
@@ -75,6 +76,7 @@ function parseCSV(texto) {
     let valorStr = (cols[colValor] || "").replace(/[^\d,.\-]/g, "").replace(",", ".");
     const valor = parseFloat(valorStr);
     if (!Number.isFinite(valor) || valor === 0) continue;
+    const valorCentavos = window.CadimusMoney.reaisParaCentavos(Math.abs(valor));
 
     let data = "";
     if (colData !== -1 && cols[colData]) {
@@ -103,6 +105,7 @@ function parseCSV(texto) {
       data,
       descricao: descRaw || `Linha ${i + 1}`,
       valor: Math.abs(valor),
+      valor_centavos: valorCentavos,
       tipo,
       selecionada: true,
     });
@@ -231,6 +234,7 @@ async function executarImportacao() {
           tipo: t.tipo,
           descricao: t.descricao,
           valor: t.valor,
+          valor_centavos: t.valor_centavos,
           data_compra: t.data || new Date().toISOString().slice(0, 10),
           categoria: t.categoriaManual || "Outros",
           meio_pagamento: "outro",

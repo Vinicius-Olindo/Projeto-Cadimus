@@ -126,9 +126,11 @@ function configurarModalRecorrencia() {
     const frequencia = document.getElementById("recorrencia-frequencia").value;
 
     try {
+      const valorCentavos = window.CadimusMoney.reaisParaCentavos(document.getElementById("recorrencia-valor").value);
       const corpo = {
         descricao: document.getElementById("recorrencia-descricao").value.trim(),
-        valor: parseFloat(document.getElementById("recorrencia-valor").value),
+        valor: window.CadimusMoney.centavosParaReais(valorCentavos),
+        valor_centavos: valorCentavos,
         tipo: document.getElementById("recorrencia-tipo").value,
         frequencia,
         dia_semana: frequencia === "semanal" ? parseInt(document.getElementById("recorrencia-dia-semana").value) : null,
