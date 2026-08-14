@@ -4,6 +4,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 export async function processarComprasParceladas(request, env, ctx) {
   const metodo = request.method;
@@ -68,22 +69,31 @@ export async function processarComprasParceladas(request, env, ctx) {
       const totalParcelas = parseInt(dados.total_parcelas, 10);
       const anoInicio = parseInt(dados.ano_inicio, 10);
       const mesInicio = parseInt(dados.mes_inicio, 10);
-      const valorTotalInformado = parseFloat(dados.valor_total);
-      const valorParcelaInformado = parseFloat(dados.valor_parcela);
-      const valorTotal = Number.isFinite(valorTotalInformado)
-        ? valorTotalInformado
-        : valorParcelaInformado * totalParcelas;
-      const valorParcela = Number.isFinite(valorTotal) && totalParcelas > 0
-        ? Math.floor(Math.round(valorTotal * 100) / totalParcelas) / 100
-        : valorParcelaInformado;
+      if (
+        dados.valor_total === undefined &&
+        dados.valor_total_centavos === undefined &&
+        dados.valor_parcela === undefined &&
+        dados.valor_parcela_centavos === undefined
+      ) {
+        return new Response(JSON.stringify({ erro: "Informe o valor total da compra." }), { status: 400 });
+      }
+
+      const valorTotalCentavos = dados.valor_total !== undefined || dados.valor_total_centavos !== undefined
+        ? normalizarCentavos(dados.valor_total, dados.valor_total_centavos)
+        : normalizarCentavos(dados.valor_parcela, dados.valor_parcela_centavos) * totalParcelas;
+      const valorTotal = centavosParaReais(valorTotalCentavos);
+      const valorParcelaCentavos = Number.isInteger(totalParcelas) && totalParcelas > 0
+        ? Math.floor(valorTotalCentavos / totalParcelas)
+        : 0;
+      const valorParcela = centavosParaReais(valorParcelaCentavos);
 
       if (!descricao) {
         return new Response(JSON.stringify({ erro: "Informe uma descrição." }), { status: 400 });
       }
-      if (!Number.isFinite(valorTotal) || valorTotal <= 0) {
+      if (valorTotalCentavos <= 0) {
         return new Response(JSON.stringify({ erro: "Informe o valor total da compra." }), { status: 400 });
       }
-      if (!Number.isFinite(valorParcela) || valorParcela <= 0) {
+      if (valorParcelaCentavos <= 0) {
         return new Response(JSON.stringify({ erro: "Valor de parcela inválido." }), { status: 400 });
       }
       if (!Number.isInteger(diaVencimento) || diaVencimento < 1 || diaVencimento > 28) {
@@ -107,10 +117,10 @@ export async function processarComprasParceladas(request, env, ctx) {
 
       const resultado = await env.DB.prepare(
         `INSERT INTO compras_parceladas
-         (carteira_id, descricao, valor_total, valor_parcela, categoria, meio_pagamento, dia_vencimento, total_parcelas, ano_inicio, mes_inicio, criado_por)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (carteira_id, descricao, valor_total, valor_total_centavos, valor_parcela, valor_parcela_centavos, categoria, meio_pagamento, dia_vencimento, total_parcelas, ano_inicio, mes_inicio, criado_por)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-        .bind(dados.carteira_id, descricao, valorTotal, valorParcela, dados.categoria, dados.meio_pagamento, diaVencimento, totalParcelas, anoInicio, mesInicio, usuarioLogado.id)
+        .bind(dados.carteira_id, descricao, valorTotal, valorTotalCentavos, valorParcela, valorParcelaCentavos, dados.categoria, dados.meio_pagamento, diaVencimento, totalParcelas, anoInicio, mesInicio, usuarioLogado.id)
         .run();
 
       // Gera todas as N parcelas de uma vez (inclusive as de meses futuros) — diferente da
@@ -150,13 +160,26 @@ export async function processarComprasParceladas(request, env, ctx) {
         campos.push("descricao = ?");
         valores.push(String(dados.descricao).trim());
       }
-      if (dados.valor_parcela !== undefined) {
-        const valor = parseFloat(dados.valor_parcela);
-        if (!Number.isFinite(valor) || valor <= 0) {
+      if (dados.valor_parcela !== undefined || dados.valor_parcela_centavos !== undefined) {
+        const valorParcelaCentavos = normalizarCentavos(dados.valor_parcela, dados.valor_parcela_centavos);
+        const valor = centavosParaReais(valorParcelaCentavos);
+        if (valorParcelaCentavos <= 0) {
           return new Response(JSON.stringify({ erro: "Informe o valor da parcela." }), { status: 400 });
         }
         campos.push("valor_parcela = ?");
         valores.push(valor);
+        campos.push("valor_parcela_centavos = ?");
+        valores.push(valorParcelaCentavos);
+      }
+      if (dados.valor_total !== undefined || dados.valor_total_centavos !== undefined) {
+        const valorTotalCentavos = normalizarCentavos(dados.valor_total, dados.valor_total_centavos);
+        if (valorTotalCentavos <= 0) {
+          return new Response(JSON.stringify({ erro: "Informe o valor total da compra." }), { status: 400 });
+        }
+        campos.push("valor_total = ?");
+        valores.push(centavosParaReais(valorTotalCentavos));
+        campos.push("valor_total_centavos = ?");
+        valores.push(valorTotalCentavos);
       }
       if (dados.categoria !== undefined) {
         campos.push("categoria = ?");

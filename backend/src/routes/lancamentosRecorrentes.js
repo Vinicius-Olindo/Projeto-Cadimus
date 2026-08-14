@@ -3,6 +3,7 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 export async function processarLancamentosRecorrentes(request, env, ctx) {
   const metodo = request.method;
@@ -64,7 +65,11 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       }
 
       const descricao = (dados.descricao || "").trim();
-      const valor = parseFloat(dados.valor);
+      if (dados.valor === undefined && dados.valor_centavos === undefined) {
+        return new Response(JSON.stringify({ erro: "Informe um valor vÃ¡lido." }), { status: 400 });
+      }
+      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const valor = centavosParaReais(valorCentavos);
       const tipo = dados.tipo === "receita" ? "receita" : "despesa";
       const frequencia = dados.frequencia;
       const dataInicio = dados.data_inicio;
@@ -72,7 +77,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       if (!descricao) {
         return new Response(JSON.stringify({ erro: "Informe uma descrição." }), { status: 400 });
       }
-      if (!Number.isFinite(valor) || valor <= 0) {
+      if (valorCentavos <= 0) {
         return new Response(JSON.stringify({ erro: "Informe um valor válido." }), { status: 400 });
       }
       if (!["semanal", "quinzenal", "mensal", "trimestral", "anual"].includes(frequencia)) {
@@ -97,11 +102,11 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
 
       const resultado = await env.DB.prepare(
         `INSERT INTO lancamentos_recorrentes
-         (carteira_id, descricao, valor, tipo, categoria, meio_pagamento, frequencia, dia_semana, dia_mes, data_inicio, data_fim, criado_por)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+         (carteira_id, descricao, valor, valor_centavos, tipo, categoria, meio_pagamento, frequencia, dia_semana, dia_mes, data_inicio, data_fim, criado_por)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
         .bind(
-          dados.carteira_id, descricao, valor, tipo, dados.categoria, dados.meio_pagamento,
+          dados.carteira_id, descricao, valor, valorCentavos, tipo, dados.categoria, dados.meio_pagamento,
           frequencia,
           frequencia === "semanal" ? (dados.dia_semana || 0) : null,
           ["mensal", "trimestral", "anual"].includes(frequencia) ? (dados.dia_mes || 1) : null,
@@ -141,10 +146,11 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       const valores = [];
 
       if (dados.descricao !== undefined) { campos.push("descricao = ?"); valores.push(String(dados.descricao).trim()); }
-      if (dados.valor !== undefined) {
-        const v = parseFloat(dados.valor);
-        if (!Number.isFinite(v) || v <= 0) return new Response(JSON.stringify({ erro: "Valor inválido." }), { status: 400 });
-        campos.push("valor = ?"); valores.push(v);
+      if (dados.valor !== undefined || dados.valor_centavos !== undefined) {
+        const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+        if (valorCentavos <= 0) return new Response(JSON.stringify({ erro: "Valor inválido." }), { status: 400 });
+        campos.push("valor = ?"); valores.push(centavosParaReais(valorCentavos));
+        campos.push("valor_centavos = ?"); valores.push(valorCentavos);
       }
       if (dados.tipo !== undefined) { campos.push("tipo = ?"); valores.push(dados.tipo === "receita" ? "receita" : "despesa"); }
       if (dados.categoria !== undefined) { campos.push("categoria = ?"); valores.push(dados.categoria); }

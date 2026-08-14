@@ -118,8 +118,9 @@ test("compras parceladas distribuem centavos e preservam o total", async () => {
         lancamentos.push({
           descricao: args[0],
           valor: args[1],
-          data_compra: args[2],
-          numero_parcela: args[8],
+          valor_centavos: args[2],
+          data_compra: args[3],
+          numero_parcela: args[9],
         });
         return { meta: { last_row_id: lancamentos.length } };
       },
@@ -129,6 +130,7 @@ test("compras parceladas distribuem centavos e preservam o total", async () => {
   await gerarTodasParcelasDaCompra({ DB: db }, 7);
 
   assert.deepEqual(lancamentos.map((l) => l.valor), [333.33, 333.33, 333.34]);
+  assert.deepEqual(lancamentos.map((l) => l.valor_centavos), [33333, 33333, 33334]);
   assert.equal(lancamentos.reduce((soma, item) => soma + Math.round(item.valor * 100), 0), 100000);
   assert.deepEqual(lancamentos.map((l) => l.data_compra), ["2026-11-10", "2026-12-10", "2027-01-10"]);
 });
@@ -163,7 +165,7 @@ test("recorrências semanais geram ocorrências do mês sem duplicar", async () 
       type: "run",
       match: "INSERT INTO lancamentos",
       reply: ({ args }) => {
-        lancamentos.push({ data_compra: args[2], recorrencia_id: args[8] });
+        lancamentos.push({ valor_centavos: args[2], data_compra: args[3], recorrencia_id: args[9] });
         return { meta: { last_row_id: lancamentos.length } };
       },
     },
@@ -173,6 +175,7 @@ test("recorrências semanais geram ocorrências do mês sem duplicar", async () 
   await gerarLancamentosRecorrentesDoMes({ DB: db }, [10], "2026", "08");
 
   assert.deepEqual(lancamentos.map((l) => l.data_compra), ["2026-08-03", "2026-08-10", "2026-08-17", "2026-08-24", "2026-08-31"]);
+  assert.deepEqual(lancamentos.map((l) => l.valor_centavos), [5000, 5000, 5000, 5000, 5000]);
 });
 
 test("relatório de lançamentos respeita data_inicio, data_fim, categoria, tipo e status", async () => {

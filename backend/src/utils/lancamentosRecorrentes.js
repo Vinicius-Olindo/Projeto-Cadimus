@@ -1,6 +1,7 @@
 // ==========================================
 // lancamentosRecorrentes.js (utils) - Geração automática de lançamentos recorrentes
 // ==========================================
+import { reaisParaCentavos, centavosParaReais } from "./dinheiro.js";
 
 function dataIso(ano, mes, dia) {
   return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
@@ -112,11 +113,13 @@ export async function gerarLancamentosRecorrentesDoMes(env, carteiraIds, ano, me
 
       if (existente.length > 0) continue;
 
+      const valorCentavos = rec.valor_centavos ?? reaisParaCentavos(rec.valor);
+
       await env.DB.prepare(
-        `INSERT INTO lancamentos (descricao, valor, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, recorrencia_id)
-         VALUES (?, ?, ?, ?, ?, ?, 'pendente', ?, ?, ?)`,
+        `INSERT INTO lancamentos (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, recorrencia_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, 'pendente', ?, ?, ?)`,
       )
-        .bind(rec.descricao, rec.valor, dataCompra, rec.tipo, rec.categoria, rec.meio_pagamento, rec.carteira_id, rec.criado_por, rec.id)
+        .bind(rec.descricao, centavosParaReais(valorCentavos), valorCentavos, dataCompra, rec.tipo, rec.categoria, rec.meio_pagamento, rec.carteira_id, rec.criado_por, rec.id)
         .run();
     }
   }

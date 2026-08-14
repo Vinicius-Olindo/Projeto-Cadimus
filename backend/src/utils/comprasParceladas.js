@@ -2,21 +2,28 @@
 // comprasParceladas.js (utils) - Geração das parcelas
 // ==========================================
 
-function calcularValorParcela(compra, numeroParcela) {
-  const totalParcelas = Number(compra.total_parcelas);
-  const valorTotal = Number(compra.valor_total);
+import { centavosParaReais, reaisParaCentavos } from "./dinheiro.js";
 
-  if (!Number.isInteger(totalParcelas) || totalParcelas <= 0 || !Number.isFinite(valorTotal) || valorTotal <= 0) {
-    return compra.valor_parcela;
+function calcularValorParcelaCentavos(compra, numeroParcela) {
+  const totalParcelas = Number(compra.total_parcelas);
+  const valorTotalCentavos = Number.isInteger(compra.valor_total_centavos)
+    ? compra.valor_total_centavos
+    : reaisParaCentavos(compra.valor_total);
+
+  if (!Number.isInteger(totalParcelas) || totalParcelas <= 0 || !Number.isInteger(valorTotalCentavos) || valorTotalCentavos <= 0) {
+    return Number.isInteger(compra.valor_parcela_centavos)
+      ? compra.valor_parcela_centavos
+      : reaisParaCentavos(compra.valor_parcela);
   }
 
-  const totalCentavos = Math.round(valorTotal * 100);
-  const centavosBase = Math.floor(totalCentavos / totalParcelas);
-  const centavosParcela = numeroParcela === totalParcelas
-    ? totalCentavos - centavosBase * (totalParcelas - 1)
+  const centavosBase = Math.floor(valorTotalCentavos / totalParcelas);
+  return numeroParcela === totalParcelas
+    ? valorTotalCentavos - centavosBase * (totalParcelas - 1)
     : centavosBase;
+}
 
-  return centavosParcela / 100;
+function calcularValorParcela(compra, numeroParcela) {
+  return centavosParaReais(calcularValorParcelaCentavos(compra, numeroParcela));
 }
 
 /**
@@ -46,15 +53,17 @@ export async function gerarTodasParcelasDaCompra(env, compraId) {
 
     const dataCompra = `${ano}-${String(mes).padStart(2, "0")}-${String(diaSeguro).padStart(2, "0")}`;
     const descricaoComParcela = `${compra.descricao} (${numeroParcela}/${compra.total_parcelas})`;
+    const valorCentavos = calcularValorParcelaCentavos(compra, numeroParcela);
 
     await env.DB.prepare(
       `INSERT INTO lancamentos
-       (descricao, valor, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, compra_parcelada_id, numero_parcela)
-       VALUES (?, ?, ?, 'despesa', ?, ?, 'pendente', ?, ?, ?, ?)`,
+       (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, compra_parcelada_id, numero_parcela)
+       VALUES (?, ?, ?, ?, 'despesa', ?, ?, 'pendente', ?, ?, ?, ?)`,
     )
       .bind(
         descricaoComParcela,
-        calcularValorParcela(compra, numeroParcela),
+        centavosParaReais(valorCentavos),
+        valorCentavos,
         dataCompra,
         compra.categoria,
         compra.meio_pagamento,
@@ -100,15 +109,17 @@ export async function gerarLancamentosParceladosDoMes(env, carteiraIds, ano, mes
     const diaSeguro = Math.min(Math.max(compra.dia_vencimento, 1), 28);
     const dataCompra = `${chaveMes}-${String(diaSeguro).padStart(2, "0")}`;
     const descricaoComParcela = `${compra.descricao} (${numeroParcela}/${compra.total_parcelas})`;
+    const valorCentavos = calcularValorParcelaCentavos(compra, numeroParcela);
 
     await env.DB.prepare(
       `INSERT INTO lancamentos
-       (descricao, valor, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, compra_parcelada_id, numero_parcela)
-       VALUES (?, ?, ?, 'despesa', ?, ?, 'pendente', ?, ?, ?, ?)`,
+       (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, compra_parcelada_id, numero_parcela)
+       VALUES (?, ?, ?, ?, 'despesa', ?, ?, 'pendente', ?, ?, ?, ?)`,
     )
       .bind(
         descricaoComParcela,
-        calcularValorParcela(compra, numeroParcela),
+        centavosParaReais(valorCentavos),
+        valorCentavos,
         dataCompra,
         compra.categoria,
         compra.meio_pagamento,

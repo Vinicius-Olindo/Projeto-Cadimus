@@ -3,6 +3,7 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 export async function processarDespesasFixas(request, env, ctx) {
   const metodo = request.method;
@@ -63,14 +64,18 @@ export async function processarDespesasFixas(request, env, ctx) {
       }
 
       const descricao = (dados.descricao || "").trim();
-      const valor = parseFloat(dados.valor);
+      if (dados.valor === undefined && dados.valor_centavos === undefined) {
+        return new Response(JSON.stringify({ erro: "Informe um valor vÃ¡lido." }), { status: 400 });
+      }
+      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const valor = centavosParaReais(valorCentavos);
       const diaVencimento = parseInt(dados.dia_vencimento, 10);
       const tipo = dados.tipo === "receita" ? "receita" : "despesa";
 
       if (!descricao) {
         return new Response(JSON.stringify({ erro: "Informe uma descrição." }), { status: 400 });
       }
-      if (!Number.isFinite(valor) || valor <= 0) {
+      if (valorCentavos <= 0) {
         return new Response(JSON.stringify({ erro: "Informe um valor válido." }), { status: 400 });
       }
       if (!Number.isInteger(diaVencimento) || diaVencimento < 1 || diaVencimento > 28) {
@@ -84,10 +89,10 @@ export async function processarDespesasFixas(request, env, ctx) {
       }
 
       const resultado = await env.DB.prepare(
-        `INSERT INTO despesas_fixas (carteira_id, descricao, valor, tipo, categoria, meio_pagamento, dia_vencimento, criado_por)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO despesas_fixas (carteira_id, descricao, valor, valor_centavos, tipo, categoria, meio_pagamento, dia_vencimento, criado_por)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-        .bind(dados.carteira_id, descricao, valor, tipo, dados.categoria, dados.meio_pagamento, diaVencimento, usuarioLogado.id)
+        .bind(dados.carteira_id, descricao, valor, valorCentavos, tipo, dados.categoria, dados.meio_pagamento, diaVencimento, usuarioLogado.id)
         .run();
 
       return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Despesa fixa cadastrada!" }), { status: 201 });
@@ -123,13 +128,16 @@ export async function processarDespesasFixas(request, env, ctx) {
         campos.push("descricao = ?");
         valores.push(String(dados.descricao).trim());
       }
-      if (dados.valor !== undefined) {
-        const valor = parseFloat(dados.valor);
-        if (!Number.isFinite(valor) || valor <= 0) {
+      if (dados.valor !== undefined || dados.valor_centavos !== undefined) {
+        const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+        const valor = centavosParaReais(valorCentavos);
+        if (valorCentavos <= 0) {
           return new Response(JSON.stringify({ erro: "Informe um valor válido." }), { status: 400 });
         }
         campos.push("valor = ?");
         valores.push(valor);
+        campos.push("valor_centavos = ?");
+        valores.push(valorCentavos);
       }
       if (dados.tipo !== undefined) {
         campos.push("tipo = ?");
