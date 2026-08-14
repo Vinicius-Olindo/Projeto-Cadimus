@@ -1400,7 +1400,7 @@ function configurarModalGerenciarMembros() {
     if (!carteiraId) return;
 
     const confirmou = await pedirConfirmacao(
-      `Excluir "${nome}"? Todos os lançamentos, despesas fixas e metas dela serão apagados para sempre.`,
+      `Excluir "${nome}"? Todos os lançamentos, transferências, orçamentos, cartões, recorrências, despesas fixas e metas dela serão apagados para sempre.`,
       { textoConfirmar: "Excluir", perigo: true },
     );
     if (!confirmou) return;

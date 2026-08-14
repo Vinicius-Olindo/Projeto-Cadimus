@@ -7,6 +7,7 @@ import { gerarLancamentosRecorrentesDoMes } from "../src/utils/lancamentosRecorr
 import { processarLancamentos } from "../src/routes/lancamentos.js";
 import { processarOrcamentos } from "../src/routes/orcamentos.js";
 import { processarTransferencias } from "../src/routes/transferencias.js";
+import { processarCarteiras } from "../src/routes/carteiras.js";
 
 class FakeD1 {
   constructor(handlers = []) {
@@ -402,4 +403,76 @@ test("criação de orçamento faz escrita dupla em reais e centavos", async () =
   assert.match(insertOrcamento.sql, /valor_centavos/);
   assert.equal(insertOrcamento.args[1], 1500);
   assert.equal(insertOrcamento.args[2], 150000);
+});
+
+test("membro de carteira compartilhada nao pode excluir a carteira", async () => {
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT papel FROM usuarios_carteiras WHERE usuario_id = ? AND carteira_id = ?",
+      reply: () => [{ papel: "membro" }],
+    },
+    {
+      type: "run",
+      match: /^DELETE /,
+      reply: () => {
+        throw new Error("DELETE nao deveria ser executado por membro.");
+      },
+    },
+  ]));
+
+  const res = await processarCarteiras(
+    request("DELETE", "https://cadimus.test/api/carteiras?id=10"),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 403);
+});
+
+test("exclusao de carteira limpa registros financeiros dependentes conhecidos", async () => {
+  const deletes = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT papel FROM usuarios_carteiras WHERE usuario_id = ? AND carteira_id = ?",
+      reply: () => [{ papel: "admin" }],
+    },
+    {
+      type: "all",
+      match: "SELECT COUNT(*) AS total FROM usuarios_carteiras WHERE usuario_id = ?",
+      reply: () => [{ total: 2 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO audit_logs",
+      reply: () => ({ meta: { last_row_id: 1 } }),
+    },
+    {
+      type: "run",
+      match: /^DELETE /,
+      reply: ({ sql }) => {
+        deletes.push(sql);
+        return { meta: {} };
+      },
+    },
+  ]));
+
+  const res = await processarCarteiras(
+    request("DELETE", "https://cadimus.test/api/carteiras?id=10"),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 200);
+  assert.ok(deletes.some((sql) => sql.includes("DELETE FROM transferencias")));
+  assert.ok(deletes.some((sql) => sql.includes("DELETE FROM orcamentos")));
+  assert.ok(deletes.some((sql) => sql.includes("DELETE FROM cartoes_credito")));
+  assert.ok(deletes.some((sql) => sql.includes("DELETE FROM lancamentos_recorrentes")));
+  assert.ok(deletes.some((sql) => sql.includes("DELETE FROM despesas_fixas")));
+  assert.ok(deletes.some((sql) => sql.includes("DELETE FROM compras_parceladas")));
+  assert.ok(deletes.some((sql) => sql.includes("DELETE FROM metas_categoria")));
+  assert.ok(deletes.some((sql) => sql.includes("DELETE FROM lancamentos")));
+  assert.ok(deletes.some((sql) => sql.includes("DELETE FROM usuarios_carteiras")));
+  assert.ok(deletes.some((sql) => sql.includes("DELETE FROM carteiras")));
 });

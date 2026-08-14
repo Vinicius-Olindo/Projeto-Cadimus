@@ -254,6 +254,10 @@ export async function processarCarteiras(request, env, ctx) {
         carteiraId: Number(carteiraId),
       });
 
+      await env.DB.prepare(`DELETE FROM transferencias WHERE carteira_origem_id = ? OR carteira_destino_id = ?`).bind(carteiraId, carteiraId).run();
+      await env.DB.prepare(`DELETE FROM orcamentos WHERE carteira_id = ?`).bind(carteiraId).run();
+      await env.DB.prepare(`DELETE FROM cartoes_credito WHERE carteira_id = ?`).bind(carteiraId).run();
+      await env.DB.prepare(`DELETE FROM lancamentos_recorrentes WHERE carteira_id = ?`).bind(carteiraId).run();
       await env.DB.prepare(`DELETE FROM despesas_fixas WHERE carteira_id = ?`).bind(carteiraId).run();
       await env.DB.prepare(`DELETE FROM compras_parceladas WHERE carteira_id = ?`).bind(carteiraId).run();
       await env.DB.prepare(`DELETE FROM metas_categoria WHERE carteira_id = ?`).bind(carteiraId).run();
