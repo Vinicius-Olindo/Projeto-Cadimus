@@ -4,6 +4,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 export async function processarMetas(request, env, ctx) {
   const metodo = request.method;
@@ -52,23 +53,32 @@ export async function processarMetas(request, env, ctx) {
       if (metaIds.length > 0) {
         const placeholders = metaIds.map(() => "?").join(",");
         const { results: depositosResults } = await env.DB.prepare(
-          `SELECT meta_id, COALESCE(SUM(valor), 0) AS total FROM meta_depositos WHERE meta_id IN (${placeholders}) GROUP BY meta_id`
+          `SELECT
+             meta_id,
+             COALESCE(SUM(valor), 0) AS total,
+             COALESCE(SUM(COALESCE(valor_centavos, ROUND(valor * 100))), 0) AS total_centavos
+           FROM meta_depositos
+           WHERE meta_id IN (${placeholders})
+           GROUP BY meta_id`
         ).bind(...metaIds).all();
-        depositosMap = Object.fromEntries(depositosResults.map((d) => [d.meta_id, d.total]));
+        depositosMap = Object.fromEntries(depositosResults.map((d) => [d.meta_id, d]));
       }
 
       const agora = new Date();
       const metasComProgresso = results.map((meta) => {
-        const totalDepositado = depositosMap[meta.id] || 0;
-        const falta = Math.max(0, meta.valor_limite - totalDepositado);
+        const valorLimiteCentavos = meta.valor_limite_centavos ?? Math.round(meta.valor_limite * 100);
+        const totalDepositadoCentavos = depositosMap[meta.id]?.total_centavos ?? Math.round((depositosMap[meta.id]?.total || 0) * 100);
+        const totalDepositado = centavosParaReais(totalDepositadoCentavos);
+        const faltaCentavos = Math.max(0, valorLimiteCentavos - totalDepositadoCentavos);
+        const falta = centavosParaReais(faltaCentavos);
         let guarda_semanal = null;
         let semanas_restantes = null;
 
-        if (meta.data_limite && falta > 0) {
+        if (meta.data_limite && faltaCentavos > 0) {
           const dataLimite = new Date(meta.data_limite + "T23:59:59");
           const diffMs = dataLimite - agora;
           semanas_restantes = Math.max(1, Math.ceil(diffMs / (7 * 24 * 60 * 60 * 1000)));
-          guarda_semanal = Math.ceil(falta / semanas_restantes * 100) / 100;
+          guarda_semanal = centavosParaReais(Math.ceil(faltaCentavos / semanas_restantes));
         }
 
         return {
@@ -104,22 +114,26 @@ export async function processarMetas(request, env, ctx) {
       }
 
       const categoria = (dados.categoria || "").trim();
-      const valorLimite = parseFloat(dados.valor_limite);
+      if (dados.valor_limite === undefined && dados.valor_limite_centavos === undefined) {
+        return new Response(JSON.stringify({ erro: "Informe um valor de meta vÃ¡lido." }), { status: 400 });
+      }
+      const valorLimiteCentavos = normalizarCentavos(dados.valor_limite, dados.valor_limite_centavos);
+      const valorLimite = centavosParaReais(valorLimiteCentavos);
       const dataLimite = dados.data_limite || null;
 
       if (!categoria) {
         return new Response(JSON.stringify({ erro: "Categoria não informada." }), { status: 400 });
       }
-      if (!Number.isFinite(valorLimite) || valorLimite <= 0) {
+      if (valorLimiteCentavos <= 0) {
         return new Response(JSON.stringify({ erro: "Informe um valor de meta válido." }), { status: 400 });
       }
 
       const resultado = await env.DB.prepare(
-        `INSERT INTO metas_categoria (carteira_id, categoria, valor_limite, data_limite, criado_por)
-         VALUES (?, ?, ?, ?, ?)
-         ON CONFLICT(carteira_id, categoria) DO UPDATE SET valor_limite = excluded.valor_limite, data_limite = excluded.data_limite`,
+        `INSERT INTO metas_categoria (carteira_id, categoria, valor_limite, valor_limite_centavos, data_limite, criado_por)
+         VALUES (?, ?, ?, ?, ?, ?)
+         ON CONFLICT(carteira_id, categoria) DO UPDATE SET valor_limite = excluded.valor_limite, valor_limite_centavos = excluded.valor_limite_centavos, data_limite = excluded.data_limite`,
       )
-        .bind(dados.carteira_id, categoria, valorLimite, dataLimite, usuarioLogado.id)
+        .bind(dados.carteira_id, categoria, valorLimite, valorLimiteCentavos, dataLimite, usuarioLogado.id)
         .run();
 
       const { results: metaSalva } = await env.DB.prepare(
@@ -242,13 +256,17 @@ export async function processarMetaDepositos(request, env, ctx) {
     try {
       const dados = await request.json();
       const metaId = dados.meta_id;
-      const valor = parseFloat(dados.valor);
+      if (dados.valor === undefined && dados.valor_centavos === undefined) {
+        return new Response(JSON.stringify({ erro: "Informe um valor vÃ¡lido." }), { status: 400 });
+      }
+      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const valor = centavosParaReais(valorCentavos);
       const descricao = (dados.descricao || "").trim();
 
       if (!metaId) {
         return new Response(JSON.stringify({ erro: "meta_id não fornecido." }), { status: 400 });
       }
-      if (!Number.isFinite(valor) || valor <= 0) {
+      if (valorCentavos <= 0) {
         return new Response(JSON.stringify({ erro: "Informe um valor válido." }), { status: 400 });
       }
 
@@ -261,9 +279,9 @@ export async function processarMetaDepositos(request, env, ctx) {
       }
 
       const resultado = await env.DB.prepare(
-        `INSERT INTO meta_depositos (meta_id, valor, descricao, criado_por) VALUES (?, ?, ?, ?)`,
+        `INSERT INTO meta_depositos (meta_id, valor, valor_centavos, descricao, criado_por) VALUES (?, ?, ?, ?, ?)`,
       )
-        .bind(metaId, valor, descricao, usuarioLogado.id)
+        .bind(metaId, valor, valorCentavos, descricao, usuarioLogado.id)
         .run();
 
       await registrarAuditoria(env, {
