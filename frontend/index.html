@@ -79,6 +79,7 @@
               <span>Cadimus</span>
             </div>
             <div class="acoes-topo">
+              <div class="acoes-topo-grupo acoes-topo-grupo-financeiro" aria-label="Atalhos financeiros">
               <button id="btn-despesas-fixas" class="btn-topo-icone" title="Despesas fixas">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M17 2l4 4-4 4" />
@@ -101,8 +102,9 @@
                 </svg>
                 <span class="btn-topo-label">Cartões</span>
               </button>
-              <div class="acoes-topo-divider"></div>
-              <button id="btn-planejamento" class="btn-topo-icone" title="Planejamento financeiro">
+              </div>
+              <div class="acoes-topo-grupo acoes-topo-grupo-operacao" aria-label="Planejamento e alertas">
+              <button id="btn-planejamento" class="btn-topo-icone btn-topo-destaque" title="Planejamento financeiro">
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
                   <path d="M12 2L2 7l10 5 10-5-10-5z"/>
                   <path d="M2 17l10 5 10-5"/>
@@ -119,6 +121,7 @@
                 <span class="btn-topo-label">Alertas</span>
                 <span class="notificacao-badge" id="notificacao-badge"></span>
               </button>
+              </div>
               <button id="btn-admin" style="display:none"></button>
               <button id="btn-importar-extrato" style="display:none"></button>
               <button id="btn-exportar-extrato" style="display:none"></button>

@@ -118,10 +118,38 @@ button {
 .acoes-topo,
 .user-controls {
   display: flex;
-  gap: 2px;
+  gap: 8px;
   align-items: center;
   flex-wrap: wrap;
   position: relative;
+}
+
+.acoes-topo {
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.acoes-topo-grupo {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 82%, transparent);
+  box-shadow: 0 1px 2px rgba(20, 18, 15, 0.04);
+}
+
+.acoes-topo-grupo .acoes-topo-divider {
+  display: none;
+}
+
+.acoes-topo-grupo-financeiro {
+  background: color-mix(in srgb, var(--cor-marca) 8%, var(--cor-fundo-card));
+}
+
+.acoes-topo-grupo-operacao {
+  background: color-mix(in srgb, var(--cor-fundo-card) 88%, transparent);
 }
 
 .avatar-topo {
@@ -265,12 +293,12 @@ button:active {
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  padding: 5px 10px;
+  padding: 6px 10px;
   font-size: 0.75rem;
   font-weight: 500;
   letter-spacing: 0.1px;
   position: relative;
-  border-radius: 8px;
+  border-radius: 999px;
   transition: background 0.15s, color 0.15s;
 }
 
@@ -282,6 +310,10 @@ button:active {
 .btn-topo-icone svg {
   flex-shrink: 0;
   opacity: 0.85;
+}
+
+.btn-topo-destaque {
+  color: var(--cor-marca-forte) !important;
 }
 
 .btn-topo-label {
@@ -3583,6 +3615,14 @@ textarea::placeholder {
   .btn-topo-icone {
     padding: 6px;
   }
+
+  .acoes-topo {
+    gap: 6px;
+  }
+
+  .acoes-topo-grupo {
+    padding: 2px;
+  }
 }
 
 /* Mobile: <=480px */
@@ -3597,6 +3637,19 @@ textarea::placeholder {
 
   .btn-topo-icone {
     padding: 6px;
+  }
+
+  .top-bar-linha1 {
+    align-items: flex-start;
+  }
+
+  .acoes-topo {
+    gap: 5px;
+    justify-content: flex-end;
+  }
+
+  .acoes-topo-grupo {
+    padding: 2px;
   }
 
   .top-bar-linha2 {
