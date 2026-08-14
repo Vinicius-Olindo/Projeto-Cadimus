@@ -2,6 +2,7 @@
 // planos.js - Planos financeiros (viagem, compra, reserva, etc.)
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 export async function processarPlanos(request, env, ctx) {
   const metodo = request.method;
@@ -55,23 +56,32 @@ export async function processarPlanos(request, env, ctx) {
       if (planoIds.length > 0) {
         const placeholders = planoIds.map(() => "?").join(",");
         const { results: depositosResults } = await env.DB.prepare(
-          `SELECT plano_id, COALESCE(SUM(valor), 0) AS total FROM plano_depositos WHERE plano_id IN (${placeholders}) GROUP BY plano_id`
+          `SELECT
+             plano_id,
+             COALESCE(SUM(valor), 0) AS total,
+             COALESCE(SUM(COALESCE(valor_centavos, ROUND(valor * 100))), 0) AS total_centavos
+           FROM plano_depositos
+           WHERE plano_id IN (${placeholders})
+           GROUP BY plano_id`
         ).bind(...planoIds).all();
-        depositosMap = Object.fromEntries(depositosResults.map((d) => [d.plano_id, d.total]));
+        depositosMap = Object.fromEntries(depositosResults.map((d) => [d.plano_id, d]));
       }
 
       const agora = new Date();
       const planosComProgresso = results.map((plano) => {
-        const depositado = depositosMap[plano.id] || 0;
-        const falta = Math.max(0, plano.valor_alvo - depositado);
+        const valorAlvoCentavos = plano.valor_alvo_centavos ?? Math.round(plano.valor_alvo * 100);
+        const depositadoCentavos = depositosMap[plano.id]?.total_centavos ?? Math.round((depositosMap[plano.id]?.total || 0) * 100);
+        const depositado = centavosParaReais(depositadoCentavos);
+        const faltaCentavos = Math.max(0, valorAlvoCentavos - depositadoCentavos);
+        const falta = centavosParaReais(faltaCentavos);
         let parcela_mensal = null;
         let meses_restantes = null;
 
-        if (plano.data_limite && falta > 0) {
+        if (plano.data_limite && faltaCentavos > 0) {
           const dataLimite = new Date(plano.data_limite + "T23:59:59");
           const diffMs = dataLimite - agora;
           meses_restantes = Math.max(1, Math.ceil(diffMs / (30 * 24 * 60 * 60 * 1000)));
-          parcela_mensal = Math.ceil(falta / meses_restantes * 100) / 100;
+          parcela_mensal = centavosParaReais(Math.ceil(faltaCentavos / meses_restantes));
         }
 
         return {
@@ -80,7 +90,7 @@ export async function processarPlanos(request, env, ctx) {
           falta,
           parcela_mensal,
           meses_restantes,
-          percentual: plano.valor_alvo > 0 ? Math.min(100, Math.round((depositado / plano.valor_alvo) * 100)) : 0,
+          percentual: valorAlvoCentavos > 0 ? Math.min(100, Math.round((depositadoCentavos / valorAlvoCentavos) * 100)) : 0,
         };
       });
 
@@ -99,7 +109,11 @@ export async function processarPlanos(request, env, ctx) {
       const dados = await request.json();
       const nome = (dados.nome || "").trim();
       const descricao = (dados.descricao || "").trim();
-      const valorAlvo = parseFloat(dados.valor_alvo);
+      if (dados.valor_alvo === undefined && dados.valor_alvo_centavos === undefined) {
+        return new Response(JSON.stringify({ erro: "Informe um valor alvo vÃ¡lido." }), { status: 400 });
+      }
+      const valorAlvoCentavos = normalizarCentavos(dados.valor_alvo, dados.valor_alvo_centavos);
+      const valorAlvo = centavosParaReais(valorAlvoCentavos);
       const dataLimite = dados.data_limite || null;
       const prioridade = dados.prioridade || "media";
       const icone = dados.icone || "🎯";
@@ -109,15 +123,15 @@ export async function processarPlanos(request, env, ctx) {
       if (!nome) {
         return new Response(JSON.stringify({ erro: "Nome do plano é obrigatório." }), { status: 400 });
       }
-      if (!Number.isFinite(valorAlvo) || valorAlvo <= 0) {
+      if (valorAlvoCentavos <= 0) {
         return new Response(JSON.stringify({ erro: "Informe um valor alvo válido." }), { status: 400 });
       }
 
       const resultado = await env.DB.prepare(
-        `INSERT INTO planos (usuario_id, nome, descricao, valor_alvo, data_limite, prioridade, icone, cor, compartilhado)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
+        `INSERT INTO planos (usuario_id, nome, descricao, valor_alvo, valor_alvo_centavos, data_limite, prioridade, icone, cor, compartilhado)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
       )
-        .bind(usuarioLogado.id, nome, descricao, valorAlvo, dataLimite, prioridade, icone, cor, compartilhado)
+        .bind(usuarioLogado.id, nome, descricao, valorAlvo, valorAlvoCentavos, dataLimite, prioridade, icone, cor, compartilhado)
         .run();
 
       return new Response(JSON.stringify({ mensagem: "Plano criado!", id: resultado.meta?.last_row_id }), { status: 201 });
@@ -151,7 +165,12 @@ export async function processarPlanos(request, env, ctx) {
 
       if (dados.nome !== undefined) { campos.push("nome = ?"); valores.push(dados.nome.trim()); }
       if (dados.descricao !== undefined) { campos.push("descricao = ?"); valores.push(dados.descricao.trim()); }
-      if (dados.valor_alvo !== undefined) { campos.push("valor_alvo = ?"); valores.push(parseFloat(dados.valor_alvo)); }
+      if (dados.valor_alvo !== undefined || dados.valor_alvo_centavos !== undefined) {
+        const valorAlvoCentavos = normalizarCentavos(dados.valor_alvo, dados.valor_alvo_centavos);
+        if (valorAlvoCentavos <= 0) return new Response(JSON.stringify({ erro: "Valor alvo invÃ¡lido." }), { status: 400 });
+        campos.push("valor_alvo = ?"); valores.push(centavosParaReais(valorAlvoCentavos));
+        campos.push("valor_alvo_centavos = ?"); valores.push(valorAlvoCentavos);
+      }
       if (dados.data_limite !== undefined) { campos.push("data_limite = ?"); valores.push(dados.data_limite || null); }
       if (dados.prioridade !== undefined) { campos.push("prioridade = ?"); valores.push(dados.prioridade); }
       if (dados.status !== undefined) { campos.push("status = ?"); valores.push(dados.status); }
@@ -251,13 +270,17 @@ export async function processarPlanoDepositos(request, env, ctx) {
     try {
       const dados = await request.json();
       const planoId = dados.plano_id;
-      const valor = parseFloat(dados.valor);
+      if (dados.valor === undefined && dados.valor_centavos === undefined) {
+        return new Response(JSON.stringify({ erro: "Informe um valor vÃ¡lido." }), { status: 400 });
+      }
+      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const valor = centavosParaReais(valorCentavos);
       const descricao = (dados.descricao || "").trim();
 
       if (!planoId) {
         return new Response(JSON.stringify({ erro: "plano_id não fornecido." }), { status: 400 });
       }
-      if (!Number.isFinite(valor) || valor <= 0) {
+      if (valorCentavos <= 0) {
         return new Response(JSON.stringify({ erro: "Informe um valor válido." }), { status: 400 });
       }
 
@@ -267,8 +290,8 @@ export async function processarPlanoDepositos(request, env, ctx) {
       }
 
       await env.DB.prepare(
-        `INSERT INTO plano_depositos (plano_id, valor, descricao) VALUES (?, ?, ?)`
-      ).bind(planoId, valor, descricao).run();
+        `INSERT INTO plano_depositos (plano_id, valor, valor_centavos, descricao) VALUES (?, ?, ?, ?)`
+      ).bind(planoId, valor, valorCentavos, descricao).run();
 
       return new Response(JSON.stringify({ mensagem: "Depósito registrado!" }), { status: 201 });
     } catch (erro) {

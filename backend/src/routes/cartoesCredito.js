@@ -1,5 +1,6 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 export async function processarCartoesCredito(request, env, ctx) {
   const url = new URL(request.url);
@@ -27,7 +28,9 @@ export async function processarCartoesCredito(request, env, ctx) {
       (SELECT COUNT(*) FROM compras_parceladas cp
        WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as parcelas_ativas,
       (SELECT COALESCE(SUM(cp.valor_parcela), 0) FROM compras_parceladas cp
-       WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as gasto_atual
+       WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as gasto_atual,
+      (SELECT COALESCE(SUM(COALESCE(cp.valor_parcela_centavos, ROUND(cp.valor_parcela * 100))), 0) FROM compras_parceladas cp
+       WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as gasto_atual_centavos
       FROM cartoes_credito c
       WHERE c.ativo = 1`;
     const params = [];
@@ -50,6 +53,8 @@ export async function processarCartoesCredito(request, env, ctx) {
   if (method === "POST") {
     const body = await request.json();
     const { nome, bandeira, ultimos4, dia_fechamento, dia_vencimento, limite, carteira_id } = body;
+    const limiteCentavos = normalizarCentavos(limite || 0, body.limite_centavos);
+    const limiteNormalizado = centavosParaReais(limiteCentavos);
 
     if (!nome || !dia_fechamento || !dia_vencimento || !carteira_id) {
       return new Response(JSON.stringify({ erro: "Nome, dia de fechamento, dia de vencimento e carteira são obrigatórios." }), { status: 400 });
@@ -64,15 +69,16 @@ export async function processarCartoesCredito(request, env, ctx) {
     }
 
     const { success } = await env.DB.prepare(
-      `INSERT INTO cartoes_credito (nome, bandeira, ultimos4, dia_fechamento, dia_vencimento, limite, carteira_id, criado_por)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      `INSERT INTO cartoes_credito (nome, bandeira, ultimos4, dia_fechamento, dia_vencimento, limite, limite_centavos, carteira_id, criado_por)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
       nome,
       bandeira || "outro",
       ultimos4 || null,
       dia_fechamento,
       dia_vencimento,
-      limite || 0,
+      limiteNormalizado,
+      limiteCentavos,
       carteira_id,
       usuario.id
     ).run();
@@ -97,10 +103,20 @@ export async function processarCartoesCredito(request, env, ctx) {
     const params = [];
 
     for (const [chave, valor] of Object.entries(body)) {
-      if (["nome", "bandeira", "ultimos4", "dia_fechamento", "dia_vencimento", "limite"].includes(chave)) {
+      if (chave === "limite" || chave === "limite_centavos") continue;
+
+      if (["nome", "bandeira", "ultimos4", "dia_fechamento", "dia_vencimento"].includes(chave)) {
         campos.push(`${chave} = ?`);
         params.push(valor);
       }
+    }
+
+    if (body.limite !== undefined || body.limite_centavos !== undefined) {
+      const limiteCentavos = normalizarCentavos(body.limite || 0, body.limite_centavos);
+      campos.push("limite = ?");
+      params.push(centavosParaReais(limiteCentavos));
+      campos.push("limite_centavos = ?");
+      params.push(limiteCentavos);
     }
 
     if (campos.length === 0) return new Response(JSON.stringify({ erro: "Nenhum campo para atualizar." }), { status: 400 });
