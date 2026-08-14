@@ -7,6 +7,7 @@ import { gerarLancamentosFixosDoMes } from "../utils/despesasFixas.js";
 import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 function dataISOValida(valor) {
   return typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor);
@@ -188,15 +189,19 @@ export async function processarLancamentos(request, env, ctx) {
         }
       }
 
+      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const valor = centavosParaReais(valorCentavos);
+
       const query = `
                 INSERT INTO lancamentos 
-                (descricao, valor, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, nota)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, nota)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
       const insertResult = await env.DB.prepare(query)
         .bind(
           dados.descricao,
-          dados.valor,
+          valor,
+          valorCentavos,
           dados.data_compra,
           dados.tipo,
           dados.categoria,
@@ -246,7 +251,7 @@ export async function processarLancamentos(request, env, ctx) {
       }
 
       const dados = await request.json();
-      const camposPermitidos = ["descricao", "valor", "data_compra", "tipo", "categoria", "meio_pagamento", "status", "nota"];
+      const camposPermitidos = ["descricao", "valor", "valor_centavos", "data_compra", "tipo", "categoria", "meio_pagamento", "status", "nota"];
       const camposEnviados = Object.keys(dados).filter((campo) => camposPermitidos.includes(campo));
 
       // Marcar pago/pendente é livre pra quem acessa a carteira. Editar os detalhes
@@ -261,7 +266,17 @@ export async function processarLancamentos(request, env, ctx) {
       const campos = [];
       const valores = [];
 
+      if (dados.valor !== undefined || dados.valor_centavos !== undefined) {
+        const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+        campos.push("valor = ?");
+        valores.push(centavosParaReais(valorCentavos));
+        campos.push("valor_centavos = ?");
+        valores.push(valorCentavos);
+      }
+
       for (const campo of camposEnviados) {
+        if (campo === "valor" || campo === "valor_centavos") continue;
+
         if (campo === "status" && !["pago", "pendente"].includes(dados.status)) {
           return new Response(JSON.stringify({ erro: "Status inválido." }), { status: 400 });
         }

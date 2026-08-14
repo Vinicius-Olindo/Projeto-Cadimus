@@ -236,3 +236,53 @@ test("transferência com idempotency_key repetida não cria novo registro", asyn
   assert.deepEqual(await res.json(), { id: 123, mensagem: "Transferência já registrada.", idempotente: true });
   assert.equal(inserts.length, 0);
 });
+
+test("criação de lançamento faz escrita dupla em reais e centavos", async () => {
+  let insertLancamento;
+  const auditLogs = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT id FROM categorias WHERE LOWER(nome) = LOWER(?)",
+      reply: () => [{ id: 1 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ sql, args }) => {
+        insertLancamento = { sql, args };
+        return { meta: { last_row_id: 77 } };
+      },
+    },
+    {
+      type: "run",
+      match: "INSERT INTO audit_logs",
+      reply: ({ args }) => {
+        auditLogs.push(args);
+        return { meta: { last_row_id: auditLogs.length } };
+      },
+    },
+  ]));
+
+  const res = await processarLancamentos(
+    request("POST", "https://cadimus.test/api/lancamentos", {
+      descricao: "Mercado",
+      valor_centavos: 12345,
+      data_compra: "2026-08-14",
+      tipo: "despesa",
+      categoria: "Casa",
+      meio_pagamento: "Pix",
+      status: "pago",
+      carteira_id: 10,
+      nota: "",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 201);
+  assert.match(insertLancamento.sql, /valor_centavos/);
+  assert.equal(insertLancamento.args[1], 123.45);
+  assert.equal(insertLancamento.args[2], 12345);
+  assert.equal(auditLogs.length, 1);
+});
