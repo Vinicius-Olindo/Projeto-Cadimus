@@ -590,8 +590,10 @@ function inicializarDarkMode() {
 
   const btnTheme = document.createElement("button");
   btnTheme.id = "btn-theme-toggle";
-  btnTheme.className = "btn-topo-icone btn-topo-icone-only";
+  btnTheme.className = "tema-switch";
   btnTheme.title = "Alternar tema";
+  btnTheme.setAttribute("type", "button");
+  btnTheme.setAttribute("aria-label", "Alternar entre modo claro e escuro");
 
   areaAcoes.insertBefore(btnTheme, document.querySelector(".avatar-dropdown-wrapper"));
 
@@ -604,13 +606,31 @@ function inicializarDarkMode() {
   if (localStorage.getItem("cadimus_tema") === "dark") {
     document.body.classList.add("dark-mode");
   }
-  atualizarIconeTema();
+  atualizarSeletorTemaTopo();
 
   btnTheme.addEventListener("click", () => {
     document.body.classList.toggle("dark-mode");
     localStorage.setItem("cadimus_tema", document.body.classList.contains("dark-mode") ? "dark" : "light");
-    atualizarIconeTema();
+    atualizarSeletorTemaTopo();
+    sincronizarToggleTema();
   });
+}
+
+function atualizarSeletorTemaTopo() {
+  const btnTheme = document.getElementById("btn-theme-toggle");
+  if (!btnTheme) return;
+
+  const estaEscuro = document.body.classList.contains("dark-mode");
+  btnTheme.classList.toggle("tema-switch-escuro", estaEscuro);
+  btnTheme.setAttribute("aria-pressed", String(estaEscuro));
+  btnTheme.title = estaEscuro ? "Tema escuro ativo. Clique para usar tema claro." : "Tema claro ativo. Clique para usar tema escuro.";
+  btnTheme.innerHTML = `
+    <span class="tema-switch-trilho" aria-hidden="true">
+      <span class="tema-switch-opcao tema-switch-sol">${ICONE_SOL}</span>
+      <span class="tema-switch-opcao tema-switch-lua">${ICONE_LUA}</span>
+      <span class="tema-switch-thumb"></span>
+    </span>
+  `;
 }
 
 // ==========================================
@@ -5782,11 +5802,7 @@ function configurarSubAbasAdmin() {
         }
       }
       sincronizarToggleTema();
-      const btnTheme = document.getElementById("btn-theme-toggle");
-      if (btnTheme) {
-        const estaEscuro = document.body.classList.contains("dark-mode");
-        btnTheme.innerHTML = estaEscuro ? ICONE_SOL : ICONE_LUA;
-      }
+      atualizarSeletorTemaTopo();
       mostrarToast(`Tema "${nomeTema}" salvo`);
     });
   });
@@ -6010,12 +6026,12 @@ async function preencherPerfilAtual() {
 }
 
 function sincronizarToggleTema() {
-  const darkMode = localStorage.getItem("darkMode");
+  const temaSalvo = localStorage.getItem("cadimus_tema");
   document.querySelectorAll(".settings-tema-btn").forEach((btn) => {
     btn.classList.remove("ativo");
-    if (darkMode === "true" && btn.dataset.tema === "escuro") btn.classList.add("ativo");
-    else if (darkMode === "false" && btn.dataset.tema === "claro") btn.classList.add("ativo");
-    else if (!darkMode && btn.dataset.tema === "auto") btn.classList.add("ativo");
+    if (temaSalvo === "dark" && btn.dataset.tema === "escuro") btn.classList.add("ativo");
+    else if (temaSalvo === "light" && btn.dataset.tema === "claro") btn.classList.add("ativo");
+    else if (!temaSalvo && btn.dataset.tema === "auto") btn.classList.add("ativo");
   });
 }
 

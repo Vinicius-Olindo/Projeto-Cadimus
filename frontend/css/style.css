@@ -325,6 +325,77 @@ button:active {
   padding: 6px;
 }
 
+.tema-switch {
+  width: 58px;
+  height: 30px;
+  padding: 0;
+  border: 1px solid var(--cor-pauta-fraca) !important;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 88%, transparent) !important;
+  color: var(--cor-texto-suave);
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  position: relative;
+  flex-shrink: 0;
+  box-shadow: inset 0 1px 2px rgba(20, 18, 15, 0.08), 0 1px 2px rgba(20, 18, 15, 0.04);
+}
+
+.tema-switch:hover {
+  color: var(--cor-marca-forte) !important;
+  background: color-mix(in srgb, var(--cor-marca) 8%, var(--cor-fundo-card)) !important;
+  transform: translateY(-1px);
+}
+
+.tema-switch-trilho {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  align-items: center;
+  position: relative;
+}
+
+.tema-switch-opcao {
+  z-index: 1;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  opacity: 0.7;
+  transition: color 0.18s ease, opacity 0.18s ease;
+}
+
+.tema-switch-thumb {
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 22px;
+  height: 22px;
+  border-radius: 50%;
+  background: var(--cor-superficie-alta);
+  box-shadow: 0 2px 6px rgba(20, 18, 15, 0.18);
+  transition: transform 0.2s ease, background 0.2s ease;
+}
+
+.tema-switch:not(.tema-switch-escuro) .tema-switch-sol,
+.tema-switch.tema-switch-escuro .tema-switch-lua {
+  color: var(--cor-marca-forte);
+  opacity: 1;
+}
+
+.tema-switch.tema-switch-escuro .tema-switch-thumb {
+  transform: translateX(28px);
+  background: color-mix(in srgb, var(--cor-marca) 78%, #15120f);
+}
+
+.dark-mode .tema-switch {
+  background: color-mix(in srgb, var(--cor-fundo-card) 72%, #000) !important;
+}
+
+.dark-mode .tema-switch-thumb {
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.38);
+}
+
 /* Sair: ícone + texto, destaque sutil */
 .btn-topo-sair {
   display: inline-flex;
