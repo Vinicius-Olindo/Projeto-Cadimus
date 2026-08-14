@@ -25,8 +25,11 @@ function criarLinhaLancamento(lancamento) {
   div.classList.add("linha-item");
   div.setAttribute("data-id", lancamento.id);
 
-  // Formata o valor para a moeda local (Real)
-  const valorFormatado = formatarMoedaBRL(lancamento.valor);
+  // Formata pelo campo canônico em centavos quando ele vem da API; o campo em reais fica só como compatibilidade.
+  const valorLancamento = Number.isInteger(lancamento.valor_centavos)
+    ? window.CadimusMoney.centavosParaReais(lancamento.valor_centavos)
+    : lancamento.valor;
+  const valorFormatado = formatarMoedaBRL(valorLancamento);
 
   // Formata a data de compra para exibição brasileira
   const dataObjeto = new Date(lancamento.data_compra);

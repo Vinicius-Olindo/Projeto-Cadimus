@@ -1235,7 +1235,9 @@ async function carregarCartoesCredito() {
     cartoesCreditoCarregados.forEach((cartao) => {
       const cor = CORES_BANDEIRAS[cartao.bandeira] || CORES_BANDEIRAS.outro;
       const nomeBandeira = NOMES_BANDEIRAS[cartao.bandeira] || "Cartão";
-      const pctLimite = cartao.limite > 0 ? Math.min((cartao.gasto_atual / cartao.limite) * 100, 100) : 0;
+      const limite = valorMonetario(cartao, "limite");
+      const gastoAtual = valorMonetario(cartao, "gasto_atual");
+      const pctLimite = limite > 0 ? Math.min((gastoAtual / limite) * 100, 100) : 0;
       const corBarra = pctLimite >= 80 ? "var(--cor-despesa)" : pctLimite >= 50 ? "var(--cor-pendente)" : "var(--cor-receita)";
 
       const div = document.createElement("div");
@@ -1262,11 +1264,11 @@ async function carregarCartoesCredito() {
           <span>Fechamento: dia ${cartao.dia_fechamento}</span>
           <span>Vencimento: dia ${cartao.dia_vencimento}</span>
         </div>
-        ${cartao.limite > 0 ? `
+        ${limite > 0 ? `
         <div class="cartao-item-limite">
           <div class="cartao-limite-texto">
-            <span>${formatadorBRL.format(valorMonetario(cartao, "gasto_atual"))} usado</span>
-            <span>de ${formatadorBRL.format(valorMonetario(cartao, "limite"))}</span>
+            <span>${formatadorBRL.format(gastoAtual)} usado</span>
+            <span>de ${formatadorBRL.format(limite)}</span>
           </div>
           <div class="cartao-limite-barra">
             <div class="cartao-limite-preenchimento" style="width:${pctLimite}%;background:${corBarra}"></div>
@@ -3408,8 +3410,9 @@ async function renderizarComparativoPeriodo() {
       if (l.status !== "pago") return;
       const d = new Date(l.data_compra + "T12:00:00");
       if (d >= inicio && d <= fim) {
-        if (l.tipo === "receita") receitas += l.valor;
-        else despesas += l.valor;
+        const valor = valorMonetario(l);
+        if (l.tipo === "receita") receitas += valor;
+        else despesas += valor;
       }
     });
     return { receitas, despesas, saldo: receitas - despesas };
@@ -3557,30 +3560,32 @@ async function carregarLancamentos() {
     const totaisPorCategoria = {};
 
     dados.forEach((lancamento) => {
+      const valor = valorMonetario(lancamento);
       // Pendente é um compromisso, não dinheiro que já entrou ou saiu — não conta no saldo nem nas categorias
       if (lancamento.status === "pendente") {
         if (lancamento.tipo === "despesa") {
-          totalPendente += lancamento.valor;
+          totalPendente += valor;
         }
         return;
       }
 
       if (lancamento.tipo === "receita") {
-        totalReceitas += lancamento.valor;
+        totalReceitas += valor;
       } else {
-        totalDespesas += lancamento.valor;
-        totaisPorCategoria[lancamento.categoria] = (totaisPorCategoria[lancamento.categoria] || 0) + lancamento.valor;
+        totalDespesas += valor;
+        totaisPorCategoria[lancamento.categoria] = (totaisPorCategoria[lancamento.categoria] || 0) + valor;
       }
     });
 
     // Calcular transferências (saída e entrada)
     const carteiraIdNum = Number(carteiraId);
     transferencias.forEach((t) => {
+      const valor = valorMonetario(t);
       if (t.carteira_origem_id === carteiraIdNum) {
-        totalTransferenciasSaida += t.valor;
+        totalTransferenciasSaida += valor;
       }
       if (t.carteira_destino_id === carteiraIdNum) {
-        totalTransferenciasEntrada += t.valor;
+        totalTransferenciasEntrada += valor;
       }
     });
 
@@ -3818,7 +3823,7 @@ async function carregarComparacaoMesAnterior(despesasAtuais) {
     const dados = await resposta.json();
     if (idRequisicao !== ultimaRequisicaoComparacao) return;
 
-    const despesasAnteriores = dados.filter((l) => l.tipo === "despesa" && l.status === "pago").reduce((soma, l) => soma + l.valor, 0);
+    const despesasAnteriores = dados.filter((l) => l.tipo === "despesa" && l.status === "pago").reduce((soma, l) => soma + valorMonetario(l), 0);
 
     renderizarComparacaoMesAnterior(despesasAtuais, despesasAnteriores);
   } catch (erro) {
@@ -3859,7 +3864,7 @@ function renderizarResumoAutores(dados) {
   dados.forEach((l) => {
     if (l.tipo !== "despesa" || l.status !== "pago") return;
     const nome = l.criado_por_nome || "?";
-    totais[nome] = (totais[nome] || 0) + l.valor;
+    totais[nome] = (totais[nome] || 0) + valorMonetario(l);
   });
 
   const autores = Object.entries(totais).sort((a, b) => b[1] - a[1]);
@@ -3941,8 +3946,8 @@ async function carregarTendencia() {
         });
         if (!resposta.ok) return { receitas: 0, despesas: 0 };
         const dadosMes = await resposta.json();
-        const receitas = dadosMes.filter((l) => l.tipo === "receita" && l.status === "pago").reduce((soma, l) => soma + l.valor, 0);
-        const despesas = dadosMes.filter((l) => l.tipo === "despesa" && l.status === "pago").reduce((soma, l) => soma + l.valor, 0);
+        const receitas = dadosMes.filter((l) => l.tipo === "receita" && l.status === "pago").reduce((soma, l) => soma + valorMonetario(l), 0);
+        const despesas = dadosMes.filter((l) => l.tipo === "despesa" && l.status === "pago").reduce((soma, l) => soma + valorMonetario(l), 0);
         const total = { receitas, despesas };
         cacheTendencia.set(chave, total);
         return total;
@@ -4081,8 +4086,9 @@ async function carregarComparativo6Meses() {
         let receitas = 0, despesas = 0;
         dadosMes.forEach((l) => {
           if (l.status === "pendente") return;
-          if (l.tipo === "receita") receitas += l.valor;
-          else despesas += l.valor;
+          const valor = valorMonetario(l);
+          if (l.tipo === "receita") receitas += valor;
+          else despesas += valor;
         });
         const resultado = { receitas, despesas };
         cacheComparativo6.set(chave, resultado);
@@ -4354,14 +4360,15 @@ function gerarRelatorioPDF() {
   const porStatus = { pago: 0, pendente: 0, atrasado: 0 };
 
   dados.forEach((l) => {
-    porStatus[l.status] = (porStatus[l.status] || 0) + l.valor;
-    if (l.status === "pendente" && l.tipo === "despesa") { totalPendente += l.valor; qtdPendentes++; }
+    const valor = valorMonetario(l);
+    porStatus[l.status] = (porStatus[l.status] || 0) + valor;
+    if (l.status === "pendente" && l.tipo === "despesa") { totalPendente += valor; qtdPendentes++; }
     if (l.status === "atrasado") qtdAtrasados++;
     if (l.status !== "pago") return;
-    if (l.tipo === "receita") totalReceitas += l.valor;
+    if (l.tipo === "receita") totalReceitas += valor;
     else {
-      totalDespesas += l.valor;
-      porCategoria[l.categoria] = (porCategoria[l.categoria] || 0) + l.valor;
+      totalDespesas += valor;
+      porCategoria[l.categoria] = (porCategoria[l.categoria] || 0) + valor;
     }
   });
 
