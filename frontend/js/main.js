@@ -67,6 +67,21 @@ function montarPayloadMonetario(campoId, nomeCampo = "valor", opcoes = {}) {
   };
 }
 
+function valorMonetario(registro, nomeCampo = "valor") {
+  const nomeCentavos = `${nomeCampo}_centavos`;
+  if (Number.isInteger(registro?.[nomeCentavos])) {
+    return window.CadimusMoney.centavosParaReais(registro[nomeCentavos]);
+  }
+  return Number(registro?.[nomeCampo]) || 0;
+}
+
+function somarValoresMonetarios(registros, nomeCampo = "valor") {
+  return registros.reduce((total, registro) => total + valorMonetario(registro, nomeCampo), 0);
+}
+
+window.valorMonetario = valorMonetario;
+window.somarValoresMonetarios = somarValoresMonetarios;
+
 // Se a API responder 401 (sessão inválida/expirada), desloga e volta pro login
 function tratarSessaoExpirada(resposta) {
   if (resposta.status === 401) {
@@ -1241,8 +1256,8 @@ async function carregarCartoesCredito() {
         ${cartao.limite > 0 ? `
         <div class="cartao-item-limite">
           <div class="cartao-limite-texto">
-            <span>${formatadorBRL.format(cartao.gasto_atual)} usado</span>
-            <span>de ${formatadorBRL.format(cartao.limite)}</span>
+            <span>${formatadorBRL.format(valorMonetario(cartao, "gasto_atual"))} usado</span>
+            <span>de ${formatadorBRL.format(valorMonetario(cartao, "limite"))}</span>
           </div>
           <div class="cartao-limite-barra">
             <div class="cartao-limite-preenchimento" style="width:${pctLimite}%;background:${corBarra}"></div>
@@ -1601,7 +1616,7 @@ async function carregarPainelDespesasFixas() {
     container.innerHTML = "";
 
     despesasFixasCarregadas.forEach((fixa) => {
-      const valorFormatado = formatadorBRL.format(fixa.valor);
+      const valorFormatado = formatadorBRL.format(valorMonetario(fixa));
       const aviso = fixa.ativo ? calcularAvisoVencimento(fixa.dia_vencimento) : null;
 
       const badgeAviso = aviso ? `<span class="aviso-vencimento ${aviso.atrasado ? "aviso-vencimento-atrasado" : ""}">${aviso.texto}</span>` : "";
@@ -1747,7 +1762,7 @@ async function abrirHistoricoFixa(fixaId, descricao) {
     lista.innerHTML = "";
     lancamentos.forEach((l) => {
       const dataFormatada = new Date(l.data_compra + "T12:00:00").toLocaleDateString("pt-BR");
-      const valorFormatado = formatadorBRL.format(l.valor);
+      const valorFormatado = formatadorBRL.format(valorMonetario(l));
       const classeTipo = l.tipo === "receita" ? "texto-receita" : "texto-despesa";
       const sinal = l.tipo === "receita" ? "+" : "-";
       const dataVenc = new Date(l.data_compra + "T23:59:59");
@@ -1957,7 +1972,7 @@ async function carregarPainelComprasParceladas() {
     container.innerHTML = "";
 
     comprasParceladasCarregadas.forEach((compra) => {
-      const valorFormatado = formatadorBRL.format(compra.valor_parcela);
+      const valorFormatado = formatadorBRL.format(valorMonetario(compra, "valor_parcela"));
       const parcelaAtual = calcularParcelaAtual(compra);
       const concluida = parcelaAtual > compra.total_parcelas;
 
@@ -2067,7 +2082,7 @@ async function carregarOrcamentos() {
           <div class="orcamento-barra-progresso" style="width: ${orc.progresso}%; background: ${corBarra}"></div>
         </div>
         <div class="orcamento-valores">
-          <span class="orcamento-gasto">${formatadorBRL.format(orc.total_gasto)} / ${formatadorBRL.format(orc.valor)}</span>
+          <span class="orcamento-gasto">${formatadorBRL.format(valorMonetario(orc, "total_gasto"))} / ${formatadorBRL.format(valorMonetario(orc))}</span>
           <span class="orcamento-saldo">${orc.saldo > 0 ? `Restam ${formatadorBRL.format(orc.saldo)}` : "Estourado!"}</span>
         </div>
         <button type="button" class="orcamento-btn-excluir" data-id="${orc.id}" title="Excluir orçamento">
@@ -2190,7 +2205,7 @@ async function abrirHistoricoParcela(compraId, descricao) {
     lista.innerHTML = "";
     lancamentos.forEach((l) => {
       const dataFormatada = new Date(l.data_compra + "T12:00:00").toLocaleDateString("pt-BR");
-      const valorFormatado = formatadorBRL.format(l.valor);
+      const valorFormatado = formatadorBRL.format(valorMonetario(l));
       const classeTipo = l.tipo === "receita" ? "texto-receita" : "texto-despesa";
       const sinal = l.tipo === "receita" ? "+" : "-";
       const dataVenc = new Date(l.data_compra + "T23:59:59");
@@ -2425,7 +2440,7 @@ async function carregarListaDepositos(metaId) {
       linha.innerHTML = `
         <span class="historico-deposito-data">${data}</span>
         <span class="historico-deposito-desc">${escaparHtml(d.descricao || "Depósito")}</span>
-        <span class="historico-deposito-valor">+ ${formatadorBRL.format(d.valor)}</span>
+        <span class="historico-deposito-valor">+ ${formatadorBRL.format(valorMonetario(d))}</span>
         <button type="button" class="historico-deposito-excluir" data-id="${d.id}" title="Excluir">×</button>
       `;
       container.appendChild(linha);
@@ -2733,8 +2748,8 @@ function configurarModal() {
         const orcamento = orcamentosCarregados.find(
           (o) => o.categoria.toLowerCase() === pacoteDados.categoria.toLowerCase()
         );
-        if (orcamento && orcamento.total_gasto + pacoteDados.valor > orcamento.valor) {
-          const excedente = formatadorBRL.format(orcamento.total_gasto + pacoteDados.valor - orcamento.valor);
+        if (orcamento && valorMonetario(orcamento, "total_gasto") + pacoteDados.valor > valorMonetario(orcamento)) {
+          const excedente = formatadorBRL.format(valorMonetario(orcamento, "total_gasto") + pacoteDados.valor - valorMonetario(orcamento));
           const confirmado = await pedirConfirmacao(
             `Atenção: este lançamento excederá o orçamento de ${pacoteDados.categoria} em ${excedente}.\n\nDeseja salvar mesmo assim?`,
             { textoConfirmar: "Salvar assim mesmo" }
@@ -3100,7 +3115,7 @@ function renderizarNotificacoes() {
       ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
       : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
     const tipoLabel = n.tipo === "fixa" ? "Fixa" : n.tipo === "parcelada" ? "Parcelada" : "Lançamento";
-    const valorFormatado = formatadorBRL.format(n.valor);
+    const valorFormatado = formatadorBRL.format(valorMonetario(n));
 
     return `
       <div class="notificacao-item">
@@ -4181,13 +4196,13 @@ function calcularCapacidadeGuarda() {
 
   if (typeof despesasFixasCarregadas !== "undefined") {
     despesasFixasCarregadas.forEach((f) => {
-      if (f.ativo) totalFixas += f.valor || 0;
+      if (f.ativo) totalFixas += valorMonetario(f);
     });
   }
 
   if (typeof comprasParceladasCarregadas !== "undefined") {
     comprasParceladasCarregadas.forEach((c) => {
-      if (c.ativo) totalParcelas += c.valor_parcela || 0;
+      if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela");
     });
   }
 
@@ -4261,7 +4276,7 @@ function calcularScoreSaude(totalReceitas, totalDespesas, totaisPorCategoria) {
   // 4. Regularidade (10 pts) — fixas ativas < 50% do salário
   let totalFixas = 0;
   if (typeof despesasFixasCarregadas !== "undefined") {
-    despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += f.valor || 0; });
+    despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
   }
   const usuario = obterUsuarioLogado();
   const salario = usuario.salario || 0;
@@ -4544,7 +4559,7 @@ function gerarRelatorioPDF() {
             <td>${escaparHtml(l.descricao || "—")}</td>
             <td>${escaparHtml(l.categoria || "—")}</td>
             <td>${statusBadge(l.status)}</td>
-            <td class="text-right ${l.tipo === "receita" ? "text-receita" : l.status === "atrasado" ? "text-despesa" : l.status === "pendente" ? "text-pendente" : "text-despesa"}">${l.tipo === "receita" ? "+" : "−"}${formatadorBRL.format(l.valor)}</td>
+            <td class="text-right ${l.tipo === "receita" ? "text-receita" : l.status === "atrasado" ? "text-despesa" : l.status === "pendente" ? "text-pendente" : "text-despesa"}">${l.tipo === "receita" ? "+" : "−"}${formatadorBRL.format(valorMonetario(l))}</td>
           </tr>
         `).join("")}
       </tbody>
@@ -4817,7 +4832,7 @@ function renderizarListaPlanosCompartilhados(planos) {
         </div>
         <div class="plano-card-detalhes">
           <span>
-            <span class="plano-card-valores">${formatadorBRL.format(plano.depositado)} / ${formatadorBRL.format(plano.valor_alvo)}</span>
+            <span class="plano-card-valores">${formatadorBRL.format(valorMonetario(plano, "depositado"))} / ${formatadorBRL.format(valorMonetario(plano, "valor_alvo"))}</span>
             ${temPrazo ? ` · Prazo: ${dataFormatada}` : ""}
           </span>
           <span class="plano-card-prioridade prioridade-${plano.prioridade}">${prioridadeLabel}</span>
@@ -4857,10 +4872,10 @@ function renderizarGuardaPlano(salario) {
     let totalParcelas = 0;
 
     if (typeof despesasFixasCarregadas !== "undefined") {
-      despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += f.valor || 0; });
+      despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
     }
     if (typeof comprasParceladasCarregadas !== "undefined") {
-      comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += c.valor_parcela || 0; });
+      comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
     }
 
     const sobra = salario - totalFixas - totalParcelas;
@@ -4907,7 +4922,7 @@ function renderizarDistribuicaoPlano(salario) {
     despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += f.valor || 0; });
   }
   if (typeof comprasParceladasCarregadas !== "undefined") {
-    comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += c.valor_parcela || 0; });
+    comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
   }
 
   planosCarregados.forEach((p) => {
@@ -4954,8 +4969,8 @@ function renderizarDistribuicaoPlano(salario) {
 function renderizarKPIsPlano(salario) {
   const el = (id) => document.getElementById(id);
   let totalFixas = 0, totalParcelas = 0;
-  if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += f.valor || 0; });
-  if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += c.valor_parcela || 0; });
+  if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
+  if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
 
   const despesasPlanejadas = totalFixas + totalParcelas;
   const economia = Math.max(0, salario - despesasPlanejadas);
@@ -4977,8 +4992,8 @@ function renderizarIndicadoresPlano(salario) {
   if (!container) return;
 
   let totalFixas = 0, totalParcelas = 0;
-  if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += f.valor || 0; });
-  if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += c.valor_parcela || 0; });
+  if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
+  if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
 
   const despesasFixas = totalFixas;
   const despesasVar = totalParcelas;
@@ -5014,8 +5029,8 @@ function renderizarAlertasPlano(salario) {
 
   const alertas = [];
   let totalFixas = 0, totalParcelas = 0;
-  if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += f.valor || 0; });
-  if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += c.valor_parcela || 0; });
+  if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
+  if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
 
   const comprometido = totalFixas + totalParcelas;
   const pct = salario > 0 ? (comprometido / salario) * 100 : 0;
@@ -5211,7 +5226,7 @@ function renderizarListaPlanos() {
         </div>
         <div class="plano-card-detalhes">
           <span>
-            <span class="plano-card-valores">${formatadorBRL.format(plano.depositado)} / ${formatadorBRL.format(plano.valor_alvo)}</span>
+            <span class="plano-card-valores">${formatadorBRL.format(valorMonetario(plano, "depositado"))} / ${formatadorBRL.format(valorMonetario(plano, "valor_alvo"))}</span>
             ${temPrazo ? ` · Prazo: ${dataFormatada}` : ""}
           </span>
           <span class="plano-card-prioridade prioridade-${plano.prioridade}">${prioridadeLabel}</span>
@@ -5472,7 +5487,7 @@ async function abrirModalPlanoDeposito(planoId) {
             <span class="historico-fixa-desc">${escaparHtml(d.descricao || "Depósito")}</span>
             <span class="historico-fixa-data">${new Date(d.criado_em).toLocaleDateString("pt-BR")}</span>
           </div>
-          <span class="historico-fixa-valor">+${formatadorBRL.format(d.valor)}</span>
+        <span class="historico-fixa-valor">+${formatadorBRL.format(valorMonetario(d))}</span>
         </div>
       `).join("");
     }
@@ -5484,8 +5499,8 @@ async function abrirModalPlanoDeposito(planoId) {
 
 function preencherModalDepositoPlano(plano) {
   document.getElementById("plano-dep-id").value = plano.id;
-  document.getElementById("plano-dep-valor-depositado").textContent = formatadorBRL.format(plano.depositado);
-  document.getElementById("plano-dep-valor-objetivo").textContent = formatadorBRL.format(plano.valor_alvo);
+  document.getElementById("plano-dep-valor-depositado").textContent = formatadorBRL.format(valorMonetario(plano, "depositado"));
+  document.getElementById("plano-dep-valor-objetivo").textContent = formatadorBRL.format(valorMonetario(plano, "valor_alvo"));
   document.getElementById("plano-dep-barra-progresso").style.width = `${plano.percentual}%`;
   document.getElementById("plano-dep-info-progresso").textContent = `${plano.percentual}% concluído`;
   document.querySelector(".plano-deposito-icone").textContent = plano.icone;
@@ -5510,14 +5525,16 @@ function renderizarMetasPlano() {
   }
 
   container.innerHTML = metasCarregadas.map((meta) => {
-    const percentual = meta.valor_limite > 0 ? Math.min(100, Math.round((meta.total_depositado / meta.valor_limite) * 100)) : 0;
+    const valorLimite = valorMonetario(meta, "valor_limite");
+    const totalDepositado = valorMonetario(meta, "total_depositado");
+    const percentual = valorLimite > 0 ? Math.min(100, Math.round((totalDepositado / valorLimite) * 100)) : 0;
     const temPrazo = !!meta.data_limite;
 
     return `
       <div class="plano-meta-item" data-id="${meta.id}">
         <div class="plano-meta-topo">
           <span class="plano-meta-categoria">${escaparHtml(meta.categoria)}</span>
-          <span class="plano-meta-valor">${formatadorBRL.format(meta.total_depositado)} / ${formatadorBRL.format(meta.valor_limite)}</span>
+          <span class="plano-meta-valor">${formatadorBRL.format(totalDepositado)} / ${formatadorBRL.format(valorLimite)}</span>
         </div>
         <div class="plano-meta-barra">
           <div class="plano-meta-preenchimento" style="width: ${percentual}%"></div>
@@ -7222,7 +7239,7 @@ function renderizarMaioresDespesas(lancamentos) {
   if (despesas.length === 0) { container.innerHTML = '<div class="plano-vazio">Sem despesas.</div>'; return; }
 
   container.innerHTML = `<table class="rel-tabela"><thead><tr><th>Descrição</th><th>Categoria</th><th>Data</th><th class="col-valor">Valor</th></tr></thead><tbody>${
-    despesas.map((l) => `<tr><td>${escaparHtml(l.descricao || l.categoria)}</td><td><span class="rel-tabela col-categoria" style="background:var(--cor-despesa)15;color:var(--cor-despesa)">${escaparHtml(l.categoria || "")}</span></td><td>${l.data_compra ? new Date(l.data_compra + "T12:00:00").toLocaleDateString("pt-BR") : "—"}</td><td class="col-valor tipo-despesa">${formatadorBRL.format(l.valor)}</td></tr>`).join("")
+    despesas.map((l) => `<tr><td>${escaparHtml(l.descricao || l.categoria)}</td><td><span class="rel-tabela col-categoria" style="background:var(--cor-despesa)15;color:var(--cor-despesa)">${escaparHtml(l.categoria || "")}</span></td><td>${l.data_compra ? new Date(l.data_compra + "T12:00:00").toLocaleDateString("pt-BR") : "—"}</td><td class="col-valor tipo-despesa">${formatadorBRL.format(valorMonetario(l))}</td></tr>`).join("")
   }</tbody></table>`;
 }
 
@@ -7234,7 +7251,7 @@ function renderizarMaioresReceitas(lancamentos) {
   if (receitas.length === 0) { container.innerHTML = '<div class="plano-vazio">Sem receitas.</div>'; return; }
 
   container.innerHTML = `<table class="rel-tabela"><thead><tr><th>Descrição</th><th>Categoria</th><th>Data</th><th class="col-valor">Valor</th></tr></thead><tbody>${
-    receitas.map((l) => `<tr><td>${escaparHtml(l.descricao || l.categoria)}</td><td><span class="rel-tabela col-categoria" style="background:var(--cor-receita)15;color:var(--cor-receita)">${escaparHtml(l.categoria || "")}</span></td><td>${l.data_compra ? new Date(l.data_compra + "T12:00:00").toLocaleDateString("pt-BR") : "—"}</td><td class="col-valor tipo-receita">${formatadorBRL.format(l.valor)}</td></tr>`).join("")
+    receitas.map((l) => `<tr><td>${escaparHtml(l.descricao || l.categoria)}</td><td><span class="rel-tabela col-categoria" style="background:var(--cor-receita)15;color:var(--cor-receita)">${escaparHtml(l.categoria || "")}</span></td><td>${l.data_compra ? new Date(l.data_compra + "T12:00:00").toLocaleDateString("pt-BR") : "—"}</td><td class="col-valor tipo-receita">${formatadorBRL.format(valorMonetario(l))}</td></tr>`).join("")
   }</tbody></table>`;
 }
 
@@ -7246,7 +7263,7 @@ function renderizarRecorrentesRelatorio(lancamentos) {
   if (fixas.length === 0) { container.innerHTML = '<div class="plano-vazio">Sem despesas recorrentes.</div>'; return; }
 
   container.innerHTML = `<table class="rel-tabela"><thead><tr><th>Despesa</th><th>Frequência</th><th class="col-valor">Valor</th></tr></thead><tbody>${
-    fixas.map((f) => `<tr><td>${escaparHtml(f.descricao)}</td><td>Mensal</td><td class="col-valor">${formatadorBRL.format(f.valor)}</td></tr>`).join("")
+    fixas.map((f) => `<tr><td>${escaparHtml(f.descricao)}</td><td>Mensal</td><td class="col-valor">${formatadorBRL.format(valorMonetario(f))}</td></tr>`).join("")
   }</tbody></table>`;
 }
 
@@ -7286,7 +7303,9 @@ function renderizarMetasRelatorio() {
   }
 
   container.innerHTML = metasCarregadas.map((meta) => {
-    const pct = meta.valor_limite > 0 ? Math.min(100, Math.round((meta.total_depositado / meta.valor_limite) * 100)) : 0;
+    const valorLimite = valorMonetario(meta, "valor_limite");
+    const totalDepositado = valorMonetario(meta, "total_depositado");
+    const pct = valorLimite > 0 ? Math.min(100, Math.round((totalDepositado / valorLimite) * 100)) : 0;
     const cor = pct >= 80 ? "var(--cor-receita)" : pct >= 40 ? "var(--cor-marca)" : "var(--cor-despesa)";
     return `
       <div class="rel-ranking-item">
@@ -7296,7 +7315,7 @@ function renderizarMetasRelatorio() {
             <div class="rel-barra-trilho"><div class="rel-barra-preenchimento" style="width:${pct}%;background:${cor}"></div></div>
             <span class="rel-barra-pct" style="color:${cor}">${pct}%</span>
           </div>
-          <span class="rel-ranking-valor-secundario">${formatadorBRL.format(meta.total_depositado)} / ${formatadorBRL.format(meta.valor_limite)}</span>
+          <span class="rel-ranking-valor-secundario">${formatadorBRL.format(totalDepositado)} / ${formatadorBRL.format(valorLimite)}</span>
         </div>
       </div>`;
   }).join("");
@@ -7404,7 +7423,7 @@ function renderizarTabelaTransacoes(lancamentos) {
   container.innerHTML = `<table class="rel-tabela"><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th class="col-valor">Valor</th></tr></thead><tbody>${
     pagina.map((l) => {
       const tipoCor = l.tipo === "receita" ? "tipo-receita" : l.tipo === "despesa" ? "tipo-despesa" : "tipo-transferencia";
-      return `<tr><td>${l.data_compra ? new Date(l.data_compra + "T12:00:00").toLocaleDateString("pt-BR") : "—"}</td><td>${escaparHtml(l.descricao || "")}</td><td>${escaparHtml(l.categoria || "")}</td><td class="${tipoCor}">${l.tipo || ""}</td><td class="col-valor">${formatadorBRL.format(l.valor)}</td></tr>`;
+      return `<tr><td>${l.data_compra ? new Date(l.data_compra + "T12:00:00").toLocaleDateString("pt-BR") : "—"}</td><td>${escaparHtml(l.descricao || "")}</td><td>${escaparHtml(l.categoria || "")}</td><td class="${tipoCor}">${l.tipo || ""}</td><td class="col-valor">${formatadorBRL.format(valorMonetario(l))}</td></tr>`;
     }).join("")
   }</tbody></table>`;
 
@@ -7523,7 +7542,7 @@ function exportarRelatorioPDF() {
     </div>
     <h2>Transações</h2>
     <table><thead><tr><th>Data</th><th>Descrição</th><th>Categoria</th><th>Tipo</th><th style="text-align:right">Valor</th></tr></thead><tbody>${
-      lancamentos.map((l) => `<tr><td>${l.data_compra ? new Date(l.data_compra + "T12:00:00").toLocaleDateString("pt-BR") : "—"}</td><td>${escaparHtml(l.descricao || "")}</td><td>${escaparHtml(l.categoria || "")}</td><td>${l.tipo || ""}</td><td style="text-align:right">${formatadorBRL.format(l.valor)}</td></tr>`).join("")
+      lancamentos.map((l) => `<tr><td>${l.data_compra ? new Date(l.data_compra + "T12:00:00").toLocaleDateString("pt-BR") : "—"}</td><td>${escaparHtml(l.descricao || "")}</td><td>${escaparHtml(l.categoria || "")}</td><td>${l.tipo || ""}</td><td style="text-align:right">${formatadorBRL.format(valorMonetario(l))}</td></tr>`).join("")
     }</tbody></table>
     <div class="footer">Gerado em ${new Date().toLocaleString("pt-BR")} — Gestor Financeiro</div></body></html>`;
 
