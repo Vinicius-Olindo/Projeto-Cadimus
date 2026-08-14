@@ -21,7 +21,14 @@ function parseOFX(texto) {
     };
 
     const trnType = extrair("TRNTYPE");
-    const amount = parseFloat(extrair("TRNAMT"));
+    const amountRaw = extrair("TRNAMT");
+    let amountCentavos;
+    try {
+      amountCentavos = window.CadimusMoney.reaisParaCentavos(amountRaw, { permitirNegativo: true });
+    } catch {
+      continue;
+    }
+    const amount = window.CadimusMoney.centavosParaReais(amountCentavos);
     const dateStr = extrair("DTPOSTED");
     const name = extrair("NAME") || extrair("MEMO") || "";
 
@@ -41,7 +48,7 @@ function parseOFX(texto) {
       data,
       descricao: name,
       valor: Math.abs(amount),
-      valor_centavos: window.CadimusMoney.reaisParaCentavos(Math.abs(amount)),
+      valor_centavos: Math.abs(amountCentavos),
       tipo,
       selecionada: true,
     });
@@ -73,10 +80,16 @@ function parseCSV(texto) {
     const cols = linhas[i].split(separador).map((c) => c.trim().replace(/"/g, ""));
     if (cols.length < 2) continue;
 
-    let valorStr = (cols[colValor] || "").replace(/[^\d,.\-]/g, "").replace(",", ".");
-    const valor = parseFloat(valorStr);
-    if (!Number.isFinite(valor) || valor === 0) continue;
-    const valorCentavos = window.CadimusMoney.reaisParaCentavos(Math.abs(valor));
+    const valorStr = (cols[colValor] || "").replace(/[^\d,.\-]/g, "");
+    let valorCentavosComSinal;
+    try {
+      valorCentavosComSinal = window.CadimusMoney.reaisParaCentavos(valorStr, { permitirNegativo: true });
+    } catch {
+      continue;
+    }
+    const valor = window.CadimusMoney.centavosParaReais(valorCentavosComSinal);
+    if (valorCentavosComSinal === 0) continue;
+    const valorCentavos = Math.abs(valorCentavosComSinal);
 
     let data = "";
     if (colData !== -1 && cols[colData]) {
