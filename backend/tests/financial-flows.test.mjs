@@ -4,6 +4,7 @@ import assert from "node:assert/strict";
 import { gerarTodasParcelasDaCompra } from "../src/utils/comprasParceladas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../src/utils/lancamentosRecorrentes.js";
 import { processarLancamentos } from "../src/routes/lancamentos.js";
+import { processarOrcamentos } from "../src/routes/orcamentos.js";
 import { processarTransferencias } from "../src/routes/transferencias.js";
 
 class FakeD1 {
@@ -285,4 +286,76 @@ test("criação de lançamento faz escrita dupla em reais e centavos", async () 
   assert.equal(insertLancamento.args[1], 123.45);
   assert.equal(insertLancamento.args[2], 12345);
   assert.equal(auditLogs.length, 1);
+});
+
+test("criação de transferência faz escrita dupla em reais e centavos", async () => {
+  let insertTransferencia;
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "AS saldo",
+      reply: () => [{ saldo: 1000 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO transferencias",
+      reply: ({ sql, args }) => {
+        insertTransferencia = { sql, args };
+        return { meta: { last_row_id: 88 } };
+      },
+    },
+    {
+      type: "run",
+      match: "INSERT INTO audit_logs",
+      reply: () => ({ meta: { last_row_id: 1 } }),
+    },
+  ]));
+
+  const res = await processarTransferencias(
+    request("POST", "https://cadimus.test/api/transferencias", {
+      valor_centavos: 25050,
+      data_transferencia: "2026-08-14",
+      carteira_origem_id: 10,
+      carteira_destino_id: 20,
+      descricao: "Reserva",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 201);
+  assert.match(insertTransferencia.sql, /valor_centavos/);
+  assert.equal(insertTransferencia.args[0], 250.5);
+  assert.equal(insertTransferencia.args[1], 25050);
+});
+
+test("criação de orçamento faz escrita dupla em reais e centavos", async () => {
+  let insertOrcamento;
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "run",
+      match: "INSERT INTO orcamentos",
+      reply: ({ sql, args }) => {
+        insertOrcamento = { sql, args };
+        return { meta: { last_row_id: 99 } };
+      },
+    },
+  ]));
+
+  const res = await processarOrcamentos(
+    request("POST", "https://cadimus.test/api/orcamentos", {
+      categoria: "Casa",
+      valor_centavos: 150000,
+      mes: 8,
+      ano: 2026,
+      carteira_id: 10,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 201);
+  assert.match(insertOrcamento.sql, /valor_centavos/);
+  assert.equal(insertOrcamento.args[1], 1500);
+  assert.equal(insertOrcamento.args[2], 150000);
 });

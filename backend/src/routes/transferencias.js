@@ -4,6 +4,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 function dataISOValida(valor) {
   return typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor);
@@ -118,8 +119,13 @@ export async function processarTransferencias(request, env, ctx) {
     try {
       const dados = await request.json();
       const idempotencyKey = typeof dados.idempotency_key === "string" ? dados.idempotency_key.trim() : "";
+      if (dados.valor === undefined && dados.valor_centavos === undefined) {
+        return new Response(JSON.stringify({ erro: "Valor invÃ¡lido." }), { status: 400 });
+      }
+      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const valor = centavosParaReais(valorCentavos);
 
-      if (!dados.valor || dados.valor <= 0) {
+      if (valorCentavos <= 0) {
         return new Response(JSON.stringify({ erro: "Valor inválido." }), { status: 400 });
       }
       if (!dados.carteira_origem_id || !dados.carteira_destino_id) {
@@ -148,17 +154,18 @@ export async function processarTransferencias(request, env, ctx) {
       }
 
       const saldo = await calcularSaldoCarteira(env, dados.carteira_origem_id);
-      if (saldo < dados.valor) {
+      if (saldo < valor) {
         return new Response(JSON.stringify({ erro: "Saldo insuficiente na carteira de origem." }), { status: 400 });
       }
 
       const resultado = await env.DB.prepare(
         `INSERT INTO transferencias
-         (valor, data_transferencia, carteira_origem_id, carteira_destino_id, descricao, criado_por, idempotency_key)
-         VALUES (?, ?, ?, ?, ?, ?, ?)`,
+         (valor, valor_centavos, data_transferencia, carteira_origem_id, carteira_destino_id, descricao, criado_por, idempotency_key)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
       )
         .bind(
-          dados.valor,
+          valor,
+          valorCentavos,
           dados.data_transferencia || new Date().toISOString().split("T")[0],
           dados.carteira_origem_id,
           dados.carteira_destino_id,

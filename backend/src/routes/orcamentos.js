@@ -3,6 +3,7 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 export async function processarOrcamentos(request, env, ctx) {
   const metodo = request.method;
@@ -36,10 +37,15 @@ export async function processarOrcamentos(request, env, ctx) {
 
       let query = `
         SELECT o.*, 
-               COALESCE(gasto.total_gasto, 0) AS total_gasto
+               COALESCE(gasto.total_gasto, 0) AS total_gasto,
+               COALESCE(gasto.total_gasto_centavos, 0) AS total_gasto_centavos
         FROM orcamentos o
         LEFT JOIN (
-          SELECT carteira_id, LOWER(categoria) AS categoria_normalizada, SUM(valor) AS total_gasto
+          SELECT
+            carteira_id,
+            LOWER(categoria) AS categoria_normalizada,
+            SUM(valor) AS total_gasto,
+            SUM(COALESCE(valor_centavos, ROUND(valor * 100))) AS total_gasto_centavos
           FROM lancamentos
           WHERE tipo = 'despesa'
             AND status = 'pago'
@@ -69,14 +75,16 @@ export async function processarOrcamentos(request, env, ctx) {
 
       // Calcular progresso para cada orçamento
       const orcamentosComProgresso = results.map((o) => {
-        const progresso = o.valor > 0 ? (o.total_gasto / o.valor) * 100 : 0;
+        const valorCentavos = o.valor_centavos ?? Math.round(o.valor * 100);
+        const totalGastoCentavos = o.total_gasto_centavos ?? Math.round(o.total_gasto * 100);
+        const progresso = valorCentavos > 0 ? (totalGastoCentavos / valorCentavos) * 100 : 0;
         const status = progresso >= 100 ? "estourado" : progresso >= 80 ? "alerta" : "ok";
         return {
           ...o,
           progresso: Math.min(progresso, 100),
           progresso_real: progresso,
           status,
-          saldo: Math.max(o.valor - o.total_gasto, 0),
+          saldo: centavosParaReais(Math.max(valorCentavos - totalGastoCentavos, 0)),
         };
       });
 
@@ -94,11 +102,14 @@ export async function processarOrcamentos(request, env, ctx) {
     try {
       const dados = await request.json();
 
-      if (!dados.categoria || !dados.valor || !dados.mes || !dados.ano || !dados.carteira_id) {
+      if (!dados.categoria || (dados.valor === undefined && dados.valor_centavos === undefined) || !dados.mes || !dados.ano || !dados.carteira_id) {
         return new Response(JSON.stringify({ erro: "Categoria, valor, mês, ano e carteira são obrigatórios." }), { status: 400 });
       }
 
-      if (dados.valor < 0) {
+      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const valor = centavosParaReais(valorCentavos);
+
+      if (valorCentavos < 0) {
         return new Response(JSON.stringify({ erro: "Valor não pode ser negativo." }), { status: 400 });
       }
 
@@ -108,15 +119,16 @@ export async function processarOrcamentos(request, env, ctx) {
 
       // Upsert: insere ou atualiza se já existe ( UNIQUE constraint )
       const query = `
-        INSERT INTO orcamentos (categoria, valor, carteira_id, mes, ano, criado_por)
-        VALUES (?, ?, ?, ?, ?, ?)
+        INSERT INTO orcamentos (categoria, valor, valor_centavos, carteira_id, mes, ano, criado_por)
+        VALUES (?, ?, ?, ?, ?, ?, ?)
         ON CONFLICT(categoria, carteira_id, mes, ano)
-        DO UPDATE SET valor = excluded.valor
+        DO UPDATE SET valor = excluded.valor, valor_centavos = excluded.valor_centavos
       `;
       await env.DB.prepare(query)
         .bind(
           dados.categoria.toLowerCase(),
-          dados.valor,
+          valor,
+          valorCentavos,
           dados.carteira_id,
           dados.mes,
           dados.ano,
