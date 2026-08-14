@@ -75,11 +75,20 @@ function valorMonetario(registro, nomeCampo = "valor") {
   return Number(registro?.[nomeCampo]) || 0;
 }
 
+function centavosMonetarios(registro, nomeCampo = "valor") {
+  const nomeCentavos = `${nomeCampo}_centavos`;
+  if (Number.isInteger(registro?.[nomeCentavos])) {
+    return registro[nomeCentavos];
+  }
+  return window.CadimusMoney.reaisParaCentavos(valorMonetario(registro, nomeCampo), { permitirNegativo: true });
+}
+
 function somarValoresMonetarios(registros, nomeCampo = "valor") {
   return registros.reduce((total, registro) => total + valorMonetario(registro, nomeCampo), 0);
 }
 
 window.valorMonetario = valorMonetario;
+window.centavosMonetarios = centavosMonetarios;
 window.somarValoresMonetarios = somarValoresMonetarios;
 
 // Se a API responder 401 (sessão inválida/expirada), desloga e volta pro login
@@ -7411,8 +7420,8 @@ function renderizarTabelaTransacoes(lancamentos) {
     switch (ordem) {
       case "data-desc": return (b.data_compra || "").localeCompare(a.data_compra || "");
       case "data-asc": return (a.data_compra || "").localeCompare(b.data_compra || "");
-      case "valor-desc": return (b.valor || 0) - (a.valor || 0);
-      case "valor-asc": return (a.valor || 0) - (b.valor || 0);
+      case "valor-desc": return valorMonetario(b) - valorMonetario(a);
+      case "valor-asc": return valorMonetario(a) - valorMonetario(b);
       case "desc-alf": return (a.descricao || "").localeCompare(b.descricao || "");
       default: return 0;
     }
@@ -7501,9 +7510,9 @@ function exportarRelatorioCSV() {
   const { lancamentos } = relatorioDados;
   if (lancamentos.length === 0) { mostrarToast("Sem dados para exportar", "aviso"); return; }
 
-  const linhas = [["Data", "Descrição", "Categoria", "Tipo", "Valor", "Conta", "Forma Pagamento"]];
+  const linhas = [["Data", "Descricao", "Categoria", "Tipo", "Valor", "Valor Centavos", "Conta", "Forma Pagamento"]];
   lancamentos.forEach((l) => {
-    linhas.push([l.data_compra || "", l.descricao || "", l.categoria || "", l.tipo || "", l.valor || 0, l.carteira_nome || "", l.forma_pagamento || ""]);
+    linhas.push([l.data_compra || "", l.descricao || "", l.categoria || "", l.tipo || "", valorMonetario(l), centavosMonetarios(l), l.carteira_nome || "", l.forma_pagamento || ""]);
   });
 
   const csv = linhas.map((l) => l.map((v) => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
@@ -7513,7 +7522,12 @@ function exportarRelatorioCSV() {
 
 function exportarRelatorioJSON() {
   const { lancamentos, periodo } = relatorioDados;
-  const json = JSON.stringify({ periodo, lancamentos }, null, 2);
+  const lancamentosNormalizados = lancamentos.map((l) => ({
+    ...l,
+    valor: valorMonetario(l),
+    valor_centavos: centavosMonetarios(l),
+  }));
+  const json = JSON.stringify({ periodo, lancamentos: lancamentosNormalizados }, null, 2);
   const blob = new Blob([json], { type: "application/json" });
   baixarArquivo(blob, `relatorio_financeiro_${new Date().toISOString().split("T")[0]}.json`);
 }

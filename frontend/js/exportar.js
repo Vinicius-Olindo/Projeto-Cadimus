@@ -69,8 +69,8 @@ async function atualizarResumoExportacao() {
     return;
   }
 
-  const totalReceitas = lancamentos.filter((l) => l.tipo === "receita").reduce((s, l) => s + l.valor, 0);
-  const totalDespesas = lancamentos.filter((l) => l.tipo === "despesa").reduce((s, l) => s + l.valor, 0);
+  const totalReceitas = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "receita"));
+  const totalDespesas = somarValoresMonetarios(lancamentos.filter((l) => l.tipo === "despesa"));
 
   const partes = [`${lancamentos.length} lançamento${lancamentos.length !== 1 ? "s" : ""}`];
   if (totalReceitas > 0) partes.push(`Receitas: ${formatadorBRL.format(totalReceitas)}`);
@@ -82,16 +82,17 @@ async function atualizarResumoExportacao() {
 // GERAR CSV
 // ==========================================
 function gerarCSV(lancamentos) {
-  const cabecalho = "Data;Tipo;Descricao;Valor;Categoria;Pagamento;Status;Carteira";
+  const cabecalho = "Data;Tipo;Descricao;Valor;Valor Centavos;Categoria;Pagamento;Status;Carteira";
   const linhas = lancamentos.map((l) => {
     const data = l.data_compra || l.data || "";
     const desc = (l.descricao || "").replace(/;/g, ",").replace(/"/g, '""');
-    const valor = (l.valor || 0).toFixed(2).replace(".", ",");
+    const valor = valorMonetario(l).toFixed(2).replace(".", ",");
+    const valorCentavos = centavosMonetarios(l);
     const cat = l.categoria || "";
     const pagamento = l.meio_pagamento || "";
     const status = l.status || "";
     const carteira = l.carteira_nome || "";
-    return `${data};${l.tipo};${desc};${valor};${cat};${pagamento};${status};${carteira}`;
+    return `${data};${l.tipo};${desc};${valor};${valorCentavos};${cat};${pagamento};${status};${carteira}`;
   });
 
   const BOM = "\uFEFF";
@@ -116,7 +117,7 @@ function gerarOFX(lancamentos) {
 
   lancamentos.forEach((l, idx) => {
     const data = formatarDataOFX(l.data_compra || l.data);
-    const valor = formatarValorOFX(l.valor || 0, l.tipo);
+    const valor = formatarValorOFX(valorMonetario(l), l.tipo);
     const desc = (l.descricao || "").replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;");
     const fitid = `CAD${data}${String(idx).padStart(4, "0")}`;
 
