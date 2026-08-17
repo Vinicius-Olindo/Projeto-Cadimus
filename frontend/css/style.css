@@ -445,6 +445,68 @@ button:active {
   color: var(--cor-texto);
 }
 
+.painel-notificacoes-subtitulo {
+  margin: 3px 0 0;
+  font-size: 0.74rem;
+  color: var(--cor-texto-suave);
+  text-transform: none;
+  letter-spacing: 0;
+}
+
+.painel-notificacoes-controles {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 0 6px;
+  border-bottom: 1px solid var(--cor-pauta-fraca);
+}
+
+.notificacao-tabs {
+  display: inline-flex;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 86%, transparent);
+}
+
+.notificacao-tab,
+.notificacao-acao-secundaria,
+.notificacao-arquivar {
+  background: transparent;
+  color: var(--cor-texto-suave);
+  border: none;
+  box-shadow: none;
+}
+
+.notificacao-tab {
+  padding: 5px 9px;
+  border-radius: 999px;
+  font-size: 0.72rem;
+  font-weight: 600;
+}
+
+.notificacao-tab:hover,
+.notificacao-tab.ativo {
+  background: color-mix(in srgb, var(--cor-marca) 12%, transparent);
+  color: var(--cor-marca-forte);
+  transform: none;
+}
+
+.notificacao-acao-secundaria {
+  padding: 6px 8px;
+  font-size: 0.72rem;
+  border-radius: 999px;
+}
+
+.notificacao-acao-secundaria:hover,
+.notificacao-arquivar:hover {
+  background: color-mix(in srgb, var(--cor-marca) 9%, transparent);
+  color: var(--cor-marca-forte);
+  transform: none;
+}
+
 .modal-notificacoes .painel-notificacoes-header .btn-fechar-modal {
   background: none;
   border: none;
@@ -575,6 +637,25 @@ button:active {
 .avatar-dropdown-wrapper {
   position: relative;
   margin-left: 8px;
+}
+
+.notificacao-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.notificacao-arquivar {
+  align-self: center;
+  padding: 5px 7px;
+  border-radius: 999px;
+  font-size: 0.7rem;
+  opacity: 0;
+  transition: opacity 0.15s ease, background 0.15s ease, color 0.15s ease;
+}
+
+.notificacao-item:hover .notificacao-arquivar,
+.notificacao-arquivar:focus-visible {
+  opacity: 1;
 }
 
 .tema-switch + .acoes-topo-divider {
@@ -3727,6 +3808,24 @@ textarea::placeholder {
 
   .acoes-topo-grupo {
     padding: 2px;
+  }
+
+  .painel-notificacoes-controles {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .notificacao-tabs {
+    width: 100%;
+  }
+
+  .notificacao-tab {
+    flex: 1;
+    text-align: center;
+  }
+
+  .notificacao-acao-secundaria {
+    align-self: flex-end;
   }
 
   .top-bar-linha2 {

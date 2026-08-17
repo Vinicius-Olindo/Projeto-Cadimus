@@ -1887,10 +1887,21 @@
     <div id="modal-notificacoes" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
       <div class="modal-content modal-notificacoes">
         <div class="painel-notificacoes-header">
-          <h3>Vencimentos próximos</h3>
+          <div>
+            <h3>Central de alertas</h3>
+            <p class="painel-notificacoes-subtitulo">Histórico e lembretes financeiros</p>
+          </div>
           <button type="button" id="btn-fechar-modal-notificacoes" class="btn-fechar-modal" aria-label="Fechar">
             <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
           </button>
+        </div>
+        <div class="painel-notificacoes-controles">
+          <div class="notificacao-tabs" role="tablist" aria-label="Filtro de notificações">
+            <button type="button" class="notificacao-tab ativo" data-status="nao_lida">Não lidas</button>
+            <button type="button" class="notificacao-tab" data-status="todas">Todas</button>
+            <button type="button" class="notificacao-tab" data-status="arquivada">Arquivadas</button>
+          </div>
+          <button type="button" id="btn-marcar-notificacoes-lidas" class="notificacao-acao-secundaria">Marcar lidas</button>
         </div>
         <div class="painel-notificacoes-lista" id="lista-notificacoes"></div>
       </div>

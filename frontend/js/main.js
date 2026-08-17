@@ -3209,6 +3209,8 @@ async function sincronizarNotificacoesLocais() {
   }
 }
 
+let filtroNotificacoesAtual = "nao_lida";
+
 async function buscarNotificacoesPersistidas(status = "nao_lida") {
   const resposta = await fetch(`${API_URL}/api/notificacoes?status=${encodeURIComponent(status)}&limite=50`, {
     headers: headersAutenticados(false),
@@ -3236,7 +3238,12 @@ function renderizarListaNotificacoesPersistidas(notificacoes, resumo = {}) {
   else badge.classList.remove("com-alertas");
 
   if (notificacoes.length === 0) {
-    lista.innerHTML = '<div class="notificacao-vazio">Nenhuma notificaÃ§Ã£o nova.</div>';
+    const mensagemVazia = filtroNotificacoesAtual === "arquivada"
+      ? "Nenhuma notificaÃ§Ã£o arquivada."
+      : filtroNotificacoesAtual === "todas"
+        ? "Nenhuma notificaÃ§Ã£o no histórico."
+        : "Nenhuma notificaÃ§Ã£o nova.";
+    lista.innerHTML = `<div class="notificacao-vazio">${mensagemVazia}</div>`;
     return;
   }
 
@@ -3256,18 +3263,27 @@ function renderizarListaNotificacoesPersistidas(notificacoes, resumo = {}) {
           <div class="notificacao-descricao">${escaparHtml(n.titulo)}</div>
           <div class="notificacao-detalhe">${tipoLabel} Â· ${statusLabel} Â· ${escaparHtml(n.mensagem)}</div>
         </div>
+        ${n.status !== "arquivada" ? `<button type="button" class="notificacao-arquivar" data-id="${n.id}" title="Arquivar alerta">Arquivar</button>` : ""}
       </div>
     `;
   }).join("");
 }
 
-async function renderizarNotificacoes() {
+function atualizarTabsNotificacoes(status) {
+  document.querySelectorAll(".notificacao-tab").forEach((tab) => {
+    tab.classList.toggle("ativo", tab.dataset.status === status);
+  });
+}
+
+async function renderizarNotificacoes(status = filtroNotificacoesAtual) {
+  filtroNotificacoesAtual = status;
+  atualizarTabsNotificacoes(status);
   const lista = document.getElementById("lista-notificacoes");
   if (lista) lista.innerHTML = '<div class="notificacao-vazio">Carregando notificaÃ§Ãµes...</div>';
 
   try {
     await gerarNotificacoesAutomaticas();
-    const dados = await buscarNotificacoesPersistidas("todas");
+    const dados = await buscarNotificacoesPersistidas(status);
     renderizarListaNotificacoesPersistidas(dados.notificacoes || [], dados.resumo || {});
   } catch (erro) {
     console.error("Erro ao renderizar notificacoes:", erro);
@@ -3301,20 +3317,47 @@ async function marcarNotificacoesComoLidas() {
   }
 }
 
+async function arquivarNotificacao(id) {
+  await fetch(`${API_URL}/api/notificacoes?id=${encodeURIComponent(id)}`, {
+    method: "DELETE",
+    headers: headersAutenticados(false),
+  });
+}
+
 function configurarNotificacoes() {
   const btn = document.getElementById("btn-notificacoes");
   const modal = document.getElementById("modal-notificacoes");
   const btnFechar = document.getElementById("btn-fechar-modal-notificacoes");
+  const btnMarcarLidas = document.getElementById("btn-marcar-notificacoes-lidas");
+  const lista = document.getElementById("lista-notificacoes");
   const badge = document.getElementById("notificacao-badge");
   if (!btn || !modal) return;
 
   btn.addEventListener("click", async (e) => {
     e.stopPropagation();
     modal.style.display = "flex";
-    await renderizarNotificacoes();
+    await renderizarNotificacoes("nao_lida");
     await marcarNotificacoesComoLidas();
     atualizarBadgeNotificacoes();
     trapFoco(modal);
+  });
+
+  document.querySelectorAll(".notificacao-tab").forEach((tab) => {
+    tab.addEventListener("click", () => renderizarNotificacoes(tab.dataset.status || "nao_lida"));
+  });
+
+  btnMarcarLidas?.addEventListener("click", async () => {
+    await marcarNotificacoesComoLidas();
+    await renderizarNotificacoes(filtroNotificacoesAtual);
+    atualizarBadgeNotificacoes();
+  });
+
+  lista?.addEventListener("click", async (e) => {
+    const btnArquivar = e.target.closest(".notificacao-arquivar");
+    if (!btnArquivar) return;
+    await arquivarNotificacao(btnArquivar.dataset.id);
+    await renderizarNotificacoes(filtroNotificacoesAtual);
+    atualizarBadgeNotificacoes();
   });
 
   if (btnFechar) {
