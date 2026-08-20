@@ -1028,7 +1028,7 @@ function configurarModalOrcamento() {
   // Preencher select de categorias
   async function carregarCategorias() {
     try {
-      const resposta = await fetch(`${API_URL}/api/categorias`, { headers: headersAutenticados(false) });
+      const resposta = await CadimusApi.fetch("/api/categorias", { comJson: false });
       if (tratarSessaoExpirada(resposta)) return;
       const categorias = await resposta.json();
 
@@ -2531,7 +2531,7 @@ async function popularSelectCategorias(select) {
   if (!select) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/categorias`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch("/api/categorias", { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -2563,7 +2563,7 @@ async function popularSelectFiltroCategorias() {
   if (!select) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/categorias`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch("/api/categorias", { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -2701,9 +2701,8 @@ function configurarModal() {
           return;
         }
 
-        const respostaCategoria = await fetch(`${API_URL}/api/categorias`, {
+        const respostaCategoria = await CadimusApi.fetch("/api/categorias", {
           method: "POST",
-          headers: headersAutenticados(),
           body: JSON.stringify({ nome: nomeCategoria }),
         });
 
@@ -6673,9 +6672,8 @@ function configurarFormularioCategoria() {
     btn.innerText = "Adicionando...";
 
     try {
-      const resposta = await fetch(`${API_URL}/api/categorias`, {
+      const resposta = await CadimusApi.fetch("/api/categorias", {
         method: "POST",
-        headers: headersAutenticados(),
         body: JSON.stringify({ nome }),
       });
 
@@ -6707,7 +6705,7 @@ async function carregarListaCategorias() {
   container.innerHTML = '<div class="estado-vazio-admin"><div class="icone-vazio">🏷️</div><p>Carregando categorias...</p></div>';
 
   try {
-    const resposta = await fetch(`${API_URL}/api/categorias`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch("/api/categorias", { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     const categorias = await resposta.json();
 
@@ -6768,9 +6766,9 @@ async function excluirCategoria(id, botao) {
   botao.innerText = "Excluindo...";
 
   try {
-    const resposta = await fetch(`${API_URL}/api/categorias?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/categorias?id=${id}`, {
       method: "DELETE",
-      headers: headersAutenticados(false),
+      comJson: false,
     });
 
     if (tratarSessaoExpirada(resposta)) return;
@@ -6835,9 +6833,8 @@ function configurarModalRenomearCategoria() {
     btnSalvar.innerText = "Renomeando...";
 
     try {
-      const resposta = await fetch(`${API_URL}/api/categorias?id=${id}`, {
+      const resposta = await CadimusApi.fetch(`/api/categorias?id=${id}`, {
         method: "PUT",
-        headers: headersAutenticados(),
         body: JSON.stringify({ nome: novoNome }),
       });
 
