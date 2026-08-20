@@ -640,7 +640,7 @@ async function carregarCarteiras() {
   const idDestaRequisicao = ++ultimaRequisicaoCarteiras;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/carteiras`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch("/api/carteiras", { comJson: false });
     if (idDestaRequisicao !== ultimaRequisicaoCarteiras) return;
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
@@ -775,9 +775,8 @@ function reordenarCarteiras(idArrastadoStr, idAlvo) {
 
 async function salvarOrdemCarteiras() {
   try {
-    const resposta = await fetch(`${API_URL}/api/carteiras`, {
+    const resposta = await CadimusApi.fetch("/api/carteiras", {
       method: "PATCH",
-      headers: headersAutenticados(),
       body: JSON.stringify({ ordem: carteirasDoUsuario.map((c) => c.id) }),
     });
     tratarSessaoExpirada(resposta);
@@ -830,7 +829,7 @@ function configurarModalCarteira() {
     listaMembros.innerHTML = `<span class="dica-campo">Carregando...</span>`;
 
     try {
-      const resposta = await fetch(`${API_URL}/api/carteiras?colegas=1`, { headers: headersAutenticados() });
+      const resposta = await CadimusApi.fetch("/api/carteiras?colegas=1");
       if (tratarSessaoExpirada(resposta)) return;
       const colegas = await resposta.json();
 
@@ -881,9 +880,8 @@ function configurarModalCarteira() {
         corpo.membros = Array.from(document.querySelectorAll(".checkbox-membro-carteira:checked")).map((chk) => Number(chk.value));
       }
 
-      const resposta = await fetch(`${API_URL}/api/carteiras`, {
+      const resposta = await CadimusApi.fetch("/api/carteiras", {
         method: "POST",
-        headers: headersAutenticados(),
         body: JSON.stringify(corpo),
       });
 
@@ -984,9 +982,8 @@ function configurarModalTransferencia() {
         return;
       }
 
-      const resposta = await fetch(`${API_URL}/api/transferencias`, {
+      const resposta = await CadimusApi.fetch("/api/transferencias", {
         method: "POST",
-        headers: headersAutenticados(),
         body: JSON.stringify({
           valor,
           valor_centavos: valorPayload.valor_centavos,
@@ -1351,8 +1348,8 @@ async function abrirModalGerenciarMembros(carteira) {
 
   try {
     const [respostaMembros, respostaColegas] = await Promise.all([
-      fetch(`${API_URL}/api/carteiras?membros=${carteira.id}`, { headers: headersAutenticados(false) }),
-      fetch(`${API_URL}/api/carteiras?colegas=1`, { headers: headersAutenticados(false) }),
+      CadimusApi.fetch(`/api/carteiras?membros=${carteira.id}`, { comJson: false }),
+      CadimusApi.fetch("/api/carteiras?colegas=1", { comJson: false }),
     ]);
 
     if (tratarSessaoExpirada(respostaMembros) || tratarSessaoExpirada(respostaColegas)) return;
@@ -1418,9 +1415,9 @@ function configurarModalGerenciarMembros() {
     btnExcluir.innerText = "Excluindo...";
 
     try {
-      const resposta = await fetch(`${API_URL}/api/carteiras?id=${carteiraId}`, {
+      const resposta = await CadimusApi.fetch(`/api/carteiras?id=${carteiraId}`, {
         method: "DELETE",
-        headers: headersAutenticados(false),
+        comJson: false,
       });
 
       if (tratarSessaoExpirada(resposta)) return;
@@ -1428,7 +1425,7 @@ function configurarModalGerenciarMembros() {
       if (resposta.ok) {
         modal.style.display = "none";
         liberarFoco();
-        carteirasDoUsuario = await (await fetch(`${API_URL}/api/carteiras`, { headers: headersAutenticados(false) })).json();
+        carteirasDoUsuario = await (await CadimusApi.fetch("/api/carteiras", { comJson: false })).json();
         renderizarTabsCarteira();
         mostrarToast("Carteira excluída", "info");
       } else {
@@ -1453,9 +1450,8 @@ function configurarModalGerenciarMembros() {
     btnSalvar.innerText = "Salvando...";
 
     try {
-      const resposta = await fetch(`${API_URL}/api/carteiras?id=${carteiraId}`, {
+      const resposta = await CadimusApi.fetch(`/api/carteiras?id=${carteiraId}`, {
         method: "PUT",
-        headers: headersAutenticados(),
         body: JSON.stringify({ membros }),
       });
 
@@ -3698,7 +3694,7 @@ async function carregarLancamentos() {
     const inputMes = document.getElementById("filtro-mes").value;
 
     let urlComFiltros = `${API_URL}/api/lancamentos?carteira_id=${carteiraId}`;
-    let urlTransferencias = `${API_URL}/api/transferencias?carteira_id=${carteiraId}`;
+    let urlTransferencias = `/api/transferencias?carteira_id=${carteiraId}`;
 
     if (inputMes) {
       const [ano, mes] = inputMes.split("-");
@@ -3708,7 +3704,7 @@ async function carregarLancamentos() {
 
     const [resposta, respostaTransferencias] = await Promise.all([
       fetch(urlComFiltros, { headers: headersAutenticados(false) }),
-      fetch(urlTransferencias, { headers: headersAutenticados(false) }),
+      CadimusApi.fetch(urlTransferencias, { comJson: false }),
       promiseMetas,
     ]);
 
@@ -5882,7 +5878,7 @@ async function carregarSettingsContas() {
   if (!container) return;
   container.innerHTML = '<span class="dica-campo">Carregando...</span>';
   try {
-    const resposta = await fetch(`${API_URL}/api/carteiras`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch("/api/carteiras", { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
     const carteiras = await resposta.json();
