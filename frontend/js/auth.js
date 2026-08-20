@@ -114,10 +114,7 @@ function alternarTelas(estaLogado) {
     // Busca dados completos do usuário para atualizar avatar (foto pode não estar na sessão)
     async function atualizarAvatarCompleto() {
       try {
-        const token = obterToken();
-        const res = await fetch(`${API_URL}/api/usuarios/me`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const res = await CadimusApi.fetch("/api/usuarios/me", { comJson: false });
         if (!res.ok) return;
         const dados = await res.json();
         // Atualiza sessão com dados completos
@@ -155,9 +152,9 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const usuario = document.getElementById("usuario").value;
       const senha = document.getElementById("senha").value;
-      const res = await fetch(`${API_URL}/api/auth`, {
+      const res = await CadimusApi.fetch("/api/auth", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        autenticado: false,
         body: JSON.stringify({ usuario, senha }),
       });
       const d = await res.json();
@@ -222,9 +219,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const token = obterToken();
       if (token) {
         try {
-          await fetch(`${API_URL}/api/auth`, {
+          await CadimusApi.fetch("/api/auth", {
             method: "DELETE",
-            headers: { Authorization: `Bearer ${token}` },
+            comJson: false,
           });
         } catch (erro) {
           console.error("Erro ao encerrar sessão no servidor:", erro);
@@ -265,9 +262,9 @@ document.addEventListener("DOMContentLoaded", () => {
     btnEnviar.innerText = "Enviando...";
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/esqueci-senha`, {
+      const res = await CadimusApi.fetch("/api/auth/esqueci-senha", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        autenticado: false,
         body: JSON.stringify({ email }),
       });
       const d = await res.json();
@@ -344,9 +341,9 @@ document.addEventListener("DOMContentLoaded", () => {
     btnSalvar.innerText = "Salvando...";
 
     try {
-      const res = await fetch(`${API_URL}/api/auth/redefinir-senha`, {
+      const res = await CadimusApi.fetch("/api/auth/redefinir-senha", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        autenticado: false,
         body: JSON.stringify({ token: tokenRecuperacao, novaSenha }),
       });
       const d = await res.json();
