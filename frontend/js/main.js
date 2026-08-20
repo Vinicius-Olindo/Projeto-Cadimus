@@ -4945,7 +4945,7 @@ function configurarSalarioPlano() {
 
 async function carregarPlanos() {
   try {
-    const resposta = await CadimusApi.fetch("/api/planos");
+    const resposta = await CadimusPlanningApi.listarPlanos();
     if (tratarSessaoExpirada(resposta)) return;
     if (resposta.ok) {
       planosCarregados = await resposta.json();
@@ -4960,7 +4960,7 @@ async function carregarPlanosCompartilhados() {
   if (!container) return;
 
   try {
-    const resposta = await CadimusApi.fetch("/api/planos?tipo=compartilhados");
+    const resposta = await CadimusPlanningApi.listarPlanosCompartilhados();
     if (tratarSessaoExpirada(resposta)) return;
     if (resposta.ok) {
       const planos = await resposta.json();
@@ -5449,10 +5449,7 @@ function renderizarListaPlanos() {
 
 async function atualizarStatusPlano(id, status) {
   try {
-    const resposta = await CadimusApi.fetch("/api/planos", {
-      method: "PUT",
-      body: JSON.stringify({ id, status }),
-    });
+    const resposta = await CadimusPlanningApi.atualizarStatusPlano(id, status);
     if (tratarSessaoExpirada(resposta)) return;
     if (resposta.ok) {
       mostrarToast(status === "concluido" ? "Plano concluído!" : "Plano cancelado.", "info");
@@ -5513,15 +5510,9 @@ function configurarModalPlano() {
     try {
       let resposta;
       if (idEdicao) {
-        resposta = await CadimusApi.fetch("/api/planos", {
-          method: "PUT",
-          body: JSON.stringify({ id: Number(idEdicao), ...dados }),
-        });
+        resposta = await CadimusPlanningApi.salvarPlano(dados, idEdicao);
       } else {
-        resposta = await CadimusApi.fetch("/api/planos", {
-          method: "POST",
-          body: JSON.stringify(dados),
-        });
+        resposta = await CadimusPlanningApi.salvarPlano(dados);
       }
 
       if (tratarSessaoExpirada(resposta)) return;
@@ -5605,9 +5596,11 @@ function configurarModalPlanoDeposito() {
     if (!valor || valor <= 0) return mostrarToast("Informe um valor válido.", "erro");
 
     try {
-      const resposta = await CadimusApi.fetch("/api/planos-depositos", {
-        method: "POST",
-        body: JSON.stringify({ plano_id: Number(planoId), valor, valor_centavos: valorPayload.valor_centavos, descricao }),
+      const resposta = await CadimusPlanningApi.criarDepositoPlano({
+        planoId,
+        valor,
+        valorCentavos: valorPayload.valor_centavos,
+        descricao,
       });
 
       if (tratarSessaoExpirada(resposta)) return;
@@ -5639,7 +5632,7 @@ async function abrirModalPlanoDeposito(planoId) {
 
   preencherModalDepositoPlano(plano);
 
-  const { results: depositos } = await CadimusApi.fetch(`/api/planos-depositos?plano_id=${planoId}`)
+  const { results: depositos } = await CadimusPlanningApi.listarDepositosPlano(planoId)
     .then((r) => r.json())
     .then((dados) => ({ results: Array.isArray(dados) ? dados : [] }))
     .catch(() => ({ results: [] }));

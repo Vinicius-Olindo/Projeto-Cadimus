@@ -1,10 +1,32 @@
-# Checklist de homologacao da staging
+# Checklist de homologação da staging
 
-Data de criacao: 2026-08-14
+Criado em: 2026-08-14  
+Última revisão: 2026-08-20
 
 Use este roteiro antes de promover qualquer mudanca da `staging` para a `main`.
 
-## 1. Frontend tela por tela
+Ambientes:
+
+- Frontend staging: `https://staging.cadimus.pages.dev`
+- Backend staging: `https://cadimus-backend-staging.olinbytedigital.workers.dev`
+- Branch obrigatória: `staging`
+
+## 1. Validação automática antes do teste manual
+
+- Rodar `npm test` no backend.
+- Confirmar que todos os testes passam.
+- Conferir sintaxe dos scripts principais do frontend:
+  - `api-client.js`
+  - `planning-api.js`
+  - `auth.js`
+  - `main.js`
+  - `importar.js`
+  - `exportar.js`
+  - `recorrentes.js`
+- Confirmar que não existem chamadas antigas diretas para `API_URL` fora do `api-client`.
+- Confirmar que a branch local está sincronizada com `origin/staging`.
+
+## 2. Frontend tela por tela
 
 - Login, cadastro/convite e recuperacao de senha carregam sem erro visual.
 - Dashboard exibe receitas, despesas, saldo, pendentes e categorias usando os valores corretos.
@@ -15,8 +37,11 @@ Use este roteiro antes de promover qualquer mudanca da `staging` para a `main`.
 - Cartoes mostram limite, gasto atual e percentual sem usar valor legado como fonte primaria.
 - Importacao e exportacao preservam centavos.
 - Relatorios e PDF batem com os totais do painel.
+- Central de notificações abre, lista histórico, marca alertas como lidos e remove a bolinha vermelha após clique.
+- Se a conta vencida não for atualizada, a bolinha volta a aparecer no dia seguinte.
+- Seletor claro/escuro mantém espaçamento correto entre alertas e avatar.
 
-## 2. Fluxos de exclusao e apagamento
+## 3. Fluxos de exclusao e apagamento
 
 - Excluir lancamento exige confirmacao e so funciona para criador ou administrador.
 - Excluir transferencia exige confirmacao e so funciona para criador ou administrador.
@@ -34,7 +59,7 @@ Use este roteiro antes de promover qualquer mudanca da `staging` para a `main`.
   - membros da carteira.
 - Botao de apagar dados globais continua restrito a superadmin e exige frase de confirmacao.
 
-## 3. Permissoes de carteira compartilhada
+## 4. Permissoes de carteira compartilhada
 
 Teste com quatro usuarios/cenarios:
 
@@ -60,7 +85,7 @@ Teste com quatro usuarios/cenarios:
    - nao cria lancamento, transferencia, meta, orcamento, cartao ou regra naquela carteira;
    - nao apaga nem altera registros daquela carteira.
 
-## 4. Teste manual com dados ficticios
+## 5. Teste manual com dados ficticios
 
 Crie uma carteira `Homologacao Staging` e rode:
 
@@ -75,7 +100,32 @@ Crie uma carteira `Homologacao Staging` e rode:
 9. gerar PDF e comparar totais com o dashboard;
 10. apagar os dados criados nessa carteira e confirmar que nada ficou visivel.
 
-## 5. Criterios para liberar a staging
+## 6. Planejamento, planos e depósitos
+
+- Criar um plano privado com valor alvo de R$ 123,45.
+- Editar nome, descrição, data limite, cor/ícone e valor alvo.
+- Criar um plano compartilhado e confirmar que aparece na área de compartilhados de outro usuário.
+- Criar dois depósitos no plano e confirmar soma, percentual, falta e parcela mensal.
+- Tentar abrir/depositar em plano de outro usuário pela API e confirmar bloqueio.
+- Concluir e cancelar planos ativos.
+
+## 7. Metas e depósitos
+
+- Criar meta por categoria em carteira permitida.
+- Depositar em meta e confirmar histórico.
+- Confirmar soma por centavos, especialmente valores quebrados como R$ 10,01 e R$ 33,33.
+- Tentar criar depósito em meta de carteira sem acesso e confirmar bloqueio.
+- Excluir depósito e depois excluir meta.
+
+## 8. Relatórios e filtros de período
+
+- Filtrar por período fechado: primeiro e último dia do mês.
+- Filtrar por categoria, tipo e status.
+- Confirmar que transferências aparecem separadas dos lançamentos comuns.
+- Confirmar que total do relatório bate com dashboard e exportação.
+- Validar PDF/CSV/OFX com dados de centavos.
+
+## 9. Critérios para liberar a staging
 
 - `npm test` do backend passando.
 - Sem erro de sintaxe nos scripts principais do frontend.
@@ -83,4 +133,3 @@ Crie uma carteira `Homologacao Staging` e rode:
 - Nenhum dado financeiro divergente entre tela, exportacao e relatorio.
 - Nenhuma permissao indevida encontrada nos cenarios de carteira.
 - Branch `staging` sincronizada com `origin/staging`.
-

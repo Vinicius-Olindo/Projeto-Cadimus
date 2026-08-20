@@ -8,6 +8,9 @@ import { processarLancamentos } from "../src/routes/lancamentos.js";
 import { processarOrcamentos } from "../src/routes/orcamentos.js";
 import { processarTransferencias } from "../src/routes/transferencias.js";
 import { processarCarteiras } from "../src/routes/carteiras.js";
+import { processarPlanos, processarPlanoDepositos } from "../src/routes/planos.js";
+import { processarMetas, processarMetaDepositos } from "../src/routes/metas.js";
+import { processarCartoesCredito } from "../src/routes/cartoesCredito.js";
 
 class FakeD1 {
   constructor(handlers = []) {
@@ -475,4 +478,217 @@ test("exclusao de carteira limpa registros financeiros dependentes conhecidos", 
   assert.ok(deletes.some((sql) => sql.includes("DELETE FROM lancamentos")));
   assert.ok(deletes.some((sql) => sql.includes("DELETE FROM usuarios_carteiras")));
   assert.ok(deletes.some((sql) => sql.includes("DELETE FROM carteiras")));
+});
+
+test("usuario nao pode atualizar plano de outro usuario", async () => {
+  const updates = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT usuario_id FROM planos WHERE id = ?",
+      reply: () => [{ usuario_id: 2 }],
+    },
+    {
+      type: "run",
+      match: /^UPDATE planos/,
+      reply: ({ args }) => {
+        updates.push(args);
+        return { meta: {} };
+      },
+    },
+  ]));
+
+  const res = await processarPlanos(
+    request("PUT", "https://cadimus.test/api/planos", {
+      id: 50,
+      nome: "Plano indevido",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 403);
+  assert.equal(updates.length, 0);
+});
+
+test("deposito em plano exige dono do plano e nao grava em plano alheio", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT usuario_id FROM planos WHERE id = ?",
+      reply: () => [{ usuario_id: 2 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO plano_depositos",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarPlanoDepositos(
+    request("POST", "https://cadimus.test/api/planos-depositos", {
+      plano_id: 50,
+      valor_centavos: 10000,
+      descricao: "Depósito indevido",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 403);
+  assert.equal(inserts.length, 0);
+});
+
+test("deposito em meta fora das carteiras permitidas e bloqueado", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT carteira_id FROM metas_categoria WHERE id = ?",
+      reply: () => [{ carteira_id: 99 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO meta_depositos",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarMetaDepositos(
+    request("POST", "https://cadimus.test/api/metas-depositos", {
+      meta_id: 70,
+      valor_centavos: 10000,
+      descricao: "Depósito indevido",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 403);
+  assert.equal(inserts.length, 0);
+});
+
+test("cartao de credito nao pode ser criado em carteira sem acesso", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "run",
+      match: "INSERT INTO cartoes_credito",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarCartoesCredito(
+    request("POST", "https://cadimus.test/api/cartoes-credito", {
+      nome: "Cartão indevido",
+      dia_fechamento: 10,
+      dia_vencimento: 20,
+      limite_centavos: 100000,
+      carteira_id: 99,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 403);
+  assert.equal(inserts.length, 0);
+});
+
+test("orcamento em carteira permitida nao pode ser excluido por usuario que nao criou", async () => {
+  const deletes = [];
+  const db = new FakeD1([
+    {
+      type: "all",
+      match: "FROM sessoes s",
+      reply: () => [{ id: 1, nome_usuario: "tester", perfil: "comum", expira_em: "2999-01-01T00:00:00.000Z" }],
+    },
+    {
+      type: "run",
+      match: "DELETE FROM sessoes WHERE expira_em",
+      reply: () => ({ meta: {} }),
+    },
+    {
+      type: "all",
+      match: "SELECT carteira_id FROM usuarios_carteiras WHERE usuario_id = ?",
+      reply: () => [{ carteira_id: 10 }],
+    },
+    {
+      type: "all",
+      match: "SELECT carteira_id, criado_por FROM orcamentos WHERE id = ?",
+      reply: () => [{ carteira_id: 10, criado_por: 2 }],
+    },
+    {
+      type: "run",
+      match: "DELETE FROM orcamentos WHERE id = ?",
+      reply: ({ args }) => {
+        deletes.push(args);
+        return { meta: {} };
+      },
+    },
+  ]);
+
+  const res = await processarOrcamentos(
+    request("DELETE", "https://cadimus.test/api/orcamentos?id=90"),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 403);
+  assert.equal(deletes.length, 0);
+});
+
+test("meta criada grava valor em reais e centavos e registra auditoria da carteira", async () => {
+  let insertMeta;
+  let auditLog;
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "run",
+      match: "INSERT INTO metas_categoria",
+      reply: ({ sql, args }) => {
+        insertMeta = { sql, args };
+        return { meta: { last_row_id: 101 } };
+      },
+    },
+    {
+      type: "all",
+      match: "SELECT id FROM metas_categoria WHERE carteira_id = ?",
+      reply: () => [{ id: 101 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO audit_logs",
+      reply: ({ args }) => {
+        auditLog = args;
+        return { meta: { last_row_id: 1 } };
+      },
+    },
+  ]));
+
+  const res = await processarMetas(
+    request("POST", "https://cadimus.test/api/metas", {
+      categoria: "Reserva",
+      valor_limite_centavos: 12345,
+      data_limite: "2026-12-31",
+      carteira_id: 10,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 200);
+  assert.match(insertMeta.sql, /valor_limite_centavos/);
+  assert.equal(insertMeta.args[2], 123.45);
+  assert.equal(insertMeta.args[3], 12345);
+  assert.equal(auditLog[1], "meta.salva");
+  assert.equal(auditLog[4], 10);
 });
