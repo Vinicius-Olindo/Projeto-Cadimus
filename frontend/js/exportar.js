@@ -47,8 +47,7 @@ async function buscarLancamentosParaExportar() {
   if (categoria !== "todas") params.append("categoria", categoria);
 
   try {
-    const url = `${API_URL}/api/lancamentos?${params.toString()}`;
-    const resp = await fetch(url, { headers: headersAutenticados() });
+    const resp = await CadimusApi.fetch(`/api/lancamentos?${params.toString()}`);
     if (!resp.ok) return [];
     const data = await resp.json();
     return Array.isArray(data) ? data : (data.lancamentos || []);

@@ -254,9 +254,8 @@ async function executarImportacao() {
           status: "pago",
           carteira_id: carteiraId,
         };
-        return fetch(`${API_URL}/api/lancamentos`, {
+        return CadimusApi.fetch("/api/lancamentos", {
           method: "POST",
-          headers: headersAutenticados(),
           body: JSON.stringify(corpo),
         });
       })

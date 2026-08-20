@@ -14,7 +14,7 @@ async function carregarPainelRecorrentes() {
   if (!container || !carteiraId) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/lancamentos-recorrentes?carteira_id=${carteiraId}`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch(`/api/lancamentos-recorrentes?carteira_id=${carteiraId}`, { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -143,14 +143,12 @@ function configurarModalRecorrencia() {
       if (!idEdicao) corpo.carteira_id = carteiraId;
 
       const resposta = idEdicao
-        ? await fetch(`${API_URL}/api/lancamentos-recorrentes?id=${idEdicao}`, {
+        ? await CadimusApi.fetch(`/api/lancamentos-recorrentes?id=${idEdicao}`, {
             method: "PUT",
-            headers: headersAutenticados(),
             body: JSON.stringify(corpo),
           })
-        : await fetch(`${API_URL}/api/lancamentos-recorrentes`, {
+        : await CadimusApi.fetch("/api/lancamentos-recorrentes", {
             method: "POST",
-            headers: headersAutenticados(),
             body: JSON.stringify(corpo),
           });
 
@@ -219,9 +217,8 @@ async function alternarRecorrencia(id) {
   if (!alvo) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/lancamentos-recorrentes?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/lancamentos-recorrentes?id=${id}`, {
       method: "PUT",
-      headers: headersAutenticados(),
       body: JSON.stringify({ ativo: !alvo.ativo }),
     });
 
@@ -246,9 +243,9 @@ async function excluirRecorrencia(id) {
   if (!(await pedirConfirmacao("Excluir esta recorrência? Lançamentos já gerados continuam na lista.", { textoConfirmar: "Excluir", perigo: true }))) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/lancamentos-recorrentes?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/lancamentos-recorrentes?id=${id}`, {
       method: "DELETE",
-      headers: headersAutenticados(false),
+      comJson: false,
     });
 
     if (tratarSessaoExpirada(resposta)) return;
