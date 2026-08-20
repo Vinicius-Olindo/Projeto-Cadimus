@@ -1019,7 +1019,7 @@ function configurarModalOrcamento() {
   // Preencher select de categorias
   async function carregarCategorias() {
     try {
-      const resposta = await CadimusApi.fetch("/api/categorias", { comJson: false });
+      const resposta = await CadimusAdminApi.listarCategorias();
       if (tratarSessaoExpirada(resposta)) return;
       const categorias = await resposta.json();
 
@@ -2516,7 +2516,7 @@ async function popularSelectCategorias(select) {
   if (!select) return;
 
   try {
-    const resposta = await CadimusApi.fetch("/api/categorias", { comJson: false });
+    const resposta = await CadimusAdminApi.listarCategorias();
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -2548,7 +2548,7 @@ async function popularSelectFiltroCategorias() {
   if (!select) return;
 
   try {
-    const resposta = await CadimusApi.fetch("/api/categorias", { comJson: false });
+    const resposta = await CadimusAdminApi.listarCategorias();
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -2686,10 +2686,7 @@ function configurarModal() {
           return;
         }
 
-        const respostaCategoria = await CadimusApi.fetch("/api/categorias", {
-          method: "POST",
-          body: JSON.stringify({ nome: nomeCategoria }),
-        });
+        const respostaCategoria = await CadimusAdminApi.criarCategoria(nomeCategoria);
 
         if (tratarSessaoExpirada(respostaCategoria)) return;
 
@@ -4871,10 +4868,7 @@ function configurarSalarioPlano() {
     btnSalvar.innerText = "Salvando...";
 
     try {
-      const resposta = await CadimusApi.fetch(`/api/usuarios/${usuario.id}`, {
-        method: "PUT",
-        body: JSON.stringify({ salario: valor }),
-      });
+      const resposta = await CadimusAdminApi.atualizarUsuarioPorCaminho(usuario.id, { salario: valor });
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -5936,7 +5930,7 @@ if (btnNovoOrcamentoSettings) {
 async function preencherPerfilAtual() {
   const el = (id) => document.getElementById(id);
   try {
-    const res = await CadimusApi.fetch("/api/usuarios/me", { comJson: false });
+    const res = await CadimusAdminApi.buscarMeuPerfil();
     if (!res.ok) throw new Error("Erro ao buscar perfil");
     const usuario = await res.json();
     if (el("novo-nome")) el("novo-nome").value = usuario.nome || "";
@@ -6013,10 +6007,7 @@ function configurarZonaDePerigo() {
     btnConfirmar.innerText = "Apagando...";
 
     try {
-      const resposta = await CadimusApi.fetch("/api/admin/zerar-dados", {
-        method: "POST",
-        body: JSON.stringify({ confirmacao: campoConfirmacao.value }),
-      });
+      const resposta = await CadimusAdminApi.zerarDados(campoConfirmacao.value);
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -6148,21 +6139,12 @@ function configurarFormularioUsuario() {
         const usuarioLogado = obterUsuarioLogado();
         const ehProprioPerfil = String(idEdicao) === String(usuarioLogado.id);
         if (ehProprioPerfil && usuarioLogado.perfil !== "superadmin") {
-          resposta = await CadimusApi.fetch("/api/usuarios/me", {
-            method: "PUT",
-            body: JSON.stringify({ nome, email, telefone, salario, foto_perfil: fotoPerfil, ...(senha ? { senha } : {}) }),
-          });
+          resposta = await CadimusAdminApi.atualizarMeuPerfil({ nome, email, telefone, salario, foto_perfil: fotoPerfil, ...(senha ? { senha } : {}) });
         } else {
-          resposta = await CadimusApi.fetch(`/api/usuarios?id=${idEdicao}`, {
-            method: "PUT",
-            body: JSON.stringify(corpo),
-          });
+          resposta = await CadimusAdminApi.atualizarUsuario(idEdicao, corpo);
         }
       } else {
-        resposta = await CadimusApi.fetch("/api/usuarios", {
-          method: "POST",
-          body: JSON.stringify(corpo),
-        });
+        resposta = await CadimusAdminApi.criarUsuario(corpo);
       }
 
       if (tratarSessaoExpirada(resposta)) return;
@@ -6239,10 +6221,7 @@ function configurarSistemaConvites() {
     btnGerar.innerText = "Gerando...";
 
     try {
-      const resposta = await CadimusApi.fetch("/api/convites", {
-        method: "POST",
-        body: JSON.stringify({ nome, email, perfil }),
-      });
+      const resposta = await CadimusAdminApi.criarConvite({ nome, email, perfil });
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -6308,7 +6287,7 @@ function verificarCadastroConvite() {
 async function carregarInfoConvite(token) {
   const infoEl = document.getElementById("cadastro-convite-info");
   try {
-    const resposta = await CadimusApi.fetch(`/api/convites?token=${encodeURIComponent(token)}`, { autenticado: false, comJson: false });
+    const resposta = await CadimusAdminApi.buscarConvitePublico(token);
     if (resposta.ok) {
       const dados = await resposta.json();
       infoEl.innerHTML = `Olá, <strong>${dados.nome}</strong>! Você foi convidado(a) para usar o Gestor Financeiro.<br>Crie sua senha para acessar.`;
@@ -6361,11 +6340,7 @@ function configurarFormularioCadastroConvite(token) {
     btnCriar.innerText = "Criando conta...";
 
     try {
-      const resposta = await CadimusApi.fetch("/api/convites", {
-        method: "POST",
-        autenticado: false,
-        body: JSON.stringify({ token, senha, nome, usuario }),
-      });
+      const resposta = await CadimusAdminApi.aceitarConvitePublico({ token, senha, nome, usuario });
 
       const dados = await resposta.json();
 
@@ -6437,7 +6412,7 @@ async function carregarUsuarios() {
   container.innerHTML = '<div class="estado-vazio-admin"><div class="icone-vazio">👤</div><p>Carregando usuários...</p></div>';
 
   try {
-    const resposta = await CadimusApi.fetch("/api/usuarios", { comJson: false });
+    const resposta = await CadimusAdminApi.listarUsuarios();
     if (tratarSessaoExpirada(resposta)) return;
     const dados = await resposta.json();
 
@@ -6535,10 +6510,7 @@ async function alternarStatusUsuario(id, botao) {
   botao.innerText = "Alterando...";
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/usuarios?id=${id}`, {
-      method: "PATCH",
-      comJson: false,
-    });
+    const resposta = await CadimusAdminApi.alternarStatusUsuario(id);
 
     if (tratarSessaoExpirada(resposta)) return;
 
@@ -6565,10 +6537,7 @@ async function excluirUsuario(id, botao) {
   botao.innerText = "Excluindo...";
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/usuarios?id=${id}`, {
-      method: "DELETE",
-      comJson: false,
-    });
+    const resposta = await CadimusAdminApi.excluirUsuario(id);
 
     if (tratarSessaoExpirada(resposta)) return;
 
@@ -6605,10 +6574,7 @@ function configurarFormularioCategoria() {
     btn.innerText = "Adicionando...";
 
     try {
-      const resposta = await CadimusApi.fetch("/api/categorias", {
-        method: "POST",
-        body: JSON.stringify({ nome }),
-      });
+      const resposta = await CadimusAdminApi.criarCategoria(nome);
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -6638,7 +6604,7 @@ async function carregarListaCategorias() {
   container.innerHTML = '<div class="estado-vazio-admin"><div class="icone-vazio">🏷️</div><p>Carregando categorias...</p></div>';
 
   try {
-    const resposta = await CadimusApi.fetch("/api/categorias", { comJson: false });
+    const resposta = await CadimusAdminApi.listarCategorias();
     if (tratarSessaoExpirada(resposta)) return;
     const categorias = await resposta.json();
 
@@ -6699,10 +6665,7 @@ async function excluirCategoria(id, botao) {
   botao.innerText = "Excluindo...";
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/categorias?id=${id}`, {
-      method: "DELETE",
-      comJson: false,
-    });
+    const resposta = await CadimusAdminApi.excluirCategoria(id);
 
     if (tratarSessaoExpirada(resposta)) return;
 
@@ -6766,10 +6729,7 @@ function configurarModalRenomearCategoria() {
     btnSalvar.innerText = "Renomeando...";
 
     try {
-      const resposta = await CadimusApi.fetch(`/api/categorias?id=${id}`, {
-        method: "PUT",
-        body: JSON.stringify({ nome: novoNome }),
-      });
+      const resposta = await CadimusAdminApi.renomearCategoria(id, novoNome);
 
       if (tratarSessaoExpirada(resposta)) return;
 

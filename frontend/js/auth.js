@@ -114,7 +114,7 @@ function alternarTelas(estaLogado) {
     // Busca dados completos do usuário para atualizar avatar (foto pode não estar na sessão)
     async function atualizarAvatarCompleto() {
       try {
-        const res = await CadimusApi.fetch("/api/usuarios/me", { comJson: false });
+        const res = await CadimusAdminApi.buscarMeuPerfil();
         if (!res.ok) return;
         const dados = await res.json();
         // Atualiza sessão com dados completos
