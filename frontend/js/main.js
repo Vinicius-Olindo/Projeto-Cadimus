@@ -1573,14 +1573,12 @@ function configurarModalDespesasFixas() {
       if (!idEdicao) corpo.carteira_id = carteiraId; // carteira só é definida na criação, não muda na edição
 
       const resposta = idEdicao
-        ? await fetch(`${API_URL}/api/despesas-fixas?id=${idEdicao}`, {
+        ? await CadimusApi.fetch(`/api/despesas-fixas?id=${idEdicao}`, {
             method: "PUT",
-            headers: headersAutenticados(),
             body: JSON.stringify(corpo),
           })
-        : await fetch(`${API_URL}/api/despesas-fixas`, {
+        : await CadimusApi.fetch("/api/despesas-fixas", {
             method: "POST",
-            headers: headersAutenticados(),
             body: JSON.stringify(corpo),
           });
 
@@ -1612,7 +1610,7 @@ async function carregarPainelDespesasFixas() {
   if (!card || !container || !carteiraId) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/despesas-fixas?carteira_id=${carteiraId}`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch(`/api/despesas-fixas?carteira_id=${carteiraId}`, { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -1698,9 +1696,8 @@ async function alternarDespesaFixa(id) {
   if (!alvo) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/despesas-fixas?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/despesas-fixas?id=${id}`, {
       method: "PUT",
-      headers: headersAutenticados(),
       body: JSON.stringify({ ativo: !alvo.ativo }),
     });
 
@@ -1722,9 +1719,9 @@ async function excluirDespesaFixa(id) {
   if (!(await pedirConfirmacao("Excluir esta despesa fixa? Ela para de gerar lançamentos novos, mas os que já foram criados continuam na lista.", { textoConfirmar: "Excluir", perigo: true }))) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/despesas-fixas?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/despesas-fixas?id=${id}`, {
       method: "DELETE",
-      headers: headersAutenticados(false),
+      comJson: false,
     });
 
     if (tratarSessaoExpirada(resposta)) return;
@@ -1925,9 +1922,8 @@ function configurarModalComprasParceladas() {
         meio_pagamento: document.getElementById("parcelada-meio-pagamento").value,
       };
 
-      const resposta = await fetch(`${API_URL}/api/compras-parceladas`, {
+      const resposta = await CadimusApi.fetch("/api/compras-parceladas", {
         method: "POST",
-        headers: headersAutenticados(),
         body: JSON.stringify(corpo),
       });
 
@@ -1968,7 +1964,7 @@ async function carregarPainelComprasParceladas() {
   if (!card || !container || !carteiraId) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/compras-parceladas?carteira_id=${carteiraId}`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch(`/api/compras-parceladas?carteira_id=${carteiraId}`, { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -2138,9 +2134,8 @@ async function alternarComprasParcelada(id) {
   if (!alvo) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/compras-parceladas?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/compras-parceladas?id=${id}`, {
       method: "PUT",
-      headers: headersAutenticados(),
       body: JSON.stringify({ ativo: !alvo.ativo }),
     });
 
@@ -2162,9 +2157,9 @@ async function excluirComprasParcelada(id) {
   if (!(await pedirConfirmacao("Excluir esta compra parcelada? As parcelas já lançadas continuam na lista, só param de ser geradas novas.", { textoConfirmar: "Excluir", perigo: true }))) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/compras-parceladas?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/compras-parceladas?id=${id}`, {
       method: "DELETE",
-      headers: headersAutenticados(false),
+      comJson: false,
     });
 
     if (tratarSessaoExpirada(resposta)) return;
