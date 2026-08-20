@@ -3188,9 +3188,8 @@ async function sincronizarNotificacoesLocais() {
   if (notificacoes.length === 0) return;
 
   try {
-    await fetch(`${API_URL}/api/notificacoes/sincronizar`, {
+    await CadimusApi.fetch("/api/notificacoes/sincronizar", {
       method: "POST",
-      headers: headersAutenticados(),
       body: JSON.stringify({ notificacoes }),
     });
   } catch (erro) {
@@ -3201,17 +3200,14 @@ async function sincronizarNotificacoesLocais() {
 let filtroNotificacoesAtual = "nao_lida";
 
 async function buscarNotificacoesPersistidas(status = "nao_lida") {
-  const resposta = await fetch(`${API_URL}/api/notificacoes?status=${encodeURIComponent(status)}&limite=50`, {
-    headers: headersAutenticados(false),
-  });
+  const resposta = await CadimusApi.fetch(`/api/notificacoes?status=${encodeURIComponent(status)}&limite=50`, { comJson: false });
   if (!resposta.ok) throw new Error("Falha ao buscar notificacoes.");
   return resposta.json();
 }
 
 async function gerarNotificacoesAutomaticas() {
-  const resposta = await fetch(`${API_URL}/api/notificacoes/gerar`, {
+  const resposta = await CadimusApi.fetch("/api/notificacoes/gerar", {
     method: "POST",
-    headers: headersAutenticados(),
     body: JSON.stringify({}),
   });
   if (!resposta.ok) throw new Error("Falha ao gerar notificacoes.");
@@ -3297,9 +3293,9 @@ async function atualizarBadgeNotificacoes() {
 
 async function marcarNotificacoesComoLidas() {
   try {
-    await fetch(`${API_URL}/api/notificacoes/lidas`, {
+    await CadimusApi.fetch("/api/notificacoes/lidas", {
       method: "PATCH",
-      headers: headersAutenticados(false),
+      comJson: false,
     });
   } catch (erro) {
     console.warn("Nao foi possivel marcar notificacoes como lidas:", erro);
@@ -3307,9 +3303,9 @@ async function marcarNotificacoesComoLidas() {
 }
 
 async function arquivarNotificacao(id) {
-  await fetch(`${API_URL}/api/notificacoes?id=${encodeURIComponent(id)}`, {
+  await CadimusApi.fetch(`/api/notificacoes?id=${encodeURIComponent(id)}`, {
     method: "DELETE",
-    headers: headersAutenticados(false),
+    comJson: false,
   });
 }
 
