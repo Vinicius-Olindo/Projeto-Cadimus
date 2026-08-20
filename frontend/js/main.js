@@ -640,7 +640,7 @@ async function carregarCarteiras() {
   const idDestaRequisicao = ++ultimaRequisicaoCarteiras;
 
   try {
-    const resposta = await CadimusApi.fetch("/api/carteiras", { comJson: false });
+    const resposta = await CadimusWalletsApi.listarCarteiras();
     if (idDestaRequisicao !== ultimaRequisicaoCarteiras) return;
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
@@ -775,10 +775,7 @@ function reordenarCarteiras(idArrastadoStr, idAlvo) {
 
 async function salvarOrdemCarteiras() {
   try {
-    const resposta = await CadimusApi.fetch("/api/carteiras", {
-      method: "PATCH",
-      body: JSON.stringify({ ordem: carteirasDoUsuario.map((c) => c.id) }),
-    });
+    const resposta = await CadimusWalletsApi.salvarOrdem(carteirasDoUsuario.map((c) => c.id));
     tratarSessaoExpirada(resposta);
   } catch (erro) {
     // Se falhar, a ordem só não persiste — não vale travar a interface por isso
@@ -829,7 +826,7 @@ function configurarModalCarteira() {
     listaMembros.innerHTML = `<span class="dica-campo">Carregando...</span>`;
 
     try {
-      const resposta = await CadimusApi.fetch("/api/carteiras?colegas=1");
+      const resposta = await CadimusWalletsApi.listarColegas();
       if (tratarSessaoExpirada(resposta)) return;
       const colegas = await resposta.json();
 
@@ -880,10 +877,7 @@ function configurarModalCarteira() {
         corpo.membros = Array.from(document.querySelectorAll(".checkbox-membro-carteira:checked")).map((chk) => Number(chk.value));
       }
 
-      const resposta = await CadimusApi.fetch("/api/carteiras", {
-        method: "POST",
-        body: JSON.stringify(corpo),
-      });
+      const resposta = await CadimusWalletsApi.criarCarteira(corpo);
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -982,17 +976,14 @@ function configurarModalTransferencia() {
         return;
       }
 
-      const resposta = await CadimusApi.fetch("/api/transferencias", {
-        method: "POST",
-        body: JSON.stringify({
-          valor,
-          valor_centavos: valorPayload.valor_centavos,
-          data_transferencia: data,
-          carteira_origem_id: origemId,
-          carteira_destino_id: destinoId,
-          descricao,
-          idempotency_key: idempotencyKey,
-        }),
+      const resposta = await CadimusWalletsApi.transferir({
+        valor,
+        valorCentavos: valorPayload.valor_centavos,
+        data,
+        origemId,
+        destinoId,
+        descricao,
+        idempotencyKey,
       });
 
       if (tratarSessaoExpirada(resposta)) return;
@@ -1343,8 +1334,8 @@ async function abrirModalGerenciarMembros(carteira) {
 
   try {
     const [respostaMembros, respostaColegas] = await Promise.all([
-      CadimusApi.fetch(`/api/carteiras?membros=${carteira.id}`, { comJson: false }),
-      CadimusApi.fetch("/api/carteiras?colegas=1", { comJson: false }),
+      CadimusWalletsApi.listarMembros(carteira.id),
+      CadimusWalletsApi.listarColegas(),
     ]);
 
     if (tratarSessaoExpirada(respostaMembros) || tratarSessaoExpirada(respostaColegas)) return;
@@ -1410,17 +1401,14 @@ function configurarModalGerenciarMembros() {
     btnExcluir.innerText = "Excluindo...";
 
     try {
-      const resposta = await CadimusApi.fetch(`/api/carteiras?id=${carteiraId}`, {
-        method: "DELETE",
-        comJson: false,
-      });
+      const resposta = await CadimusWalletsApi.excluirCarteira(carteiraId);
 
       if (tratarSessaoExpirada(resposta)) return;
 
       if (resposta.ok) {
         modal.style.display = "none";
         liberarFoco();
-        carteirasDoUsuario = await (await CadimusApi.fetch("/api/carteiras", { comJson: false })).json();
+        carteirasDoUsuario = await (await CadimusWalletsApi.listarCarteiras()).json();
         renderizarTabsCarteira();
         mostrarToast("Carteira excluída", "info");
       } else {
@@ -1445,10 +1433,7 @@ function configurarModalGerenciarMembros() {
     btnSalvar.innerText = "Salvando...";
 
     try {
-      const resposta = await CadimusApi.fetch(`/api/carteiras?id=${carteiraId}`, {
-        method: "PUT",
-        body: JSON.stringify({ membros }),
-      });
+      const resposta = await CadimusWalletsApi.atualizarMembros(carteiraId, membros);
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -5818,7 +5803,7 @@ async function carregarSettingsContas() {
   if (!container) return;
   container.innerHTML = '<span class="dica-campo">Carregando...</span>';
   try {
-    const resposta = await CadimusApi.fetch("/api/carteiras", { comJson: false });
+    const resposta = await CadimusWalletsApi.listarCarteiras();
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
     const carteiras = await resposta.json();
