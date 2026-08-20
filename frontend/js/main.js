@@ -1090,9 +1090,8 @@ function configurarModalOrcamento() {
         return;
       }
 
-      const resposta = await fetch(`${API_URL}/api/orcamentos`, {
+      const resposta = await CadimusApi.fetch("/api/orcamentos", {
         method: "POST",
-        headers: headersAutenticados(),
         body: JSON.stringify({
           categoria,
           valor,
@@ -1183,12 +1182,11 @@ function configurarModalCartaoCredito() {
         carteira_id: Number(carteiraId),
       };
 
-      const url = idEdicao ? `${API_URL}/api/cartoes-credito?id=${idEdicao}` : `${API_URL}/api/cartoes-credito`;
+      const url = idEdicao ? `/api/cartoes-credito?id=${idEdicao}` : "/api/cartoes-credito";
       const metodo = idEdicao ? "PUT" : "POST";
 
-      const resposta = await fetch(url, {
+      const resposta = await CadimusApi.fetch(url, {
         method: metodo,
-        headers: headersAutenticados(),
         body: JSON.stringify(corpo),
       });
 
@@ -1219,9 +1217,7 @@ async function carregarCartoesCredito() {
   if (!card || !container || !carteiraId) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/cartoes-credito?carteira_id=${carteiraId}`, {
-      headers: headersAutenticados(false),
-    });
+    const resposta = await CadimusApi.fetch(`/api/cartoes-credito?carteira_id=${carteiraId}`, { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -1303,9 +1299,8 @@ async function carregarCartoesCredito() {
         if (!(await pedirConfirmacao(`Excluir o cartão "${nome}"?`, { textoConfirmar: "Excluir", perigo: true }))) return;
 
         try {
-          const resposta = await fetch(`${API_URL}/api/cartoes-credito?id=${id}`, {
+          const resposta = await CadimusApi.fetch(`/api/cartoes-credito?id=${id}`, {
             method: "DELETE",
-            headers: headersAutenticados(),
           });
           if (tratarSessaoExpirada(resposta)) return;
           if (resposta.ok) {
@@ -2063,9 +2058,7 @@ async function carregarOrcamentos() {
   const [ano, mes] = inputMes.split("-");
 
   try {
-    const resposta = await fetch(`${API_URL}/api/orcamentos?carteira_id=${carteiraId}&mes=${mes}&ano=${ano}`, {
-      headers: headersAutenticados(false),
-    });
+    const resposta = await CadimusApi.fetch(`/api/orcamentos?carteira_id=${carteiraId}&mes=${mes}&ano=${ano}`, { comJson: false });
 
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) {
@@ -2116,9 +2109,8 @@ async function carregarOrcamentos() {
         if (!confirmado) return;
 
         try {
-          const resp = await fetch(`${API_URL}/api/orcamentos?id=${btn.dataset.id}`, {
+          const resp = await CadimusApi.fetch(`/api/orcamentos?id=${btn.dataset.id}`, {
             method: "DELETE",
-            headers: headersAutenticados(),
           });
 
           if (tratarSessaoExpirada(resp)) return;
@@ -2258,7 +2250,7 @@ async function carregarMetas() {
   if (!carteiraId) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/metas?carteira_id=${carteiraId}`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch(`/api/metas?carteira_id=${carteiraId}`, { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
     metasCarregadas = await resposta.json();
@@ -2311,9 +2303,8 @@ function configurarModalMeta() {
     btnSalvar.innerText = "Salvando...";
 
     try {
-      const resposta = await fetch(`${API_URL}/api/metas`, {
+      const resposta = await CadimusApi.fetch("/api/metas", {
         method: "POST",
-        headers: headersAutenticados(),
         body: JSON.stringify({ carteira_id: carteiraId, categoria, valor_limite: valorLimite, valor_limite_centavos: valorLimitePayload.valor_limite_centavos, data_limite: dataLimite }),
       });
 
@@ -2342,9 +2333,9 @@ function configurarModalMeta() {
     if (!(await pedirConfirmacao(`Remover a meta de "${categoria}"?`, { textoConfirmar: "Remover", perigo: true }))) return;
 
     try {
-      const resposta = await fetch(`${API_URL}/api/metas?id=${meta.id}`, {
+      const resposta = await CadimusApi.fetch(`/api/metas?id=${meta.id}`, {
         method: "DELETE",
-        headers: headersAutenticados(false),
+        comJson: false,
       });
 
       if (tratarSessaoExpirada(resposta)) return;
@@ -2417,9 +2408,7 @@ async function carregarDadosDeposito(metaId) {
 
 async function obterTotalDepositado(metaId) {
   try {
-    const resposta = await fetch(`${API_URL}/api/metas-depositos?meta_id=${metaId}`, {
-      headers: headersAutenticados(false),
-    });
+    const resposta = await CadimusApi.fetch(`/api/metas-depositos?meta_id=${metaId}`, { comJson: false });
     if (!resposta.ok) return 0;
     const depositos = await resposta.json();
     return somarValoresMonetarios(depositos);
@@ -2433,9 +2422,7 @@ async function carregarListaDepositos(metaId) {
   if (!container) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/metas-depositos?meta_id=${metaId}`, {
-      headers: headersAutenticados(false),
-    });
+    const resposta = await CadimusApi.fetch(`/api/metas-depositos?meta_id=${metaId}`, { comJson: false });
     if (!resposta.ok) {
       container.innerHTML = '<p class="historico-fixa-vazio">Erro ao carregar.</p>';
       return;
@@ -2476,9 +2463,9 @@ async function excluirDeposito(depositoId, metaId) {
   if (!(await pedirConfirmacao("Excluir este depósito?", { textoConfirmar: "Excluir", perigo: true }))) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/metas-depositos?id=${depositoId}`, {
+    const resposta = await CadimusApi.fetch(`/api/metas-depositos?id=${depositoId}`, {
       method: "DELETE",
-      headers: headersAutenticados(false),
+      comJson: false,
     });
     if (resposta.ok) {
       await carregarDadosDeposito(metaId);
@@ -2517,9 +2504,8 @@ function configurarModalDeposito() {
     btn.innerText = "Salvando...";
 
     try {
-      const resposta = await fetch(`${API_URL}/api/metas-depositos`, {
+      const resposta = await CadimusApi.fetch("/api/metas-depositos", {
         method: "POST",
-        headers: headersAutenticados(),
         body: JSON.stringify({ meta_id: metaId, valor, valor_centavos: valorPayload.valor_centavos, descricao }),
       });
 
@@ -5913,8 +5899,8 @@ async function carregarSettingsCartoes() {
   container.innerHTML = '<span class="dica-campo">Carregando...</span>';
   try {
     const carteiraId = document.getElementById("seletor-carteira")?.value;
-    const url = carteiraId ? `${API_URL}/api/cartoes-credito?carteira_id=${carteiraId}` : `${API_URL}/api/cartoes-credito`;
-    const resposta = await fetch(url, { headers: headersAutenticados(false) });
+    const url = carteiraId ? `/api/cartoes-credito?carteira_id=${carteiraId}` : "/api/cartoes-credito";
+    const resposta = await CadimusApi.fetch(url, { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
     const cartoes = await resposta.json();
@@ -5949,8 +5935,8 @@ async function carregarSettingsMetas() {
   container.innerHTML = '<span class="dica-campo">Carregando...</span>';
   try {
     const carteiraId = document.getElementById("seletor-carteira")?.value;
-    const url = carteiraId ? `${API_URL}/api/metas?carteira_id=${carteiraId}` : `${API_URL}/api/metas`;
-    const resposta = await fetch(url, { headers: headersAutenticados(false) });
+    const url = carteiraId ? `/api/metas?carteira_id=${carteiraId}` : "/api/metas";
+    const resposta = await CadimusApi.fetch(url, { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
     const metas = await resposta.json();
@@ -5991,8 +5977,8 @@ async function carregarSettingsOrcamentos() {
     const hoje = new Date();
     const mes = String(hoje.getMonth() + 1).padStart(2, "0");
     const ano = hoje.getFullYear();
-    const url = carteiraId ? `${API_URL}/api/orcamentos?carteira_id=${carteiraId}&mes=${mes}&ano=${ano}` : `${API_URL}/api/orcamentos?mes=${mes}&ano=${ano}`;
-    const resposta = await fetch(url, { headers: headersAutenticados(false) });
+    const url = carteiraId ? `/api/orcamentos?carteira_id=${carteiraId}&mes=${mes}&ano=${ano}` : `/api/orcamentos?mes=${mes}&ano=${ano}`;
+    const resposta = await CadimusApi.fetch(url, { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
     const orcamentos = await resposta.json();
