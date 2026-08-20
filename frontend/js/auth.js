@@ -152,11 +152,7 @@ document.addEventListener("DOMContentLoaded", () => {
       e.preventDefault();
       const usuario = document.getElementById("usuario").value;
       const senha = document.getElementById("senha").value;
-      const res = await CadimusApi.fetch("/api/auth", {
-        method: "POST",
-        autenticado: false,
-        body: JSON.stringify({ usuario, senha }),
-      });
+      const res = await CadimusAuthApi.login({ usuario, senha });
       const d = await res.json();
       if (res.ok) {
         salvarSessao(d.token, d.usuario);
@@ -219,10 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const token = obterToken();
       if (token) {
         try {
-          await CadimusApi.fetch("/api/auth", {
-            method: "DELETE",
-            comJson: false,
-          });
+          await CadimusAuthApi.logout();
         } catch (erro) {
           console.error("Erro ao encerrar sessão no servidor:", erro);
         }
@@ -262,11 +255,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnEnviar.innerText = "Enviando...";
 
     try {
-      const res = await CadimusApi.fetch("/api/auth/esqueci-senha", {
-        method: "POST",
-        autenticado: false,
-        body: JSON.stringify({ email }),
-      });
+      const res = await CadimusAuthApi.solicitarRecuperacaoSenha(email);
       const d = await res.json();
 
       if (modalEsqueciSenha) modalEsqueciSenha.style.display = "none";
@@ -341,11 +330,7 @@ document.addEventListener("DOMContentLoaded", () => {
     btnSalvar.innerText = "Salvando...";
 
     try {
-      const res = await CadimusApi.fetch("/api/auth/redefinir-senha", {
-        method: "POST",
-        autenticado: false,
-        body: JSON.stringify({ token: tokenRecuperacao, novaSenha }),
-      });
+      const res = await CadimusAuthApi.redefinirSenha({ token: tokenRecuperacao, novaSenha });
       const d = await res.json();
 
       await mostrarAviso(res.ok ? d.mensagem : d.erro);
