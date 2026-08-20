@@ -1751,9 +1751,7 @@ async function abrirHistoricoFixa(fixaId, descricao) {
   trapFoco(modal);
 
   try {
-    const resposta = await fetch(`${API_URL}/api/lancamentos?despesa_fixa_id=${fixaId}`, {
-      headers: headersAutenticados(false),
-    });
+    const resposta = await CadimusApi.fetch(`/api/lancamentos?despesa_fixa_id=${fixaId}`, { comJson: false });
 
     if (!resposta.ok) {
       lista.innerHTML = '<p class="historico-fixa-vazio">Erro ao carregar histórico.</p>';
@@ -2189,9 +2187,7 @@ async function abrirHistoricoParcela(compraId, descricao) {
   trapFoco(modal);
 
   try {
-    const resposta = await fetch(`${API_URL}/api/lancamentos?compra_parcelada_id=${compraId}`, {
-      headers: headersAutenticados(false),
-    });
+    const resposta = await CadimusApi.fetch(`/api/lancamentos?compra_parcelada_id=${compraId}`, { comJson: false });
 
     if (!resposta.ok) {
       lista.innerHTML = '<p class="historico-fixa-vazio">Erro ao carregar histórico.</p>';
@@ -2760,14 +2756,12 @@ function configurarModal() {
       }
 
       const resposta = idEdicao
-        ? await fetch(`${API_URL}/api/lancamentos?id=${idEdicao}`, {
+        ? await CadimusApi.fetch(`/api/lancamentos?id=${idEdicao}`, {
             method: "PUT",
-            headers: headersAutenticados(),
             body: JSON.stringify(pacoteDados),
           })
-        : await fetch(`${API_URL}/api/lancamentos`, {
+        : await CadimusApi.fetch("/api/lancamentos", {
             method: "POST",
-            headers: headersAutenticados(),
             body: JSON.stringify(pacoteDados),
           });
 
@@ -3390,9 +3384,8 @@ function configurarLote() {
       if (novoStatus) corpo.status = novoStatus;
       if (novaCategoria) corpo.categoria = novaCategoria;
 
-      const resposta = await fetch(`${API_URL}/api/lancamentos`, {
+      const resposta = await CadimusApi.fetch("/api/lancamentos", {
         method: "PATCH",
-        headers: headersAutenticados(),
         body: JSON.stringify(corpo),
       });
 
@@ -3595,9 +3588,9 @@ async function renderizarComparativoPeriodo() {
       const mStart = a === anoInicio ? mesInicio : 1;
       const mEnd = a === anoFim ? mesFim : 12;
       for (let m = mStart; m <= mEnd; m++) {
-        const url = `${API_URL}/api/lancamentos?carteira_id=${carteiraId}&mes=${String(m).padStart(2, "0")}&ano=${a}`;
+        const url = `/api/lancamentos?carteira_id=${carteiraId}&mes=${String(m).padStart(2, "0")}&ano=${a}`;
         try {
-          const res = await fetch(url, { headers: headersAutenticados(false) });
+          const res = await CadimusApi.fetch(url, { comJson: false });
           if (res.ok) {
             const dados = await res.json();
             todos.push(...dados);
@@ -3674,7 +3667,7 @@ async function carregarLancamentos() {
   try {
     const inputMes = document.getElementById("filtro-mes").value;
 
-    let urlComFiltros = `${API_URL}/api/lancamentos?carteira_id=${carteiraId}`;
+    let urlComFiltros = `/api/lancamentos?carteira_id=${carteiraId}`;
     let urlTransferencias = `/api/transferencias?carteira_id=${carteiraId}`;
 
     if (inputMes) {
@@ -3684,7 +3677,7 @@ async function carregarLancamentos() {
     }
 
     const [resposta, respostaTransferencias] = await Promise.all([
-      fetch(urlComFiltros, { headers: headersAutenticados(false) }),
+      CadimusApi.fetch(urlComFiltros, { comJson: false }),
       CadimusApi.fetch(urlTransferencias, { comJson: false }),
       promiseMetas,
     ]);
@@ -3939,9 +3932,8 @@ async function alternarStatusLancamento(id, statusAtual) {
   const novoStatus = statusAtual === "pago" ? "pendente" : "pago";
 
   try {
-    const resposta = await fetch(`${API_URL}/api/lancamentos?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/lancamentos?id=${id}`, {
       method: "PUT",
-      headers: headersAutenticados(),
       body: JSON.stringify({ status: novoStatus }),
     });
 
@@ -3983,7 +3975,7 @@ async function carregarComparacaoMesAnterior(despesasAtuais) {
   const mesStr = String(mes + 1).padStart(2, "0");
 
   try {
-    const resposta = await fetch(`${API_URL}/api/lancamentos?carteira_id=${carteiraId}&mes=${mesStr}&ano=${ano}`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch(`/api/lancamentos?carteira_id=${carteiraId}&mes=${mesStr}&ano=${ano}`, { comJson: false });
     if (idRequisicao !== ultimaRequisicaoComparacao) return;
     if (!resposta.ok) return;
 
@@ -4108,9 +4100,7 @@ async function carregarTendencia() {
       if (cacheTendencia.has(chave)) return cacheTendencia.get(chave);
 
       try {
-        const resposta = await fetch(`${API_URL}/api/lancamentos?carteira_id=${carteiraId}&mes=${mes + 1}&ano=${ano}`, {
-          headers: headersAutenticados(false),
-        });
+        const resposta = await CadimusApi.fetch(`/api/lancamentos?carteira_id=${carteiraId}&mes=${mes + 1}&ano=${ano}`, { comJson: false });
         if (!resposta.ok) return { receitas: 0, despesas: 0 };
         const dadosMes = await resposta.json();
         const receitas = dadosMes.filter((l) => l.tipo === "receita" && l.status === "pago").reduce((soma, l) => soma + valorMonetario(l), 0);
@@ -4245,9 +4235,7 @@ async function carregarComparativo6Meses() {
       if (cacheComparativo6.has(chave)) return cacheComparativo6.get(chave);
 
       try {
-        const resposta = await fetch(`${API_URL}/api/lancamentos?carteira_id=${carteiraId}&mes=${mes + 1}&ano=${ano}`, {
-          headers: headersAutenticados(false),
-        });
+        const resposta = await CadimusApi.fetch(`/api/lancamentos?carteira_id=${carteiraId}&mes=${mes + 1}&ano=${ano}`, { comJson: false });
         if (!resposta.ok) return { receitas: 0, despesas: 0 };
         const dadosMes = await resposta.json();
         let receitas = 0, despesas = 0;
@@ -4774,9 +4762,9 @@ async function apagarLancamento(id) {
   if (!(await pedirConfirmacao("Deseja realmente excluir este lançamento permanentemente?", { textoConfirmar: "Excluir", perigo: true }))) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/lancamentos?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/lancamentos?id=${id}`, {
       method: "DELETE",
-      headers: headersAutenticados(false),
+      comJson: false,
     });
 
     if (tratarSessaoExpirada(resposta)) return;
@@ -7029,7 +7017,7 @@ async function carregarDadosRelatorio() {
   if (filtroTipo) params.set("tipo", filtroTipo);
 
   try {
-    const resposta = await fetch(`${API_URL}/api/lancamentos?${params}`, { headers: headersAutenticados() });
+    const resposta = await CadimusApi.fetch(`/api/lancamentos?${params}`);
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) throw new Error("Erro ao carregar");
     relatorioDados.lancamentos = await resposta.json();
@@ -7079,7 +7067,7 @@ async function carregarLancamentosPeriodo(inicio, fim) {
   const usuario = obterUsuarioLogado();
   const params = new URLSearchParams({ data_inicio: inicio, data_fim: fim, usuario_id: usuario.id });
   try {
-    const resposta = await fetch(`${API_URL}/api/lancamentos?${params}`, { headers: headersAutenticados() });
+    const resposta = await CadimusApi.fetch(`/api/lancamentos?${params}`);
     if (!resposta.ok) return [];
     return await resposta.json();
   } catch { return []; }
