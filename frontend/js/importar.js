@@ -254,10 +254,7 @@ async function executarImportacao() {
           status: "pago",
           carteira_id: carteiraId,
         };
-        return CadimusApi.fetch("/api/lancamentos", {
-          method: "POST",
-          body: JSON.stringify(corpo),
-        });
+        return CadimusEntriesApi.salvar(corpo);
       })
     );
     resultados.forEach((r) => (r.status === "fulfilled" && r.value.ok ? importados++ : erros++));

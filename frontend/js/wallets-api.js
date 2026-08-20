@@ -58,6 +58,15 @@
     });
   }
 
+  async function listarTransferencias(filtros = {}) {
+    const params = new URLSearchParams();
+    Object.entries(filtros).forEach(([chave, valor]) => {
+      if (valor !== undefined && valor !== null && valor !== "") params.set(chave, valor);
+    });
+
+    return CadimusApi.fetch(`/api/transferencias${params.toString() ? `?${params}` : ""}`, { comJson: false });
+  }
+
   window.CadimusWalletsApi = {
     listarCarteiras,
     listarColegas,
@@ -67,5 +76,6 @@
     atualizarMembros,
     excluirCarteira,
     transferir,
+    listarTransferencias,
   };
 })();

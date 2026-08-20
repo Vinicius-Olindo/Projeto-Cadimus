@@ -40,14 +40,13 @@ async function buscarLancamentosParaExportar() {
   const tipo = document.getElementById("exportar-tipo").value;
   const categoria = document.getElementById("exportar-categoria").value;
 
-  const params = new URLSearchParams();
-  if (dataInicio) params.append("data_inicio", dataInicio);
-  if (dataFim) params.append("data_fim", dataFim);
-  if (tipo !== "todos") params.append("tipo", tipo);
-  if (categoria !== "todas") params.append("categoria", categoria);
-
   try {
-    const resp = await CadimusApi.fetch(`/api/lancamentos?${params.toString()}`);
+    const resp = await CadimusEntriesApi.listarResposta({
+      data_inicio: dataInicio,
+      data_fim: dataFim,
+      tipo: tipo !== "todos" ? tipo : "",
+      categoria: categoria !== "todas" ? categoria : "",
+    });
     if (!resp.ok) return [];
     const data = await resp.json();
     return Array.isArray(data) ? data : (data.lancamentos || []);
