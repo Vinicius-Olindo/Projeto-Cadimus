@@ -1081,16 +1081,13 @@ function configurarModalOrcamento() {
         return;
       }
 
-      const resposta = await CadimusApi.fetch("/api/orcamentos", {
-        method: "POST",
-        body: JSON.stringify({
-          categoria,
-          valor,
-          valor_centavos: valorPayload.valor_centavos,
-          mes,
-          ano,
-          carteira_id: Number(carteiraId),
-        }),
+      const resposta = await CadimusBudgetsApi.salvar({
+        categoria,
+        valor,
+        valor_centavos: valorPayload.valor_centavos,
+        mes,
+        ano,
+        carteira_id: Number(carteiraId),
       });
 
       if (tratarSessaoExpirada(resposta)) return;
@@ -1173,13 +1170,7 @@ function configurarModalCartaoCredito() {
         carteira_id: Number(carteiraId),
       };
 
-      const url = idEdicao ? `/api/cartoes-credito?id=${idEdicao}` : "/api/cartoes-credito";
-      const metodo = idEdicao ? "PUT" : "POST";
-
-      const resposta = await CadimusApi.fetch(url, {
-        method: metodo,
-        body: JSON.stringify(corpo),
-      });
+      const resposta = await CadimusCardsApi.salvar(corpo, idEdicao || null);
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -1208,7 +1199,7 @@ async function carregarCartoesCredito() {
   if (!card || !container || !carteiraId) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/cartoes-credito?carteira_id=${carteiraId}`, { comJson: false });
+    const resposta = await CadimusCardsApi.listar({ carteira_id: carteiraId });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -1290,9 +1281,7 @@ async function carregarCartoesCredito() {
         if (!(await pedirConfirmacao(`Excluir o cartão "${nome}"?`, { textoConfirmar: "Excluir", perigo: true }))) return;
 
         try {
-          const resposta = await CadimusApi.fetch(`/api/cartoes-credito?id=${id}`, {
-            method: "DELETE",
-          });
+          const resposta = await CadimusCardsApi.excluir(id);
           if (tratarSessaoExpirada(resposta)) return;
           if (resposta.ok) {
             carregarCartoesCredito();
@@ -2037,7 +2026,7 @@ async function carregarOrcamentos() {
   const [ano, mes] = inputMes.split("-");
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/orcamentos?carteira_id=${carteiraId}&mes=${mes}&ano=${ano}`, { comJson: false });
+    const resposta = await CadimusBudgetsApi.listar({ carteira_id: carteiraId, mes, ano });
 
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) {
@@ -2088,9 +2077,7 @@ async function carregarOrcamentos() {
         if (!confirmado) return;
 
         try {
-          const resp = await CadimusApi.fetch(`/api/orcamentos?id=${btn.dataset.id}`, {
-            method: "DELETE",
-          });
+          const resp = await CadimusBudgetsApi.excluir(btn.dataset.id);
 
           if (tratarSessaoExpirada(resp)) return;
 
@@ -2226,7 +2213,7 @@ async function carregarMetas() {
   if (!carteiraId) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/metas?carteira_id=${carteiraId}`, { comJson: false });
+    const resposta = await CadimusGoalsApi.listarMetas({ carteira_id: carteiraId });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
     metasCarregadas = await resposta.json();
@@ -2279,10 +2266,7 @@ function configurarModalMeta() {
     btnSalvar.innerText = "Salvando...";
 
     try {
-      const resposta = await CadimusApi.fetch("/api/metas", {
-        method: "POST",
-        body: JSON.stringify({ carteira_id: carteiraId, categoria, valor_limite: valorLimite, valor_limite_centavos: valorLimitePayload.valor_limite_centavos, data_limite: dataLimite }),
-      });
+      const resposta = await CadimusGoalsApi.salvarMeta({ carteira_id: carteiraId, categoria, valor_limite: valorLimite, valor_limite_centavos: valorLimitePayload.valor_limite_centavos, data_limite: dataLimite });
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -2309,10 +2293,7 @@ function configurarModalMeta() {
     if (!(await pedirConfirmacao(`Remover a meta de "${categoria}"?`, { textoConfirmar: "Remover", perigo: true }))) return;
 
     try {
-      const resposta = await CadimusApi.fetch(`/api/metas?id=${meta.id}`, {
-        method: "DELETE",
-        comJson: false,
-      });
+      const resposta = await CadimusGoalsApi.excluirMeta(meta.id);
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -2384,7 +2365,7 @@ async function carregarDadosDeposito(metaId) {
 
 async function obterTotalDepositado(metaId) {
   try {
-    const resposta = await CadimusApi.fetch(`/api/metas-depositos?meta_id=${metaId}`, { comJson: false });
+    const resposta = await CadimusGoalsApi.listarDepositos(metaId);
     if (!resposta.ok) return 0;
     const depositos = await resposta.json();
     return somarValoresMonetarios(depositos);
@@ -2398,7 +2379,7 @@ async function carregarListaDepositos(metaId) {
   if (!container) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/metas-depositos?meta_id=${metaId}`, { comJson: false });
+    const resposta = await CadimusGoalsApi.listarDepositos(metaId);
     if (!resposta.ok) {
       container.innerHTML = '<p class="historico-fixa-vazio">Erro ao carregar.</p>';
       return;
@@ -2439,10 +2420,7 @@ async function excluirDeposito(depositoId, metaId) {
   if (!(await pedirConfirmacao("Excluir este depósito?", { textoConfirmar: "Excluir", perigo: true }))) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/metas-depositos?id=${depositoId}`, {
-      method: "DELETE",
-      comJson: false,
-    });
+    const resposta = await CadimusGoalsApi.excluirDeposito(depositoId);
     if (resposta.ok) {
       await carregarDadosDeposito(metaId);
       await carregarListaDepositos(metaId);
@@ -2480,9 +2458,11 @@ function configurarModalDeposito() {
     btn.innerText = "Salvando...";
 
     try {
-      const resposta = await CadimusApi.fetch("/api/metas-depositos", {
-        method: "POST",
-        body: JSON.stringify({ meta_id: metaId, valor, valor_centavos: valorPayload.valor_centavos, descricao }),
+      const resposta = await CadimusGoalsApi.criarDeposito({
+        metaId,
+        valor,
+        valorCentavos: valorPayload.valor_centavos,
+        descricao,
       });
 
       if (tratarSessaoExpirada(resposta)) return;
@@ -5816,8 +5796,7 @@ async function carregarSettingsCartoes() {
   container.innerHTML = '<span class="dica-campo">Carregando...</span>';
   try {
     const carteiraId = document.getElementById("seletor-carteira")?.value;
-    const url = carteiraId ? `/api/cartoes-credito?carteira_id=${carteiraId}` : "/api/cartoes-credito";
-    const resposta = await CadimusApi.fetch(url, { comJson: false });
+    const resposta = await CadimusCardsApi.listar({ carteira_id: carteiraId || "" });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
     const cartoes = await resposta.json();
@@ -5852,8 +5831,7 @@ async function carregarSettingsMetas() {
   container.innerHTML = '<span class="dica-campo">Carregando...</span>';
   try {
     const carteiraId = document.getElementById("seletor-carteira")?.value;
-    const url = carteiraId ? `/api/metas?carteira_id=${carteiraId}` : "/api/metas";
-    const resposta = await CadimusApi.fetch(url, { comJson: false });
+    const resposta = await CadimusGoalsApi.listarMetas({ carteira_id: carteiraId || "" });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
     const metas = await resposta.json();
@@ -5894,8 +5872,7 @@ async function carregarSettingsOrcamentos() {
     const hoje = new Date();
     const mes = String(hoje.getMonth() + 1).padStart(2, "0");
     const ano = hoje.getFullYear();
-    const url = carteiraId ? `/api/orcamentos?carteira_id=${carteiraId}&mes=${mes}&ano=${ano}` : `/api/orcamentos?mes=${mes}&ano=${ano}`;
-    const resposta = await CadimusApi.fetch(url, { comJson: false });
+    const resposta = await CadimusBudgetsApi.listar({ carteira_id: carteiraId || "", mes, ano });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
     const orcamentos = await resposta.json();
