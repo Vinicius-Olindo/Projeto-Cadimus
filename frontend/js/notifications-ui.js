@@ -338,6 +338,3 @@ function configurarNotificacoes() {
     }
   });
 }
-
-// --- EDIÇÃO EM LOTE ---
-let idsSelecionadosLote = new Set();
