@@ -4945,7 +4945,7 @@ function configurarSalarioPlano() {
 
 async function carregarPlanos() {
   try {
-    const resposta = await fetch(`${API_URL}/api/planos`, { headers: headersAutenticados() });
+    const resposta = await CadimusApi.fetch("/api/planos");
     if (tratarSessaoExpirada(resposta)) return;
     if (resposta.ok) {
       planosCarregados = await resposta.json();
@@ -4960,7 +4960,7 @@ async function carregarPlanosCompartilhados() {
   if (!container) return;
 
   try {
-    const resposta = await fetch(`${API_URL}/api/planos?tipo=compartilhados`, { headers: headersAutenticados() });
+    const resposta = await CadimusApi.fetch("/api/planos?tipo=compartilhados");
     if (tratarSessaoExpirada(resposta)) return;
     if (resposta.ok) {
       const planos = await resposta.json();
@@ -5449,9 +5449,8 @@ function renderizarListaPlanos() {
 
 async function atualizarStatusPlano(id, status) {
   try {
-    const resposta = await fetch(`${API_URL}/api/planos`, {
+    const resposta = await CadimusApi.fetch("/api/planos", {
       method: "PUT",
-      headers: headersAutenticados(),
       body: JSON.stringify({ id, status }),
     });
     if (tratarSessaoExpirada(resposta)) return;
@@ -5514,15 +5513,13 @@ function configurarModalPlano() {
     try {
       let resposta;
       if (idEdicao) {
-        resposta = await fetch(`${API_URL}/api/planos`, {
+        resposta = await CadimusApi.fetch("/api/planos", {
           method: "PUT",
-          headers: headersAutenticados(),
           body: JSON.stringify({ id: Number(idEdicao), ...dados }),
         });
       } else {
-        resposta = await fetch(`${API_URL}/api/planos`, {
+        resposta = await CadimusApi.fetch("/api/planos", {
           method: "POST",
-          headers: headersAutenticados(),
           body: JSON.stringify(dados),
         });
       }
@@ -5608,9 +5605,8 @@ function configurarModalPlanoDeposito() {
     if (!valor || valor <= 0) return mostrarToast("Informe um valor válido.", "erro");
 
     try {
-      const resposta = await fetch(`${API_URL}/api/planos-depositos`, {
+      const resposta = await CadimusApi.fetch("/api/planos-depositos", {
         method: "POST",
-        headers: headersAutenticados(),
         body: JSON.stringify({ plano_id: Number(planoId), valor, valor_centavos: valorPayload.valor_centavos, descricao }),
       });
 
@@ -5643,7 +5639,7 @@ async function abrirModalPlanoDeposito(planoId) {
 
   preencherModalDepositoPlano(plano);
 
-  const { results: depositos } = await fetch(`${API_URL}/api/planos-depositos?plano_id=${planoId}`, { headers: headersAutenticados() })
+  const { results: depositos } = await CadimusApi.fetch(`/api/planos-depositos?plano_id=${planoId}`)
     .then((r) => r.json())
     .then((dados) => ({ results: Array.isArray(dados) ? dados : [] }))
     .catch(() => ({ results: [] }));
