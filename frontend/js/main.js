@@ -6953,17 +6953,16 @@ async function carregarDadosRelatorio() {
   const filtroTipo = document.getElementById("relatorio-filtro-tipo")?.value || "";
 
   const usuario = obterUsuarioLogado();
-  const params = new URLSearchParams({
-    data_inicio: periodo.inicio,
-    data_fim: periodo.fim,
-    usuario_id: usuario.id
-  });
-  if (filtroCarteira) params.set("carteira_id", filtroCarteira);
-  if (filtroCategoria) params.set("categoria", filtroCategoria);
-  if (filtroTipo) params.set("tipo", filtroTipo);
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/lancamentos?${params}`);
+    const resposta = await CadimusReportsApi.buscarLancamentosResposta({
+      inicio: periodo.inicio,
+      fim: periodo.fim,
+      usuarioId: usuario.id,
+      carteiraId: filtroCarteira,
+      categoria: filtroCategoria,
+      tipo: filtroTipo,
+    });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) throw new Error("Erro ao carregar");
     relatorioDados.lancamentos = await resposta.json();
@@ -7011,12 +7010,7 @@ function obterPeriodoMesAnterior(periodo) {
 
 async function carregarLancamentosPeriodo(inicio, fim) {
   const usuario = obterUsuarioLogado();
-  const params = new URLSearchParams({ data_inicio: inicio, data_fim: fim, usuario_id: usuario.id });
-  try {
-    const resposta = await CadimusApi.fetch(`/api/lancamentos?${params}`);
-    if (!resposta.ok) return [];
-    return await resposta.json();
-  } catch { return []; }
+  return CadimusReportsApi.buscarLancamentosPeriodo({ inicio, fim, usuarioId: usuario.id });
 }
 
 /* --- KPIs --- */
