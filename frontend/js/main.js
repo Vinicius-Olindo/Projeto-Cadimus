@@ -38,17 +38,6 @@
 // [1] CONSTANTES E HELPERS GLOBAIS
 // ==========================================
 
-// ==========================================
-// HELPER: headers autenticados para chamadas à API
-// ==========================================
-function headersAutenticados(comJson = true) {
-  const token = obterToken();
-  const headers = {};
-  if (comJson) headers["Content-Type"] = "application/json";
-  if (token) headers["Authorization"] = `Bearer ${token}`;
-  return headers;
-}
-
 function obterCentavosMonetarios(campoId, opcoes = {}) {
   const { vazioComoZero = false, ...opcoesDinheiro } = opcoes;
   const campo = document.getElementById(campoId);
