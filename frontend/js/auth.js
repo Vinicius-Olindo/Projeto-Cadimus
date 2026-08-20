@@ -1,4 +1,8 @@
-const API_URL = window.CADIMUS_API_URL || "https://cadimus-backend.olinbytedigital.workers.dev";
+const API_URL =
+  window.CADIMUS_API_URL ||
+  (window.location.hostname === "staging.cadimus.pages.dev"
+    ? "https://cadimus-backend-staging.olinbytedigital.workers.dev"
+    : "https://cadimus-backend.olinbytedigital.workers.dev");
 
 // ==========================================
 // SANITIZAÇÃO DE URL — previne XSS via CSS injection
