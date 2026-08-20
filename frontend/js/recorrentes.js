@@ -14,7 +14,7 @@ async function carregarPainelRecorrentes() {
   if (!container || !carteiraId) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/lancamentos-recorrentes?carteira_id=${carteiraId}`, { comJson: false });
+    const resposta = await CadimusScheduledApi.listarRecorrentes({ carteira_id: carteiraId });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -142,15 +142,7 @@ function configurarModalRecorrencia() {
       };
       if (!idEdicao) corpo.carteira_id = carteiraId;
 
-      const resposta = idEdicao
-        ? await CadimusApi.fetch(`/api/lancamentos-recorrentes?id=${idEdicao}`, {
-            method: "PUT",
-            body: JSON.stringify(corpo),
-          })
-        : await CadimusApi.fetch("/api/lancamentos-recorrentes", {
-            method: "POST",
-            body: JSON.stringify(corpo),
-          });
+      const resposta = await CadimusScheduledApi.salvarRecorrente(corpo, idEdicao || null);
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -217,10 +209,7 @@ async function alternarRecorrencia(id) {
   if (!alvo) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/lancamentos-recorrentes?id=${id}`, {
-      method: "PUT",
-      body: JSON.stringify({ ativo: !alvo.ativo }),
-    });
+    const resposta = await CadimusScheduledApi.atualizarRecorrente(id, { ativo: !alvo.ativo });
 
     if (tratarSessaoExpirada(resposta)) return;
 
@@ -243,10 +232,7 @@ async function excluirRecorrencia(id) {
   if (!(await pedirConfirmacao("Excluir esta recorrência? Lançamentos já gerados continuam na lista.", { textoConfirmar: "Excluir", perigo: true }))) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/lancamentos-recorrentes?id=${id}`, {
-      method: "DELETE",
-      comJson: false,
-    });
+    const resposta = await CadimusScheduledApi.excluirRecorrente(id);
 
     if (tratarSessaoExpirada(resposta)) return;
 

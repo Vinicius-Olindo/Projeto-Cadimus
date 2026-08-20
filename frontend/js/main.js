@@ -1546,15 +1546,7 @@ function configurarModalDespesasFixas() {
       };
       if (!idEdicao) corpo.carteira_id = carteiraId; // carteira só é definida na criação, não muda na edição
 
-      const resposta = idEdicao
-        ? await CadimusApi.fetch(`/api/despesas-fixas?id=${idEdicao}`, {
-            method: "PUT",
-            body: JSON.stringify(corpo),
-          })
-        : await CadimusApi.fetch("/api/despesas-fixas", {
-            method: "POST",
-            body: JSON.stringify(corpo),
-          });
+      const resposta = await CadimusScheduledApi.salvarFixa(corpo, idEdicao || null);
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -1584,7 +1576,7 @@ async function carregarPainelDespesasFixas() {
   if (!card || !container || !carteiraId) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/despesas-fixas?carteira_id=${carteiraId}`, { comJson: false });
+    const resposta = await CadimusScheduledApi.listarFixas({ carteira_id: carteiraId });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -1670,10 +1662,7 @@ async function alternarDespesaFixa(id) {
   if (!alvo) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/despesas-fixas?id=${id}`, {
-      method: "PUT",
-      body: JSON.stringify({ ativo: !alvo.ativo }),
-    });
+    const resposta = await CadimusScheduledApi.atualizarFixa(id, { ativo: !alvo.ativo });
 
     if (tratarSessaoExpirada(resposta)) return;
 
@@ -1693,10 +1682,7 @@ async function excluirDespesaFixa(id) {
   if (!(await pedirConfirmacao("Excluir esta despesa fixa? Ela para de gerar lançamentos novos, mas os que já foram criados continuam na lista.", { textoConfirmar: "Excluir", perigo: true }))) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/despesas-fixas?id=${id}`, {
-      method: "DELETE",
-      comJson: false,
-    });
+    const resposta = await CadimusScheduledApi.excluirFixa(id);
 
     if (tratarSessaoExpirada(resposta)) return;
 
@@ -1894,10 +1880,7 @@ function configurarModalComprasParceladas() {
         meio_pagamento: document.getElementById("parcelada-meio-pagamento").value,
       };
 
-      const resposta = await CadimusApi.fetch("/api/compras-parceladas", {
-        method: "POST",
-        body: JSON.stringify(corpo),
-      });
+      const resposta = await CadimusScheduledApi.criarParcelada(corpo);
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -1936,7 +1919,7 @@ async function carregarPainelComprasParceladas() {
   if (!card || !container || !carteiraId) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/compras-parceladas?carteira_id=${carteiraId}`, { comJson: false });
+    const resposta = await CadimusScheduledApi.listarParceladas({ carteira_id: carteiraId });
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) return;
 
@@ -2104,10 +2087,7 @@ async function alternarComprasParcelada(id) {
   if (!alvo) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/compras-parceladas?id=${id}`, {
-      method: "PUT",
-      body: JSON.stringify({ ativo: !alvo.ativo }),
-    });
+    const resposta = await CadimusScheduledApi.atualizarParcelada(id, { ativo: !alvo.ativo });
 
     if (tratarSessaoExpirada(resposta)) return;
 
@@ -2127,10 +2107,7 @@ async function excluirComprasParcelada(id) {
   if (!(await pedirConfirmacao("Excluir esta compra parcelada? As parcelas já lançadas continuam na lista, só param de ser geradas novas.", { textoConfirmar: "Excluir", perigo: true }))) return;
 
   try {
-    const resposta = await CadimusApi.fetch(`/api/compras-parceladas?id=${id}`, {
-      method: "DELETE",
-      comJson: false,
-    });
+    const resposta = await CadimusScheduledApi.excluirParcelada(id);
 
     if (tratarSessaoExpirada(resposta)) return;
 
