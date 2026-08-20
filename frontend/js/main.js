@@ -4918,9 +4918,8 @@ function configurarSalarioPlano() {
     btnSalvar.innerText = "Salvando...";
 
     try {
-      const resposta = await fetch(`${API_URL}/api/usuarios/${usuario.id}`, {
+      const resposta = await CadimusApi.fetch(`/api/usuarios/${usuario.id}`, {
         method: "PUT",
-        headers: headersAutenticados(),
         body: JSON.stringify({ salario: valor }),
       });
 
@@ -5995,10 +5994,7 @@ if (btnNovoOrcamentoSettings) {
 async function preencherPerfilAtual() {
   const el = (id) => document.getElementById(id);
   try {
-    const token = obterToken();
-    const res = await fetch(`${API_URL}/api/usuarios/me`, {
-      headers: { Authorization: `Bearer ${token}` },
-    });
+    const res = await CadimusApi.fetch("/api/usuarios/me", { comJson: false });
     if (!res.ok) throw new Error("Erro ao buscar perfil");
     const usuario = await res.json();
     if (el("novo-nome")) el("novo-nome").value = usuario.nome || "";
@@ -6075,9 +6071,8 @@ function configurarZonaDePerigo() {
     btnConfirmar.innerText = "Apagando...";
 
     try {
-      const resposta = await fetch(`${API_URL}/api/admin/zerar-dados`, {
+      const resposta = await CadimusApi.fetch("/api/admin/zerar-dados", {
         method: "POST",
-        headers: headersAutenticados(),
         body: JSON.stringify({ confirmacao: campoConfirmacao.value }),
       });
 
@@ -6211,22 +6206,19 @@ function configurarFormularioUsuario() {
         const usuarioLogado = obterUsuarioLogado();
         const ehProprioPerfil = String(idEdicao) === String(usuarioLogado.id);
         if (ehProprioPerfil && usuarioLogado.perfil !== "superadmin") {
-          resposta = await fetch(`${API_URL}/api/usuarios/me`, {
+          resposta = await CadimusApi.fetch("/api/usuarios/me", {
             method: "PUT",
-            headers: headersAutenticados(),
             body: JSON.stringify({ nome, email, telefone, salario, foto_perfil: fotoPerfil, ...(senha ? { senha } : {}) }),
           });
         } else {
-          resposta = await fetch(`${API_URL}/api/usuarios?id=${idEdicao}`, {
+          resposta = await CadimusApi.fetch(`/api/usuarios?id=${idEdicao}`, {
             method: "PUT",
-            headers: headersAutenticados(),
             body: JSON.stringify(corpo),
           });
         }
       } else {
-        resposta = await fetch(`${API_URL}/api/usuarios`, {
+        resposta = await CadimusApi.fetch("/api/usuarios", {
           method: "POST",
-          headers: headersAutenticados(),
           body: JSON.stringify(corpo),
         });
       }
@@ -6305,9 +6297,8 @@ function configurarSistemaConvites() {
     btnGerar.innerText = "Gerando...";
 
     try {
-      const resposta = await fetch(`${API_URL}/api/convites`, {
+      const resposta = await CadimusApi.fetch("/api/convites", {
         method: "POST",
-        headers: headersAutenticados(),
         body: JSON.stringify({ nome, email, perfil }),
       });
 
@@ -6375,7 +6366,7 @@ function verificarCadastroConvite() {
 async function carregarInfoConvite(token) {
   const infoEl = document.getElementById("cadastro-convite-info");
   try {
-    const resposta = await fetch(`${API_URL}/api/convites?token=${token}`);
+    const resposta = await CadimusApi.fetch(`/api/convites?token=${encodeURIComponent(token)}`, { autenticado: false, comJson: false });
     if (resposta.ok) {
       const dados = await resposta.json();
       infoEl.innerHTML = `Olá, <strong>${dados.nome}</strong>! Você foi convidado(a) para usar o Gestor Financeiro.<br>Crie sua senha para acessar.`;
@@ -6428,9 +6419,9 @@ function configurarFormularioCadastroConvite(token) {
     btnCriar.innerText = "Criando conta...";
 
     try {
-      const resposta = await fetch(`${API_URL}/api/convites`, {
+      const resposta = await CadimusApi.fetch("/api/convites", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
+        autenticado: false,
         body: JSON.stringify({ token, senha, nome, usuario }),
       });
 
@@ -6504,7 +6495,7 @@ async function carregarUsuarios() {
   container.innerHTML = '<div class="estado-vazio-admin"><div class="icone-vazio">👤</div><p>Carregando usuários...</p></div>';
 
   try {
-    const resposta = await fetch(`${API_URL}/api/usuarios`, { headers: headersAutenticados(false) });
+    const resposta = await CadimusApi.fetch("/api/usuarios", { comJson: false });
     if (tratarSessaoExpirada(resposta)) return;
     const dados = await resposta.json();
 
@@ -6602,9 +6593,9 @@ async function alternarStatusUsuario(id, botao) {
   botao.innerText = "Alterando...";
 
   try {
-    const resposta = await fetch(`${API_URL}/api/usuarios?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/usuarios?id=${id}`, {
       method: "PATCH",
-      headers: headersAutenticados(false),
+      comJson: false,
     });
 
     if (tratarSessaoExpirada(resposta)) return;
@@ -6632,9 +6623,9 @@ async function excluirUsuario(id, botao) {
   botao.innerText = "Excluindo...";
 
   try {
-    const resposta = await fetch(`${API_URL}/api/usuarios?id=${id}`, {
+    const resposta = await CadimusApi.fetch(`/api/usuarios?id=${id}`, {
       method: "DELETE",
-      headers: headersAutenticados(false),
+      comJson: false,
     });
 
     if (tratarSessaoExpirada(resposta)) return;
