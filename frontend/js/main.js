@@ -3158,10 +3158,7 @@ async function sincronizarNotificacoesLocais() {
   if (notificacoes.length === 0) return;
 
   try {
-    await CadimusApi.fetch("/api/notificacoes/sincronizar", {
-      method: "POST",
-      body: JSON.stringify({ notificacoes }),
-    });
+    await CadimusNotificationsApi.sincronizar(notificacoes);
   } catch (erro) {
     console.warn("Nao foi possivel sincronizar notificacoes:", erro);
   }
@@ -3170,18 +3167,11 @@ async function sincronizarNotificacoesLocais() {
 let filtroNotificacoesAtual = "nao_lida";
 
 async function buscarNotificacoesPersistidas(status = "nao_lida") {
-  const resposta = await CadimusApi.fetch(`/api/notificacoes?status=${encodeURIComponent(status)}&limite=50`, { comJson: false });
-  if (!resposta.ok) throw new Error("Falha ao buscar notificacoes.");
-  return resposta.json();
+  return CadimusNotificationsApi.listar(status, 50);
 }
 
 async function gerarNotificacoesAutomaticas() {
-  const resposta = await CadimusApi.fetch("/api/notificacoes/gerar", {
-    method: "POST",
-    body: JSON.stringify({}),
-  });
-  if (!resposta.ok) throw new Error("Falha ao gerar notificacoes.");
-  return resposta.json();
+  return CadimusNotificationsApi.gerarAutomaticas();
 }
 
 function renderizarListaNotificacoesPersistidas(notificacoes, resumo = {}) {
@@ -3263,20 +3253,14 @@ async function atualizarBadgeNotificacoes() {
 
 async function marcarNotificacoesComoLidas() {
   try {
-    await CadimusApi.fetch("/api/notificacoes/lidas", {
-      method: "PATCH",
-      comJson: false,
-    });
+    await CadimusNotificationsApi.marcarTodasComoLidas();
   } catch (erro) {
     console.warn("Nao foi possivel marcar notificacoes como lidas:", erro);
   }
 }
 
 async function arquivarNotificacao(id) {
-  await CadimusApi.fetch(`/api/notificacoes?id=${encodeURIComponent(id)}`, {
-    method: "DELETE",
-    comJson: false,
-  });
+  await CadimusNotificationsApi.arquivar(id);
 }
 
 function configurarNotificacoes() {
