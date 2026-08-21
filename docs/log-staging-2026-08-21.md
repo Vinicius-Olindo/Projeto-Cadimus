@@ -22,7 +22,8 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 ### Lançamentos
 
 - Lista de lançamentos ganhou paginação local.
-- Cada página mostra 10 lançamentos.
+- Cada página mostra 20 lançamentos por padrão.
+- Usuário pode escolher 10, 20, 30 ou 50 lançamentos por página, com preferência salva no navegador.
 - Agrupamentos genéricos foram trocados por data real, mantendo `Hoje` e `Ontem` como atalhos de leitura.
 - Lista de lançamentos recebeu redesign em cards compactos, com metadados, valor e ações mais bem agrupados.
 - Busca e filtros continuam funcionando antes da paginação.

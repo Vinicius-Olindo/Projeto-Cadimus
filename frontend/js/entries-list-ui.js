@@ -69,42 +69,67 @@ function obterGrupoData(dataStr) {
 // --- RENDERIZA A LISTA (aplica o filtro de busca, se houver, sem afetar os totais do mês) ---
 let gruposRecolhidos = new Set();
 let paginaLancamentosAtual = 1;
-const LANCAMENTOS_POR_PAGINA = 10;
+const OPCOES_LANCAMENTOS_POR_PAGINA = [10, 20, 30, 50];
+const CHAVE_LANCAMENTOS_POR_PAGINA = "cadimus_lancamentos_por_pagina";
+let lancamentosPorPagina = obterPreferenciaLancamentosPorPagina();
+
+function obterPreferenciaLancamentosPorPagina() {
+  const salvo = Number(lerLocalStorageSeguro(CHAVE_LANCAMENTOS_POR_PAGINA));
+  return OPCOES_LANCAMENTOS_POR_PAGINA.includes(salvo) ? salvo : 20;
+}
 
 function ocultarPaginacaoLancamentos() {
   const paginacao = document.getElementById("lancamentos-paginacao");
   if (paginacao) paginacao.innerHTML = "";
 }
 
+function renderizarSeletorLancamentosPorPagina() {
+  return `
+    <label class="lancamentos-por-pagina">
+      <span>Por página</span>
+      <select id="lancamentos-por-pagina-select" aria-label="Lançamentos por página">
+        ${OPCOES_LANCAMENTOS_POR_PAGINA.map((opcao) => `<option value="${opcao}" ${opcao === lancamentosPorPagina ? "selected" : ""}>${opcao}</option>`).join("")}
+      </select>
+    </label>
+  `;
+}
+
 function renderizarPaginacaoLancamentos(totalItens) {
   const paginacao = document.getElementById("lancamentos-paginacao");
   if (!paginacao) return;
 
-  const totalPaginas = Math.ceil(totalItens / LANCAMENTOS_POR_PAGINA);
-  if (totalPaginas <= 1) {
+  const totalPaginas = Math.ceil(totalItens / lancamentosPorPagina);
+  if (totalItens <= 0) {
     paginacao.innerHTML = "";
     return;
   }
 
   paginaLancamentosAtual = Math.min(Math.max(paginaLancamentosAtual, 1), totalPaginas);
-  const inicio = (paginaLancamentosAtual - 1) * LANCAMENTOS_POR_PAGINA + 1;
-  const fim = Math.min(paginaLancamentosAtual * LANCAMENTOS_POR_PAGINA, totalItens);
+  const inicio = (paginaLancamentosAtual - 1) * lancamentosPorPagina + 1;
+  const fim = Math.min(paginaLancamentosAtual * lancamentosPorPagina, totalItens);
 
   const botoes = [];
-  for (let pagina = 1; pagina <= totalPaginas; pagina++) {
-    if (totalPaginas > 7 && pagina > 3 && pagina < totalPaginas - 1 && Math.abs(pagina - paginaLancamentosAtual) > 1) {
-      if (pagina === 4 || pagina === totalPaginas - 2) botoes.push('<button type="button" disabled>…</button>');
-      continue;
+  if (totalPaginas > 1) {
+    for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+      if (totalPaginas > 7 && pagina > 3 && pagina < totalPaginas - 1 && Math.abs(pagina - paginaLancamentosAtual) > 1) {
+        if (pagina === 4 || pagina === totalPaginas - 2) botoes.push('<button type="button" disabled>…</button>');
+        continue;
+      }
+      botoes.push(`<button type="button" class="${pagina === paginaLancamentosAtual ? "ativo" : ""}" data-pagina="${pagina}" aria-label="Ir para página ${pagina}">${pagina}</button>`);
     }
-    botoes.push(`<button type="button" class="${pagina === paginaLancamentosAtual ? "ativo" : ""}" data-pagina="${pagina}" aria-label="Ir para página ${pagina}">${pagina}</button>`);
   }
 
   paginacao.innerHTML = `
     <div class="lancamentos-paginacao-info">Mostrando ${inicio}-${fim} de ${totalItens}</div>
-    <div class="lancamentos-paginacao-botoes">
-      <button type="button" data-pagina="${paginaLancamentosAtual - 1}" ${paginaLancamentosAtual <= 1 ? "disabled" : ""} aria-label="Página anterior">‹</button>
-      ${botoes.join("")}
-      <button type="button" data-pagina="${paginaLancamentosAtual + 1}" ${paginaLancamentosAtual >= totalPaginas ? "disabled" : ""} aria-label="Próxima página">›</button>
+    <div class="lancamentos-paginacao-controles">
+      ${renderizarSeletorLancamentosPorPagina()}
+      ${totalPaginas > 1 ? `
+        <div class="lancamentos-paginacao-botoes">
+          <button type="button" data-pagina="${paginaLancamentosAtual - 1}" ${paginaLancamentosAtual <= 1 ? "disabled" : ""} aria-label="Página anterior">‹</button>
+          ${botoes.join("")}
+          <button type="button" data-pagina="${paginaLancamentosAtual + 1}" ${paginaLancamentosAtual >= totalPaginas ? "disabled" : ""} aria-label="Próxima página">›</button>
+        </div>
+      ` : ""}
     </div>
   `;
 }
@@ -155,10 +180,10 @@ function renderizarListaLancamentos() {
     return;
   }
 
-  const totalPaginas = Math.ceil(filtrados.length / LANCAMENTOS_POR_PAGINA);
+  const totalPaginas = Math.ceil(filtrados.length / lancamentosPorPagina);
   paginaLancamentosAtual = Math.min(Math.max(paginaLancamentosAtual, 1), totalPaginas);
-  const inicioPagina = (paginaLancamentosAtual - 1) * LANCAMENTOS_POR_PAGINA;
-  const itensPagina = filtrados.slice(inicioPagina, inicioPagina + LANCAMENTOS_POR_PAGINA);
+  const inicioPagina = (paginaLancamentosAtual - 1) * lancamentosPorPagina;
+  const itensPagina = filtrados.slice(inicioPagina, inicioPagina + lancamentosPorPagina);
 
   const grupos = {};
   const ordemGrupos = [];
@@ -267,6 +292,17 @@ function configurarBuscaLancamentos() {
       const botao = e.target.closest("button[data-pagina]");
       if (!botao || botao.disabled) return;
       irParaPaginaLancamentos(Number(botao.dataset.pagina));
+    });
+
+    paginacaoLancamentos.addEventListener("change", (e) => {
+      const seletor = e.target.closest("#lancamentos-por-pagina-select");
+      if (!seletor) return;
+      const novoValor = Number(seletor.value);
+      if (!OPCOES_LANCAMENTOS_POR_PAGINA.includes(novoValor)) return;
+      lancamentosPorPagina = novoValor;
+      gravarLocalStorageSeguro(CHAVE_LANCAMENTOS_POR_PAGINA, String(novoValor));
+      resetarPaginacaoLancamentos();
+      renderizarListaLancamentos();
     });
   }
 }

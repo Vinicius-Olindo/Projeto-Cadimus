@@ -1840,6 +1840,34 @@ button:active {
   font-family: var(--fonte-mono);
 }
 
+.lancamentos-paginacao-controles {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+.lancamentos-por-pagina {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.lancamentos-por-pagina select {
+  padding: 5px 24px 5px 10px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 999px;
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: 0.74rem;
+  cursor: pointer;
+}
+
 .lancamentos-paginacao-botoes {
   display: flex;
   align-items: center;
@@ -1885,6 +1913,10 @@ button:active {
   .lancamentos-paginacao-botoes {
     justify-content: center;
     flex-wrap: wrap;
+  }
+
+  .lancamentos-paginacao-controles {
+    justify-content: center;
   }
 }
 
