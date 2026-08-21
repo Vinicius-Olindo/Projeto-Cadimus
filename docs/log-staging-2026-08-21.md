@@ -39,6 +39,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Cards analíticos da coluna direita ganharam modo de edição de layout com drag-and-drop local.
 - Cards principais de receitas, despesas e saldo do período ganharam descrições curtas de contexto.
 - Card "A pagar" ganhou descrição curta de contexto para compromissos pendentes.
+- Card "Saúde financeira" recebeu redesign visual com status textual e barras por critério, mantendo a fórmula do score.
 
 ### Notificações
 

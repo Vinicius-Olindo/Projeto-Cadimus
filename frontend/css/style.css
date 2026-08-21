@@ -5434,13 +5434,14 @@ textarea::placeholder {
 .score-container {
   display: flex;
   align-items: center;
-  gap: 20px;
+  gap: 18px;
+  padding-top: 2px;
 }
 
 .score-ring {
   position: relative;
-  width: 100px;
-  height: 100px;
+  width: 112px;
+  height: 112px;
   flex-shrink: 0;
 }
 
@@ -5452,7 +5453,7 @@ textarea::placeholder {
 
 .score-ring-bg {
   fill: none;
-  stroke: var(--cor-pauta-forte, #e0e0e0);
+  stroke: color-mix(in srgb, var(--cor-pauta-forte) 82%, transparent);
   stroke-width: 8;
 }
 
@@ -5466,33 +5467,54 @@ textarea::placeholder {
   transition: stroke-dashoffset 1s cubic-bezier(0.22, 1, 0.36, 1), stroke 0.3s;
 }
 
-.score-valor {
+.score-centro {
   position: absolute;
   top: 50%;
   left: 50%;
   transform: translate(-50%, -50%);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1px;
+  line-height: 1;
+}
+
+.score-valor {
   font-size: 1.6rem;
   font-weight: 700;
   font-family: var(--fonte-mono);
 }
 
+.score-status {
+  max-width: 76px;
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 .score-detalhes {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 7px;
   flex: 1;
+  min-width: 0;
 }
 
 .score-criterio {
   display: flex;
-  align-items: center;
-  gap: 8px;
-  font-size: 0.78rem;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 5px 0;
+  font-size: 0.76rem;
 }
 
 .score-criterio-icone {
-  width: 18px;
-  height: 18px;
+  width: 20px;
+  height: 20px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -5505,15 +5527,59 @@ textarea::placeholder {
 .score-criterio-medio { background: var(--cor-pendente, #f9a825); color: #000; }
 .score-criterio-ruim { background: var(--cor-despesa, #c62828); color: #fff; }
 
+.score-criterio-corpo {
+  display: flex;
+  flex: 1;
+  min-width: 0;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.score-criterio-linha {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+}
+
 .score-criterio-texto {
   flex: 1;
   color: var(--cor-texto, #333);
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .score-criterio-valor {
   font-weight: 600;
   font-family: var(--fonte-mono);
-  font-size: 0.75rem;
+  font-size: 0.72rem;
+  white-space: nowrap;
+}
+
+.score-criterio-trilho {
+  width: 100%;
+  height: 4px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-pauta-forte) 75%, transparent);
+  overflow: hidden;
+}
+
+.score-criterio-preenchimento {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cor-receita);
+}
+
+.score-criterio.score-criterio-medio .score-criterio-preenchimento {
+  background: var(--cor-pendente);
+}
+
+.score-criterio.score-criterio-ruim .score-criterio-preenchimento {
+  background: var(--cor-despesa);
 }
 
 @media (max-width: 480px) {

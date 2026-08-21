@@ -85,6 +85,7 @@ function calcularScoreSaude(totalReceitas, totalDespesas, totaisPorCategoria) {
   const card = document.getElementById("card-score");
   const ringFill = document.getElementById("score-ring-fill");
   const valorEl = document.getElementById("score-valor");
+  const statusEl = document.getElementById("score-status");
   const detalhesEl = document.getElementById("score-detalhes");
   if (!card || !ringFill || !valorEl || !detalhesEl) return;
 
@@ -169,11 +170,26 @@ function calcularScoreSaude(totalReceitas, totalDespesas, totaisPorCategoria) {
   ringFill.style.strokeDashoffset = offset;
 
   let cor;
-  if (score >= 70) cor = "var(--cor-receita)";
-  else if (score >= 40) cor = "var(--cor-pendente)";
-  else cor = "var(--cor-despesa)";
+  let statusTexto;
+  if (score >= 85) {
+    cor = "var(--cor-receita)";
+    statusTexto = "Excelente";
+  } else if (score >= 70) {
+    cor = "var(--cor-receita)";
+    statusTexto = "Saudável";
+  } else if (score >= 40) {
+    cor = "var(--cor-pendente)";
+    statusTexto = "Atenção";
+  } else {
+    cor = "var(--cor-despesa)";
+    statusTexto = "Crítico";
+  }
   ringFill.style.stroke = cor;
   valorEl.style.color = cor;
+  if (statusEl) {
+    statusEl.textContent = statusTexto;
+    statusEl.style.color = cor;
+  }
 
   detalhesEl.innerHTML = "";
   criterios.forEach((c) => {
@@ -181,11 +197,18 @@ function calcularScoreSaude(totalReceitas, totalDespesas, totaisPorCategoria) {
     let cls = pct >= 0.7 ? "score-criterio-ok" : pct >= 0.4 ? "score-criterio-medio" : "score-criterio-ruim";
     const icone = pct >= 0.7 ? "✓" : pct >= 0.4 ? "!" : "✗";
     const div = document.createElement("div");
-    div.className = "score-criterio";
+    div.className = `score-criterio ${cls}`;
     div.innerHTML = `
       <span class="score-criterio-icone ${cls}">${icone}</span>
-      <span class="score-criterio-texto">${c.nome}</span>
-      <span class="score-criterio-valor">${c.valor}</span>
+      <span class="score-criterio-corpo">
+        <span class="score-criterio-linha">
+          <span class="score-criterio-texto">${c.nome}</span>
+          <span class="score-criterio-valor">${c.valor}</span>
+        </span>
+        <span class="score-criterio-trilho">
+          <span class="score-criterio-preenchimento" style="width:${Math.round(pct * 100)}%"></span>
+        </span>
+      </span>
     `;
     detalhesEl.appendChild(div);
   });

@@ -34,6 +34,7 @@ Ambientes:
 - Valores financeiros altos não devem ser cortados nos cards do dashboard nem na lista de lançamentos.
 - Gráficos do dashboard exibem valores legíveis no modo claro/escuro.
 - Card "Para onde foi o dinheiro" exibe donut, maior categoria e ranking sem excesso visual.
+- Card "Saúde financeira" exibe score, status textual e critérios com barras legíveis.
 - Gráfico de evolução mensal usa saldo real e despesas com escala clara.
 - Modo "Layout" permite arrastar cards analíticos, salvar ordem e restaurar padrão.
 - Lista de lancamentos mostra valor, status, autor, filtros e agrupamentos por data real corretamente.
