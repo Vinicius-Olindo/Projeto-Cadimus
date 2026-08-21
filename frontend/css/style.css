@@ -5555,6 +5555,11 @@ textarea::placeholder {
   white-space: nowrap;
 }
 
+.score-criterio .score-criterio-texto,
+.score-criterio .score-criterio-valor {
+  color: #fff;
+}
+
 @media (max-width: 480px) {
   .score-container {
     flex-direction: column;
