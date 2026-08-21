@@ -215,6 +215,7 @@ document.addEventListener("DOMContentLoaded", () => {
   configurarModalOrcamento();
   configurarModalCartaoCredito();
   configurarRelatorios();
+  configurarDashboardLayout();
 
   // Botão de transferência
   const btnTransferencia = document.getElementById("btn-transferencia");

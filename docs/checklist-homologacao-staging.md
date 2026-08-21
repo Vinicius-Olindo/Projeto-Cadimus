@@ -32,6 +32,7 @@ Ambientes:
 - Dashboard exibe receitas, despesas, saldo, pendentes e categorias usando os valores corretos.
 - Gráficos do dashboard exibem valores legíveis no modo claro/escuro.
 - Gráfico de evolução mensal usa saldo real e despesas com escala clara.
+- Modo "Layout" permite arrastar cards analíticos, salvar ordem e restaurar padrão.
 - Lista de lancamentos mostra valor, status, autor, filtros e agrupamentos corretamente.
 - Paginação de lançamentos mostra 10 itens por página, contador correto e volta para página 1 ao alterar busca/filtros.
 - Transferencias aparecem nas carteiras de origem e destino sem duplicar saldo.

@@ -19,6 +19,7 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - Gráfico de categorias (donut) em "Para onde foi o dinheiro"
 - Evolução mensal (SVG line chart) — Saldo real vs Despesas, com escala/eixo e valores nos pontos relevantes
 - Gráfico de barras "Saldo vs Despesas" com escala visual mais clara
+- Modo de edição do layout dos cards analíticos do dashboard, salvo por usuário no navegador
 - Notificações de vencimento com badge vermelho no sino
 - Comparativo por período (Mês/Trimestre/Ano)
 

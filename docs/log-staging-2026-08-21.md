@@ -32,6 +32,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Donut de categorias mostra total e valores por categoria.
 - Evolução mensal usa saldo real (`receitas - despesas`) vs despesas.
 - Barras e linhas receberam escala visual mais clara.
+- Cards analíticos da coluna direita ganharam modo de edição de layout com drag-and-drop local.
 
 ### Notificações
 

@@ -23,6 +23,7 @@ O frontend está dividido por domínio:
 - `*-ui.js`: renderização, eventos e fluxos de interface;
 - `money-utils.js` e `money-ui.js`: conversão e payload monetário;
 - `ui-core.js`: inicialização, tema, filtros base e helpers visuais;
+- `dashboard-layout-ui.js`: modo de edição e ordem dos cards analíticos do dashboard;
 - `main.js`: mapa central e pequenas exportações globais.
 
 ## Cache de assets
@@ -31,8 +32,8 @@ Quando qualquer arquivo carregado por `frontend/index.html` mudar, atualizar o p
 
 Referência atual:
 
-- CSS principal: `css/style.css?v=12`;
-- scripts principais: `js/*.js?v=67`.
+- CSS principal: `css/style.css?v=13`;
+- scripts principais: `js/*.js?v=68`.
 
 ## Paginação de lançamentos
 
@@ -42,6 +43,17 @@ A lista de lançamentos usa paginação local no frontend.
 - A UI exibe 10 lançamentos por página.
 - Busca e filtros continuam aplicados antes da paginação.
 - Totais do dashboard continuam calculados sobre o lote completo, não apenas sobre a página visível.
+
+## Layout editável do dashboard
+
+O dashboard possui um modo de edição local para reorganizar os cards analíticos da coluna direita.
+
+- O botão "Layout" ativa/desativa o modo de edição.
+- Os cards podem ser arrastados dentro da coluna direita.
+- Ao sair do modo de edição, a ordem é salva no navegador.
+- A ordem é separada por usuário.
+- O botão de reset restaura o layout padrão.
+- Nesta etapa, o layout ainda não é salvo no backend.
 
 ## Próxima evolução possível
 

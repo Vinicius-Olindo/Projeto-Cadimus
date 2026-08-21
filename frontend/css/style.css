@@ -1015,6 +1015,53 @@ button:active {
   gap: 16px;
 }
 
+.dashboard-layout-editando {
+  padding: 8px;
+  border: 1px dashed color-mix(in srgb, var(--cor-marca) 42%, transparent);
+  border-radius: var(--raio-card);
+  background: color-mix(in srgb, var(--cor-marca) 5%, transparent);
+}
+
+.dashboard-card-editavel {
+  position: relative;
+  cursor: grab;
+  outline: 1px dashed color-mix(in srgb, var(--cor-marca) 45%, transparent);
+  outline-offset: 3px;
+}
+
+.dashboard-card-editavel::before {
+  content: "Arraste para reorganizar";
+  position: absolute;
+  top: 8px;
+  right: 10px;
+  z-index: 2;
+  padding: 3px 8px;
+  border-radius: 999px;
+  background: var(--cor-marca);
+  color: var(--cor-fundo);
+  font-size: 0.58rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  pointer-events: none;
+}
+
+.dashboard-card-editavel.arrastando {
+  cursor: grabbing;
+  opacity: 0.55;
+  transform: scale(0.99);
+}
+
+#btn-editar-layout-dashboard.ativo {
+  border-color: var(--cor-marca);
+  background: color-mix(in srgb, var(--cor-marca) 14%, transparent);
+  color: var(--cor-marca-forte);
+}
+
+.btn-resetar-layout-dashboard {
+  width: 34px;
+}
+
 .area-lancamentos {
   order: 3;
 }
