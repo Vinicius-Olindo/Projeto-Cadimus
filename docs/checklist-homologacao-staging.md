@@ -33,7 +33,7 @@ Ambientes:
 - Dashboard exibe receitas, despesas, saldo, pendentes e categorias usando os valores corretos.
 - Campos de valores financeiros exibem e salvam valores no padrão brasileiro `R$ 0,00`.
 - Valores financeiros altos não devem ser cortados nos cards do dashboard nem na lista de lançamentos.
-- Gráficos do dashboard exibem valores legíveis no modo claro/escuro e resumo contextual sem poluir a visualização.
+- Gráficos do dashboard exibem valores legíveis no modo claro/escuro e resumo contextual sem poluir ou vazar da visualização.
 - Card "Para onde foi o dinheiro" exibe donut, maior categoria e ranking sem excesso visual.
 - Card "Saúde financeira" exibe score, status textual, diagnóstico curto e critérios compactos.
 - Gráficos de evolução mensal e saldo vs despesas usam saldo real, despesas e escala clara.

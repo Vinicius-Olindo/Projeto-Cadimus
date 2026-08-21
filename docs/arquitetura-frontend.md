@@ -32,8 +32,8 @@ Quando qualquer arquivo carregado por `frontend/index.html` mudar, atualizar o p
 
 Referência atual:
 
-- CSS principal: `css/style.css?v=24`;
-- scripts principais: `js/*.js?v=80`.
+- CSS principal: `css/style.css?v=25`;
+- scripts principais: `js/*.js?v=81`.
 
 ## Entradas monetárias
 

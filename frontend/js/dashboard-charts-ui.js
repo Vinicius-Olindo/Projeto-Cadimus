@@ -33,8 +33,10 @@ function criarResumoGrafico(titulo, principal, detalhe, classe = "") {
   const resumo = document.createElement("div");
   resumo.className = `grafico-resumo ${classe}`.trim();
   resumo.innerHTML = `
-    <span class="grafico-resumo-label">${titulo}</span>
-    <strong class="grafico-resumo-valor">${principal}</strong>
+    <div class="grafico-resumo-topo">
+      <span class="grafico-resumo-label">${titulo}</span>
+      <strong class="grafico-resumo-valor">${principal}</strong>
+    </div>
     <span class="grafico-resumo-detalhe">${detalhe}</span>
   `;
   return resumo;
@@ -280,7 +282,7 @@ function renderizarComparativo6Meses(meses, dados, mesAtualIdx, anoAtual) {
     : `Despesas superam saldo em ${formatadorBRL.format(Math.abs(diferenca))}`;
   container.appendChild(criarResumoGrafico(
     "Comparativo do mês",
-    `${formatadorBRL.format(saldoAtual)} / ${formatadorBRL.format(despesasAtual)}`,
+    `Saldo ${formatadorBRL.format(saldoAtual)} · Despesas ${formatadorBRL.format(despesasAtual)}`,
     detalheResumo,
     saldoAtual >= despesasAtual ? "grafico-resumo-positivo" : "grafico-resumo-negativo",
   ));

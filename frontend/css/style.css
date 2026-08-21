@@ -1679,17 +1679,27 @@ button:active {
 }
 
 .grafico-resumo {
-  display: grid;
-  grid-template-columns: 1fr auto;
-  gap: 3px 10px;
-  align-items: baseline;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
   padding: 9px 10px;
   border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 65%, transparent);
   border-radius: 12px;
   background: color-mix(in srgb, var(--cor-fundo-card) 78%, var(--cor-fundo));
+  overflow: hidden;
+}
+
+.grafico-resumo-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .grafico-resumo-label {
+  flex: 0 0 auto;
   color: var(--cor-texto-suave);
   font-size: 0.64rem;
   font-weight: 800;
@@ -1698,18 +1708,22 @@ button:active {
 }
 
 .grafico-resumo-valor {
+  flex: 1 1 120px;
+  min-width: 0;
   color: var(--cor-texto);
   font-family: var(--fonte-mono);
-  font-size: 0.82rem;
+  font-size: clamp(0.68rem, 2.4vw, 0.82rem);
   text-align: right;
-  white-space: nowrap;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.25;
 }
 
 .grafico-resumo-detalhe {
-  grid-column: 1 / -1;
   color: var(--cor-texto-suave);
   font-size: 0.72rem;
   line-height: 1.35;
+  overflow-wrap: anywhere;
 }
 
 .grafico-resumo-positivo .grafico-resumo-valor {
