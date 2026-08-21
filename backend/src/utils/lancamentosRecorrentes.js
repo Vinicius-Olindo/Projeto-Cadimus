@@ -68,6 +68,8 @@ function obterOcorrenciasDoMes(rec, ano, mes) {
   if (rec.data_fim && rec.data_fim < dataIso(ano, mes, 1)) return [];
 
   switch (rec.frequencia) {
+    case "diaria":
+      return ocorrenciasPorIntervaloDeDias(rec, ano, mes, 1);
     case "semanal":
       return ocorrenciasPorIntervaloDeDias(rec, ano, mes, 7, ajustarInicioSemanal(rec));
     case "quinzenal":

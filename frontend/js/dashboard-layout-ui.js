@@ -10,6 +10,7 @@ const DASHBOARD_LAYOUT_CARDS = [
   "card-por-autor",
   "card-despesas-fixas",
   "card-compras-parceladas",
+  "card-bonificacoes",
   "card-orcamentos",
   "card-cartoes-credito",
   "card-score",
@@ -100,13 +101,7 @@ function aplicarLayoutDashboardSalvo() {
 
   if (!Array.isArray(ordemSalva) || ordemSalva.length === 0) return;
 
-  const idsValidos = new Set(DASHBOARD_LAYOUT_CARDS);
-  ordemSalva
-    .filter((id) => idsValidos.has(id))
-    .forEach((id) => {
-      const card = document.getElementById(id);
-      if (card && card.parentElement === container) container.appendChild(card);
-    });
+  aplicarOrdemLayoutDashboard(ordemSalva);
 }
 
 function salvarLayoutDashboard() {

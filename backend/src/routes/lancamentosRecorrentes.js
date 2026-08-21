@@ -80,7 +80,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       if (valorCentavos <= 0) {
         return new Response(JSON.stringify({ erro: "Informe um valor válido." }), { status: 400 });
       }
-      if (!["semanal", "quinzenal", "mensal", "trimestral", "anual"].includes(frequencia)) {
+      if (!["diaria", "semanal", "quinzenal", "mensal", "trimestral", "anual"].includes(frequencia)) {
         return new Response(JSON.stringify({ erro: "Frequência inválida." }), { status: 400 });
       }
       if (!dataInicio) {

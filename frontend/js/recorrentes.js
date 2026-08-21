@@ -29,14 +29,16 @@ async function carregarPainelRecorrentes() {
 
     container.innerHTML = "";
 
-    const NOMES_FREQUENCIA = { semanal: "Semanal", quinzenal: "Quinzenal", mensal: "Mensal", trimestral: "Trimestral", anual: "Anual" };
+    const NOMES_FREQUENCIA = { diaria: "Diária", semanal: "Semanal", quinzenal: "Quinzenal", mensal: "Mensal", trimestral: "Trimestral", anual: "Anual" };
     const NOMES_DIAS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
     recorrentesCarregadas.forEach((rec) => {
       const valorFormatado = formatadorBRL.format(valorMonetario(rec));
       const nomeFreq = NOMES_FREQUENCIA[rec.frequencia] || rec.frequencia || "Mensal";
       let detalhe = nomeFreq;
-      if (rec.frequencia === "semanal") {
+      if (rec.frequencia === "diaria") {
+        detalhe += " · todos os dias";
+      } else if (rec.frequencia === "semanal") {
         detalhe += ` · ${NOMES_DIAS[rec.dia_semana || 0]}`;
       } else {
         detalhe += ` · Dia ${rec.dia_mes || 1}`;
@@ -76,6 +78,39 @@ async function carregarPainelRecorrentes() {
 // ==========================================
 // MODAL
 // ==========================================
+async function abrirModalRecorrencia(predefinicoes = {}) {
+  const modal = document.getElementById("modal-recorrencia");
+  if (!modal) return;
+
+  const carteiraId = document.getElementById("seletor-carteira").value;
+  if (!carteiraId) {
+    await mostrarAviso("Aguarde suas carteiras carregarem antes de cadastrar uma recorrência.");
+    return;
+  }
+
+  document.getElementById("recorrencia-editando-id").value = "";
+  document.getElementById("titulo-modal-recorrencia").innerText = predefinicoes.titulo || "Nova recorrência";
+  document.getElementById("btn-salvar-recorrencia").innerText = "Adicionar";
+  document.getElementById("form-recorrencia").reset();
+  document.getElementById("recorrencia-data-inicio").value = new Date().toISOString().slice(0, 10);
+  document.getElementById("recorrencia-descricao").placeholder = predefinicoes.placeholderDescricao || "Ex: Academia";
+  document.getElementById("recorrencia-tipo").value = predefinicoes.tipo || "despesa";
+  document.getElementById("recorrencia-frequencia").value = predefinicoes.frequencia || "mensal";
+
+  await popularSelectCategorias(document.getElementById("recorrencia-categoria"));
+  if (predefinicoes.categoria) {
+    adicionarOpcaoSelect(document.getElementById("recorrencia-categoria"), predefinicoes.categoria);
+    document.getElementById("recorrencia-categoria").value = predefinicoes.categoria;
+  }
+  if (predefinicoes.meioPagamento) {
+    document.getElementById("recorrencia-meio-pagamento").value = predefinicoes.meioPagamento;
+  }
+
+  document.getElementById("recorrencia-frequencia").dispatchEvent(new Event("change"));
+  modal.style.display = "flex";
+  trapFoco(modal);
+}
+
 function configurarModalRecorrencia() {
   const modal = document.getElementById("modal-recorrencia");
   const btnAbrir = document.getElementById("btn-nova-recorrencia-admin");
@@ -87,16 +122,7 @@ function configurarModalRecorrencia() {
 
   if (!modal || !btnFechar || !form) return;
 
-  btnAbrir?.addEventListener("click", async () => {
-    document.getElementById("recorrencia-editando-id").value = "";
-    document.getElementById("titulo-modal-recorrencia").innerText = "Nova recorrência";
-    document.getElementById("btn-salvar-recorrencia").innerText = "Adicionar";
-    document.getElementById("form-recorrencia").reset();
-    document.getElementById("recorrencia-data-inicio").value = new Date().toISOString().slice(0, 10);
-    await popularSelectCategorias(document.getElementById("recorrencia-categoria"));
-    modal.style.display = "flex";
-    trapFoco(modal);
-  });
+  btnAbrir?.addEventListener("click", () => abrirModalRecorrencia());
 
   btnFechar.addEventListener("click", () => {
     modal.style.display = "none";
@@ -105,7 +131,10 @@ function configurarModalRecorrencia() {
 
   selFrequencia.addEventListener("change", () => {
     const val = selFrequencia.value;
-    if (val === "semanal") {
+    if (val === "diaria") {
+      campoDiaSemana.style.display = "none";
+      campoDiaMes.style.display = "none";
+    } else if (val === "semanal") {
       campoDiaSemana.style.display = "block";
       campoDiaMes.style.display = "none";
     } else {
@@ -134,7 +163,7 @@ function configurarModalRecorrencia() {
         tipo: document.getElementById("recorrencia-tipo").value,
         frequencia,
         dia_semana: frequencia === "semanal" ? parseInt(document.getElementById("recorrencia-dia-semana").value) : null,
-        dia_mes: frequencia !== "semanal" ? parseInt(document.getElementById("recorrencia-dia-mes").value) : null,
+        dia_mes: ["mensal", "trimestral", "anual"].includes(frequencia) ? parseInt(document.getElementById("recorrencia-dia-mes").value) : null,
         data_inicio: document.getElementById("recorrencia-data-inicio").value,
         data_fim: document.getElementById("recorrencia-data-fim").value || null,
         categoria: document.getElementById("recorrencia-categoria").value,

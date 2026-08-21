@@ -65,6 +65,7 @@ async function carregarLancamentos() {
 
   carregarPainelDespesasFixas();
   carregarPainelComprasParceladas();
+  carregarPainelBonificacoes();
   carregarOrcamentos();
   popularSelectFiltroCategorias();
   const promiseMetas = carregarMetas();
@@ -120,6 +121,7 @@ async function carregarLancamentos() {
       document.getElementById("saldo-total").style.color = "var(--cor-texto)";
       document.getElementById("resumo-categorias").style.display = "none";
       document.getElementById("resumo-pendente-item").style.display = "none";
+      carregarPainelBonificacoes([]);
       renderizarResumoAutores([]);
       carregarComparacaoMesAnterior(0);
       carregarTendencia();
@@ -197,6 +199,7 @@ async function carregarLancamentos() {
 
     renderizarResumoCategorias(totaisPorCategoria);
     renderizarResumoAutores(dados);
+    carregarPainelBonificacoes(dados);
     carregarComparacaoMesAnterior(totalDespesas);
     carregarTendencia();
     carregarComparativo6Meses();

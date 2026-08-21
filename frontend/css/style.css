@@ -3892,7 +3892,8 @@ textarea::placeholder {
 
 /* Layout despesas fixas e compras parceladas */
 #lista-despesas-fixas-painel .linha-item,
-#lista-compras-parceladas-painel .linha-item {
+#lista-compras-parceladas-painel .linha-item,
+#lista-bonificacoes-painel .linha-item {
   display: flex;
   align-items: center;
   gap: 12px;
@@ -3901,8 +3902,45 @@ textarea::placeholder {
 }
 
 #lista-despesas-fixas-painel .linha-item:last-child,
-#lista-compras-parceladas-painel .linha-item:last-child {
+#lista-compras-parceladas-painel .linha-item:last-child,
+#lista-bonificacoes-painel .linha-item:last-child {
   border-bottom: none;
+}
+
+.bonificacoes-resumo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 12px;
+}
+
+.bonificacoes-resumo > div {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--cor-receita) 16%, var(--cor-pauta-forte));
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cor-receita) 5%, transparent);
+}
+
+.bonificacoes-resumo span {
+  color: var(--cor-texto-suave);
+  font-size: 0.62rem;
+  font-weight: 700;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.bonificacoes-resumo strong {
+  overflow: hidden;
+  color: var(--cor-receita);
+  font-family: var(--fonte-mono);
+  font-size: clamp(0.8rem, 1.2vw, 0.96rem);
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .fixa-conteudo {
@@ -7117,6 +7155,7 @@ textarea::placeholder {
   .settings-nav-item.ativo::before { display: none; }
   .settings-conteudo { padding: 16px 14px 32px; }
   .settings-campo-grid { grid-template-columns: 1fr; }
+  .bonificacoes-resumo { grid-template-columns: 1fr; }
   .linha-usuario-detalhes-grid { grid-template-columns: 1fr; }
   #lista-usuarios .linha-usuario {
     grid-template-columns: 36px minmax(0, 1fr);
