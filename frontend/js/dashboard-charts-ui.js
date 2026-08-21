@@ -29,6 +29,17 @@ function abreviarValorGrafico(valor) {
   return formatadorBRL.format(valor);
 }
 
+function criarResumoGrafico(titulo, principal, detalhe, classe = "") {
+  const resumo = document.createElement("div");
+  resumo.className = `grafico-resumo ${classe}`.trim();
+  resumo.innerHTML = `
+    <span class="grafico-resumo-label">${titulo}</span>
+    <strong class="grafico-resumo-valor">${principal}</strong>
+    <span class="grafico-resumo-detalhe">${detalhe}</span>
+  `;
+  return resumo;
+}
+
 async function carregarTendencia() {
   const carteiraId = document.getElementById("seletor-carteira").value;
   const campoMes = document.getElementById("filtro-mes");
@@ -92,9 +103,17 @@ function renderizarTendencia(meses, dados, mesAtualIdx, anoAtual) {
   const saldosGrafico = dados.map((d) => Math.max(d.saldo || 0, 0));
   const todosValores = dados.flatMap((d, i) => [saldosGrafico[i], d.despesas]);
   const maior = calcularEscalaGrafico(Math.max(...todosValores, 1));
+  const atualIndex = meses.findIndex(({ mes, ano }) => mes === mesAtualIdx && ano === anoAtual);
+  const dadoAtual = dados[atualIndex >= 0 ? atualIndex : dados.length - 1] || { saldo: 0, despesas: 0 };
+  const saldoAtual = dadoAtual.saldo || 0;
+  const despesasAtual = dadoAtual.despesas || 0;
+  const classeSaldo = saldoAtual >= 0 ? "grafico-resumo-positivo" : "grafico-resumo-negativo";
+  const detalheResumo = `Despesas no período: ${formatadorBRL.format(despesasAtual)}`;
+
+  container.appendChild(criarResumoGrafico("Mês selecionado", formatadorBRL.format(saldoAtual), detalheResumo, classeSaldo));
 
   const svgNS = "http://www.w3.org/2000/svg";
-  const W = 300, H = 142, PAD_X = 44, PAD_Y = 18;
+  const W = 320, H = 132, PAD_X = 42, PAD_Y = 16;
   const plotW = W - PAD_X * 2;
   const plotH = H - PAD_Y * 2;
 
@@ -103,9 +122,9 @@ function renderizarTendencia(meses, dados, mesAtualIdx, anoAtual) {
   svg.setAttribute("class", "tendencia-svg");
 
   const gridGroup = document.createElementNS(svgNS, "g");
-  for (let i = 0; i <= 4; i++) {
-    const y = PAD_Y + (plotH / 4) * i;
-    const valorGrade = maior - (maior / 4) * i;
+  [1, 0.5, 0].forEach((marcador) => {
+    const y = PAD_Y + plotH - (plotH * marcador);
+    const valorGrade = maior * marcador;
     const line = document.createElementNS(svgNS, "line");
     line.setAttribute("x1", PAD_X);
     line.setAttribute("y1", y);
@@ -121,7 +140,7 @@ function renderizarTendencia(meses, dados, mesAtualIdx, anoAtual) {
     label.setAttribute("text-anchor", "end");
     label.textContent = valorGrade === 0 ? "0" : abreviarValorGrafico(valorGrade);
     gridGroup.appendChild(label);
-  }
+  });
   svg.appendChild(gridGroup);
 
   function buildPath(values) {
@@ -154,9 +173,9 @@ function renderizarTendencia(meses, dados, mesAtualIdx, anoAtual) {
       title.textContent = `${label} em ${NOMES_MESES_ABREV[meses[i].mes]}: ${formatadorBRL.format(v)}`;
       circle.appendChild(title);
 
-      const ehUltimo = i === values.length - 1;
+      const ehUltimo = i === atualIndex || (atualIndex < 0 && i === values.length - 1);
       const ehPico = v === Math.max(...values);
-      if (ehUltimo || ehPico) {
+      if (ehUltimo && ehPico) {
         const texto = document.createElementNS(svgNS, "text");
         texto.setAttribute("x", cx);
         texto.setAttribute("y", Math.max(10, cy - 8));
@@ -251,6 +270,20 @@ function renderizarComparativo6Meses(meses, dados, mesAtualIdx, anoAtual) {
   container.innerHTML = "";
 
   const maiorValor = calcularEscalaGrafico(Math.max(...dados.map((d) => Math.max(Math.max(d.saldo || 0, 0), d.despesas)), 1));
+  const atualIndex = meses.findIndex(({ mes, ano }) => mes === mesAtualIdx && ano === anoAtual);
+  const dadoAtual = dados[atualIndex >= 0 ? atualIndex : dados.length - 1] || { saldo: 0, despesas: 0 };
+  const saldoAtual = dadoAtual.saldo || 0;
+  const despesasAtual = dadoAtual.despesas || 0;
+  const diferenca = saldoAtual - despesasAtual;
+  const detalheResumo = saldoAtual >= despesasAtual
+    ? `Saldo supera despesas em ${formatadorBRL.format(Math.max(diferenca, 0))}`
+    : `Despesas superam saldo em ${formatadorBRL.format(Math.abs(diferenca))}`;
+  container.appendChild(criarResumoGrafico(
+    "Comparativo do mês",
+    `${formatadorBRL.format(saldoAtual)} / ${formatadorBRL.format(despesasAtual)}`,
+    detalheResumo,
+    saldoAtual >= despesasAtual ? "grafico-resumo-positivo" : "grafico-resumo-negativo",
+  ));
 
   const barrasContainer = document.createElement("div");
   barrasContainer.className = "comparativo-barras-container";
@@ -266,7 +299,6 @@ function renderizarComparativo6Meses(meses, dados, mesAtualIdx, anoAtual) {
     const coluna = document.createElement("div");
     coluna.className = "comparativo-coluna";
     coluna.innerHTML = `
-      <span class="comparativo-valor-mes">${abreviarValorGrafico(Math.max(saldoVisual, dados[i].despesas))}</span>
       <div class="comparativo-barras">
         <div class="comparativo-barra comparativo-barra-receita ${ehMesAtual ? "comparativo-barra-atual" : ""}" data-altura="${alturaRec}" title="Saldo em ${NOMES_MESES_ABREV[mes]}: ${saldoFormatado}" aria-label="Saldo em ${NOMES_MESES_ABREV[mes]}: ${saldoFormatado}"></div>
         <div class="comparativo-barra comparativo-barra-despesa ${ehMesAtual ? "comparativo-barra-atual" : ""}" data-altura="${alturaDesp}" title="Despesas em ${NOMES_MESES_ABREV[mes]}: ${despesasFormatadas}" aria-label="Despesas em ${NOMES_MESES_ABREV[mes]}: ${despesasFormatadas}"></div>
