@@ -2431,13 +2431,13 @@ button:active {
 
 .item-valores {
   display: flex;
-  align-items: center;
-  gap: 14px;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 8px;
   justify-content: flex-end;
-  flex-shrink: 0;
+  flex: 1 1 280px;
   min-width: 0;
-  max-width: 62%;
-  flex-wrap: wrap;
+  max-width: min(58%, 430px);
 }
 
 .item-chips,
@@ -2450,15 +2450,21 @@ button:active {
 .item-chips {
   gap: 8px;
   justify-content: flex-end;
+  max-width: 100%;
+  min-width: 0;
+  flex-wrap: wrap;
 }
 
 .item-valor-acoes {
+  width: 100%;
   gap: 10px;
   justify-content: flex-end;
+  min-width: 0;
 }
 
 .item-acoes {
   gap: 4px;
+  flex: 0 0 auto;
 }
 
 .item-meio-pagamento {
@@ -2566,11 +2572,12 @@ button.item-status:active {
 }
 
 .item-valor {
+  flex: 1 1 auto;
   font-family: var(--fonte-mono);
   font-variant-numeric: tabular-nums;
   font-weight: 700;
-  font-size: clamp(0.86rem, 1.35vw, 1rem);
-  min-width: max-content;
+  font-size: clamp(0.78rem, 1.25vw, 1rem);
+  min-width: 0;
   max-width: 100%;
   text-align: right;
   overflow-wrap: anywhere;
@@ -4318,7 +4325,8 @@ textarea::placeholder {
   .item-valores {
     width: 100%;
     max-width: 100%;
-    justify-content: space-between;
+    align-items: stretch;
+    justify-content: flex-start;
     gap: 8px;
   }
 
@@ -4335,6 +4343,12 @@ textarea::placeholder {
 
   .item-valor-acoes {
     margin-left: auto;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .item-valor {
+    text-align: left;
   }
 
   .lancamentos-cabecalho {
