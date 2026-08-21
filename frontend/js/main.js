@@ -1,6 +1,10 @@
 // ==========================================
-// main.js - Controle de Interface, UI e Filtros
+// main.js - Mapa central do frontend
 // ==========================================
+//
+// Decisão de arquitetura:
+// este arquivo deve continuar pequeno e funcionar como mapa/ponte entre módulos.
+// Novas regras de UI devem ir para arquivos específicos em frontend/js/*-ui.js.
 //
 // ESTRUTURA DO ARQUIVO:
 // [1]   CONSTANTES E HELPERS GLOBAIS
