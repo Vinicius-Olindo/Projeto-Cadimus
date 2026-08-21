@@ -11,6 +11,34 @@ let ultimaRequisicaoLancamentos = 0;
 let ultimoLoteLancamentos = [];
 let termoBuscaAtual = "";
 
+function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, saldoCalculado = 0 } = {}) {
+  const receitasDesc = document.getElementById("receitas-desc");
+  const despesasDesc = document.getElementById("despesas-desc");
+  const saldoDesc = document.getElementById("saldo-desc");
+
+  if (receitasDesc) {
+    receitasDesc.textContent = totalReceitas > 0
+      ? "Entradas pagas neste período."
+      : "Nenhuma entrada paga no período.";
+  }
+
+  if (despesasDesc) {
+    despesasDesc.textContent = totalDespesas > 0
+      ? "Saídas pagas neste período."
+      : "Nenhuma saída paga no período.";
+  }
+
+  if (saldoDesc) {
+    if (saldoCalculado > 0) {
+      saldoDesc.textContent = "Período fechando positivo.";
+    } else if (saldoCalculado < 0) {
+      saldoDesc.textContent = "Período fechando negativo.";
+    } else {
+      saldoDesc.textContent = "Receitas menos despesas e transferências.";
+    }
+  }
+}
+
 async function carregarLancamentos() {
   const container = document.getElementById("lista-lancamentos");
   if (!container) return;
@@ -71,6 +99,7 @@ async function carregarLancamentos() {
       animarValorMonetario(document.getElementById("total-receitas"), 0);
       animarValorMonetario(document.getElementById("total-despesas"), 0);
       animarValorMonetario(document.getElementById("saldo-total"), 0);
+      atualizarDescricoesResumo();
       document.getElementById("saldo-total").style.color = "var(--cor-texto)";
       document.getElementById("resumo-categorias").style.display = "none";
       document.getElementById("resumo-pendente-item").style.display = "none";
@@ -131,6 +160,7 @@ async function carregarLancamentos() {
 
     animarValorMonetario(document.getElementById("total-receitas"), totalReceitas);
     animarValorMonetario(document.getElementById("total-despesas"), totalDespesas);
+    atualizarDescricoesResumo({ totalReceitas, totalDespesas, saldoCalculado });
 
     const elementoPendente = document.getElementById("resumo-pendente-item");
     if (elementoPendente) {

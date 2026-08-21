@@ -33,6 +33,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Evolução mensal usa saldo real (`receitas - despesas`) vs despesas.
 - Barras e linhas receberam escala visual mais clara.
 - Cards analíticos da coluna direita ganharam modo de edição de layout com drag-and-drop local.
+- Cards principais de receitas, despesas e saldo do período ganharam descrições curtas de contexto.
 
 ### Notificações
 
