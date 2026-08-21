@@ -191,8 +191,23 @@ function calcularScoreSaude(totalReceitas, totalDespesas, totaisPorCategoria) {
     statusEl.style.color = cor;
   }
 
-  detalhesEl.innerHTML = "";
-  criterios.forEach((c) => {
+  const diagnostico = score >= 85
+    ? "Sua saúde financeira está forte neste período."
+    : score >= 70
+      ? "Você está no caminho certo, com poucos pontos de atenção."
+      : score >= 40
+        ? "Há sinais de atenção para acompanhar de perto."
+        : "O período pede revisão de gastos e pendências.";
+
+  const criteriosVisiveis = criterios.filter((c) => ["Taxa de poupança", "Controle de gastos", "Pagamentos em dia"].includes(c.nome));
+
+  detalhesEl.innerHTML = `
+    <p class="score-diagnostico">${diagnostico}</p>
+    <div class="score-pilulas"></div>
+  `;
+  const pilulasEl = detalhesEl.querySelector(".score-pilulas");
+
+  criteriosVisiveis.forEach((c) => {
     const pct = c.pontos / c.max;
     let cls = pct >= 0.7 ? "score-criterio-ok" : pct >= 0.4 ? "score-criterio-medio" : "score-criterio-ruim";
     const icone = pct >= 0.7 ? "✓" : pct >= 0.4 ? "!" : "✗";
@@ -200,16 +215,9 @@ function calcularScoreSaude(totalReceitas, totalDespesas, totaisPorCategoria) {
     div.className = `score-criterio ${cls}`;
     div.innerHTML = `
       <span class="score-criterio-icone ${cls}">${icone}</span>
-      <span class="score-criterio-corpo">
-        <span class="score-criterio-linha">
-          <span class="score-criterio-texto">${c.nome}</span>
-          <span class="score-criterio-valor">${c.valor}</span>
-        </span>
-        <span class="score-criterio-trilho">
-          <span class="score-criterio-preenchimento" style="width:${Math.round(pct * 100)}%"></span>
-        </span>
-      </span>
+      <span class="score-criterio-texto">${c.nome}</span>
+      <span class="score-criterio-valor">${c.valor}</span>
     `;
-    detalhesEl.appendChild(div);
+    pilulasEl.appendChild(div);
   });
 }

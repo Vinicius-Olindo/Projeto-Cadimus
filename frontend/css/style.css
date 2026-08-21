@@ -5434,14 +5434,14 @@ textarea::placeholder {
 .score-container {
   display: flex;
   align-items: center;
-  gap: 18px;
-  padding-top: 2px;
+  gap: 16px;
+  padding-top: 4px;
 }
 
 .score-ring {
   position: relative;
-  width: 112px;
-  height: 112px;
+  width: 104px;
+  height: 104px;
   flex-shrink: 0;
 }
 
@@ -5499,22 +5499,38 @@ textarea::placeholder {
 .score-detalhes {
   display: flex;
   flex-direction: column;
-  gap: 7px;
+  gap: 10px;
   flex: 1;
   min-width: 0;
 }
 
-.score-criterio {
+.score-diagnostico {
+  margin: 0;
+  color: var(--cor-texto);
+  font-size: 0.8rem;
+  line-height: 1.35;
+}
+
+.score-pilulas {
   display: flex;
-  align-items: flex-start;
-  gap: 9px;
-  padding: 5px 0;
-  font-size: 0.76rem;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.score-criterio {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  padding: 5px 8px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 72%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 82%, transparent);
+  font-size: 0.72rem;
 }
 
 .score-criterio-icone {
-  width: 20px;
-  height: 20px;
+  width: 16px;
+  height: 16px;
   border-radius: 50%;
   display: flex;
   align-items: center;
@@ -5527,28 +5543,8 @@ textarea::placeholder {
 .score-criterio-medio { background: var(--cor-pendente, #f9a825); color: #000; }
 .score-criterio-ruim { background: var(--cor-despesa, #c62828); color: #fff; }
 
-.score-criterio-corpo {
-  display: flex;
-  flex: 1;
-  min-width: 0;
-  flex-direction: column;
-  gap: 4px;
-}
-
-.score-criterio-linha {
-  display: flex;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 10px;
-  min-width: 0;
-}
-
 .score-criterio-texto {
-  flex: 1;
   color: var(--cor-texto, #333);
-  min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
   white-space: nowrap;
 }
 
@@ -5559,29 +5555,6 @@ textarea::placeholder {
   white-space: nowrap;
 }
 
-.score-criterio-trilho {
-  width: 100%;
-  height: 4px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--cor-pauta-forte) 75%, transparent);
-  overflow: hidden;
-}
-
-.score-criterio-preenchimento {
-  display: block;
-  height: 100%;
-  border-radius: inherit;
-  background: var(--cor-receita);
-}
-
-.score-criterio.score-criterio-medio .score-criterio-preenchimento {
-  background: var(--cor-pendente);
-}
-
-.score-criterio.score-criterio-ruim .score-criterio-preenchimento {
-  background: var(--cor-despesa);
-}
-
 @media (max-width: 480px) {
   .score-container {
     flex-direction: column;
@@ -5590,6 +5563,14 @@ textarea::placeholder {
 
   .score-detalhes {
     width: 100%;
+  }
+
+  .score-diagnostico {
+    text-align: center;
+  }
+
+  .score-pilulas {
+    justify-content: center;
   }
 }
 
