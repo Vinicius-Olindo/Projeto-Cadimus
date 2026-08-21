@@ -68,7 +68,7 @@ function configurarLote() {
 
       mostrarToast(resultado.mensagem || "Lançamentos atualizados!", "sucesso");
       limparSelecaoLote();
-      await carregarLancamentos();
+      await recarregarLancamentosAposMutacao();
     } catch (erro) {
       await mostrarAviso("Erro de conexão ao atualizar em lote.");
     } finally {

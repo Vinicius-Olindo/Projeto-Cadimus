@@ -111,6 +111,7 @@
 // ==========================================
 
 window.carregarLancamentos = carregarLancamentos;
+window.recarregarLancamentosAposMutacao = recarregarLancamentosAposMutacao;
 window.apagarLancamento = apagarLancamento;
 window.alternarStatusLancamento = alternarStatusLancamento;
 window.editarLancamento = editarLancamento;

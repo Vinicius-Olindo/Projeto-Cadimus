@@ -341,7 +341,7 @@ function configurarZonaDePerigo() {
         cacheComparativo6.clear();
         await mostrarAviso("Todos os dados financeiros foram apagados. As categorias voltaram ao padrão.");
         carregarListaCategorias();
-        carregarLancamentos();
+        await recarregarLancamentosAposMutacao();
       } else {
         const erro = await resposta.json();
         await mostrarAviso(`Erro: ${erro.erro}`);

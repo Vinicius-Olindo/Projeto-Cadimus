@@ -12,7 +12,7 @@ async function apagarLancamento(id) {
     if (tratarSessaoExpirada(resposta)) return;
 
     if (resposta.ok) {
-      carregarLancamentos();
+      await recarregarLancamentosAposMutacao();
       mostrarToast("Lançamento excluído", "info");
     } else {
       const erro = await resposta.json();

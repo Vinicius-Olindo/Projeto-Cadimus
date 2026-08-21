@@ -28,6 +28,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Lista de lançamentos recebeu redesign em cards compactos, com metadados, valor e ações mais bem agrupados.
 - Lista de lançamentos passou a exibir autor com avatar e nome, facilitando identificação em carteiras compartilhadas.
 - Linhas de lançamentos foram ajustadas para valores financeiros muito altos não deformarem chips, autor e ações.
+- Edições, exclusões, status, importações, transferências e rotinas financeiras agora invalidam caches dos gráficos antes de recarregar o dashboard.
 - Busca e filtros continuam funcionando antes da paginação.
 - Totais do dashboard continuam usando todos os lançamentos carregados, não apenas a página atual.
 

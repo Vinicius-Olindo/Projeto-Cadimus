@@ -150,7 +150,7 @@ function configurarModalRecorrencia() {
         modal.style.display = "none";
         liberarFoco();
         carregarPainelRecorrentes();
-        carregarLancamentos();
+        await recarregarLancamentosAposMutacao();
         mostrarToast(idEdicao ? "Recorrência atualizada" : "Recorrência criada");
       } else {
         const erro = await resposta.json();

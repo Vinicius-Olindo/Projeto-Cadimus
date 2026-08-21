@@ -271,7 +271,7 @@ async function executarImportacao() {
   if (erros > 0) msg += ` ${erros} falhou.`;
 
   mostrarToast(msg, importados > 0 ? "sucesso" : "erro", 3500);
-  if (importados > 0) carregarLancamentos();
+  if (importados > 0) await recarregarLancamentosAposMutacao();
 }
 
 // ==========================================

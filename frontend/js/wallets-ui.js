@@ -372,7 +372,7 @@ function configurarModalTransferencia() {
         modal.style.display = "none";
         liberarFoco();
         form.reset();
-        carregarLancamentos();
+        await recarregarLancamentosAposMutacao();
         mostrarToast("Transferência realizada com sucesso!");
       } else {
         const erro = await resposta.json();

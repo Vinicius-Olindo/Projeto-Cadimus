@@ -159,7 +159,7 @@ function configurarModal() {
 
       if (resposta.ok) {
         fecharModalLancamento();
-        carregarLancamentos();
+        await recarregarLancamentosAposMutacao();
         mostrarToast(idEdicao ? "Lançamento atualizado" : "Lançamento salvo");
       } else {
         const erro = await resposta.json();

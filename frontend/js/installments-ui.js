@@ -140,7 +140,7 @@ function configurarModalComprasParceladas() {
         modal.style.display = "none";
         liberarFoco();
         carregarPainelComprasParceladas();
-        carregarLancamentos();
+        await recarregarLancamentosAposMutacao();
         mostrarToast("Compra parcelada criada");
       } else {
         const erro = await resposta.json();

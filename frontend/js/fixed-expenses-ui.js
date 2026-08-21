@@ -110,7 +110,7 @@ function configurarModalDespesasFixas() {
       if (resposta.ok) {
         fecharModalDespesaFixa();
         carregarPainelDespesasFixas();
-        carregarLancamentos();
+        await recarregarLancamentosAposMutacao();
         mostrarToast(idEdicao ? "Despesa fixa atualizada" : "Despesa fixa criada");
       } else {
         const erro = await resposta.json();

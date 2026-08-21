@@ -11,6 +11,16 @@ let ultimaRequisicaoLancamentos = 0;
 let ultimoLoteLancamentos = [];
 let termoBuscaAtual = "";
 
+function invalidarCachesDashboardFinanceiro() {
+  if (typeof cacheTendencia !== "undefined" && cacheTendencia?.clear) cacheTendencia.clear();
+  if (typeof cacheComparativo6 !== "undefined" && cacheComparativo6?.clear) cacheComparativo6.clear();
+}
+
+async function recarregarLancamentosAposMutacao() {
+  invalidarCachesDashboardFinanceiro();
+  await carregarLancamentos();
+}
+
 function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, totalPendente = 0, saldoCalculado = 0 } = {}) {
   const receitasDesc = document.getElementById("receitas-desc");
   const despesasDesc = document.getElementById("despesas-desc");
