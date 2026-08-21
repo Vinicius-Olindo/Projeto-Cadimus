@@ -11,9 +11,10 @@ let ultimaRequisicaoLancamentos = 0;
 let ultimoLoteLancamentos = [];
 let termoBuscaAtual = "";
 
-function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, saldoCalculado = 0 } = {}) {
+function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, totalPendente = 0, saldoCalculado = 0 } = {}) {
   const receitasDesc = document.getElementById("receitas-desc");
   const despesasDesc = document.getElementById("despesas-desc");
+  const pendenteDesc = document.getElementById("pendente-desc");
   const saldoDesc = document.getElementById("saldo-desc");
 
   if (receitasDesc) {
@@ -26,6 +27,12 @@ function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, saldo
     despesasDesc.textContent = totalDespesas > 0
       ? "Saídas pagas neste período."
       : "Nenhuma saída paga no período.";
+  }
+
+  if (pendenteDesc) {
+    pendenteDesc.textContent = totalPendente > 0
+      ? "Compromissos pendentes neste período."
+      : "Nenhum compromisso pendente.";
   }
 
   if (saldoDesc) {
@@ -160,7 +167,7 @@ async function carregarLancamentos() {
 
     animarValorMonetario(document.getElementById("total-receitas"), totalReceitas);
     animarValorMonetario(document.getElementById("total-despesas"), totalDespesas);
-    atualizarDescricoesResumo({ totalReceitas, totalDespesas, saldoCalculado });
+    atualizarDescricoesResumo({ totalReceitas, totalDespesas, totalPendente, saldoCalculado });
 
     const elementoPendente = document.getElementById("resumo-pendente-item");
     if (elementoPendente) {
