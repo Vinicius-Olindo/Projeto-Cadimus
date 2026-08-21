@@ -39,6 +39,14 @@ function renderizarResumoCategorias(totaisPorCategoria) {
 
   if (donutEl) {
     donutEl.style.background = `conic-gradient(${conicParts.join(", ")})`;
+    donutEl.title = `Total de despesas: ${formatadorBRL.format(totalDespesas)}`;
+    donutEl.setAttribute("aria-label", `Total de despesas por categoria: ${formatadorBRL.format(totalDespesas)}`);
+    donutEl.innerHTML = `
+      <span class="grafico-donut-total">
+        <small>Total</small>
+        <strong>${formatadorBRL.format(totalDespesas)}</strong>
+      </span>
+    `;
   }
 
   if (legendaEl) {
@@ -51,7 +59,10 @@ function renderizarResumoCategorias(totaisPorCategoria) {
       item.innerHTML = `
         <span class="grafico-legenda-cor" style="background:${cor}"></span>
         <span class="grafico-legenda-nome">${escaparHtml(cat)}</span>
-        <span class="grafico-legenda-valor">${pct}%</span>
+        <span class="grafico-legenda-valores">
+          <strong>${pct}%</strong>
+          <small>${formatadorBRL.format(valor)}</small>
+        </span>
       `;
       legendaEl.appendChild(item);
     });

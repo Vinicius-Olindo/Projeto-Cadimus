@@ -10,6 +10,25 @@ const cacheTendencia = new Map();
 let ultimaRequisicaoTendencia = 0;
 const NOMES_MESES_ABREV = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
+function calcularEscalaGrafico(valorMaximo) {
+  if (valorMaximo <= 0) return 1;
+  const potencia = Math.pow(10, Math.floor(Math.log10(valorMaximo)));
+  const normalizado = valorMaximo / potencia;
+  const fator = normalizado <= 1 ? 1 : normalizado <= 2 ? 2 : normalizado <= 5 ? 5 : 10;
+  return fator * potencia;
+}
+
+function percentualVisual(valor, maximo, minimo = 7) {
+  if (valor <= 0) return 0;
+  return Math.max(minimo, Math.round((valor / maximo) * 100));
+}
+
+function abreviarValorGrafico(valor) {
+  if (valor >= 1000000) return `${formatadorBRL.format(valor / 1000000)} mi`;
+  if (valor >= 1000) return `${formatadorBRL.format(valor / 1000)} mil`;
+  return formatadorBRL.format(valor);
+}
+
 async function carregarTendencia() {
   const carteiraId = document.getElementById("seletor-carteira").value;
   const campoMes = document.getElementById("filtro-mes");
@@ -42,11 +61,11 @@ async function carregarTendencia() {
         const dadosMes = await resposta.json();
         const receitas = dadosMes.filter((l) => l.tipo === "receita" && l.status === "pago").reduce((soma, l) => soma + valorMonetario(l), 0);
         const despesas = dadosMes.filter((l) => l.tipo === "despesa" && l.status === "pago").reduce((soma, l) => soma + valorMonetario(l), 0);
-        const total = { receitas, despesas };
+        const total = { receitas, despesas, saldo: receitas - despesas };
         cacheTendencia.set(chave, total);
         return total;
       } catch {
-        return { receitas: 0, despesas: 0 };
+        return { receitas: 0, despesas: 0, saldo: 0 };
       }
     }),
   );
@@ -61,7 +80,7 @@ function renderizarTendencia(meses, dados, mesAtualIdx, anoAtual) {
   const container = document.getElementById("grafico-tendencia");
   if (!card || !container) return;
 
-  const algumValor = dados.some((d) => d.receitas > 0 || d.despesas > 0);
+  const algumValor = dados.some((d) => Math.abs(d.saldo || 0) > 0 || d.despesas > 0);
   if (!algumValor) {
     card.style.display = "none";
     return;
@@ -70,11 +89,12 @@ function renderizarTendencia(meses, dados, mesAtualIdx, anoAtual) {
   card.style.display = "flex";
   container.innerHTML = "";
 
-  const todosValores = dados.flatMap((d) => [d.receitas, d.despesas]);
-  const maior = Math.max(...todosValores, 1);
+  const saldosGrafico = dados.map((d) => Math.max(d.saldo || 0, 0));
+  const todosValores = dados.flatMap((d, i) => [saldosGrafico[i], d.despesas]);
+  const maior = calcularEscalaGrafico(Math.max(...todosValores, 1));
 
   const svgNS = "http://www.w3.org/2000/svg";
-  const W = 280, H = 120, PAD_X = 30, PAD_Y = 10;
+  const W = 300, H = 142, PAD_X = 44, PAD_Y = 18;
   const plotW = W - PAD_X * 2;
   const plotH = H - PAD_Y * 2;
 
@@ -85,6 +105,7 @@ function renderizarTendencia(meses, dados, mesAtualIdx, anoAtual) {
   const gridGroup = document.createElementNS(svgNS, "g");
   for (let i = 0; i <= 4; i++) {
     const y = PAD_Y + (plotH / 4) * i;
+    const valorGrade = maior - (maior / 4) * i;
     const line = document.createElementNS(svgNS, "line");
     line.setAttribute("x1", PAD_X);
     line.setAttribute("y1", y);
@@ -92,6 +113,14 @@ function renderizarTendencia(meses, dados, mesAtualIdx, anoAtual) {
     line.setAttribute("y2", y);
     line.setAttribute("class", "tendencia-grid-line");
     gridGroup.appendChild(line);
+
+    const label = document.createElementNS(svgNS, "text");
+    label.setAttribute("x", PAD_X - 8);
+    label.setAttribute("y", y + 3);
+    label.setAttribute("class", "tendencia-grid-label");
+    label.setAttribute("text-anchor", "end");
+    label.textContent = valorGrade === 0 ? "0" : abreviarValorGrafico(valorGrade);
+    gridGroup.appendChild(label);
   }
   svg.appendChild(gridGroup);
 
@@ -103,7 +132,7 @@ function renderizarTendencia(meses, dados, mesAtualIdx, anoAtual) {
     }).join(" ");
   }
 
-  function addLine(values, cssClass) {
+  function addLine(values, cssClass, label) {
     if (values.every((v) => v === 0)) return;
     const path = document.createElementNS(svgNS, "path");
     path.setAttribute("d", buildPath(values));
@@ -122,13 +151,25 @@ function renderizarTendencia(meses, dados, mesAtualIdx, anoAtual) {
       svg.appendChild(circle);
 
       const title = document.createElementNS(svgNS, "title");
-      title.textContent = formatadorBRL.format(v);
+      title.textContent = `${label} em ${NOMES_MESES_ABREV[meses[i].mes]}: ${formatadorBRL.format(v)}`;
       circle.appendChild(title);
+
+      const ehUltimo = i === values.length - 1;
+      const ehPico = v === Math.max(...values);
+      if (ehUltimo || ehPico) {
+        const texto = document.createElementNS(svgNS, "text");
+        texto.setAttribute("x", cx);
+        texto.setAttribute("y", Math.max(10, cy - 8));
+        texto.setAttribute("class", `tendencia-value-label ${cssClass}`);
+        texto.setAttribute("text-anchor", i >= values.length - 2 ? "end" : "middle");
+        texto.textContent = abreviarValorGrafico(v);
+        svg.appendChild(texto);
+      }
     });
   }
 
-  addLine(dados.map((d) => d.receitas), "tendencia-receita");
-  addLine(dados.map((d) => d.despesas), "tendencia-despesa");
+  addLine(saldosGrafico, "tendencia-receita", "Saldo");
+  addLine(dados.map((d) => d.despesas), "tendencia-despesa", "Despesas");
 
   container.appendChild(svg);
 
@@ -182,11 +223,11 @@ async function carregarComparativo6Meses() {
           if (l.tipo === "receita") receitas += valor;
           else despesas += valor;
         });
-        const resultado = { receitas, despesas };
+        const resultado = { receitas, despesas, saldo: receitas - despesas };
         cacheComparativo6.set(chave, resultado);
         return resultado;
       } catch {
-        return { receitas: 0, despesas: 0 };
+        return { receitas: 0, despesas: 0, saldo: 0 };
       }
     }),
   );
@@ -200,7 +241,7 @@ function renderizarComparativo6Meses(meses, dados, mesAtualIdx, anoAtual) {
   const container = document.getElementById("grafico-comparativo");
   if (!card || !container) return;
 
-  const algumValor = dados.some((d) => d.receitas > 0 || d.despesas > 0);
+  const algumValor = dados.some((d) => Math.abs(d.saldo || 0) > 0 || d.despesas > 0);
   if (!algumValor) {
     card.style.display = "none";
     return;
@@ -209,22 +250,26 @@ function renderizarComparativo6Meses(meses, dados, mesAtualIdx, anoAtual) {
   card.style.display = "flex";
   container.innerHTML = "";
 
-  const maiorValor = Math.max(...dados.map((d) => Math.max(d.receitas, d.despesas)), 1);
+  const maiorValor = calcularEscalaGrafico(Math.max(...dados.map((d) => Math.max(Math.max(d.saldo || 0, 0), d.despesas)), 1));
 
   const barrasContainer = document.createElement("div");
   barrasContainer.className = "comparativo-barras-container";
 
   meses.forEach(({ ano, mes }, i) => {
-    const alturaRec = Math.round((dados[i].receitas / maiorValor) * 100);
-    const alturaDesp = Math.round((dados[i].despesas / maiorValor) * 100);
+    const saldoVisual = Math.max(dados[i].saldo || 0, 0);
+    const alturaRec = percentualVisual(saldoVisual, maiorValor);
+    const alturaDesp = percentualVisual(dados[i].despesas, maiorValor);
     const ehMesAtual = mes === mesAtualIdx && ano === anoAtual;
+    const saldoFormatado = formatadorBRL.format(dados[i].saldo || 0);
+    const despesasFormatadas = formatadorBRL.format(dados[i].despesas);
 
     const coluna = document.createElement("div");
     coluna.className = "comparativo-coluna";
     coluna.innerHTML = `
+      <span class="comparativo-valor-mes">${abreviarValorGrafico(Math.max(saldoVisual, dados[i].despesas))}</span>
       <div class="comparativo-barras">
-        <div class="comparativo-barra comparativo-barra-receita ${ehMesAtual ? "comparativo-barra-atual" : ""}" data-altura="${alturaRec}" title="Saldo: ${formatadorBRL.format(dados[i].receitas)}"></div>
-        <div class="comparativo-barra comparativo-barra-despesa ${ehMesAtual ? "comparativo-barra-atual" : ""}" data-altura="${alturaDesp}" title="Despesas: ${formatadorBRL.format(dados[i].despesas)}"></div>
+        <div class="comparativo-barra comparativo-barra-receita ${ehMesAtual ? "comparativo-barra-atual" : ""}" data-altura="${alturaRec}" title="Saldo em ${NOMES_MESES_ABREV[mes]}: ${saldoFormatado}" aria-label="Saldo em ${NOMES_MESES_ABREV[mes]}: ${saldoFormatado}"></div>
+        <div class="comparativo-barra comparativo-barra-despesa ${ehMesAtual ? "comparativo-barra-atual" : ""}" data-altura="${alturaDesp}" title="Despesas em ${NOMES_MESES_ABREV[mes]}: ${despesasFormatadas}" aria-label="Despesas em ${NOMES_MESES_ABREV[mes]}: ${despesasFormatadas}"></div>
       </div>
       <span class="comparativo-rotulo">${NOMES_MESES_ABREV[mes]}</span>
     `;
