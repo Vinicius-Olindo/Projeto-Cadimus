@@ -26,6 +26,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Usuário pode escolher 10, 20, 30 ou 50 lançamentos por página, com preferência salva no navegador.
 - Agrupamentos genéricos foram trocados por data real, mantendo `Hoje` e `Ontem` como atalhos de leitura.
 - Lista de lançamentos recebeu redesign em cards compactos, com metadados, valor e ações mais bem agrupados.
+- Lista de lançamentos passou a exibir autor com avatar e nome, facilitando identificação em carteiras compartilhadas.
 - Busca e filtros continuam funcionando antes da paginação.
 - Totais do dashboard continuam usando todos os lançamentos carregados, não apenas a página atual.
 

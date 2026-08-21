@@ -53,9 +53,16 @@ function criarLinhaLancamento(lancamento) {
   const inicialAutor = nomeAutor.charAt(0).toUpperCase();
   const corAutor = corDoAutor(nomeAutor);
   const fotoAutorSegura = sanitizarUrl(lancamento.criado_por_foto);
-  const carimboAutorHtml = fotoAutorSegura
-    ? `<img class="carimbo-autor carimbo-autor-foto" src="${fotoAutorSegura}" alt="" title="Lançado por ${escaparHtml(nomeAutor)}" />`
-    : `<span class="carimbo-autor" style="--cor-autor: ${corAutor}" title="Lançado por ${escaparHtml(nomeAutor)}">${inicialAutor}</span>`;
+  const nomeAutorSeguro = escaparHtml(nomeAutor);
+  const avatarAutorHtml = fotoAutorSegura
+    ? `<img class="carimbo-autor carimbo-autor-foto" src="${fotoAutorSegura}" alt="" />`
+    : `<span class="carimbo-autor" style="--cor-autor: ${corAutor}">${inicialAutor}</span>`;
+  const carimboAutorHtml = `
+    <span class="carimbo-autor-chip" title="Lançado por ${nomeAutorSeguro}" aria-label="Lançado por ${nomeAutorSeguro}">
+      ${avatarAutorHtml}
+      <span class="carimbo-autor-nome">${nomeAutorSeguro}</span>
+    </span>
+  `;
   const tipoTexto = lancamento.tipo === "receita" ? "Receita" : "Despesa";
 
   // Só quem criou o lançamento (ou um admin) pode editar/excluir — o backend também garante isso,

@@ -38,7 +38,7 @@ Ambientes:
 - Gráficos de evolução mensal e saldo vs despesas usam saldo real, despesas e escala clara.
 - Modo "Layout" permite arrastar cards analíticos, salvar ordem e restaurar padrão.
 - Lista de lancamentos mostra valor, status, autor, filtros e agrupamentos por data real corretamente.
-- Lista de lancamentos mantém leitura clara em desktop/mobile, com valor, status e ações agrupados.
+- Lista de lancamentos mantém leitura clara em desktop/mobile, com valor, status, autor com foto/nome e ações agrupados.
 - Paginação de lançamentos mostra 20 itens por padrão, permite 10/20/30/50 por página, exibe contador correto e volta para página 1 ao alterar busca/filtros.
 - Transferencias aparecem nas carteiras de origem e destino sem duplicar saldo.
 - Orcamentos comparam gasto e limite usando centavos como fonte.

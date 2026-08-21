@@ -2417,6 +2417,19 @@ button.item-status:active {
   transform: scale(0.96);
 }
 
+.carimbo-autor-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 150px;
+  min-width: 0;
+  padding: 3px 8px 3px 3px;
+  border-radius: 999px;
+  color: var(--cor-texto);
+  background: color-mix(in srgb, var(--cor-pauta-fraca) 50%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent);
+}
+
 .carimbo-autor {
   flex: 0 0 auto;
   width: 22px;
@@ -2432,6 +2445,16 @@ button.item-status:active {
   background: color-mix(in srgb, var(--cor-autor) 18%, transparent);
   border: 1px solid color-mix(in srgb, var(--cor-autor) 45%, transparent);
   cursor: default;
+}
+
+.carimbo-autor-nome {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  color: var(--cor-texto);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1;
 }
 
 .carimbo-autor-foto {
@@ -4222,6 +4245,12 @@ textarea::placeholder {
   .item-chips {
     justify-content: flex-start;
     gap: 6px;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .carimbo-autor-chip {
+    max-width: min(150px, 46vw);
   }
 
   .item-valor-acoes {
