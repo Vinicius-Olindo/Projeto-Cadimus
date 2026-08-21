@@ -99,12 +99,16 @@ button {
 }
 
 .header-logo-wrapper img {
-  height: 26px;
-  filter: invert(1) brightness(1.4);
-}
-
-.dark-mode .header-logo-wrapper img {
-  filter: invert(1) brightness(1.2);
+  width: 28px;
+  height: 28px;
+  box-sizing: border-box;
+  object-fit: contain;
+  border-radius: 50%;
+  background: #fff;
+  padding: 2px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent),
+    0 4px 10px color-mix(in srgb, #000 10%, transparent);
 }
 
 .header-logo-wrapper span {
@@ -2638,6 +2642,10 @@ button.item-status:active {
 .login-logo-wrapper img {
   height: 72px;
   width: auto;
+  border-radius: 18px;
+  background: #fff;
+  padding: 4px;
+  box-shadow: 0 0 0 1px color-mix(in srgb, var(--cor-pauta-forte) 65%, transparent);
 }
 
 .login-logo-wrapper .login-logo-texto {
@@ -2646,15 +2654,6 @@ button.item-status:active {
   font-size: 2.2rem;
   color: var(--cor-texto);
   letter-spacing: -0.5px;
-}
-
-.login-logo-wrapper img {
-  height: 72px;
-  width: auto;
-}
-
-.dark-mode .login-logo-wrapper img {
-  filter: invert(1) brightness(1.4);
 }
 
 .login-box .subtitulo {

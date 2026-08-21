@@ -41,6 +41,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Cards principais de receitas, despesas e saldo do período ganharam descrições curtas de contexto.
 - Card "A pagar" ganhou descrição curta de contexto para compromissos pendentes.
 - Card "Saúde financeira" foi simplificado com diagnóstico curto e pílulas dos principais critérios, mantendo a fórmula do score; textos das pílulas foram padronizados em branco para melhorar contraste.
+- Logo do header/login deixou de usar filtro invertido e passou a ser exibida como selo com fundo consistente nos temas claro e escuro.
 
 ### Notificações
 
