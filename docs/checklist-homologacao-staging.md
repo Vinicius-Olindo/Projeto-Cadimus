@@ -33,6 +33,7 @@ Ambientes:
 - Campos de valores financeiros exibem e salvam valores no padrão brasileiro `R$ 0,00`.
 - Valores financeiros altos não devem ser cortados nos cards do dashboard nem na lista de lançamentos.
 - Gráficos do dashboard exibem valores legíveis no modo claro/escuro.
+- Card "Para onde foi o dinheiro" exibe donut, maior categoria e ranking sem excesso visual.
 - Gráfico de evolução mensal usa saldo real e despesas com escala clara.
 - Modo "Layout" permite arrastar cards analíticos, salvar ordem e restaurar padrão.
 - Lista de lancamentos mostra valor, status, autor, filtros e agrupamentos por data real corretamente.

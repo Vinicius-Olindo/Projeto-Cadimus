@@ -31,6 +31,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 
 - Gráficos receberam melhorias de leitura e contraste.
 - Donut de categorias mostra total e valores por categoria.
+- Card "Para onde foi o dinheiro" recebeu redesign com donut mais limpo, maior categoria destacada e ranking por percentual/valor.
 - Evolução mensal usa saldo real (`receitas - despesas`) vs despesas.
 - Barras e linhas receberam escala visual mais clara.
 - Cards analíticos da coluna direita ganharam modo de edição de layout com drag-and-drop local.

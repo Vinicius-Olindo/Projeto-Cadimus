@@ -27,6 +27,8 @@ function renderizarResumoCategorias(totaisPorCategoria) {
 
   const cores = ["#4caf50","#2196f3","#ff9800","#e91e63","#9c27b0","#00bcd4","#f44336","#607d8b","#795548","#cddc39"];
   const totalDespesas = categorias.reduce((soma, [, v]) => soma + v, 0);
+  const maiorCategoria = categorias[0];
+  const percentualMaior = Math.round((maiorCategoria[1] / totalDespesas) * 100);
 
   let conicParts = [];
   let accum = 0;
@@ -43,15 +45,20 @@ function renderizarResumoCategorias(totaisPorCategoria) {
     donutEl.setAttribute("aria-label", `Total de despesas por categoria: ${formatadorBRL.format(totalDespesas)}`);
     donutEl.innerHTML = `
       <span class="grafico-donut-total">
-        <small>Total</small>
-        <strong>${formatadorBRL.format(totalDespesas)}</strong>
+        <small>Maior gasto</small>
+        <strong>${percentualMaior}%</strong>
+        <em>${escaparHtml(maiorCategoria[0])}</em>
       </span>
     `;
   }
 
   if (legendaEl) {
     legendaEl.innerHTML = "";
-    categorias.forEach(([cat, valor], i) => {
+    const itensLegenda = categorias.slice(0, 5);
+    const restanteLegenda = categorias.slice(5).reduce((soma, [, valor]) => soma + valor, 0);
+    if (restanteLegenda > 0) itensLegenda.push(["Outras", restanteLegenda]);
+
+    itensLegenda.forEach(([cat, valor], i) => {
       const cor = cores[i % cores.length];
       const pct = ((valor / totalDespesas) * 100).toFixed(1);
       const item = document.createElement("div");
@@ -76,9 +83,11 @@ function renderizarResumoCategorias(totaisPorCategoria) {
 
   const linhas = restante > 0 ? [...principais, ["Outras", restante]] : principais;
 
-  linhas.forEach(([categoria, valor]) => {
+  linhas.forEach(([categoria, valor], indice) => {
     const meta = categoria !== "Outras" ? obterMetaPorCategoria(categoria) : null;
     const valorFormatado = formatadorBRL.format(valor);
+    const percentualTotal = ((valor / totalDespesas) * 100).toFixed(1);
+    const cor = categoria === "Outras" ? "var(--cor-texto-suave)" : cores[indice % cores.length];
 
     let percentualLargura;
     let classeCor = "";
@@ -102,14 +111,17 @@ function renderizarResumoCategorias(totaisPorCategoria) {
     linha.className = "categoria-barra-linha";
     linha.innerHTML = `
       <div class="categoria-barra-topo">
-        <strong class="${categoria !== "Outras" ? "categoria-barra-nome" : ""} ${meta ? "barra-meta-clicavel" : ""}" data-categoria="${escaparHtml(categoria)}" data-meta="${meta ? valorMonetario(meta, "valor_limite") : ""}" data-datalimite="${meta?.data_limite || ""}">
-          ${escaparHtml(categoria)} ${iconeMeta}
-        </strong>
-        <span class="categoria-barra-valor">${textoValor}</span>
+        <span class="categoria-barra-identidade">
+          <span class="categoria-barra-cor" style="background:${cor}"></span>
+          <strong class="${categoria !== "Outras" ? "categoria-barra-nome" : ""} ${meta ? "barra-meta-clicavel" : ""}" data-categoria="${escaparHtml(categoria)}" data-meta="${meta ? valorMonetario(meta, "valor_limite") : ""}" data-datalimite="${meta?.data_limite || ""}">
+            ${escaparHtml(categoria)} ${iconeMeta}
+          </strong>
+        </span>
+        <span class="categoria-barra-valor"><strong>${percentualTotal}%</strong><small>${textoValor}</small></span>
         ${meta && meta.data_limite && meta.falta > 0 ? `<span class="badge-semana">~${formatadorBRL.format(valorMonetario(meta, "guarda_semanal"))}/sem.</span>` : ""}
       </div>
       <div class="categoria-barra-trilho ${meta ? "barra-meta-clicavel" : ""}" data-categoria="${escaparHtml(categoria)}" data-meta="${meta ? valorMonetario(meta, "valor_limite") : ""}">
-        <div class="categoria-barra-preenchimento ${classeCor}" data-largura="${percentualLargura}"></div>
+        <div class="categoria-barra-preenchimento ${classeCor}" data-largura="${percentualLargura}" style="--categoria-cor:${cor}"></div>
       </div>
     `;
     container.appendChild(linha);
