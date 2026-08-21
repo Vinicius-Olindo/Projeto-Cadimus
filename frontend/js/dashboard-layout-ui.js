@@ -17,6 +17,7 @@ const DASHBOARD_LAYOUT_CARDS = [
 
 let dashboardLayoutEditando = false;
 let dashboardLayoutCardArrastado = null;
+let dashboardLayoutOrdemAntesEdicao = [];
 const DASHBOARD_LAYOUT_BANNER_ID = "dashboard-layout-banner";
 
 function obterChaveLayoutDashboard() {
@@ -37,6 +38,37 @@ function obterCardsLayoutDashboard() {
     .filter(Boolean);
 }
 
+function obterOrdemAtualLayoutDashboard() {
+  const container = obterContainerLayoutDashboard();
+  if (!container) return [];
+  return Array.from(container.children)
+    .map((el) => el.id)
+    .filter((id) => DASHBOARD_LAYOUT_CARDS.includes(id));
+}
+
+function aplicarOrdemLayoutDashboard(ordem) {
+  const container = obterContainerLayoutDashboard();
+  if (!container || !Array.isArray(ordem)) return;
+  const idsAplicados = new Set();
+
+  ordem
+    .filter((id) => DASHBOARD_LAYOUT_CARDS.includes(id))
+    .forEach((id) => {
+      const card = document.getElementById(id);
+      if (card && card.parentElement === container) {
+        container.appendChild(card);
+        idsAplicados.add(id);
+      }
+    });
+
+  DASHBOARD_LAYOUT_CARDS
+    .filter((id) => !idsAplicados.has(id))
+    .forEach((id) => {
+      const card = document.getElementById(id);
+      if (card && card.parentElement === container) container.appendChild(card);
+    });
+}
+
 function obterOuCriarBannerLayoutDashboard(container) {
   let banner = document.getElementById(DASHBOARD_LAYOUT_BANNER_ID);
   if (banner) return banner;
@@ -48,7 +80,7 @@ function obterOuCriarBannerLayoutDashboard(container) {
     <span class="dashboard-layout-banner-icone" aria-hidden="true">↕</span>
     <span class="dashboard-layout-banner-texto">
       <strong>Modo layout ativo</strong>
-      <small>Arraste os cards para reorganizar. Clique em Salvar layout ao finalizar.</small>
+      <small>Arraste ou use ↑/↓ para reorganizar. Clique em Salvar layout ao finalizar.</small>
     </span>
   `;
   container.prepend(banner);
@@ -78,14 +110,8 @@ function aplicarLayoutDashboardSalvo() {
 }
 
 function salvarLayoutDashboard() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return;
-
-  const ordem = Array.from(container.children)
-    .map((el) => el.id)
-    .filter((id) => DASHBOARD_LAYOUT_CARDS.includes(id));
-
-  gravarLocalStorageSeguro(obterChaveLayoutDashboard(), JSON.stringify(ordem));
+  gravarLocalStorageSeguro(obterChaveLayoutDashboard(), JSON.stringify(obterOrdemAtualLayoutDashboard()));
+  dashboardLayoutOrdemAntesEdicao = [];
   mostrarToast("Layout do dashboard salvo", "sucesso");
 }
 
@@ -93,17 +119,62 @@ function resetarLayoutDashboard() {
   const container = obterContainerLayoutDashboard();
   if (!container) return;
 
-  removerLocalStorageSeguro(obterChaveLayoutDashboard());
-  DASHBOARD_LAYOUT_CARDS.forEach((id) => {
-    const card = document.getElementById(id);
-    if (card && card.parentElement === container) container.appendChild(card);
-  });
+  if (!dashboardLayoutEditando) removerLocalStorageSeguro(obterChaveLayoutDashboard());
+  aplicarOrdemLayoutDashboard(DASHBOARD_LAYOUT_CARDS);
+  atualizarControlesCardsLayoutDashboard();
 
-  mostrarToast("Layout padrão restaurado", "sucesso");
+  mostrarToast(dashboardLayoutEditando ? "Layout padrão aplicado. Clique em Salvar layout para confirmar." : "Layout padrão restaurado", "sucesso");
+}
+
+function removerControlesCardsLayoutDashboard() {
+  document.querySelectorAll(".dashboard-layout-card-acoes").forEach((acoes) => acoes.remove());
+}
+
+function moverCardLayoutDashboard(card, direcao) {
+  const container = obterContainerLayoutDashboard();
+  if (!container || !card) return;
+  const cardsVisiveis = obterCardsLayoutDashboard().filter((item) => item.offsetParent !== null);
+  const indice = cardsVisiveis.indexOf(card);
+  if (indice < 0) return;
+
+  const alvo = cardsVisiveis[indice + direcao];
+  if (!alvo) return;
+
+  if (direcao < 0) container.insertBefore(card, alvo);
+  else container.insertBefore(alvo, card);
+  atualizarControlesCardsLayoutDashboard();
+}
+
+function atualizarControlesCardsLayoutDashboard() {
+  if (!dashboardLayoutEditando) {
+    removerControlesCardsLayoutDashboard();
+    return;
+  }
+
+  const cardsVisiveis = obterCardsLayoutDashboard().filter((card) => card.offsetParent !== null);
+  cardsVisiveis.forEach((card, indice) => {
+    let acoes = card.querySelector(":scope > .dashboard-layout-card-acoes");
+    if (!acoes) {
+      acoes = document.createElement("div");
+      acoes.className = "dashboard-layout-card-acoes";
+      acoes.innerHTML = `
+        <button type="button" data-layout-mover="-1" title="Mover card para cima" aria-label="Mover card para cima">↑</button>
+        <button type="button" data-layout-mover="1" title="Mover card para baixo" aria-label="Mover card para baixo">↓</button>
+      `;
+      card.appendChild(acoes);
+    }
+
+    const btnSubir = acoes.querySelector('[data-layout-mover="-1"]');
+    const btnDescer = acoes.querySelector('[data-layout-mover="1"]');
+    if (btnSubir) btnSubir.disabled = indice === 0;
+    if (btnDescer) btnDescer.disabled = indice === cardsVisiveis.length - 1;
+  });
 }
 
 function atualizarEstadoModoLayoutDashboard() {
   const botao = document.getElementById("btn-editar-layout-dashboard");
+  const cancelar = document.getElementById("btn-cancelar-layout-dashboard");
+  const divisorCancelar = document.querySelector(".acoes-topo-divider-cancelar-layout");
   const container = obterContainerLayoutDashboard();
   if (!container || !botao) return;
   const label = botao.querySelector(".btn-topo-label");
@@ -113,6 +184,8 @@ function atualizarEstadoModoLayoutDashboard() {
   botao.setAttribute("aria-pressed", String(dashboardLayoutEditando));
   botao.title = dashboardLayoutEditando ? "Salvar layout do dashboard" : "Editar layout do dashboard";
   if (label) label.textContent = dashboardLayoutEditando ? "Salvar layout" : "Layout";
+  if (cancelar) cancelar.hidden = !dashboardLayoutEditando;
+  if (divisorCancelar) divisorCancelar.hidden = !dashboardLayoutEditando;
 
   const banner = dashboardLayoutEditando ? obterOuCriarBannerLayoutDashboard(container) : document.getElementById(DASHBOARD_LAYOUT_BANNER_ID);
   if (banner) banner.hidden = !dashboardLayoutEditando;
@@ -122,9 +195,11 @@ function atualizarEstadoModoLayoutDashboard() {
     card.classList.toggle("dashboard-card-editavel", dashboardLayoutEditando);
     card.setAttribute("aria-grabbed", String(dashboardLayoutEditando && card.classList.contains("arrastando")));
   });
+  atualizarControlesCardsLayoutDashboard();
 }
 
 function alternarModoLayoutDashboard() {
+  if (!dashboardLayoutEditando) dashboardLayoutOrdemAntesEdicao = obterOrdemAtualLayoutDashboard();
   dashboardLayoutEditando = !dashboardLayoutEditando;
   atualizarEstadoModoLayoutDashboard();
 
@@ -133,6 +208,15 @@ function alternarModoLayoutDashboard() {
   } else {
     salvarLayoutDashboard();
   }
+}
+
+function cancelarModoLayoutDashboard() {
+  if (!dashboardLayoutEditando) return;
+  aplicarOrdemLayoutDashboard(dashboardLayoutOrdemAntesEdicao);
+  dashboardLayoutOrdemAntesEdicao = [];
+  dashboardLayoutEditando = false;
+  atualizarEstadoModoLayoutDashboard();
+  mostrarToast("Edição de layout cancelada", "info");
 }
 
 function obterCardDepoisDoArraste(container, y) {
@@ -167,6 +251,7 @@ function configurarEventosLayoutDashboard() {
     dashboardLayoutCardArrastado?.classList.remove("arrastando");
     dashboardLayoutCardArrastado?.setAttribute("aria-grabbed", "false");
     dashboardLayoutCardArrastado = null;
+    atualizarControlesCardsLayoutDashboard();
   });
 
   container.addEventListener("dragover", (evento) => {
@@ -175,11 +260,21 @@ function configurarEventosLayoutDashboard() {
     const depois = obterCardDepoisDoArraste(container, evento.clientY);
     if (depois) container.insertBefore(dashboardLayoutCardArrastado, depois);
     else container.appendChild(dashboardLayoutCardArrastado);
+    atualizarControlesCardsLayoutDashboard();
+  });
+
+  container.addEventListener("click", (evento) => {
+    const botaoMover = evento.target.closest("[data-layout-mover]");
+    if (!dashboardLayoutEditando || !botaoMover) return;
+    evento.preventDefault();
+    evento.stopPropagation();
+    moverCardLayoutDashboard(botaoMover.closest(".dashboard-card-editavel"), Number(botaoMover.dataset.layoutMover));
   });
 }
 
 function configurarDashboardLayout() {
   const botao = document.getElementById("btn-editar-layout-dashboard");
+  const cancelar = document.getElementById("btn-cancelar-layout-dashboard");
   const resetar = document.getElementById("btn-resetar-layout-dashboard");
   const container = obterContainerLayoutDashboard();
   if (!botao || !container) return;
@@ -188,6 +283,7 @@ function configurarDashboardLayout() {
   configurarEventosLayoutDashboard();
 
   botao.addEventListener("click", alternarModoLayoutDashboard);
+  cancelar?.addEventListener("click", cancelarModoLayoutDashboard);
   resetar?.addEventListener("click", resetarLayoutDashboard);
   atualizarEstadoModoLayoutDashboard();
 }

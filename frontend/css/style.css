@@ -266,6 +266,7 @@ button:active {
 #btn-planejamento,
 #btn-notificacoes,
 #btn-editar-layout-dashboard,
+#btn-cancelar-layout-dashboard,
 #btn-resetar-layout-dashboard,
 #btn-voltar-dashboard,
 #btn-fechar-modal,
@@ -288,6 +289,7 @@ button:active {
 #btn-planejamento:hover,
 #btn-notificacoes:hover,
 #btn-editar-layout-dashboard:hover,
+#btn-cancelar-layout-dashboard:hover,
 #btn-resetar-layout-dashboard:hover,
 #btn-voltar-dashboard:hover,
 #btn-fechar-modal:hover,
@@ -1112,6 +1114,45 @@ button:active {
   pointer-events: none;
 }
 
+.dashboard-layout-card-acoes {
+  position: absolute;
+  top: 10px;
+  right: 46px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--cor-texto) 7%, transparent);
+}
+
+.dashboard-layout-card-acoes button {
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  border-radius: 999px;
+  border: none;
+  color: var(--cor-marca-forte);
+  background: transparent;
+  font-family: var(--fonte-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dashboard-layout-card-acoes button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--cor-marca) 12%, transparent);
+  transform: none;
+}
+
+.dashboard-layout-card-acoes button:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
 .dashboard-card-editavel.arrastando {
   cursor: grabbing;
   opacity: 0.62;
@@ -1136,6 +1177,16 @@ button:active {
 #btn-resetar-layout-dashboard:hover {
   background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
   color: var(--cor-marca-forte) !important;
+}
+
+.btn-cancelar-layout-dashboard {
+  width: 28px;
+  height: 28px;
+}
+
+#btn-cancelar-layout-dashboard:hover {
+  background: color-mix(in srgb, var(--cor-despesa) 10%, transparent);
+  color: var(--cor-despesa) !important;
 }
 
 .btn-resetar-layout-dashboard {
