@@ -30,6 +30,7 @@ async function carregarLancamentos() {
 
   container.innerHTML = "";
   container.appendChild(criarFeedbackCarregamento());
+  ocultarPaginacaoLancamentos();
 
   try {
     const inputMes = document.getElementById("filtro-mes").value;
@@ -64,6 +65,8 @@ async function carregarLancamentos() {
 
     if (dados.length === 0) {
       ultimoLoteLancamentos = [];
+      resetarPaginacaoLancamentos();
+      ocultarPaginacaoLancamentos();
       container.appendChild(criarAvisoListaVazia());
       animarValorMonetario(document.getElementById("total-receitas"), 0);
       animarValorMonetario(document.getElementById("total-despesas"), 0);
@@ -80,6 +83,7 @@ async function carregarLancamentos() {
     }
 
     ultimoLoteLancamentos = dados;
+    resetarPaginacaoLancamentos();
 
     let totalReceitas = 0;
     let totalDespesas = 0;
@@ -157,5 +161,6 @@ async function carregarLancamentos() {
     if (idDestaRequisicao !== ultimaRequisicaoLancamentos) return;
     console.error("Erro:", erro);
     container.innerHTML = '<p style="color: var(--cor-despesa); padding: 1rem;">Erro ao carregar os dados.</p>';
+    ocultarPaginacaoLancamentos();
   }
 }

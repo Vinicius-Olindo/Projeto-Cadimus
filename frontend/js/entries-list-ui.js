@@ -70,6 +70,56 @@ const ORDEM_GRUPOS = ["Hoje", "Ontem", "Esta semana", "Semana passada", "Este m�
 
 // --- RENDERIZA A LISTA (aplica o filtro de busca, se houver, sem afetar os totais do mês) ---
 let gruposRecolhidos = new Set();
+let paginaLancamentosAtual = 1;
+const LANCAMENTOS_POR_PAGINA = 20;
+
+function ocultarPaginacaoLancamentos() {
+  const paginacao = document.getElementById("lancamentos-paginacao");
+  if (paginacao) paginacao.innerHTML = "";
+}
+
+function renderizarPaginacaoLancamentos(totalItens) {
+  const paginacao = document.getElementById("lancamentos-paginacao");
+  if (!paginacao) return;
+
+  const totalPaginas = Math.ceil(totalItens / LANCAMENTOS_POR_PAGINA);
+  if (totalPaginas <= 1) {
+    paginacao.innerHTML = "";
+    return;
+  }
+
+  paginaLancamentosAtual = Math.min(Math.max(paginaLancamentosAtual, 1), totalPaginas);
+  const inicio = (paginaLancamentosAtual - 1) * LANCAMENTOS_POR_PAGINA + 1;
+  const fim = Math.min(paginaLancamentosAtual * LANCAMENTOS_POR_PAGINA, totalItens);
+
+  const botoes = [];
+  for (let pagina = 1; pagina <= totalPaginas; pagina++) {
+    if (totalPaginas > 7 && pagina > 3 && pagina < totalPaginas - 1 && Math.abs(pagina - paginaLancamentosAtual) > 1) {
+      if (pagina === 4 || pagina === totalPaginas - 2) botoes.push('<button type="button" disabled>…</button>');
+      continue;
+    }
+    botoes.push(`<button type="button" class="${pagina === paginaLancamentosAtual ? "ativo" : ""}" data-pagina="${pagina}" aria-label="Ir para página ${pagina}">${pagina}</button>`);
+  }
+
+  paginacao.innerHTML = `
+    <div class="lancamentos-paginacao-info">Mostrando ${inicio}-${fim} de ${totalItens}</div>
+    <div class="lancamentos-paginacao-botoes">
+      <button type="button" data-pagina="${paginaLancamentosAtual - 1}" ${paginaLancamentosAtual <= 1 ? "disabled" : ""} aria-label="Página anterior">‹</button>
+      ${botoes.join("")}
+      <button type="button" data-pagina="${paginaLancamentosAtual + 1}" ${paginaLancamentosAtual >= totalPaginas ? "disabled" : ""} aria-label="Próxima página">›</button>
+    </div>
+  `;
+}
+
+function irParaPaginaLancamentos(pagina) {
+  paginaLancamentosAtual = pagina;
+  renderizarListaLancamentos();
+  document.getElementById("lista-lancamentos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+}
+
+function resetarPaginacaoLancamentos() {
+  paginaLancamentosAtual = 1;
+}
 
 function renderizarListaLancamentos() {
   const container = document.getElementById("lista-lancamentos");
@@ -97,6 +147,7 @@ function renderizarListaLancamentos() {
   container.innerHTML = "";
 
   if (filtrados.length === 0) {
+    ocultarPaginacaoLancamentos();
     const temFiltro = termo || tipoFiltro || statusFiltro || categoriaFiltro;
     if (temFiltro) {
       container.appendChild(criarAvisoListaVazia("Nenhum lançamento encontrado com esses filtros.", "Limpar filtros", "limpar-filtros"));
@@ -106,8 +157,13 @@ function renderizarListaLancamentos() {
     return;
   }
 
+  const totalPaginas = Math.ceil(filtrados.length / LANCAMENTOS_POR_PAGINA);
+  paginaLancamentosAtual = Math.min(Math.max(paginaLancamentosAtual, 1), totalPaginas);
+  const inicioPagina = (paginaLancamentosAtual - 1) * LANCAMENTOS_POR_PAGINA;
+  const itensPagina = filtrados.slice(inicioPagina, inicioPagina + LANCAMENTOS_POR_PAGINA);
+
   const grupos = {};
-  filtrados.forEach((l) => {
+  itensPagina.forEach((l) => {
     const grupo = obterGrupoData(l.data_compra);
     if (!grupos[grupo]) grupos[grupo] = [];
     grupos[grupo].push(l);
@@ -144,6 +200,8 @@ function renderizarListaLancamentos() {
       itens.forEach((lancamento) => container.appendChild(criarLinhaLancamento(lancamento)));
     }
   });
+
+  renderizarPaginacaoLancamentos(filtrados.length);
 }
 
 function limparFiltros() {
@@ -158,6 +216,7 @@ function limparFiltros() {
   if (filtroCategoria) filtroCategoria.value = "";
 
   termoBuscaAtual = "";
+  resetarPaginacaoLancamentos();
   renderizarListaLancamentos();
 }
 
@@ -170,13 +229,19 @@ function configurarBuscaLancamentos() {
     clearTimeout(timeoutBusca);
     timeoutBusca = setTimeout(() => {
       termoBuscaAtual = evento.target.value;
+      resetarPaginacaoLancamentos();
       renderizarListaLancamentos();
     }, 250);
   });
 
   ["filtro-tipo", "filtro-status", "filtro-categoria-lancamento"].forEach((id) => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener("change", renderizarListaLancamentos);
+    if (el) {
+      el.addEventListener("change", () => {
+        resetarPaginacaoLancamentos();
+        renderizarListaLancamentos();
+      });
+    }
   });
 
   const containerLancamentos = document.getElementById("lista-lancamentos");
@@ -191,6 +256,15 @@ function configurarBuscaLancamentos() {
       else if (acao === "status") alternarStatusLancamento(id, alvo.dataset.statusAtual);
       else if (acao === "novo-lancamento") abrirModalNovoLancamento();
       else if (acao === "limpar-filtros") limparFiltros();
+    });
+  }
+
+  const paginacaoLancamentos = document.getElementById("lancamentos-paginacao");
+  if (paginacaoLancamentos) {
+    paginacaoLancamentos.addEventListener("click", (e) => {
+      const botao = e.target.closest("button[data-pagina]");
+      if (!botao || botao.disabled) return;
+      irParaPaginaLancamentos(Number(botao.dataset.pagina));
     });
   }
 }
