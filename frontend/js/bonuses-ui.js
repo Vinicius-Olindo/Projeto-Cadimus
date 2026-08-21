@@ -97,7 +97,8 @@ async function abrirModalBonificacao() {
   if (typeof abrirModalRecorrencia !== "function") return;
   await abrirModalRecorrencia({
     titulo: "Nova bonificação",
-    placeholderDescricao: "Ex: Bônus diário, comissão semanal...",
+    placeholderDescricao: "Ex: Bonificação diária, comissão semanal...",
+    contexto: "bonificacao",
     tipo: "receita",
     categoria: CATEGORIA_BONIFICACAO,
     frequencia: "mensal",

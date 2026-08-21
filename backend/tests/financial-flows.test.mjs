@@ -231,7 +231,7 @@ test("recorrências diárias geram bonificações de receita no mês", async () 
       match: "SELECT * FROM lancamentos_recorrentes WHERE ativo = 1",
       reply: () => [{
         id: 8,
-        descricao: "Bônus diário",
+        descricao: "Bonificação diária",
         valor: 20,
         valor_centavos: 2000,
         tipo: "receita",

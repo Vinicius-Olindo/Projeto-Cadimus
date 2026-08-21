@@ -62,6 +62,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Tela de configurações passou a aproveitar melhor telas largas, com lista de usuários em grid e detalhes separados por login, e-mail, criação e último acesso.
 - Card "Saldo do período" foi alinhado ao padrão visual dos demais indicadores e evita quebra do valor monetário.
 - Bonificações recorrentes ganharam card próprio no dashboard, atalho de cadastro e suporte a frequência diária.
+- Fluxo de bonificação foi travado como receita, com texto "Bonificação" no atalho e migration para frequência diária em recorrências.
 - Campos de valores financeiros passaram a exibir e aceitar o padrão brasileiro `R$ 0,00`.
 - Cards e linhas de lançamentos foram ajustados para acomodar valores financeiros muito altos sem cortar o texto.
 - Botões de layout do dashboard foram agrupados e padronizados com os demais controles do topo.

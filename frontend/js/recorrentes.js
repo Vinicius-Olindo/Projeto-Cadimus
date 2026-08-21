@@ -92,10 +92,12 @@ async function abrirModalRecorrencia(predefinicoes = {}) {
   document.getElementById("titulo-modal-recorrencia").innerText = predefinicoes.titulo || "Nova recorrência";
   document.getElementById("btn-salvar-recorrencia").innerText = "Adicionar";
   document.getElementById("form-recorrencia").reset();
+  document.getElementById("form-recorrencia").dataset.contexto = predefinicoes.contexto || "";
   document.getElementById("recorrencia-data-inicio").value = new Date().toISOString().slice(0, 10);
   document.getElementById("recorrencia-descricao").placeholder = predefinicoes.placeholderDescricao || "Ex: Academia";
   document.getElementById("recorrencia-tipo").value = predefinicoes.tipo || "despesa";
   document.getElementById("recorrencia-frequencia").value = predefinicoes.frequencia || "mensal";
+  document.getElementById("recorrencia-tipo").disabled = predefinicoes.contexto === "bonificacao";
 
   await popularSelectCategorias(document.getElementById("recorrencia-categoria"));
   if (predefinicoes.categoria) {
@@ -107,6 +109,8 @@ async function abrirModalRecorrencia(predefinicoes = {}) {
   }
 
   document.getElementById("recorrencia-frequencia").dispatchEvent(new Event("change"));
+  const campoTipo = document.getElementById("recorrencia-tipo")?.closest(".campo");
+  if (campoTipo) campoTipo.style.display = predefinicoes.contexto === "bonificacao" ? "none" : "";
   modal.style.display = "flex";
   trapFoco(modal);
 }
@@ -126,6 +130,8 @@ function configurarModalRecorrencia() {
 
   btnFechar.addEventListener("click", () => {
     modal.style.display = "none";
+    document.getElementById("recorrencia-tipo").disabled = false;
+    document.getElementById("form-recorrencia").dataset.contexto = "";
     liberarFoco();
   });
 
@@ -156,17 +162,19 @@ function configurarModalRecorrencia() {
 
     try {
       const valorCentavos = obterCentavosMonetarios("recorrencia-valor");
+      const categoria = document.getElementById("recorrencia-categoria").value;
+      const ehBonificacao = categoria.toLowerCase() === "bonificação" || form.dataset.contexto === "bonificacao";
       const corpo = {
         descricao: document.getElementById("recorrencia-descricao").value.trim(),
         valor: window.CadimusMoney.centavosParaReais(valorCentavos),
         valor_centavos: valorCentavos,
-        tipo: document.getElementById("recorrencia-tipo").value,
+        tipo: ehBonificacao ? "receita" : document.getElementById("recorrencia-tipo").value,
         frequencia,
         dia_semana: frequencia === "semanal" ? parseInt(document.getElementById("recorrencia-dia-semana").value) : null,
         dia_mes: ["mensal", "trimestral", "anual"].includes(frequencia) ? parseInt(document.getElementById("recorrencia-dia-mes").value) : null,
         data_inicio: document.getElementById("recorrencia-data-inicio").value,
         data_fim: document.getElementById("recorrencia-data-fim").value || null,
-        categoria: document.getElementById("recorrencia-categoria").value,
+        categoria,
         meio_pagamento: document.getElementById("recorrencia-meio-pagamento").value,
       };
       if (!idEdicao) corpo.carteira_id = carteiraId;
@@ -177,6 +185,8 @@ function configurarModalRecorrencia() {
 
       if (resposta.ok) {
         modal.style.display = "none";
+        document.getElementById("recorrencia-tipo").disabled = false;
+        form.dataset.contexto = "";
         liberarFoco();
         carregarPainelRecorrentes();
         await recarregarLancamentosAposMutacao();
@@ -209,9 +219,11 @@ async function editarRecorrencia(id) {
   adicionarOpcaoSelect(document.getElementById("recorrencia-categoria"), rec.categoria);
 
   document.getElementById("recorrencia-editando-id").value = rec.id;
+  document.getElementById("form-recorrencia").dataset.contexto = rec.categoria?.toLowerCase() === "bonificação" ? "bonificacao" : "";
   document.getElementById("recorrencia-descricao").value = rec.descricao;
   definirValorInputMonetario("recorrencia-valor", valorMonetario(rec));
   document.getElementById("recorrencia-tipo").value = rec.tipo;
+  document.getElementById("recorrencia-tipo").disabled = rec.categoria?.toLowerCase() === "bonificação";
   document.getElementById("recorrencia-frequencia").value = rec.frequencia;
   document.getElementById("recorrencia-dia-semana").value = rec.dia_semana || 0;
   document.getElementById("recorrencia-dia-mes").value = rec.dia_mes || 1;
@@ -223,6 +235,8 @@ async function editarRecorrencia(id) {
   // Ajusta campos de dia
   const selFrequencia = document.getElementById("recorrencia-frequencia");
   selFrequencia.dispatchEvent(new Event("change"));
+  const campoTipo = document.getElementById("recorrencia-tipo")?.closest(".campo");
+  if (campoTipo) campoTipo.style.display = rec.categoria?.toLowerCase() === "bonificação" ? "none" : "";
 
   document.getElementById("titulo-modal-recorrencia").innerText = `Editando "${rec.descricao}"`;
   document.getElementById("btn-salvar-recorrencia").innerText = "Salvar edição";

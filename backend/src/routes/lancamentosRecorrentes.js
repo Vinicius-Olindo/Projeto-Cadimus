@@ -70,7 +70,9 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       }
       const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
       const valor = centavosParaReais(valorCentavos);
-      const tipo = dados.tipo === "receita" ? "receita" : "despesa";
+      const categoria = String(dados.categoria || "").trim();
+      const ehBonificacao = categoria.toLowerCase() === "bonificação";
+      const tipo = ehBonificacao ? "receita" : dados.tipo === "receita" ? "receita" : "despesa";
       const frequencia = dados.frequencia;
       const dataInicio = dados.data_inicio;
 
@@ -86,7 +88,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       if (!dataInicio) {
         return new Response(JSON.stringify({ erro: "Informe a data de início." }), { status: 400 });
       }
-      if (!dados.categoria) {
+      if (!categoria) {
         return new Response(JSON.stringify({ erro: "Escolha uma categoria." }), { status: 400 });
       }
       if (!dados.meio_pagamento) {
@@ -106,7 +108,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
         .bind(
-          dados.carteira_id, descricao, valor, valorCentavos, tipo, dados.categoria, dados.meio_pagamento,
+          dados.carteira_id, descricao, valor, valorCentavos, tipo, categoria, dados.meio_pagamento,
           frequencia,
           frequencia === "semanal" ? (dados.dia_semana || 0) : null,
           ["mensal", "trimestral", "anual"].includes(frequencia) ? (dados.dia_mes || 1) : null,
@@ -152,8 +154,10 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
         campos.push("valor = ?"); valores.push(centavosParaReais(valorCentavos));
         campos.push("valor_centavos = ?"); valores.push(valorCentavos);
       }
-      if (dados.tipo !== undefined) { campos.push("tipo = ?"); valores.push(dados.tipo === "receita" ? "receita" : "despesa"); }
-      if (dados.categoria !== undefined) { campos.push("categoria = ?"); valores.push(dados.categoria); }
+      const categoriaAtualizada = dados.categoria !== undefined ? String(dados.categoria).trim() : null;
+      const ehBonificacao = categoriaAtualizada?.toLowerCase() === "bonificação";
+      if (dados.tipo !== undefined || ehBonificacao) { campos.push("tipo = ?"); valores.push(ehBonificacao ? "receita" : dados.tipo === "receita" ? "receita" : "despesa"); }
+      if (dados.categoria !== undefined) { campos.push("categoria = ?"); valores.push(categoriaAtualizada); }
       if (dados.meio_pagamento !== undefined) { campos.push("meio_pagamento = ?"); valores.push(dados.meio_pagamento); }
       if (dados.frequencia !== undefined) { campos.push("frequencia = ?"); valores.push(dados.frequencia); }
       if (dados.dia_semana !== undefined) { campos.push("dia_semana = ?"); valores.push(dados.dia_semana); }
