@@ -22,7 +22,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 ### Lançamentos
 
 - Lista de lançamentos ganhou paginação local.
-- Cada página mostra 20 lançamentos.
+- Cada página mostra 10 lançamentos.
 - Busca e filtros continuam funcionando antes da paginação.
 - Totais do dashboard continuam usando todos os lançamentos carregados, não apenas a página atual.
 

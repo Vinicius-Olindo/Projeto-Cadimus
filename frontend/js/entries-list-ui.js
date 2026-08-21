@@ -71,7 +71,7 @@ const ORDEM_GRUPOS = ["Hoje", "Ontem", "Esta semana", "Semana passada", "Este mÃ
 // --- RENDERIZA A LISTA (aplica o filtro de busca, se houver, sem afetar os totais do mÃªs) ---
 let gruposRecolhidos = new Set();
 let paginaLancamentosAtual = 1;
-const LANCAMENTOS_POR_PAGINA = 20;
+const LANCAMENTOS_POR_PAGINA = 10;
 
 function ocultarPaginacaoLancamentos() {
   const paginacao = document.getElementById("lancamentos-paginacao");

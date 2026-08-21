@@ -26,7 +26,7 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - Cadastro de receitas e despesas com data, categoria, descrição, valor e nota
 - Filtros avançados: tipo, status (pago/pendente/atrasado) e categoria (lógica AND)
 - Busca por descrição ou categoria
-- Paginação local da lista, com 20 lançamentos por página e contador de itens
+- Paginação local da lista, com 10 lançamentos por página e contador de itens
 - Agrupamento automático por período (Hoje, Ontem, Esta semana, Semana passada, Este mês, Mês passado, Mais antigo)
 - Colapso/expandir grupos de data
 - Edição em lote (até 50 lançamentos por vez)
