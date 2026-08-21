@@ -15,6 +15,34 @@ Ao criar ou alterar funcionalidades:
 - formatação e utilitários compartilhados ficam em arquivos de utilidade, como `money-utils.js`, `money-ui.js` e `ui-formatters.js`;
 - o `main.js` recebe no máximo comentários de localização ou exportações globais realmente necessárias.
 
+## Módulos atuais
+
+O frontend está dividido por domínio:
+
+- `*-api.js`: comunicação com backend;
+- `*-ui.js`: renderização, eventos e fluxos de interface;
+- `money-utils.js` e `money-ui.js`: conversão e payload monetário;
+- `ui-core.js`: inicialização, tema, filtros base e helpers visuais;
+- `main.js`: mapa central e pequenas exportações globais.
+
+## Cache de assets
+
+Quando qualquer arquivo carregado por `frontend/index.html` mudar, atualizar o parâmetro `?v=` correspondente para forçar a staging a buscar a versão nova.
+
+Referência atual:
+
+- CSS principal: `css/style.css?v=12`;
+- scripts principais: `js/*.js?v=65`.
+
+## Paginação de lançamentos
+
+A lista de lançamentos usa paginação local no frontend.
+
+- O backend ainda carrega o lote do mês/período selecionado.
+- A UI exibe 20 lançamentos por página.
+- Busca e filtros continuam aplicados antes da paginação.
+- Totais do dashboard continuam calculados sobre o lote completo, não apenas sobre a página visível.
+
 ## Próxima evolução possível
 
 Quando o frontend estiver mais estável, a próxima melhoria estrutural pode ser migrar gradualmente para módulos ES (`import`/`export`) ou para um empacotador como Vite. Até lá, manter o `main.js` como mapa central reduz risco e facilita manutenção.

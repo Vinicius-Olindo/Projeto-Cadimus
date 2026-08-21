@@ -1,0 +1,59 @@
+# Log de staging — 2026-08-21
+
+Branch: `staging`  
+Ambiente: `https://staging.cadimus.pages.dev`
+
+## Resumo
+
+Rodada de estabilização e organização do frontend após auditoria do projeto.
+
+Todas as alterações foram feitas e enviadas exclusivamente para `origin/staging`.
+
+## Principais mudanças
+
+### Frontend modularizado
+
+- O antigo `main.js` foi reduzido e preservado como mapa central.
+- APIs foram separadas em arquivos `*-api.js`.
+- Interfaces foram separadas em arquivos `*-ui.js`.
+- Helpers monetários ficaram em `money-utils.js` e `money-ui.js`.
+- A decisão foi documentada em `docs/arquitetura-frontend.md`.
+
+### Lançamentos
+
+- Lista de lançamentos ganhou paginação local.
+- Cada página mostra 20 lançamentos.
+- Busca e filtros continuam funcionando antes da paginação.
+- Totais do dashboard continuam usando todos os lançamentos carregados, não apenas a página atual.
+
+### Dashboard
+
+- Gráficos receberam melhorias de leitura e contraste.
+- Donut de categorias mostra total e valores por categoria.
+- Evolução mensal usa saldo real (`receitas - despesas`) vs despesas.
+- Barras e linhas receberam escala visual mais clara.
+
+### Notificações
+
+- Central de notificações persistidas/histórico revisada.
+- Badge vermelho some ao abrir alertas e pode voltar no dia seguinte se a pendência continuar.
+- Textos com acentuação quebrada foram corrigidos.
+
+### UI e CSS
+
+- Seletor claro/escuro foi melhorado.
+- Espaçamento entre alertas, seletor de tema e avatar foi ajustado.
+- Trecho inválido/duplicado em `style.css` foi removido.
+- Comentário `ORÇAMENTOS MENTAIS` corrigido para `ORÇAMENTOS MENSAIS`.
+
+## Validação executada
+
+- Sintaxe dos scripts do frontend com `node --check`.
+- Testes automatizados do backend com `npm test`.
+- Backend validado com 35/35 testes passando nas rodadas finais.
+- Branch confirmada limpa e sincronizada com `origin/staging` após cada envio.
+
+## Observações
+
+- A staging é o ambiente de testes. A `main` não foi alterada nesta rodada.
+- Próxima etapa recomendada: continuar homologação visual/manual na staging e corrigir somente bugs reais encontrados no uso.

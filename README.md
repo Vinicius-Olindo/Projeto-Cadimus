@@ -17,7 +17,8 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - Cards de Saldo, Despesas, Pendências e Atrasados
 - Score de saúde financeira (0-100) com anel SVG animado
 - Gráfico de categorias (donut) em "Para onde foi o dinheiro"
-- Evolução mensal (SVG line chart) — Receitas vs Despesas
+- Evolução mensal (SVG line chart) — Saldo real vs Despesas, com escala/eixo e valores nos pontos relevantes
+- Gráfico de barras "Saldo vs Despesas" com escala visual mais clara
 - Notificações de vencimento com badge vermelho no sino
 - Comparativo por período (Mês/Trimestre/Ano)
 
@@ -25,6 +26,7 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - Cadastro de receitas e despesas com data, categoria, descrição, valor e nota
 - Filtros avançados: tipo, status (pago/pendente/atrasado) e categoria (lógica AND)
 - Busca por descrição ou categoria
+- Paginação local da lista, com 20 lançamentos por página e contador de itens
 - Agrupamento automático por período (Hoje, Ontem, Esta semana, Semana passada, Este mês, Mês passado, Mais antigo)
 - Colapso/expandir grupos de data
 - Edição em lote (até 50 lançamentos por vez)
@@ -79,8 +81,9 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 
 ### Notificações
 - Avisos de vencimento para fixas, parceladas e lançamentos pendentes
-- Badge vermelho que persiste até itens serem pagos
-- Modal popup ao clicar no sino
+- Central de notificações com histórico, status e arquivamento
+- Badge vermelho que some ao abrir os alertas e volta no dia seguinte se a conta continuar pendente
+- Modal/painel ao clicar no sino
 
 ### Carteiras
 - Carteira pessoal automática para cada usuário
@@ -129,7 +132,7 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - XSS protection via escaping de HTML
 
 ### Extras
-- PWA instalável (manifest + service worker com cache v4 + stale-while-revalidate)
+- PWA instalável (manifest + service worker com stale-while-revalidate)
 - Offline fallback page
 - Onboarding interativo (tour guiado com 5 steps)
 - Animação de contagem nos valores monetários
@@ -157,6 +160,8 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - Service Worker com stale-while-revalidate
 - PWA com manifest e ícones maskable
 - Gráficos SVG (donut, line chart, bar chart)
+- Frontend modularizado por domínio (`*-api.js` e `*-ui.js`)
+- `main.js` mantido como mapa central/ponte para compatibilidade entre módulos
 
 ### Backend
 - **Cloudflare Workers** (edge computing)
@@ -193,14 +198,18 @@ Cadimus/
 │   ├── changelog.html
 │   ├── _headers                # CSP + security headers
 │   ├── manifest.json           # PWA manifest
-│   ├── sw.js                   # Service Worker (cache v4)
+│   ├── sw.js                   # Service Worker
 │   ├── css/
 │   │   ├── variables.css       # Design tokens
 │   │   └── style.css           # Estilos globais (~6000 linhas)
 │   ├── js/
+│   │   ├── *-api.js            # Clientes de API por domínio
+│   │   ├── *-ui.js             # Módulos de interface por área
 │   │   ├── auth.js             # Autenticação, sessão, sanitização
-│   │   ├── main.js             # Lógica principal (~7000 linhas)
+│   │   ├── main.js             # Mapa central/ponte do frontend
 │   │   ├── components.js       # Componentes reutilizáveis
+│   │   ├── money-utils.js      # Conversões monetárias
+│   │   ├── money-ui.js         # Helpers monetários de UI
 │   │   ├── importar.js         # Importação OFX/CSV
 │   │   ├── exportar.js         # Exportação CSV/OFX
 │   │   └── recorrentes.js      # Lançamentos recorrentes
@@ -239,7 +248,7 @@ Cadimus/
 │           ├── comprasParceladas.js
 │           └── lancamentosRecorrentes.js
 └── database/
-    └── migrations/             # 28 migrações SQL (0001-0028)
+    └── migrations/             # 34 migrações SQL (0001-0034)
 ```
 
 ---
@@ -285,7 +294,7 @@ As migrações são aplicadas automaticamente no deploy. Para rodar manualmente:
 ```bash
 # Aplicar migrações individualmente
 wrangler d1 execute cadimus-db --remote --file=../database/migrations/0001_initial.sql
-wrangler d1 execute cadimus-db --remote --file=../database/migrations/0028_cartoes_credito.sql
+wrangler d1 execute cadimus-db --remote --file=../database/migrations/0034_notificacoes.sql
 
 # Aplicar todas de uma vez
 wrangler d1 migrations apply cadimus-db --remote
@@ -343,6 +352,12 @@ RESEND_API_KEY=re_sua_chave_aqui
 | 0026 | Transferências entre carteiras |
 | 0027 | Orçamentos mensais por categoria |
 | 0028 | Cartões de crédito + FK em compras_parceladas |
+| 0029 | Valor total em compras parceladas |
+| 0030 | Idempotência em transferências |
+| 0031 | Audit logs |
+| 0032 | Valores monetários em centavos inteiros |
+| 0033 | Centavos como fonte canônica com compatibilidade REAL |
+| 0034 | Notificações persistidas |
 
 ---
 

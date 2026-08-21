@@ -1,7 +1,7 @@
 # Checklist de homologação da staging
 
 Criado em: 2026-08-14  
-Última revisão: 2026-08-20
+Última revisão: 2026-08-21
 
 Use este roteiro antes de promover qualquer mudanca da `staging` para a `main`.
 
@@ -30,7 +30,10 @@ Ambientes:
 
 - Login, cadastro/convite e recuperacao de senha carregam sem erro visual.
 - Dashboard exibe receitas, despesas, saldo, pendentes e categorias usando os valores corretos.
+- Gráficos do dashboard exibem valores legíveis no modo claro/escuro.
+- Gráfico de evolução mensal usa saldo real e despesas com escala clara.
 - Lista de lancamentos mostra valor, status, autor, filtros e agrupamentos corretamente.
+- Paginação de lançamentos mostra 20 itens por página, contador correto e volta para página 1 ao alterar busca/filtros.
 - Transferencias aparecem nas carteiras de origem e destino sem duplicar saldo.
 - Orcamentos comparam gasto e limite usando centavos como fonte.
 - Metas e depositos somam e exibem valores corretamente.
@@ -39,6 +42,7 @@ Ambientes:
 - Relatorios e PDF batem com os totais do painel.
 - Central de notificações abre, lista histórico, marca alertas como lidos e remove a bolinha vermelha após clique.
 - Se a conta vencida não for atualizada, a bolinha volta a aparecer no dia seguinte.
+- Textos de notificações aparecem sem caracteres quebrados.
 - Seletor claro/escuro mantém espaçamento correto entre alertas e avatar.
 
 ## 3. Fluxos de exclusao e apagamento
