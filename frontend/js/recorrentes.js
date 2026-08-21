@@ -90,7 +90,7 @@ async function abrirModalRecorrencia(predefinicoes = {}) {
 
   document.getElementById("recorrencia-editando-id").value = "";
   document.getElementById("titulo-modal-recorrencia").innerText = predefinicoes.titulo || "Nova recorrência";
-  document.getElementById("btn-salvar-recorrencia").innerText = "Adicionar";
+  document.getElementById("btn-salvar-recorrencia").innerText = "Salvar";
   document.getElementById("form-recorrencia").reset();
   document.getElementById("form-recorrencia").dataset.contexto = predefinicoes.contexto || "";
   document.getElementById("recorrencia-data-inicio").value = new Date().toISOString().slice(0, 10);
@@ -200,7 +200,7 @@ function configurarModalRecorrencia() {
       await mostrarAviso("Erro de conexão ao salvar recorrência.");
     } finally {
       btnSalvar.disabled = false;
-      btnSalvar.innerText = idEdicao ? "Salvar edição" : "Adicionar";
+      btnSalvar.innerText = idEdicao ? "Salvar edição" : "Salvar";
     }
   });
 }

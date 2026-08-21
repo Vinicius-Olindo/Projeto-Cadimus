@@ -102,26 +102,51 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
         return new Response(JSON.stringify({ erro: "Dia do mês inválido (1-28)." }), { status: 400 });
       }
 
-      const resultado = await env.DB.prepare(
-        `INSERT INTO lancamentos_recorrentes
-         (carteira_id, descricao, valor, valor_centavos, tipo, categoria, meio_pagamento, frequencia, dia_semana, dia_mes, data_inicio, data_fim, criado_por)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
-      )
-        .bind(
-          dados.carteira_id, descricao, valor, valorCentavos, tipo, categoria, dados.meio_pagamento,
-          frequencia,
-          frequencia === "semanal" ? (dados.dia_semana || 0) : null,
-          ["mensal", "trimestral", "anual"].includes(frequencia) ? (dados.dia_mes || 1) : null,
-          dataInicio,
-          dados.data_fim || null,
-          usuarioLogado.id,
+      const valoresBase = [
+        dados.carteira_id, descricao, valor, tipo, categoria, dados.meio_pagamento,
+        frequencia,
+        frequencia === "semanal" ? (dados.dia_semana || 0) : null,
+        ["mensal", "trimestral", "anual"].includes(frequencia) ? (dados.dia_mes || 1) : null,
+        dataInicio,
+        dados.data_fim || null,
+        usuarioLogado.id,
+      ];
+
+      let resultado;
+      try {
+        resultado = await env.DB.prepare(
+          `INSERT INTO lancamentos_recorrentes
+           (carteira_id, descricao, valor, valor_centavos, tipo, categoria, meio_pagamento, frequencia, dia_semana, dia_mes, data_inicio, data_fim, criado_por)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
-        .run();
+          .bind(
+            dados.carteira_id, descricao, valor, valorCentavos, tipo, categoria, dados.meio_pagamento,
+            frequencia,
+            frequencia === "semanal" ? (dados.dia_semana || 0) : null,
+            ["mensal", "trimestral", "anual"].includes(frequencia) ? (dados.dia_mes || 1) : null,
+            dataInicio,
+            dados.data_fim || null,
+            usuarioLogado.id,
+          )
+          .run();
+      } catch (erroInsert) {
+        if (!/valor_centavos/i.test(String(erroInsert?.message || erroInsert))) throw erroInsert;
+
+        resultado = await env.DB.prepare(
+          `INSERT INTO lancamentos_recorrentes
+           (carteira_id, descricao, valor, tipo, categoria, meio_pagamento, frequencia, dia_semana, dia_mes, data_inicio, data_fim, criado_por)
+           VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        )
+          .bind(...valoresBase)
+          .run();
+      }
 
       return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Recorrência criada!" }), { status: 201 });
     } catch (erro) {
       console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao criar recorrência." }), { status: 500 });
+      const detalhe = String(erro?.message || erro || "");
+      const mensagem = detalhe ? `Erro ao criar recorrência: ${detalhe}` : "Erro ao criar recorrência.";
+      return new Response(JSON.stringify({ erro: mensagem }), { status: 500 });
     }
   }
 

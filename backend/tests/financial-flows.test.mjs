@@ -11,6 +11,7 @@ import { processarCarteiras } from "../src/routes/carteiras.js";
 import { processarPlanos, processarPlanoDepositos } from "../src/routes/planos.js";
 import { processarMetas, processarMetaDepositos } from "../src/routes/metas.js";
 import { processarCartoesCredito } from "../src/routes/cartoesCredito.js";
+import { processarLancamentosRecorrentes } from "../src/routes/lancamentosRecorrentes.js";
 
 class FakeD1 {
   constructor(handlers = []) {
@@ -266,6 +267,45 @@ test("recorrências diárias geram bonificações de receita no mês", async () 
   assert.deepEqual(lancamentos.map((l) => l.data_compra), ["2026-08-29", "2026-08-30", "2026-08-31"]);
   assert.deepEqual(lancamentos.map((l) => l.valor_centavos), [2000, 2000, 2000]);
   assert.ok(lancamentos.every((l) => l.tipo === "receita" && l.categoria === "Bonificação"));
+});
+
+test("cadastro de bonificação recorrente força receita na rota", async () => {
+  let insertArgs;
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos_recorrentes",
+      reply: ({ args }) => {
+        insertArgs = args;
+        return { meta: { last_row_id: 77 } };
+      },
+    },
+  ]));
+
+  const res = await processarLancamentosRecorrentes(
+    request("POST", "https://cadimus.test/api/lancamentos-recorrentes", {
+      carteira_id: 10,
+      descricao: "Bonificação semanal",
+      valor: 100,
+      valor_centavos: 10000,
+      tipo: "despesa",
+      categoria: "Bonificação",
+      meio_pagamento: "pix",
+      frequencia: "semanal",
+      dia_semana: 5,
+      dia_mes: null,
+      data_inicio: "2026-08-21",
+      data_fim: null,
+    }),
+    { DB: db },
+    {},
+  );
+
+  assert.equal(res.status, 201);
+  assert.equal(insertArgs[4], "receita");
+  assert.equal(insertArgs[5], "Bonificação");
+  assert.equal(insertArgs[8], 5);
+  assert.equal(insertArgs[9], null);
 });
 
 test("relatório de lançamentos respeita data_inicio, data_fim, categoria, tipo e status", async () => {

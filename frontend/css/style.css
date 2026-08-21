@@ -795,6 +795,33 @@ button:active {
   background: var(--cor-marca-forte);
 }
 
+.modal-content form > button[type="submit"] {
+  width: 100%;
+  margin-top: 8px;
+  background: var(--cor-marca) !important;
+  color: var(--cor-superficie-alta) !important;
+  border: none !important;
+}
+
+.modal-content form > button[type="submit"]:hover {
+  background: var(--cor-marca-forte) !important;
+}
+
+.modal-content form > button[type="button"][id^="btn-fechar-modal"],
+.modal-content > button[type="button"][id^="btn-fechar-modal"] {
+  width: 100%;
+  margin-top: 10px;
+  background: var(--cor-texto) !important;
+  color: var(--cor-superficie-alta) !important;
+  border: none !important;
+}
+
+.modal-content form > button[type="button"][id^="btn-fechar-modal"]:hover,
+.modal-content > button[type="button"][id^="btn-fechar-modal"]:hover {
+  background: color-mix(in srgb, var(--cor-texto) 88%, var(--cor-marca)) !important;
+  color: var(--cor-superficie-alta) !important;
+}
+
 /* ==========================================
    ABAS DE CARTEIRA (Casa / Pessoal)
    ========================================== */

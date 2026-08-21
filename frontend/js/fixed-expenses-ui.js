@@ -16,7 +16,7 @@ function fecharModalDespesaFixa() {
   form.reset();
   document.getElementById("fixa-editando-id").value = "";
   document.getElementById("titulo-modal-fixa").innerText = "Despesas fixas";
-  document.getElementById("btn-salvar-fixa").innerText = "Adicionar";
+  document.getElementById("btn-salvar-fixa").innerText = "Salvar";
 }
 
 async function abrirModalDespesasFixas() {
@@ -31,7 +31,7 @@ async function abrirModalDespesasFixas() {
 
   document.getElementById("fixa-editando-id").value = "";
   document.getElementById("titulo-modal-fixa").innerText = "Nova despesa fixa";
-  document.getElementById("btn-salvar-fixa").innerText = "Adicionar";
+  document.getElementById("btn-salvar-fixa").innerText = "Salvar";
   await popularSelectCategorias(document.getElementById("fixa-categoria"));
   modal.style.display = "flex";
   trapFoco(modal);
@@ -121,7 +121,7 @@ function configurarModalDespesasFixas() {
       await mostrarAviso("Erro de conexão ao salvar despesa fixa.");
     } finally {
       btnSalvar.disabled = false;
-      btnSalvar.innerText = idEdicao ? "Salvar edição" : "Adicionar";
+      btnSalvar.innerText = idEdicao ? "Salvar edição" : "Salvar";
     }
   });
 }

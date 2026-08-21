@@ -151,7 +151,7 @@ function configurarModalComprasParceladas() {
       await mostrarAviso("Erro de conexão ao cadastrar compra parcelada.");
     } finally {
       btnSalvar.disabled = false;
-      btnSalvar.innerText = "Adicionar";
+      btnSalvar.innerText = "Salvar";
     }
   });
 }
