@@ -51,30 +51,20 @@ function obterGrupoData(dataStr) {
   const ontem = new Date(hoje);
   ontem.setDate(ontem.getDate() - 1);
 
-  const diffMs = hoje - data;
-  const diffDias = Math.floor(diffMs / (1000 * 60 * 60 * 24));
-
   if (data.toDateString() === hoje.toDateString()) return "Hoje";
   if (data.toDateString() === ontem.toDateString()) return "Ontem";
-  if (diffDias >= 2 && diffDias <= 6) return "Esta semana";
-  if (diffDias >= 7 && diffDias <= 13) return "Semana passada";
 
-  const mesAtual = hoje.getMonth();
-  const anoAtual = hoje.getFullYear();
-  const mesLanc = data.getMonth();
-  const anoLanc = data.getFullYear();
-
-  if (mesLanc === mesAtual && anoLanc === anoAtual) return "Este mês";
-  if ((mesLanc === mesAtual - 1 && anoLanc === anoAtual) || (mesAtual === 0 && mesLanc === 11 && anoLanc === anoAtual - 1)) return "Mês passado";
-
-  return "Mais antigo";
+  return data.toLocaleDateString("pt-BR", {
+    timeZone: "UTC",
+    day: "2-digit",
+    month: "short",
+    year: "numeric",
+  }).replace(".", "");
 }
 
 // ==========================================
 // [15] RENDERIZAÇÃO: Lista de Lançamentos, Grupos
 // ==========================================
-
-const ORDEM_GRUPOS = ["Hoje", "Ontem", "Esta semana", "Semana passada", "Este mês", "Mês passado", "Mais antigo"];
 
 // --- RENDERIZA A LISTA (aplica o filtro de busca, se houver, sem afetar os totais do mês) ---
 let gruposRecolhidos = new Set();
@@ -171,13 +161,17 @@ function renderizarListaLancamentos() {
   const itensPagina = filtrados.slice(inicioPagina, inicioPagina + LANCAMENTOS_POR_PAGINA);
 
   const grupos = {};
+  const ordemGrupos = [];
   itensPagina.forEach((l) => {
     const grupo = obterGrupoData(l.data_compra);
-    if (!grupos[grupo]) grupos[grupo] = [];
+    if (!grupos[grupo]) {
+      grupos[grupo] = [];
+      ordemGrupos.push(grupo);
+    }
     grupos[grupo].push(l);
   });
 
-  ORDEM_GRUPOS.forEach((nomeGrupo) => {
+  ordemGrupos.forEach((nomeGrupo) => {
     const itens = grupos[nomeGrupo];
     if (!itens || itens.length === 0) return;
 

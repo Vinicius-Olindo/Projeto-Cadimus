@@ -33,7 +33,7 @@ Quando qualquer arquivo carregado por `frontend/index.html` mudar, atualizar o p
 Referência atual:
 
 - CSS principal: `css/style.css?v=15`;
-- scripts principais: `js/*.js?v=71`.
+- scripts principais: `js/*.js?v=72`.
 
 ## Entradas monetárias
 
@@ -49,6 +49,7 @@ A lista de lançamentos usa paginação local no frontend.
 
 - O backend ainda carrega o lote do mês/período selecionado.
 - A UI exibe 10 lançamentos por página.
+- Dentro da página atual, os lançamentos são agrupados por data real: `Hoje`, `Ontem` ou `dd mmm aaaa`.
 - Busca e filtros continuam aplicados antes da paginação.
 - Totais do dashboard continuam calculados sobre o lote completo, não apenas sobre a página visível.
 
