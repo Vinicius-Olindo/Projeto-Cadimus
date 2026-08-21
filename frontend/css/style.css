@@ -60,10 +60,10 @@ button {
   margin: 0 auto;
 }
 
-/* Admin/Configurações não precisa da mesma largura (são formulários e listas simples) */
 #admin-section {
-  max-width: 760px;
+  max-width: 1180px;
   margin: 0 auto;
+  width: 100%;
 }
 
 /* ==========================================
@@ -3502,12 +3502,12 @@ textarea::placeholder {
 }
 
 #lista-usuarios .linha-item {
-  padding: 4px 14px;
+  padding: 14px 16px;
 }
 
 #lista-usuarios .item-info-principal {
   width: 100%;
-  padding: 6px 0;
+  padding: 0;
 }
 
 .linha-usuario-nome-linha {
@@ -3515,6 +3515,44 @@ textarea::placeholder {
   align-items: center;
   justify-content: space-between;
   gap: 8px;
+  width: 100%;
+}
+
+#sp-usuarios .settings-card {
+  padding: 18px;
+}
+
+#lista-usuarios {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+#lista-usuarios .linha-usuario {
+  display: grid;
+  grid-template-columns: 44px minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 14px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 64%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 78%, transparent);
+}
+
+#lista-usuarios .linha-usuario-info {
+  gap: 9px;
+}
+
+#lista-usuarios .item-descricao {
+  white-space: normal;
+  overflow: visible;
+  text-overflow: clip;
+  line-height: 1.25;
+}
+
+.linha-usuario-detalhes-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(180px, 1fr));
+  gap: 6px 14px;
   width: 100%;
 }
 
@@ -3843,6 +3881,14 @@ textarea::placeholder {
   flex-shrink: 0;
 }
 
+#lista-usuarios .linha-usuario .item-valores {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 6px;
+  min-width: 92px;
+  max-width: none;
+}
+
 /* Layout despesas fixas e compras parceladas */
 #lista-despesas-fixas-painel .linha-item,
 #lista-compras-parceladas-painel .linha-item {
@@ -3907,8 +3953,21 @@ textarea::placeholder {
 }
 
 .linha-usuario-detalhe {
+  min-width: 0;
   font-size: 0.74rem;
   color: var(--cor-texto-suave);
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.linha-usuario-detalhe strong {
+  display: block;
+  margin-bottom: 1px;
+  color: color-mix(in srgb, var(--cor-texto-suave) 86%, var(--cor-texto));
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
 }
 
 /* Botões de despesas fixas */
@@ -6787,6 +6846,8 @@ textarea::placeholder {
   flex: 1;
   overflow: hidden;
   height: calc(100vh - 60px);
+  width: min(100%, 1120px);
+  margin: 0 auto;
 }
 .settings-sidebar {
   width: 240px;
@@ -6881,7 +6942,8 @@ textarea::placeholder {
 .settings-conteudo {
   flex: 1;
   overflow-y: auto;
-  padding: 24px 32px 40px;
+  padding: 24px clamp(24px, 4vw, 48px) 40px;
+  min-width: 0;
 }
 .settings-painel-header { margin-bottom: 20px; }
 .settings-painel-header h3 {
@@ -7016,6 +7078,19 @@ textarea::placeholder {
   background: rgba(198,40,40,0.03);
 }
 .settings-card-perigo h4 { color: var(--cor-despesa); }
+
+@media (max-width: 980px) {
+  #lista-usuarios .linha-usuario {
+    grid-template-columns: 44px minmax(0, 1fr);
+  }
+
+  #lista-usuarios .linha-usuario .item-valores {
+    grid-column: 1 / -1;
+    flex-direction: row;
+    justify-content: flex-end;
+  }
+}
+
 @media (max-width: 700px) {
   .settings-layout { flex-direction: column; height: auto; }
   .settings-sidebar {
@@ -7041,6 +7116,11 @@ textarea::placeholder {
   .settings-nav-item.ativo::before { display: none; }
   .settings-conteudo { padding: 16px 14px 32px; }
   .settings-campo-grid { grid-template-columns: 1fr; }
+  .linha-usuario-detalhes-grid { grid-template-columns: 1fr; }
+  #lista-usuarios .linha-usuario {
+    grid-template-columns: 36px minmax(0, 1fr);
+    padding: 12px;
+  }
 }
 
 /* ======================== RODAPÉ ======================== */

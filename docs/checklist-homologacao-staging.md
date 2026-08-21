@@ -30,6 +30,7 @@ Ambientes:
 
 - Login, cadastro/convite e recuperacao de senha carregam sem erro visual.
 - Logo do login e do header aparece nítida nos temas claro e escuro.
+- Configurações aproveita melhor a largura disponível em desktop e a lista de usuários mostra dados completos sem truncamento indevido.
 - Dashboard exibe receitas, despesas, saldo, pendentes e categorias usando os valores corretos.
 - Campos de valores financeiros exibem e salvam valores no padrão brasileiro `R$ 0,00`.
 - Valores financeiros altos não devem ser cortados nos cards do dashboard nem na lista de lançamentos.

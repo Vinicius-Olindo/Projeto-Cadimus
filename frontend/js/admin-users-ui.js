@@ -375,10 +375,12 @@ async function carregarUsuarios() {
               <span class="item-descricao">${escaparHtml(user.nome || user.nome_usuario)}${ehVoceMesmo ? " (você)" : ""}</span>
               <span class="item-status status-pago">${escaparHtml(user.perfil.toUpperCase())}</span>
             </div>
-            <span class="linha-usuario-detalhe">@${escaparHtml(user.nome_usuario)}${user.email ? ` · ${escaparHtml(user.email)}` : ""}</span>
-            <span class="linha-usuario-detalhe">
-              Criado em ${formatarDataHora(user.criado_em)}${user.ultimo_acesso ? ` · Último acesso: ${formatarDataHora(user.ultimo_acesso)}` : " · Nunca acessou"}
-            </span>
+            <div class="linha-usuario-detalhes-grid">
+              <span class="linha-usuario-detalhe"><strong>Login</strong>@${escaparHtml(user.nome_usuario)}</span>
+              <span class="linha-usuario-detalhe"><strong>E-mail</strong>${user.email ? escaparHtml(user.email) : "Não informado"}</span>
+              <span class="linha-usuario-detalhe"><strong>Criado</strong>${formatarDataHora(user.criado_em)}</span>
+              <span class="linha-usuario-detalhe"><strong>Último acesso</strong>${user.ultimo_acesso ? formatarDataHora(user.ultimo_acesso) : "Nunca acessou"}</span>
+            </div>
           </div>
           <div class="item-valores">
             <button type="button" class="btn-toggle-ativo ${ehAtivo ? "ativo" : "inativo"}" data-id="${user.id}" ${ehVoceMesmo ? "disabled title='Você não pode desativar a própria conta'" : ""}>${ehAtivo ? "Ativo" : "Inativo"}</button>
