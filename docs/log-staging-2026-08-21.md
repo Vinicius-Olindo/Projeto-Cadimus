@@ -24,6 +24,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Lista de lançamentos ganhou paginação local.
 - Cada página mostra 10 lançamentos.
 - Agrupamentos genéricos foram trocados por data real, mantendo `Hoje` e `Ontem` como atalhos de leitura.
+- Lista de lançamentos recebeu redesign em cards compactos, com metadados, valor e ações mais bem agrupados.
 - Busca e filtros continuam funcionando antes da paginação.
 - Totais do dashboard continuam usando todos os lançamentos carregados, não apenas a página atual.
 

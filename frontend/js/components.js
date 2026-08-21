@@ -56,6 +56,7 @@ function criarLinhaLancamento(lancamento) {
   const carimboAutorHtml = fotoAutorSegura
     ? `<img class="carimbo-autor carimbo-autor-foto" src="${fotoAutorSegura}" alt="" title="Lançado por ${escaparHtml(nomeAutor)}" />`
     : `<span class="carimbo-autor" style="--cor-autor: ${corAutor}" title="Lançado por ${escaparHtml(nomeAutor)}">${inicialAutor}</span>`;
+  const tipoTexto = lancamento.tipo === "receita" ? "Receita" : "Despesa";
 
   // Só quem criou o lançamento (ou um admin) pode editar/excluir — o backend também garante isso,
   // aqui é só pra não mostrar botões que vão falhar ao clicar
@@ -91,14 +92,23 @@ function criarLinhaLancamento(lancamento) {
         <div class="linha-corpo">
             <div class="item-info-principal">
                 <span class="item-descricao">${escaparHtml(lancamento.descricao)}</span>
-                <span class="item-categoria">${escaparHtml(lancamento.categoria)}${notaHtml}</span>
+                <div class="item-metadados">
+                  <span class="item-categoria">${escaparHtml(lancamento.categoria)}</span>
+                  <span class="item-meta-separador">•</span>
+                  <span class="item-tipo ${classeTipo}">${tipoTexto}</span>
+                  ${notaHtml}
+                </div>
             </div>
             <div class="item-valores">
+              <div class="item-chips">
                 ${carimboAutorHtml}
                 <span class="item-meio-pagamento">${lancamento.meio_pagamento}</span>
                 <button type="button" class="item-status ${classeStatus}" data-action="status" data-id="${lancamento.id}" data-status-atual="${lancamento.status}" title="Clique para marcar como ${lancamento.status === "pago" ? "pendente" : "pago"}">${textoStatus}</button>
+              </div>
+              <div class="item-valor-acoes">
                 <span class="item-valor ${classeTipo}" title="${sinal} ${valorFormatado}">${sinal} ${valorFormatado}</span>
-                ${botoesGerenciar}
+                <div class="item-acoes">${botoesGerenciar}</div>
+              </div>
             </div>
         </div>
   `;
