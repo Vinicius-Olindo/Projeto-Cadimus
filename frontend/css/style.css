@@ -1408,25 +1408,26 @@ button:active {
   letter-spacing: -0.3px;
   line-height: 1.18;
   color: var(--cor-texto);
-  overflow-wrap: anywhere;
-  word-break: break-word;
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
 }
 
 #saldo-total {
-  font-size: clamp(1.08rem, 1.8vw, 1.7rem);
+  font-size: clamp(1.02rem, 1.45vw, 1.3rem);
   color: var(--cor-texto);
   transition: color 0.3s ease;
 }
 
 .stat-valor.valor-monetario-longo,
 #saldo-total.valor-monetario-longo {
-  font-size: clamp(0.95rem, 1.35vw, 1.18rem);
+  font-size: clamp(0.9rem, 1.15vw, 1.05rem);
   letter-spacing: -0.65px;
 }
 
 .stat-valor.valor-monetario-muito-longo,
 #saldo-total.valor-monetario-muito-longo {
-  font-size: clamp(0.86rem, 1.2vw, 1.02rem);
+  font-size: clamp(0.78rem, 1vw, 0.92rem);
   letter-spacing: -0.85px;
 }
 
