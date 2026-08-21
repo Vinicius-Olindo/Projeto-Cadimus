@@ -1028,46 +1028,114 @@ button:active {
 }
 
 .dashboard-layout-editando {
-  padding: 8px;
-  border: 1px dashed color-mix(in srgb, var(--cor-marca) 42%, transparent);
+  padding: 10px;
+  border: 1px dashed color-mix(in srgb, var(--cor-marca) 50%, transparent);
   border-radius: var(--raio-card);
-  background: color-mix(in srgb, var(--cor-marca) 5%, transparent);
+  background: color-mix(in srgb, var(--cor-marca) 6%, transparent);
+}
+
+.dashboard-layout-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  color: var(--cor-texto);
+  background: color-mix(in srgb, var(--cor-marca) 12%, var(--cor-fundo-card));
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 28%, transparent);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--cor-texto) 5%, transparent);
+}
+
+.dashboard-layout-banner[hidden] {
+  display: none;
+}
+
+.dashboard-layout-banner-icone {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--cor-marca);
+  color: var(--cor-fundo);
+  font-family: var(--fonte-mono);
+  font-weight: 800;
+}
+
+.dashboard-layout-banner-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dashboard-layout-banner-texto strong {
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.dashboard-layout-banner-texto small {
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  line-height: 1.35;
 }
 
 .dashboard-card-editavel {
   position: relative;
   cursor: grab;
-  outline: 1px dashed color-mix(in srgb, var(--cor-marca) 45%, transparent);
-  outline-offset: 3px;
+  outline: 1px dashed color-mix(in srgb, var(--cor-marca) 38%, transparent);
+  outline-offset: 4px;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--cor-marca) 8%, transparent);
 }
 
 .dashboard-card-editavel::before {
-  content: "Arraste para reorganizar";
+  content: "⋮⋮";
   position: absolute;
-  top: 8px;
+  top: 10px;
   right: 10px;
   z-index: 2;
-  padding: 3px 8px;
+  width: 28px;
+  height: 24px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   border-radius: 999px;
-  background: var(--cor-marca);
-  color: var(--cor-fundo);
-  font-size: 0.58rem;
-  font-weight: 700;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  background: color-mix(in srgb, var(--cor-marca) 14%, var(--cor-fundo-card));
+  color: var(--cor-marca-forte);
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 26%, transparent);
+  font-family: var(--fonte-mono);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.08em;
   pointer-events: none;
 }
 
 .dashboard-card-editavel.arrastando {
   cursor: grabbing;
-  opacity: 0.55;
-  transform: scale(0.99);
+  opacity: 0.62;
+  transform: scale(0.985);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--cor-texto) 12%, transparent);
 }
 
 #btn-editar-layout-dashboard.ativo {
-  background: color-mix(in srgb, var(--cor-marca) 18%, transparent);
+  background: var(--cor-marca);
+  color: var(--cor-fundo) !important;
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--cor-marca) 22%, transparent);
+}
+
+#btn-editar-layout-dashboard.ativo svg {
+  opacity: 1;
+}
+
+.dark-mode #btn-editar-layout-dashboard.ativo {
+  color: #1d160b !important;
+}
+
+#btn-resetar-layout-dashboard:hover {
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
   color: var(--cor-marca-forte) !important;
-  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cor-marca) 26%, transparent);
 }
 
 .btn-resetar-layout-dashboard {

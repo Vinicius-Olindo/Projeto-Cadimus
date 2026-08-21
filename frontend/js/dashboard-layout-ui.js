@@ -17,6 +17,7 @@ const DASHBOARD_LAYOUT_CARDS = [
 
 let dashboardLayoutEditando = false;
 let dashboardLayoutCardArrastado = null;
+const DASHBOARD_LAYOUT_BANNER_ID = "dashboard-layout-banner";
 
 function obterChaveLayoutDashboard() {
   const usuario = typeof obterUsuarioLogado === "function" ? obterUsuarioLogado() : null;
@@ -34,6 +35,24 @@ function obterCardsLayoutDashboard() {
   return DASHBOARD_LAYOUT_CARDS
     .map((id) => container.querySelector(`#${id}`))
     .filter(Boolean);
+}
+
+function obterOuCriarBannerLayoutDashboard(container) {
+  let banner = document.getElementById(DASHBOARD_LAYOUT_BANNER_ID);
+  if (banner) return banner;
+
+  banner = document.createElement("div");
+  banner.id = DASHBOARD_LAYOUT_BANNER_ID;
+  banner.className = "dashboard-layout-banner";
+  banner.innerHTML = `
+    <span class="dashboard-layout-banner-icone" aria-hidden="true">↕</span>
+    <span class="dashboard-layout-banner-texto">
+      <strong>Modo layout ativo</strong>
+      <small>Arraste os cards para reorganizar. Clique em Salvar layout ao finalizar.</small>
+    </span>
+  `;
+  container.prepend(banner);
+  return banner;
 }
 
 function aplicarLayoutDashboardSalvo() {
@@ -87,15 +106,21 @@ function atualizarEstadoModoLayoutDashboard() {
   const botao = document.getElementById("btn-editar-layout-dashboard");
   const container = obterContainerLayoutDashboard();
   if (!container || !botao) return;
+  const label = botao.querySelector(".btn-topo-label");
 
   container.classList.toggle("dashboard-layout-editando", dashboardLayoutEditando);
   botao.classList.toggle("ativo", dashboardLayoutEditando);
   botao.setAttribute("aria-pressed", String(dashboardLayoutEditando));
   botao.title = dashboardLayoutEditando ? "Salvar layout do dashboard" : "Editar layout do dashboard";
+  if (label) label.textContent = dashboardLayoutEditando ? "Salvar layout" : "Layout";
+
+  const banner = dashboardLayoutEditando ? obterOuCriarBannerLayoutDashboard(container) : document.getElementById(DASHBOARD_LAYOUT_BANNER_ID);
+  if (banner) banner.hidden = !dashboardLayoutEditando;
 
   obterCardsLayoutDashboard().forEach((card) => {
     card.draggable = dashboardLayoutEditando;
     card.classList.toggle("dashboard-card-editavel", dashboardLayoutEditando);
+    card.setAttribute("aria-grabbed", String(dashboardLayoutEditando && card.classList.contains("arrastando")));
   });
 }
 
@@ -104,7 +129,7 @@ function alternarModoLayoutDashboard() {
   atualizarEstadoModoLayoutDashboard();
 
   if (dashboardLayoutEditando) {
-    mostrarToast("Arraste os cards da coluna direita para reorganizar", "aviso");
+    mostrarToast("Modo layout ativo. Arraste os cards e clique em Salvar layout.", "aviso");
   } else {
     salvarLayoutDashboard();
   }
@@ -133,12 +158,14 @@ function configurarEventosLayoutDashboard() {
     if (!card) return;
     dashboardLayoutCardArrastado = card;
     card.classList.add("arrastando");
+    card.setAttribute("aria-grabbed", "true");
     evento.dataTransfer.effectAllowed = "move";
     evento.dataTransfer.setData("text/plain", card.id);
   });
 
   container.addEventListener("dragend", () => {
     dashboardLayoutCardArrastado?.classList.remove("arrastando");
+    dashboardLayoutCardArrastado?.setAttribute("aria-grabbed", "false");
     dashboardLayoutCardArrastado = null;
   });
 
