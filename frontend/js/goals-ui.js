@@ -34,7 +34,7 @@ function abrirModalMeta(categoria, valorAtual, dataLimite) {
 
   document.getElementById("meta-categoria-nome").value = categoria;
   document.getElementById("meta-categoria-label").textContent = `Categoria: ${categoria}`;
-  document.getElementById("meta-valor").value = valorAtual || "";
+  definirValorInputMonetario("meta-valor", valorAtual);
   document.getElementById("meta-data-limite").value = dataLimite || "";
   document.getElementById("btn-remover-meta").style.display = valorAtual ? "inline-block" : "none";
   modal.style.display = "flex";

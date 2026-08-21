@@ -83,7 +83,7 @@ function configurarSalarioPlano() {
 
   btnEditar.addEventListener("click", () => {
     const usuario = obterUsuarioLogado();
-    input.value = usuario.salario || "";
+    definirValorInputMonetario("plano-salario-input", usuario.salario);
     form.style.display = "block";
     display.querySelector(".plano-salario-valor").style.display = "none";
     btnEditar.style.display = "none";
@@ -96,7 +96,7 @@ function configurarSalarioPlano() {
   });
 
   btnSalvar.addEventListener("click", async () => {
-    const valor = parseFloat(input.value) || 0;
+    const valor = obterReaisMonetarios("plano-salario-input", { vazioComoZero: true });
     const usuario = obterUsuarioLogado();
 
     btnSalvar.disabled = true;

@@ -33,7 +33,15 @@ Quando qualquer arquivo carregado por `frontend/index.html` mudar, atualizar o p
 Referência atual:
 
 - CSS principal: `css/style.css?v=13`;
-- scripts principais: `js/*.js?v=68`.
+- scripts principais: `js/*.js?v=69`.
+
+## Entradas monetárias
+
+Campos de valor financeiro devem usar entrada textual com `inputmode="decimal"` e a máscara central de `money-ui.js`.
+
+- A UI exibe o padrão brasileiro (`R$ 0,00`).
+- O payload continua sendo montado em reais e centavos por `montarPayloadMonetario`.
+- Campos numéricos não monetários, como dia, ano e quantidade de parcelas, continuam como `type="number"`.
 
 ## Paginação de lançamentos
 

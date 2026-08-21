@@ -35,7 +35,7 @@ function configurarFormularioUsuario() {
     const usuario = document.getElementById("novo-usuario").value.trim();
     const email = document.getElementById("novo-email").value.trim();
     const telefone = document.getElementById("novo-telefone").value.trim();
-    const salario = parseFloat(document.getElementById("novo-salario").value) || 0;
+    const salario = obterReaisMonetarios("novo-salario", { vazioComoZero: true });
     const fotoPerfil = document.getElementById("nova-foto-perfil").value;
     const senha = document.getElementById("nova-senha").value;
     const perfil = document.getElementById("novo-perfil").value;
@@ -299,7 +299,7 @@ function entrarModoEdicaoUsuario(usuario) {
   document.getElementById("novo-usuario").value = usuario.nome_usuario;
   document.getElementById("novo-email").value = usuario.email || "";
   document.getElementById("novo-telefone").value = usuario.telefone || "";
-  document.getElementById("novo-salario").value = usuario.salario || "";
+  definirValorInputMonetario("novo-salario", usuario.salario);
   document.getElementById("nova-senha").value = "";
   document.getElementById("novo-perfil").value = usuario.perfil;
   definirPreviewFoto(usuario.foto_perfil || null);

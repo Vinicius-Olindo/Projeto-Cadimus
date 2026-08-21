@@ -48,7 +48,7 @@ async function editarLancamento(id) {
   document.getElementById("lancamento-editando-id").value = lancamento.id;
   document.getElementById("tipo-gasto").value = lancamento.tipo;
   document.getElementById("descricao").value = lancamento.descricao;
-  document.getElementById("valor").value = valorMonetario(lancamento);
+  definirValorInputMonetario("valor", valorMonetario(lancamento));
   document.getElementById("data-compra").value = String(lancamento.data_compra).slice(0, 10);
   document.getElementById("categoria").value = lancamento.categoria;
   document.getElementById("meio-pagamento").value = lancamento.meio_pagamento;

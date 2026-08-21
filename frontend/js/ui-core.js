@@ -195,6 +195,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   inicializarFiltroMes();
   inicializarDarkMode();
+  configurarInputsMonetarios();
   configurarMonitoresDeFiltro();
   configurarBuscaLancamentos();
   configurarNotificacoes();

@@ -315,7 +315,7 @@ function configurarSimulacaoPlano() {
   if (!btn || !input || !resultado) return;
 
   btn.onclick = () => {
-    const valor = parseFloat(input.value) || 0;
+    const valor = obterReaisMonetarios("simulacao-valor", { vazioComoZero: true });
     if (valor <= 0) return;
 
     resultado.innerHTML = `

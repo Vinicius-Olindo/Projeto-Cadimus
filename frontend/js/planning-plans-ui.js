@@ -183,7 +183,7 @@ function abrirModalPlano(plano) {
     document.getElementById("plano-editando-id").value = plano.id;
     document.getElementById("plano-nome").value = plano.nome;
     document.getElementById("plano-descricao").value = plano.descricao || "";
-    document.getElementById("plano-valor-alvo").value = valorMonetario(plano, "valor_alvo");
+    definirValorInputMonetario("plano-valor-alvo", valorMonetario(plano, "valor_alvo"));
     document.getElementById("plano-data-limite").value = plano.data_limite || "";
     document.getElementById("plano-prioridade").value = plano.prioridade;
     document.getElementById("plano-icone").value = plano.icone;

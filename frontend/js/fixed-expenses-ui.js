@@ -49,7 +49,7 @@ async function editarDespesaFixa(id) {
 
   document.getElementById("fixa-editando-id").value = fixa.id;
   document.getElementById("fixa-descricao").value = fixa.descricao;
-  document.getElementById("fixa-valor").value = valorMonetario(fixa);
+  definirValorInputMonetario("fixa-valor", valorMonetario(fixa));
   document.getElementById("fixa-dia").value = fixa.dia_vencimento;
   document.getElementById("fixa-categoria").value = fixa.categoria;
   document.getElementById("fixa-meio-pagamento").value = fixa.meio_pagamento;

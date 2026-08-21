@@ -261,7 +261,7 @@ async function preencherPerfilAtual() {
     if (el("novo-email")) el("novo-email").value = usuario.email || "";
     if (el("novo-telefone")) el("novo-telefone").value = usuario.telefone || "";
     if (el("novo-usuario")) el("novo-usuario").value = usuario.nome_usuario || "";
-    if (el("novo-salario")) el("novo-salario").value = usuario.salario || "";
+    if (el("novo-salario")) definirValorInputMonetario("novo-salario", usuario.salario);
     if (el("novo-perfil")) el("novo-perfil").value = usuario.perfil || "comum";
     if (el("usuario-editando-id")) el("usuario-editando-id").value = usuario.id;
     if (el("nova-senha")) el("nova-senha").value = "";

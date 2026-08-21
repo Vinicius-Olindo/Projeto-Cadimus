@@ -126,7 +126,7 @@ function configurarModalRecorrencia() {
     const frequencia = document.getElementById("recorrencia-frequencia").value;
 
     try {
-      const valorCentavos = window.CadimusMoney.reaisParaCentavos(document.getElementById("recorrencia-valor").value);
+      const valorCentavos = obterCentavosMonetarios("recorrencia-valor");
       const corpo = {
         descricao: document.getElementById("recorrencia-descricao").value.trim(),
         valor: window.CadimusMoney.centavosParaReais(valorCentavos),
@@ -181,7 +181,7 @@ async function editarRecorrencia(id) {
 
   document.getElementById("recorrencia-editando-id").value = rec.id;
   document.getElementById("recorrencia-descricao").value = rec.descricao;
-  document.getElementById("recorrencia-valor").value = valorMonetario(rec);
+  definirValorInputMonetario("recorrencia-valor", valorMonetario(rec));
   document.getElementById("recorrencia-tipo").value = rec.tipo;
   document.getElementById("recorrencia-frequencia").value = rec.frequencia;
   document.getElementById("recorrencia-dia-semana").value = rec.dia_semana || 0;

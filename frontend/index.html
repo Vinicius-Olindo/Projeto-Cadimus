@@ -512,7 +512,7 @@
                 <button type="button" id="btn-editar-salario" class="btn-link-adicionar">Editar</button>
               </div>
               <div id="plano-salario-form" style="display: none">
-                <input type="number" id="plano-salario-input" placeholder="Ex: 5000" step="0.01" min="0" />
+                <input type="text" id="plano-salario-input" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" />
                 <div class="plano-salario-acoes">
                   <button type="button" id="btn-salvar-salario" class="btn-primario">Salvar</button>
                   <button type="button" id="btn-cancelar-salario" class="btn-secundario">Cancelar</button>
@@ -608,7 +608,7 @@
               <div class="plano-simulacao-form">
                 <div class="campo">
                   <label for="simulacao-valor">Economizar por mês</label>
-                  <input type="number" id="simulacao-valor" placeholder="Ex: 300" step="0.01" min="0" />
+                  <input type="text" id="simulacao-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" />
                 </div>
                 <button type="button" id="btn-simular" class="btn-primario">Simular</button>
               </div>
@@ -1004,7 +1004,7 @@
                     </div>
                     <div class="campo">
                       <label for="novo-salario">Salário mensal</label>
-                      <input type="number" id="novo-salario" step="0.01" min="0" />
+                      <input type="text" id="novo-salario" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" />
                     </div>
                     <div class="campo">
                       <label for="novo-perfil">Perfil de acesso</label>
@@ -1302,7 +1302,7 @@
           <div class="linha-form-dupla">
             <div class="campo">
               <label for="valor">Valor</label>
-              <input type="number" id="valor" step="0.01" placeholder="0,00" required />
+              <input type="text" id="valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
             </div>
             <div class="campo">
               <label for="data-compra">Data</label>
@@ -1372,7 +1372,7 @@
           <div class="linha-form-dupla">
             <div class="campo">
               <label for="transferencia-valor">Valor</label>
-              <input type="number" id="transferencia-valor" step="0.01" placeholder="0,00" required />
+              <input type="text" id="transferencia-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
             </div>
             <div class="campo">
               <label for="transferencia-data">Data</label>
@@ -1408,7 +1408,7 @@
           <div class="linha-form-dupla">
             <div class="campo">
               <label for="orcamento-valor">Limite mensal (R$)</label>
-              <input type="number" id="orcamento-valor" step="0.01" placeholder="0,00" min="0" required />
+              <input type="text" id="orcamento-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
             </div>
             <div class="campo">
               <label for="orcamento-mes">Mês</label>
@@ -1481,7 +1481,7 @@
 
           <div class="campo">
             <label for="cartao-limite">Limite (opcional)</label>
-            <input type="number" id="cartao-limite" step="0.01" min="0" placeholder="0,00" />
+            <input type="text" id="cartao-limite" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" />
           </div>
 
           <button type="submit" id="btn-salvar-cartao">Salvar cartão</button>
@@ -1624,7 +1624,7 @@
           <div class="linha-form-dupla">
             <div class="campo">
               <label for="fixa-valor">Valor</label>
-              <input type="number" id="fixa-valor" step="0.01" placeholder="0,00" required />
+              <input type="text" id="fixa-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
             </div>
             <div class="campo">
               <label for="fixa-dia">Dia de vencimento</label>
@@ -1700,7 +1700,7 @@
           <div class="linha-form-dupla">
             <div class="campo">
               <label for="recorrencia-valor">Valor</label>
-              <input type="number" id="recorrencia-valor" step="0.01" placeholder="0,00" required />
+              <input type="text" id="recorrencia-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
             </div>
             <div class="campo">
               <label for="recorrencia-tipo">Tipo</label>
@@ -1791,7 +1791,7 @@
           <div class="linha-form-dupla">
             <div class="campo">
               <label for="parcelada-valor-total">Valor total da compra</label>
-              <input type="number" id="parcelada-valor-total" step="0.01" placeholder="0,00" required />
+              <input type="text" id="parcelada-valor-total" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
             </div>
             <div class="campo">
               <label for="parcelada-total">Total de parcelas</label>
@@ -1845,7 +1845,7 @@
           <input type="hidden" id="meta-categoria-nome" />
           <div class="campo">
             <label for="meta-valor">Limite mensal</label>
-            <input type="number" id="meta-valor" step="0.01" placeholder="0,00" required />
+            <input type="text" id="meta-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
           </div>
           <div class="campo">
             <label for="meta-data-limite">Data limite (opcional)</label>
@@ -1884,7 +1884,7 @@
           <input type="hidden" id="deposito-meta-id" />
           <div class="campo">
             <label for="deposito-valor">Valor do depósito</label>
-            <input type="number" id="deposito-valor" step="0.01" placeholder="0,00" required />
+            <input type="text" id="deposito-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
           </div>
           <div class="campo">
             <label for="deposito-descricao">Descrição (opcional)</label>
@@ -1943,7 +1943,7 @@
 
           <div class="campo">
             <label for="plano-valor-alvo">Valor alvo (R$) *</label>
-            <input type="number" id="plano-valor-alvo" step="0.01" min="0" placeholder="Ex: 8000" required />
+            <input type="text" id="plano-valor-alvo" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
           </div>
 
           <div class="campo">
@@ -2047,7 +2047,7 @@
           <input type="hidden" id="plano-dep-id" />
           <div class="campo">
             <label for="plano-dep-valor">Valor do depósito</label>
-            <input type="number" id="plano-dep-valor" step="0.01" placeholder="0,00" required />
+            <input type="text" id="plano-dep-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
           </div>
           <div class="campo">
             <label for="plano-dep-descricao">Descrição (opcional)</label>
@@ -2229,59 +2229,59 @@
       </div>
     </footer>
 
-    <script src="js/api-client.js?v=68"></script>
-    <script src="js/auth-api.js?v=68"></script>
-    <script src="js/planning-api.js?v=68"></script>
-    <script src="js/notifications-api.js?v=68"></script>
-    <script src="js/wallets-api.js?v=68"></script>
-    <script src="js/reports-api.js?v=68"></script>
-    <script src="js/entries-api.js?v=68"></script>
-    <script src="js/admin-api.js?v=68"></script>
-    <script src="js/cards-api.js?v=68"></script>
-    <script src="js/budgets-api.js?v=68"></script>
-    <script src="js/goals-api.js?v=68"></script>
-    <script src="js/scheduled-api.js?v=68"></script>
-    <script src="js/auth.js?v=68"></script>
-    <script src="js/ui-formatters.js?v=68"></script>
-    <script src="js/money-utils.js?v=68"></script>
-    <script src="js/money-ui.js?v=68"></script>
-    <script src="js/components.js?v=68"></script>
-    <script src="js/ui-core.js?v=68"></script>
-    <script src="js/dashboard-layout-ui.js?v=68"></script>
-    <script src="js/wallets-ui.js?v=68"></script>
-    <script src="js/categories-ui.js?v=68"></script>
-    <script src="js/entries-modal-ui.js?v=68"></script>
-    <script src="js/entries-list-ui.js?v=68"></script>
-    <script src="js/notifications-ui.js?v=68"></script>
-    <script src="js/batch-note-ui.js?v=68"></script>
-    <script src="js/period-comparison-ui.js?v=68"></script>
-    <script src="js/entries-loader-ui.js?v=68"></script>
-    <script src="js/dashboard-summary-ui.js?v=68"></script>
-    <script src="js/dashboard-insights-ui.js?v=68"></script>
-    <script src="js/dashboard-charts-ui.js?v=68"></script>
-    <script src="js/dashboard-health-ui.js?v=68"></script>
-    <script src="js/dashboard-pdf-ui.js?v=68"></script>
-    <script src="js/entries-actions-ui.js?v=68"></script>
-    <script src="js/admin-shell-ui.js?v=68"></script>
-    <script src="js/admin-settings-ui.js?v=68"></script>
-    <script src="js/profile-image-ui.js?v=68"></script>
-    <script src="js/admin-users-ui.js?v=68"></script>
-    <script src="js/admin-categories-ui.js?v=68"></script>
-    <script src="js/reports-shell-ui.js?v=68"></script>
-    <script src="js/reports-charts-ui.js?v=68"></script>
-    <script src="js/reports-tables-ui.js?v=68"></script>
-    <script src="js/reports-export-ui.js?v=68"></script>
-    <script src="js/planning-shell-ui.js?v=68"></script>
-    <script src="js/planning-dashboard-ui.js?v=68"></script>
-    <script src="js/planning-plans-ui.js?v=68"></script>
-    <script src="js/planning-goals-ui.js?v=68"></script>
-    <script src="js/fixed-expenses-ui.js?v=68"></script>
-    <script src="js/installments-ui.js?v=68"></script>
-    <script src="js/budgets-ui.js?v=68"></script>
-    <script src="js/goals-ui.js?v=68"></script>
-    <script src="js/main.js?v=68" defer></script>
-    <script src="js/importar.js?v=68" defer></script>
-    <script src="js/exportar.js?v=68" defer></script>
-    <script src="js/recorrentes.js?v=68" defer></script>
+    <script src="js/api-client.js?v=69"></script>
+    <script src="js/auth-api.js?v=69"></script>
+    <script src="js/planning-api.js?v=69"></script>
+    <script src="js/notifications-api.js?v=69"></script>
+    <script src="js/wallets-api.js?v=69"></script>
+    <script src="js/reports-api.js?v=69"></script>
+    <script src="js/entries-api.js?v=69"></script>
+    <script src="js/admin-api.js?v=69"></script>
+    <script src="js/cards-api.js?v=69"></script>
+    <script src="js/budgets-api.js?v=69"></script>
+    <script src="js/goals-api.js?v=69"></script>
+    <script src="js/scheduled-api.js?v=69"></script>
+    <script src="js/auth.js?v=69"></script>
+    <script src="js/ui-formatters.js?v=69"></script>
+    <script src="js/money-utils.js?v=69"></script>
+    <script src="js/money-ui.js?v=69"></script>
+    <script src="js/components.js?v=69"></script>
+    <script src="js/ui-core.js?v=69"></script>
+    <script src="js/dashboard-layout-ui.js?v=69"></script>
+    <script src="js/wallets-ui.js?v=69"></script>
+    <script src="js/categories-ui.js?v=69"></script>
+    <script src="js/entries-modal-ui.js?v=69"></script>
+    <script src="js/entries-list-ui.js?v=69"></script>
+    <script src="js/notifications-ui.js?v=69"></script>
+    <script src="js/batch-note-ui.js?v=69"></script>
+    <script src="js/period-comparison-ui.js?v=69"></script>
+    <script src="js/entries-loader-ui.js?v=69"></script>
+    <script src="js/dashboard-summary-ui.js?v=69"></script>
+    <script src="js/dashboard-insights-ui.js?v=69"></script>
+    <script src="js/dashboard-charts-ui.js?v=69"></script>
+    <script src="js/dashboard-health-ui.js?v=69"></script>
+    <script src="js/dashboard-pdf-ui.js?v=69"></script>
+    <script src="js/entries-actions-ui.js?v=69"></script>
+    <script src="js/admin-shell-ui.js?v=69"></script>
+    <script src="js/admin-settings-ui.js?v=69"></script>
+    <script src="js/profile-image-ui.js?v=69"></script>
+    <script src="js/admin-users-ui.js?v=69"></script>
+    <script src="js/admin-categories-ui.js?v=69"></script>
+    <script src="js/reports-shell-ui.js?v=69"></script>
+    <script src="js/reports-charts-ui.js?v=69"></script>
+    <script src="js/reports-tables-ui.js?v=69"></script>
+    <script src="js/reports-export-ui.js?v=69"></script>
+    <script src="js/planning-shell-ui.js?v=69"></script>
+    <script src="js/planning-dashboard-ui.js?v=69"></script>
+    <script src="js/planning-plans-ui.js?v=69"></script>
+    <script src="js/planning-goals-ui.js?v=69"></script>
+    <script src="js/fixed-expenses-ui.js?v=69"></script>
+    <script src="js/installments-ui.js?v=69"></script>
+    <script src="js/budgets-ui.js?v=69"></script>
+    <script src="js/goals-ui.js?v=69"></script>
+    <script src="js/main.js?v=69" defer></script>
+    <script src="js/importar.js?v=69" defer></script>
+    <script src="js/exportar.js?v=69" defer></script>
+    <script src="js/recorrentes.js?v=69" defer></script>
   </body>
 </html>

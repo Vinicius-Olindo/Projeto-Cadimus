@@ -514,7 +514,7 @@ function configurarModalCartaoCredito() {
       document.getElementById("cartao-ultimos4").value = editar.ultimos4 || "";
       document.getElementById("cartao-dia-fechamento").value = editar.dia_fechamento;
       document.getElementById("cartao-dia-vencimento").value = editar.dia_vencimento;
-      document.getElementById("cartao-limite").value = valorMonetario(editar, "limite") || "";
+      definirValorInputMonetario("cartao-limite", valorMonetario(editar, "limite"));
     }
 
     modal.style.display = "flex";
