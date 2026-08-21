@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=9" />
-    <link rel="stylesheet" href="css/style.css?v=14" />
+    <link rel="stylesheet" href="css/style.css?v=15" />
   </head>
   <body>
     <main class="app-container">
@@ -126,21 +126,24 @@
               <button id="btn-admin" style="display:none"></button>
               <button id="btn-importar-extrato" style="display:none"></button>
               <button id="btn-exportar-extrato" style="display:none"></button>
-              <button id="btn-editar-layout-dashboard" class="btn-topo-icone" title="Editar layout do dashboard" aria-pressed="false">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <rect x="3" y="3" width="7" height="7" rx="1" />
-                  <rect x="14" y="3" width="7" height="7" rx="1" />
-                  <rect x="3" y="14" width="7" height="7" rx="1" />
-                  <rect x="14" y="14" width="7" height="7" rx="1" />
-                </svg>
-                <span class="btn-topo-label">Layout</span>
-              </button>
-              <button id="btn-resetar-layout-dashboard" class="btn-topo-icone btn-resetar-layout-dashboard" title="Restaurar layout padrão">
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-                  <path d="M3 12a9 9 0 1 0 3-6.7" />
-                  <path d="M3 4v6h6" />
-                </svg>
-              </button>
+              <div class="acoes-topo-grupo acoes-topo-grupo-layout" aria-label="Layout do dashboard">
+                <button id="btn-editar-layout-dashboard" class="btn-topo-icone btn-topo-destaque" title="Editar layout do dashboard" aria-pressed="false">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <rect x="3" y="3" width="7" height="7" rx="1" />
+                    <rect x="14" y="3" width="7" height="7" rx="1" />
+                    <rect x="3" y="14" width="7" height="7" rx="1" />
+                    <rect x="14" y="14" width="7" height="7" rx="1" />
+                  </svg>
+                  <span class="btn-topo-label">Layout</span>
+                </button>
+                <div class="acoes-topo-divider"></div>
+                <button id="btn-resetar-layout-dashboard" class="btn-topo-icone btn-topo-icone-only btn-resetar-layout-dashboard" title="Restaurar layout padrão" aria-label="Restaurar layout padrão">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+                    <path d="M3 12a9 9 0 1 0 3-6.7" />
+                    <path d="M3 4v6h6" />
+                  </svg>
+                </button>
+              </div>
               <div class="acoes-topo-divider"></div>
               <div class="avatar-dropdown-wrapper">
                 <button id="btn-avatar-perfil" class="btn-avatar-perfil" title="Meu perfil" aria-label="Perfil do usuário">

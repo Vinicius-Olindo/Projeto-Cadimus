@@ -152,6 +152,10 @@ button {
   background: color-mix(in srgb, var(--cor-fundo-card) 88%, transparent);
 }
 
+.acoes-topo-grupo-layout {
+  background: color-mix(in srgb, var(--cor-marca) 6%, var(--cor-fundo-card));
+}
+
 .avatar-topo {
   width: 30px;
   height: 30px;
@@ -257,6 +261,8 @@ button:active {
 #btn-cartoes-credito,
 #btn-planejamento,
 #btn-notificacoes,
+#btn-editar-layout-dashboard,
+#btn-resetar-layout-dashboard,
 #btn-voltar-dashboard,
 #btn-fechar-modal,
 #btn-fechar-modal-carteira,
@@ -277,6 +283,8 @@ button:active {
 #btn-cartoes-credito:hover,
 #btn-planejamento:hover,
 #btn-notificacoes:hover,
+#btn-editar-layout-dashboard:hover,
+#btn-resetar-layout-dashboard:hover,
 #btn-voltar-dashboard:hover,
 #btn-fechar-modal:hover,
 #btn-fechar-modal-carteira:hover,
@@ -1053,13 +1061,14 @@ button:active {
 }
 
 #btn-editar-layout-dashboard.ativo {
-  border-color: var(--cor-marca);
-  background: color-mix(in srgb, var(--cor-marca) 14%, transparent);
-  color: var(--cor-marca-forte);
+  background: color-mix(in srgb, var(--cor-marca) 18%, transparent);
+  color: var(--cor-marca-forte) !important;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cor-marca) 26%, transparent);
 }
 
 .btn-resetar-layout-dashboard {
-  width: 34px;
+  width: 28px;
+  height: 28px;
 }
 
 .area-lancamentos {
