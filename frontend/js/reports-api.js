@@ -24,7 +24,7 @@
 
   async function buscarLancamentos(filtros) {
     const resposta = await buscarLancamentosResposta(filtros);
-    if (!resposta.ok) throw new Error("Erro ao carregar lancamentos do relatorio.");
+    if (!resposta.ok) throw new Error("Erro ao carregar lançamentos do relatório.");
     return resposta.json();
   }
 

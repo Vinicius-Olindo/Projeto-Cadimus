@@ -185,7 +185,7 @@ async function sincronizarNotificacoesLocais() {
   try {
     await CadimusNotificationsApi.sincronizar(notificacoes);
   } catch (erro) {
-    console.warn("Nao foi possivel sincronizar notificacoes:", erro);
+    console.warn("Não foi possível sincronizar notificações:", erro);
   }
 }
 
@@ -209,10 +209,10 @@ function renderizarListaNotificacoesPersistidas(notificacoes, resumo = {}) {
 
   if (notificacoes.length === 0) {
     const mensagemVazia = filtroNotificacoesAtual === "arquivada"
-      ? "Nenhuma notificaÃ§Ã£o arquivada."
+      ? "Nenhuma notificação arquivada."
       : filtroNotificacoesAtual === "todas"
-        ? "Nenhuma notificaÃ§Ã£o no histórico."
-        : "Nenhuma notificaÃ§Ã£o nova.";
+        ? "Nenhuma notificação no histórico."
+        : "Nenhuma notificação nova.";
     lista.innerHTML = `<div class="notificacao-vazio">${mensagemVazia}</div>`;
     return;
   }
@@ -223,7 +223,7 @@ function renderizarListaNotificacoesPersistidas(notificacoes, resumo = {}) {
     const svgIcone = perigo
       ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>'
       : '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>';
-    const tipoLabel = n.tipo === "fixa" ? "Fixa" : n.tipo === "parcelada" ? "Parcelada" : n.tipo === "meta" ? "Meta" : "Lancamento";
+    const tipoLabel = n.tipo === "fixa" ? "Fixa" : n.tipo === "parcelada" ? "Parcelada" : n.tipo === "meta" ? "Meta" : "Lançamento";
     const statusLabel = n.status === "nao_lida" ? "Nova" : n.status === "arquivada" ? "Arquivada" : "Lida";
 
     return `
@@ -231,7 +231,7 @@ function renderizarListaNotificacoesPersistidas(notificacoes, resumo = {}) {
         <div class="notificacao-icone ${iconeClasse}">${svgIcone}</div>
         <div class="notificacao-info">
           <div class="notificacao-descricao">${escaparHtml(n.titulo)}</div>
-          <div class="notificacao-detalhe">${tipoLabel} Â· ${statusLabel} Â· ${escaparHtml(n.mensagem)}</div>
+          <div class="notificacao-detalhe">${tipoLabel} · ${statusLabel} · ${escaparHtml(n.mensagem)}</div>
         </div>
         ${n.status !== "arquivada" ? `<button type="button" class="notificacao-arquivar" data-id="${n.id}" title="Arquivar alerta">Arquivar</button>` : ""}
       </div>
@@ -249,7 +249,7 @@ async function renderizarNotificacoes(status = filtroNotificacoesAtual) {
   filtroNotificacoesAtual = status;
   atualizarTabsNotificacoes(status);
   const lista = document.getElementById("lista-notificacoes");
-  if (lista) lista.innerHTML = '<div class="notificacao-vazio">Carregando notificaÃ§Ãµes...</div>';
+  if (lista) lista.innerHTML = '<div class="notificacao-vazio">Carregando notificações...</div>';
 
   try {
     await gerarNotificacoesAutomaticas();
@@ -280,7 +280,7 @@ async function marcarNotificacoesComoLidas() {
   try {
     await CadimusNotificationsApi.marcarTodasComoLidas();
   } catch (erro) {
-    console.warn("Nao foi possivel marcar notificacoes como lidas:", erro);
+    console.warn("Não foi possível marcar notificações como lidas:", erro);
   }
 }
 
