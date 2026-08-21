@@ -278,14 +278,25 @@ function renderizarComparativo6Meses(meses, dados, mesAtualIdx, anoAtual) {
   const despesasAtual = dadoAtual.despesas || 0;
   const diferenca = saldoAtual - despesasAtual;
   const detalheResumo = saldoAtual >= despesasAtual
-    ? `Saldo supera despesas em ${formatadorBRL.format(Math.max(diferenca, 0))}`
-    : `Despesas superam saldo em ${formatadorBRL.format(Math.abs(diferenca))}`;
-  container.appendChild(criarResumoGrafico(
-    "Comparativo do mês",
-    `Saldo ${formatadorBRL.format(saldoAtual)} · Despesas ${formatadorBRL.format(despesasAtual)}`,
-    detalheResumo,
-    saldoAtual >= despesasAtual ? "grafico-resumo-positivo" : "grafico-resumo-negativo",
-  ));
+    ? `Saldo acima das despesas em ${formatadorBRL.format(Math.max(diferenca, 0))}`
+    : `Despesas acima do saldo em ${formatadorBRL.format(Math.abs(diferenca))}`;
+
+  const resumoComparativo = document.createElement("div");
+  resumoComparativo.className = `comparativo-resumo ${saldoAtual >= despesasAtual ? "comparativo-resumo-positivo" : "comparativo-resumo-negativo"}`;
+  resumoComparativo.innerHTML = `
+    <div class="comparativo-resumo-grid">
+      <div class="comparativo-resumo-item">
+        <span class="comparativo-resumo-label">Saldo</span>
+        <strong class="comparativo-resumo-valor">${formatadorBRL.format(saldoAtual)}</strong>
+      </div>
+      <div class="comparativo-resumo-item">
+        <span class="comparativo-resumo-label">Despesas</span>
+        <strong class="comparativo-resumo-valor">${formatadorBRL.format(despesasAtual)}</strong>
+      </div>
+    </div>
+    <span class="comparativo-resumo-detalhe">${detalheResumo}</span>
+  `;
+  container.appendChild(resumoComparativo);
 
   const barrasContainer = document.createElement("div");
   barrasContainer.className = "comparativo-barras-container";

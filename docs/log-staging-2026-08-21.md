@@ -38,6 +38,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Evolução mensal usa saldo real (`receitas - despesas`) vs despesas, com resumo do mês selecionado e eixo menos poluído.
 - Barras de saldo vs despesas receberam resumo do mês, menos rótulos repetidos e destaque visual no mês selecionado.
 - Resumos dos gráficos foram ajustados para não vazar quando valores financeiros são muito longos.
+- Card "Saldo vs Despesas" recebeu resumo redesenhado com KPIs separados para saldo e despesas.
 - Cards analíticos da coluna direita ganharam modo de edição de layout com drag-and-drop local.
 - Cards principais de receitas, despesas e saldo do período ganharam descrições curtas de contexto.
 - Card "A pagar" ganhou descrição curta de contexto para compromissos pendentes.

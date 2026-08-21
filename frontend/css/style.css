@@ -1738,8 +1738,75 @@ button:active {
 .comparativo-grafico {
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  gap: 14px;
   padding-top: 8px;
+}
+
+.comparativo-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 62%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-fundo-card) 90%, transparent), color-mix(in srgb, var(--cor-fundo) 78%, transparent));
+  overflow: hidden;
+}
+
+.comparativo-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.comparativo-resumo-item {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 76%, var(--cor-fundo));
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 78%, transparent);
+}
+
+.comparativo-resumo-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--cor-texto-suave);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.comparativo-resumo-valor {
+  display: block;
+  min-width: 0;
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: clamp(0.7rem, 2vw, 0.86rem);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.comparativo-resumo-item:first-child .comparativo-resumo-valor {
+  color: var(--cor-receita);
+}
+
+.comparativo-resumo-item:last-child .comparativo-resumo-valor {
+  color: var(--cor-despesa);
+}
+
+.comparativo-resumo-detalhe {
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .comparativo-resumo-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 .comparativo-barras-container {
@@ -7039,6 +7106,8 @@ body.ocultar-valores .orcamento-saldo,
 body.ocultar-valores .periodo-valor,
 body.ocultar-valores .comparativo-barra,
 body.ocultar-valores .tendencia-value-label,
+body.ocultar-valores .comparativo-resumo-valor,
+body.ocultar-valores .comparativo-resumo-detalhe,
 body.ocultar-valores .grafico-resumo-valor,
 body.ocultar-valores .grafico-resumo-detalhe,
 body.ocultar-valores .taxa-poupanca-valor,
@@ -7087,6 +7156,8 @@ body.ocultar-valores .orcamento-saldo,
 body.ocultar-valores .rel-donut-valor,
 body.ocultar-valores .rel-ranking-valor-principal,
 body.ocultar-valores .col-valor,
+body.ocultar-valores .comparativo-resumo-valor,
+body.ocultar-valores .comparativo-resumo-detalhe,
 body.ocultar-valores .grafico-resumo-valor,
 body.ocultar-valores .grafico-resumo-detalhe,
 body.ocultar-valores .cat-bar-valor {
@@ -7113,6 +7184,8 @@ body.ocultar-valores .orcamento-saldo::after,
 body.ocultar-valores .rel-donut-valor::after,
 body.ocultar-valores .rel-ranking-valor-principal::after,
 body.ocultar-valores .col-valor::after,
+body.ocultar-valores .comparativo-resumo-valor::after,
+body.ocultar-valores .comparativo-resumo-detalhe::after,
 body.ocultar-valores .grafico-resumo-valor::after,
 body.ocultar-valores .grafico-resumo-detalhe::after,
 body.ocultar-valores .cat-bar-valor::after {
