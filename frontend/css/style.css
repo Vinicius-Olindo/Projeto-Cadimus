@@ -1177,6 +1177,7 @@ button:active {
   padding: 18px 20px;
   position: relative;
   overflow: hidden;
+  min-width: 0;
   transition: transform 0.15s ease, box-shadow 0.15s ease;
 }
 
@@ -1266,18 +1267,35 @@ button:active {
 }
 
 .stat-valor {
+  display: block;
+  max-width: 100%;
   font-family: var(--fonte-mono);
   font-variant-numeric: tabular-nums;
-  font-size: 1.3rem;
+  font-size: clamp(1.02rem, 1.45vw, 1.3rem);
   font-weight: 600;
   letter-spacing: -0.3px;
+  line-height: 1.18;
   color: var(--cor-texto);
+  overflow-wrap: anywhere;
+  word-break: break-word;
 }
 
 #saldo-total {
-  font-size: 1.7rem;
+  font-size: clamp(1.08rem, 1.8vw, 1.7rem);
   color: var(--cor-texto);
   transition: color 0.3s ease;
+}
+
+.stat-valor.valor-monetario-longo,
+#saldo-total.valor-monetario-longo {
+  font-size: clamp(0.95rem, 1.35vw, 1.18rem);
+  letter-spacing: -0.65px;
+}
+
+.stat-valor.valor-monetario-muito-longo,
+#saldo-total.valor-monetario-muito-longo {
+  font-size: clamp(0.86rem, 1.2vw, 1.02rem);
+  letter-spacing: -0.85px;
 }
 
 /* Card Comparativo por Período */
@@ -2182,7 +2200,11 @@ button:active {
   display: flex;
   align-items: center;
   gap: 12px;
+  justify-content: flex-end;
   flex-shrink: 0;
+  min-width: 0;
+  max-width: 58%;
+  flex-wrap: wrap;
 }
 
 .item-meio-pagamento {
@@ -2267,9 +2289,13 @@ button.item-status:active {
   font-family: var(--fonte-mono);
   font-variant-numeric: tabular-nums;
   font-weight: 600;
-  font-size: 0.95rem;
-  min-width: 88px;
+  font-size: clamp(0.8rem, 1.25vw, 0.95rem);
+  min-width: max-content;
+  max-width: 100%;
   text-align: right;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.25;
 }
 
 .texto-receita {
@@ -3983,6 +4009,27 @@ textarea::placeholder {
 
   .stat-valor {
     font-size: 1.05rem;
+  }
+
+  .stat-valor.valor-monetario-longo,
+  #saldo-total.valor-monetario-longo {
+    font-size: 0.92rem;
+  }
+
+  .stat-valor.valor-monetario-muito-longo,
+  #saldo-total.valor-monetario-muito-longo {
+    font-size: 0.82rem;
+  }
+
+  .linha-corpo {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .item-valores {
+    width: 100%;
+    max-width: 100%;
+    justify-content: flex-end;
   }
 
   .lancamentos-cabecalho {

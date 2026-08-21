@@ -45,6 +45,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Seletor claro/escuro foi melhorado.
 - Espaçamento entre alertas, seletor de tema e avatar foi ajustado.
 - Campos de valores financeiros passaram a exibir e aceitar o padrão brasileiro `R$ 0,00`.
+- Cards e linhas de lançamentos foram ajustados para acomodar valores financeiros muito altos sem cortar o texto.
 - Trecho inválido/duplicado em `style.css` foi removido.
 - Comentário `ORÇAMENTOS MENTAIS` corrigido para `ORÇAMENTOS MENSAIS`.
 

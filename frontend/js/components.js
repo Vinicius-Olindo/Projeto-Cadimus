@@ -97,7 +97,7 @@ function criarLinhaLancamento(lancamento) {
                 ${carimboAutorHtml}
                 <span class="item-meio-pagamento">${lancamento.meio_pagamento}</span>
                 <button type="button" class="item-status ${classeStatus}" data-action="status" data-id="${lancamento.id}" data-status-atual="${lancamento.status}" title="Clique para marcar como ${lancamento.status === "pago" ? "pendente" : "pago"}">${textoStatus}</button>
-                <span class="item-valor ${classeTipo}">${sinal} ${valorFormatado}</span>
+                <span class="item-valor ${classeTipo}" title="${sinal} ${valorFormatado}">${sinal} ${valorFormatado}</span>
                 ${botoesGerenciar}
             </div>
         </div>

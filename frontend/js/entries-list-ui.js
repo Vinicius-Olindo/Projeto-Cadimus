@@ -13,8 +13,16 @@ const valoresAnimadosAtuais = new WeakMap();
 function animarValorMonetario(elemento, valorFinal) {
   if (!elemento) return;
 
+  const atualizarValor = (valor) => {
+    const texto = formatadorBRL.format(valor);
+    elemento.textContent = texto;
+    elemento.title = texto;
+    elemento.classList.toggle("valor-monetario-longo", texto.length >= 15);
+    elemento.classList.toggle("valor-monetario-muito-longo", texto.length >= 18);
+  };
+
   if (prefereMovimentoReduzido()) {
-    elemento.textContent = formatadorBRL.format(valorFinal);
+    atualizarValor(valorFinal);
     valoresAnimadosAtuais.set(elemento, valorFinal);
     return;
   }
@@ -27,7 +35,7 @@ function animarValorMonetario(elemento, valorFinal) {
     const progresso = Math.min((agora - inicioTempo) / duracao, 1);
     const facilitado = 1 - Math.pow(1 - progresso, 3); // ease-out cúbico
     const valorAtual = valorInicial + (valorFinal - valorInicial) * facilitado;
-    elemento.textContent = formatadorBRL.format(valorAtual);
+    atualizarValor(valorAtual);
     if (progresso < 1) requestAnimationFrame(passo);
   }
 
