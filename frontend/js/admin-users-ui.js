@@ -82,7 +82,7 @@ function configurarFormularioUsuario() {
             if (salario !== undefined) dadosAtualizados.salario = salario;
             const token = obterToken();
             sessaoMemoria.usuario = dadosAtualizados;
-            sessionStorage.setItem("sessao", JSON.stringify({ token, usuario: dadosAtualizados }));
+            gravarSessionStorageSeguro("sessao", JSON.stringify({ token, usuario: dadosAtualizados }));
             atualizarAvatarTopo(dadosAtualizados);
           }
         }

@@ -265,6 +265,7 @@ let deferredInstallPrompt = null;
 
 function configurarInstallBanner() {
   window.addEventListener("beforeinstallprompt", (e) => {
+    if (!deveMostrarBannerInstalacao()) return;
     e.preventDefault();
     deferredInstallPrompt = e;
     mostrarBannerInstalacao();
@@ -277,8 +278,15 @@ function configurarInstallBanner() {
   });
 }
 
+function deveMostrarBannerInstalacao() {
+  if (lerLocalStorageSeguro("cadimus_install_dismissed") === "1") return false;
+  if (typeof obterUsuarioLogado !== "function") return false;
+  const usuario = obterUsuarioLogado();
+  return Boolean(usuario?.id);
+}
+
 function mostrarBannerInstalacao() {
-  if (localStorage.getItem("cadimus_install_dismissed") === "1") return;
+  if (!deveMostrarBannerInstalacao()) return;
   if (typeof obterUsuarioLogado !== "function") return;
   const usuario = obterUsuarioLogado();
   if (!usuario) return;
@@ -309,7 +317,7 @@ function mostrarBannerInstalacao() {
     });
 
     document.getElementById("pwa-install-dismiss").addEventListener("click", () => {
-      localStorage.setItem("cadimus_install_dismissed", "1");
+      gravarLocalStorageSeguro("cadimus_install_dismissed", "1");
       ocultarBannerInstalacao();
     });
   }
@@ -330,7 +338,7 @@ const ONBOARDING_STEPS = [
 ];
 
 function iniciarOnboarding() {
-  if (localStorage.getItem("cadimus_onboarding_done") === "1") return;
+  if (lerLocalStorageSeguro("cadimus_onboarding_done") === "1") return;
   const usuario = obterUsuarioLogado();
   if (!usuario) return;
 
@@ -338,11 +346,11 @@ function iniciarOnboarding() {
   const dashboard = document.getElementById("dashboard-section");
   if (!dashboard || dashboard.style.display === "none") return;
 
-  const firstLogin = !localStorage.getItem("cadimus_onboarding_seen_" + usuario.id);
-  if (!firstLogin && localStorage.getItem("cadimus_onboarding_done") !== "0") return;
+  const firstLogin = !lerLocalStorageSeguro("cadimus_onboarding_seen_" + usuario.id);
+  if (!firstLogin && lerLocalStorageSeguro("cadimus_onboarding_done") !== "0") return;
 
-  localStorage.setItem("cadimus_onboarding_seen_" + usuario.id, "1");
-  localStorage.setItem("cadimus_onboarding_done", "0");
+  gravarLocalStorageSeguro("cadimus_onboarding_seen_" + usuario.id, "1");
+  gravarLocalStorageSeguro("cadimus_onboarding_done", "0");
 
   let stepIdx = 0;
 
@@ -350,7 +358,7 @@ function iniciarOnboarding() {
     removerOnboarding();
 
     if (idx >= ONBOARDING_STEPS.length) {
-      localStorage.setItem("cadimus_onboarding_done", "1");
+      gravarLocalStorageSeguro("cadimus_onboarding_done", "1");
       removerOnboarding();
       return;
     }
@@ -381,7 +389,7 @@ function iniciarOnboarding() {
 
     overlay.querySelector(".onboarding-proximo").addEventListener("click", () => showStep(idx + 1));
     overlay.querySelector(".onboarding-pular").addEventListener("click", () => {
-      localStorage.setItem("cadimus_onboarding_done", "1");
+      gravarLocalStorageSeguro("cadimus_onboarding_done", "1");
       removerOnboarding();
     });
   }
@@ -508,14 +516,14 @@ function inicializarDarkMode() {
 
   areaAcoes.insertBefore(btnTheme, document.querySelector(".avatar-dropdown-wrapper"));
 
-  if (localStorage.getItem("cadimus_tema") === "dark") {
+  if (lerLocalStorageSeguro("cadimus_tema") === "dark") {
     document.body.classList.add("dark-mode");
   }
   atualizarSeletorTemaTopo();
 
   btnTheme.addEventListener("click", () => {
     document.body.classList.toggle("dark-mode");
-    localStorage.setItem("cadimus_tema", document.body.classList.contains("dark-mode") ? "dark" : "light");
+    gravarLocalStorageSeguro("cadimus_tema", document.body.classList.contains("dark-mode") ? "dark" : "light");
     atualizarSeletorTemaTopo();
     sincronizarToggleTema();
   });

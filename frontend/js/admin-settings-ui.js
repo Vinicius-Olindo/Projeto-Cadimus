@@ -43,12 +43,12 @@ function configurarSubAbasAdmin() {
       const nomeTema = tema === "escuro" ? "Escuro" : tema === "claro" ? "Claro" : "Automático";
       if (tema === "escuro") {
         document.body.classList.add("dark-mode");
-        localStorage.setItem("cadimus_tema", "dark");
+        gravarLocalStorageSeguro("cadimus_tema", "dark");
       } else if (tema === "claro") {
         document.body.classList.remove("dark-mode");
-        localStorage.setItem("cadimus_tema", "light");
+        gravarLocalStorageSeguro("cadimus_tema", "light");
       } else {
-        localStorage.removeItem("cadimus_tema");
+        removerLocalStorageSeguro("cadimus_tema");
         if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
           document.body.classList.add("dark-mode");
         } else {
@@ -64,18 +64,18 @@ function configurarSubAbasAdmin() {
   // Toggle: animações
   const toggleAnimacoes = document.getElementById("toggle-animacoes");
   if (toggleAnimacoes) {
-    if (localStorage.getItem("cadimus_animacoes") === "false") {
+    if (lerLocalStorageSeguro("cadimus_animacoes") === "false") {
       toggleAnimacoes.checked = false;
       document.body.classList.add("sem-animacoes");
     }
     toggleAnimacoes.addEventListener("change", () => {
       if (toggleAnimacoes.checked) {
         document.body.classList.remove("sem-animacoes");
-        localStorage.setItem("cadimus_animacoes", "true");
+        gravarLocalStorageSeguro("cadimus_animacoes", "true");
         mostrarToast("Animações ativadas");
       } else {
         document.body.classList.add("sem-animacoes");
-        localStorage.setItem("cadimus_animacoes", "false");
+        gravarLocalStorageSeguro("cadimus_animacoes", "false");
         mostrarToast("Animações desativadas");
       }
     });
@@ -84,18 +84,18 @@ function configurarSubAbasAdmin() {
   // Toggle: ocultar valores financeiros
   const toggleOcultar = document.getElementById("toggle-ocultar-valores");
   if (toggleOcultar) {
-    if (localStorage.getItem("cadimus_ocultar_valores") === "true") {
+    if (lerLocalStorageSeguro("cadimus_ocultar_valores") === "true") {
       toggleOcultar.checked = true;
       document.body.classList.add("ocultar-valores");
     }
     toggleOcultar.addEventListener("change", () => {
       if (toggleOcultar.checked) {
         document.body.classList.add("ocultar-valores");
-        localStorage.setItem("cadimus_ocultar_valores", "true");
+        gravarLocalStorageSeguro("cadimus_ocultar_valores", "true");
         mostrarToast("Valores ocultos com sucesso");
       } else {
         document.body.classList.remove("ocultar-valores");
-        localStorage.setItem("cadimus_ocultar_valores", "false");
+        gravarLocalStorageSeguro("cadimus_ocultar_valores", "false");
         mostrarToast("Valores visíveis novamente");
       }
     });
@@ -274,7 +274,7 @@ async function preencherPerfilAtual() {
 }
 
 function sincronizarToggleTema() {
-  const temaSalvo = localStorage.getItem("cadimus_tema");
+  const temaSalvo = lerLocalStorageSeguro("cadimus_tema");
   document.querySelectorAll(".settings-tema-btn").forEach((btn) => {
     btn.classList.remove("ativo");
     if (temaSalvo === "dark" && btn.dataset.tema === "escuro") btn.classList.add("ativo");

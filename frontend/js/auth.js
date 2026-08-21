@@ -24,9 +24,57 @@ const sessaoMemoria = {
   usuario: null,
 };
 
+function lerStorageSeguro(storage, chave, fallback = null) {
+  try {
+    return storage.getItem(chave);
+  } catch {
+    return fallback;
+  }
+}
+
+function gravarStorageSeguro(storage, chave, valor) {
+  try {
+    storage.setItem(chave, valor);
+  } catch {
+    // Em contextos restritos, mantém o app funcionando apenas em memória.
+  }
+}
+
+function removerStorageSeguro(storage, chave) {
+  try {
+    storage.removeItem(chave);
+  } catch {
+    // Em contextos restritos, mantém o app funcionando apenas em memória.
+  }
+}
+
+function lerLocalStorageSeguro(chave, fallback = null) {
+  return lerStorageSeguro(localStorage, chave, fallback);
+}
+
+function gravarLocalStorageSeguro(chave, valor) {
+  gravarStorageSeguro(localStorage, chave, valor);
+}
+
+function removerLocalStorageSeguro(chave) {
+  removerStorageSeguro(localStorage, chave);
+}
+
+function lerSessionStorageSeguro(chave, fallback = null) {
+  return lerStorageSeguro(sessionStorage, chave, fallback);
+}
+
+function gravarSessionStorageSeguro(chave, valor) {
+  gravarStorageSeguro(sessionStorage, chave, valor);
+}
+
+function removerSessionStorageSeguro(chave) {
+  removerStorageSeguro(sessionStorage, chave);
+}
+
 function obterToken() {
   if (sessaoMemoria.token) return sessaoMemoria.token;
-  const salvo = sessionStorage.getItem("sessao");
+  const salvo = lerSessionStorageSeguro("sessao");
   if (salvo) {
     try {
       const dados = JSON.parse(salvo);
@@ -47,13 +95,13 @@ function obterUsuarioLogado() {
 function salvarSessao(token, usuario) {
   sessaoMemoria.token = token;
   sessaoMemoria.usuario = usuario;
-  sessionStorage.setItem("sessao", JSON.stringify({ token, usuario }));
+  gravarSessionStorageSeguro("sessao", JSON.stringify({ token, usuario }));
 }
 
 function limparSessao() {
   sessaoMemoria.token = null;
   sessaoMemoria.usuario = null;
-  sessionStorage.removeItem("sessao");
+  removerSessionStorageSeguro("sessao");
 }
 
 function atualizarAvatarTopo(usuario) {
@@ -118,13 +166,13 @@ function alternarTelas(estaLogado) {
         if (!res.ok) return;
         const dados = await res.json();
         // Atualiza sessão com dados completos
-        const sessao = JSON.parse(sessionStorage.getItem("sessao") || "{}");
+        const sessao = JSON.parse(lerSessionStorageSeguro("sessao", "{}") || "{}");
         if (sessao.usuario) {
           sessao.usuario.foto_perfil = dados.foto_perfil;
           sessao.usuario.email = dados.email;
           sessao.usuario.telefone = dados.telefone;
           sessao.usuario.salario = dados.salario;
-          sessionStorage.setItem("sessao", JSON.stringify(sessao));
+          gravarSessionStorageSeguro("sessao", JSON.stringify(sessao));
         }
         atualizarAvatarTopo(dados);
       } catch (erro) {

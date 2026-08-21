@@ -50,6 +50,7 @@
           <h1>Nova senha</h1>
           <span class="subtitulo">Escolha uma nova senha para sua conta</span>
           <form id="form-redefinir-senha">
+            <input type="text" id="redefinir-usuario-autocomplete" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
             <div class="campo-senha-toggle">
               <input type="password" id="redefinir-nova-senha" placeholder="Nova senha" autocomplete="new-password" minlength="6" required />
               <button type="button" class="btn-toggle-senha" data-alvo="redefinir-nova-senha" aria-label="Mostrar senha">👁</button>
@@ -1535,8 +1536,8 @@
             <input type="hidden" id="cadastro-token" value="" />
             <input type="text" id="cadastro-nome" placeholder="Seu nome" required />
             <input type="text" id="cadastro-usuario" placeholder="Usuário (login)" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required />
-            <input type="password" id="cadastro-senha" placeholder="Crie uma senha (mín. 6 caracteres)" required minlength="6" />
-            <input type="password" id="cadastro-confirmar-senha" placeholder="Confirme a senha" required minlength="6" />
+            <input type="password" id="cadastro-senha" placeholder="Crie uma senha (mín. 6 caracteres)" autocomplete="new-password" required minlength="6" />
+            <input type="password" id="cadastro-confirmar-senha" placeholder="Confirme a senha" autocomplete="new-password" required minlength="6" />
             <p id="cadastro-erro" class="erro-convite" style="display: none"></p>
             <button type="submit">Criar conta</button>
           </form>
@@ -2213,58 +2214,58 @@
       </div>
     </footer>
 
-    <script src="js/api-client.js?v=65"></script>
-    <script src="js/auth-api.js?v=65"></script>
-    <script src="js/planning-api.js?v=65"></script>
-    <script src="js/notifications-api.js?v=65"></script>
-    <script src="js/wallets-api.js?v=65"></script>
-    <script src="js/reports-api.js?v=65"></script>
-    <script src="js/entries-api.js?v=65"></script>
-    <script src="js/admin-api.js?v=65"></script>
-    <script src="js/cards-api.js?v=65"></script>
-    <script src="js/budgets-api.js?v=65"></script>
-    <script src="js/goals-api.js?v=65"></script>
-    <script src="js/scheduled-api.js?v=65"></script>
-    <script src="js/auth.js?v=65"></script>
-    <script src="js/ui-formatters.js?v=65"></script>
-    <script src="js/money-utils.js?v=65"></script>
-    <script src="js/money-ui.js?v=65"></script>
-    <script src="js/components.js?v=65"></script>
-    <script src="js/ui-core.js?v=65"></script>
-    <script src="js/wallets-ui.js?v=65"></script>
-    <script src="js/categories-ui.js?v=65"></script>
-    <script src="js/entries-modal-ui.js?v=65"></script>
-    <script src="js/entries-list-ui.js?v=65"></script>
-    <script src="js/notifications-ui.js?v=65"></script>
-    <script src="js/batch-note-ui.js?v=65"></script>
-    <script src="js/period-comparison-ui.js?v=65"></script>
-    <script src="js/entries-loader-ui.js?v=65"></script>
-    <script src="js/dashboard-summary-ui.js?v=65"></script>
-    <script src="js/dashboard-insights-ui.js?v=65"></script>
-    <script src="js/dashboard-charts-ui.js?v=65"></script>
-    <script src="js/dashboard-health-ui.js?v=65"></script>
-    <script src="js/dashboard-pdf-ui.js?v=65"></script>
-    <script src="js/entries-actions-ui.js?v=65"></script>
-    <script src="js/admin-shell-ui.js?v=65"></script>
-    <script src="js/admin-settings-ui.js?v=65"></script>
-    <script src="js/profile-image-ui.js?v=65"></script>
-    <script src="js/admin-users-ui.js?v=65"></script>
-    <script src="js/admin-categories-ui.js?v=65"></script>
-    <script src="js/reports-shell-ui.js?v=65"></script>
-    <script src="js/reports-charts-ui.js?v=65"></script>
-    <script src="js/reports-tables-ui.js?v=65"></script>
-    <script src="js/reports-export-ui.js?v=65"></script>
-    <script src="js/planning-shell-ui.js?v=65"></script>
-    <script src="js/planning-dashboard-ui.js?v=65"></script>
-    <script src="js/planning-plans-ui.js?v=65"></script>
-    <script src="js/planning-goals-ui.js?v=65"></script>
-    <script src="js/fixed-expenses-ui.js?v=65"></script>
-    <script src="js/installments-ui.js?v=65"></script>
-    <script src="js/budgets-ui.js?v=65"></script>
-    <script src="js/goals-ui.js?v=65"></script>
-    <script src="js/main.js?v=65" defer></script>
-    <script src="js/importar.js?v=65" defer></script>
-    <script src="js/exportar.js?v=65" defer></script>
-    <script src="js/recorrentes.js?v=65" defer></script>
+    <script src="js/api-client.js?v=66"></script>
+    <script src="js/auth-api.js?v=66"></script>
+    <script src="js/planning-api.js?v=66"></script>
+    <script src="js/notifications-api.js?v=66"></script>
+    <script src="js/wallets-api.js?v=66"></script>
+    <script src="js/reports-api.js?v=66"></script>
+    <script src="js/entries-api.js?v=66"></script>
+    <script src="js/admin-api.js?v=66"></script>
+    <script src="js/cards-api.js?v=66"></script>
+    <script src="js/budgets-api.js?v=66"></script>
+    <script src="js/goals-api.js?v=66"></script>
+    <script src="js/scheduled-api.js?v=66"></script>
+    <script src="js/auth.js?v=66"></script>
+    <script src="js/ui-formatters.js?v=66"></script>
+    <script src="js/money-utils.js?v=66"></script>
+    <script src="js/money-ui.js?v=66"></script>
+    <script src="js/components.js?v=66"></script>
+    <script src="js/ui-core.js?v=66"></script>
+    <script src="js/wallets-ui.js?v=66"></script>
+    <script src="js/categories-ui.js?v=66"></script>
+    <script src="js/entries-modal-ui.js?v=66"></script>
+    <script src="js/entries-list-ui.js?v=66"></script>
+    <script src="js/notifications-ui.js?v=66"></script>
+    <script src="js/batch-note-ui.js?v=66"></script>
+    <script src="js/period-comparison-ui.js?v=66"></script>
+    <script src="js/entries-loader-ui.js?v=66"></script>
+    <script src="js/dashboard-summary-ui.js?v=66"></script>
+    <script src="js/dashboard-insights-ui.js?v=66"></script>
+    <script src="js/dashboard-charts-ui.js?v=66"></script>
+    <script src="js/dashboard-health-ui.js?v=66"></script>
+    <script src="js/dashboard-pdf-ui.js?v=66"></script>
+    <script src="js/entries-actions-ui.js?v=66"></script>
+    <script src="js/admin-shell-ui.js?v=66"></script>
+    <script src="js/admin-settings-ui.js?v=66"></script>
+    <script src="js/profile-image-ui.js?v=66"></script>
+    <script src="js/admin-users-ui.js?v=66"></script>
+    <script src="js/admin-categories-ui.js?v=66"></script>
+    <script src="js/reports-shell-ui.js?v=66"></script>
+    <script src="js/reports-charts-ui.js?v=66"></script>
+    <script src="js/reports-tables-ui.js?v=66"></script>
+    <script src="js/reports-export-ui.js?v=66"></script>
+    <script src="js/planning-shell-ui.js?v=66"></script>
+    <script src="js/planning-dashboard-ui.js?v=66"></script>
+    <script src="js/planning-plans-ui.js?v=66"></script>
+    <script src="js/planning-goals-ui.js?v=66"></script>
+    <script src="js/fixed-expenses-ui.js?v=66"></script>
+    <script src="js/installments-ui.js?v=66"></script>
+    <script src="js/budgets-ui.js?v=66"></script>
+    <script src="js/goals-ui.js?v=66"></script>
+    <script src="js/main.js?v=66" defer></script>
+    <script src="js/importar.js?v=66" defer></script>
+    <script src="js/exportar.js?v=66" defer></script>
+    <script src="js/recorrentes.js?v=66" defer></script>
   </body>
 </html>

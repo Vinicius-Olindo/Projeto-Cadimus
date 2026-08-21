@@ -109,7 +109,7 @@ function configurarSalarioPlano() {
 
       if (resposta.ok) {
         usuario.salario = valor;
-        localStorage.setItem("usuario", JSON.stringify(usuario));
+        gravarLocalStorageSeguro("usuario", JSON.stringify(usuario));
         form.style.display = "none";
         display.querySelector(".plano-salario-valor").style.display = "";
         btnEditar.style.display = "";
