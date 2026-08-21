@@ -3481,6 +3481,7 @@ textarea::placeholder {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.12s;
+  white-space: nowrap;
 }
 
 .fixa-btn:hover {
@@ -3499,41 +3500,16 @@ textarea::placeholder {
   font-weight: 500;
   cursor: pointer;
   transition: all 0.12s;
+  white-space: nowrap;
 }
 
 .fixa-btn-excluir:hover {
   background: color-mix(in srgb, var(--cor-despesa) 14%, transparent);
   border-color: var(--cor-despesa);
 }
-  color: var(--cor-texto-suave);
-  cursor: pointer;
-  transition: all 0.12s;
-  white-space: nowrap;
-}
-
-.fixa-btn:hover {
-  background: var(--cor-fundo-alt);
-  color: var(--cor-texto);
-}
-
-.fixa-btn-excluir {
-  font-size: 0.72rem;
-  padding: 6px 12px;
-  border-radius: var(--raio-sm);
-  border: var(--borda) solid color-mix(in srgb, var(--cor-despesa) 40%, transparent);
-  background: transparent;
-  color: var(--cor-despesa);
-  cursor: pointer;
-  transition: all 0.12s;
-  white-space: nowrap;
-}
-
-.fixa-btn-excluir:hover {
-  background: color-mix(in srgb, var(--cor-despesa) 10%, transparent);
-}
 
 /* ==========================================
-   ORÇAMENTOS MENTAIS
+   ORÇAMENTOS MENSAIS
    ========================================== */
 .orcamento-item {
   padding: 12px 0;
