@@ -36,6 +36,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 ### Dashboard
 
 - Gráficos receberam melhorias de leitura, contraste e resumo contextual.
+- Card "Comparar períodos" recebeu redesign com cards internos, rótulos mais claros e variação contextual.
 - Donut de categorias mostra total e valores por categoria.
 - Card "Para onde foi o dinheiro" recebeu redesign com donut mais limpo, maior categoria destacada e ranking por percentual/valor.
 - Evolução mensal usa saldo real (`receitas - despesas`) vs despesas, com resumo do mês selecionado e eixo menos poluído.

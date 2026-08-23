@@ -120,16 +120,20 @@ async function renderizarComparativoPeriodo() {
   document.getElementById("periodo-anterior-saldo").textContent = formatadorBRL.format(periodoDadosAnterior.saldo);
 
   const variacaoEl = document.getElementById("periodo-variacao-saldo");
+  const variacaoDetalheEl = document.getElementById("periodo-variacao-detalhe");
   if (periodoDadosAnterior.saldo === 0 && periodoDadosAtual.saldo === 0) {
     variacaoEl.textContent = "—";
     variacaoEl.className = "periodo-variacao-valor neutro";
+    if (variacaoDetalheEl) variacaoDetalheEl.textContent = "sem saldo nos períodos";
   } else if (periodoDadosAnterior.saldo === 0) {
-    variacaoEl.textContent = periodoDadosAtual.saldo > 0 ? "+∞" : "-∞";
+    variacaoEl.textContent = periodoDadosAtual.saldo > 0 ? "Novo saldo" : "Novo déficit";
     variacaoEl.className = `periodo-variacao-valor ${periodoDadosAtual.saldo >= 0 ? "positivo" : "negativo"}`;
+    if (variacaoDetalheEl) variacaoDetalheEl.textContent = "sem base anterior";
   } else {
     const variacao = ((periodoDadosAtual.saldo - periodoDadosAnterior.saldo) / Math.abs(periodoDadosAnterior.saldo)) * 100;
     const sinal = variacao >= 0 ? "+" : "";
     variacaoEl.textContent = `${sinal}${variacao.toFixed(0)}%`;
     variacaoEl.className = `periodo-variacao-valor ${variacao >= 0 ? "positivo" : "negativo"}`;
+    if (variacaoDetalheEl) variacaoDetalheEl.textContent = "vs período anterior";
   }
 }

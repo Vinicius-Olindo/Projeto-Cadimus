@@ -1478,8 +1478,9 @@ button:active {
 .card-comparativo-periodo {
   display: flex;
   flex-direction: column;
-  gap: 16px;
-  padding: 20px;
+  gap: 18px;
+  padding: 22px;
+  overflow: hidden;
 }
 
 .comparativo-periodo-header {
@@ -1491,19 +1492,32 @@ button:active {
 }
 
 .comparativo-periodo-titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   font-size: 0.7rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 1.2px;
-  color: var(--cor-texto-suave);
+  color: var(--cor-texto);
+}
+
+.comparativo-periodo-titulo::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--cor-marca);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--cor-marca) 12%, transparent);
 }
 
 .comparativo-periodo-seletor {
   display: flex;
   gap: 2px;
-  background: var(--cor-pauta-fraca);
+  background: color-mix(in srgb, var(--cor-pauta-fraca) 70%, transparent);
   border-radius: var(--raio-botoes);
   padding: 3px;
+  border: 1px solid var(--cor-pauta-fraca);
 }
 
 .periodo-btn {
@@ -1530,21 +1544,22 @@ button:active {
 }
 
 .comparativo-periodo-conteudo {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) minmax(108px, 0.42fr);
+  align-items: stretch;
   gap: 12px;
-  flex-wrap: wrap;
 }
 
 .periodo-coluna {
-  flex: 1;
   min-width: 130px;
   display: flex;
   flex-direction: column;
-  gap: 8px;
-  background: color-mix(in srgb, var(--cor-pauta-fraca) 40%, transparent);
-  border-radius: var(--raio-lg);
-  padding: 14px 16px;
+  gap: 12px;
+  background: color-mix(in srgb, var(--cor-superficie) 74%, transparent);
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 18px;
+  padding: 16px;
+  min-width: 0;
 }
 
 .periodo-rotulo {
@@ -1556,13 +1571,14 @@ button:active {
 .periodo-metricas {
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 8px;
 }
 
 .periodo-metrica {
   display: flex;
   justify-content: space-between;
   align-items: center;
+  gap: 12px;
 }
 
 .periodo-metrica-rotulo {
@@ -1574,35 +1590,46 @@ button:active {
   font-family: var(--fonte-mono);
   font-size: 0.85rem;
   font-weight: 600;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: right;
+  letter-spacing: -0.02em;
 }
 
 .periodo-metrica-destaque {
-  margin-top: 4px;
-  padding-top: 6px;
-  border-top: 1px dashed var(--cor-pauta-forte);
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cor-pauta-fraca);
 }
 
 .periodo-metrica-destaque .periodo-metrica-valor {
-  font-size: 0.95rem;
+  font-size: clamp(0.95rem, 1.25vw, 1.12rem);
   font-weight: 700;
   color: var(--cor-texto);
 }
 
 .periodo-seta {
   display: flex;
-  flex-direction: column;
+  flex-direction: row;
   align-items: center;
   justify-content: center;
-  gap: 4px;
   color: var(--cor-texto-suave);
   flex-shrink: 0;
-  opacity: 0.6;
+  opacity: 0.72;
 }
 
 .periodo-seta-linha {
-  width: 1px;
-  height: 8px;
+  display: none;
+}
+
+.periodo-seta svg {
+  width: 26px;
+  height: 26px;
+  padding: 8px;
+  border-radius: 999px;
   background: var(--cor-pauta-forte);
+  color: var(--cor-texto-suave);
 }
 
 .periodo-variacao {
@@ -1612,9 +1639,11 @@ button:active {
   justify-content: center;
   gap: 6px;
   min-width: 90px;
-  padding: 14px 12px;
-  background: color-mix(in srgb, var(--cor-pauta-fraca) 50%, transparent);
-  border-radius: var(--raio-lg);
+  padding: 16px 12px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 9%, transparent), color-mix(in srgb, var(--cor-pauta-fraca) 45%, transparent));
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 18px;
+  text-align: center;
 }
 
 .periodo-variacao-label {
@@ -1627,8 +1656,16 @@ button:active {
 
 .periodo-variacao-valor {
   font-family: var(--fonte-mono);
-  font-size: 1.1rem;
+  font-size: clamp(1rem, 1.35vw, 1.25rem);
   font-weight: 700;
+  line-height: 1.1;
+}
+
+.periodo-variacao-detalhe {
+  max-width: 120px;
+  color: var(--cor-texto-suave);
+  font-size: 0.68rem;
+  line-height: 1.3;
 }
 
 .periodo-variacao-valor.positivo {
@@ -1641,6 +1678,26 @@ button:active {
 
 .periodo-variacao-valor.neutro {
   color: var(--cor-texto-suave);
+}
+
+@media (max-width: 980px) {
+  .comparativo-periodo-conteudo {
+    grid-template-columns: 1fr;
+  }
+
+  .periodo-seta {
+    transform: rotate(90deg);
+    min-height: 22px;
+  }
+
+  .periodo-variacao {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .periodo-variacao-detalhe {
+    max-width: none;
+  }
 }
 
 /* Raio-x por categoria (e demais cards analíticos da coluna direita) */
