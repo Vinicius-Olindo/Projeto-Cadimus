@@ -3940,7 +3940,7 @@ textarea::placeholder {
 
 .bonificacoes-resumo {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(92px, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -3948,9 +3948,9 @@ textarea::placeholder {
 .bonificacoes-resumo > div {
   display: flex;
   flex-direction: column;
-  gap: 3px;
+  gap: 5px;
   min-width: 0;
-  padding: 10px;
+  padding: 10px 9px;
   border: 1px solid color-mix(in srgb, var(--cor-receita) 16%, var(--cor-pauta-forte));
   border-radius: 12px;
   background: color-mix(in srgb, var(--cor-receita) 5%, transparent);
@@ -3965,13 +3965,27 @@ textarea::placeholder {
 }
 
 .bonificacoes-resumo strong {
-  overflow: hidden;
   color: var(--cor-receita);
   font-family: var(--fonte-mono);
-  font-size: clamp(0.8rem, 1.2vw, 0.96rem);
+  font-size: clamp(0.72rem, 1.05vw, 0.94rem);
   font-weight: 700;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+  white-space: normal;
+}
+
+#lista-bonificacoes-painel .linha-item {
+  align-items: flex-start;
+  border: 1px solid color-mix(in srgb, var(--cor-receita) 10%, var(--cor-pauta-fraca));
+  border-radius: 14px;
+  margin-top: 10px;
+  background: color-mix(in srgb, var(--cor-receita) 4%, transparent);
+}
+
+#lista-bonificacoes-painel .item-categoria {
+  line-height: 1.45;
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 .fixa-conteudo {

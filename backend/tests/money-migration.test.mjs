@@ -13,6 +13,11 @@ const canonicalMigration = readFileSync(
   "utf8",
 );
 
+const recurringLinkMigration = readFileSync(
+  resolve("../database/migrations/0037_lancamentos_recorrencia_id.sql"),
+  "utf8",
+);
+
 test("migration 0032 adiciona colunas de centavos para todos os campos monetários críticos", () => {
   const colunasEsperadas = [
     "lancamentos ADD COLUMN valor_centavos INTEGER",
@@ -104,4 +109,8 @@ test("migration 0033 cria gatilhos para manter compatibilidade REAL apos escrita
   for (const gatilho of gatilhosEsperados) {
     assert.match(canonicalMigration, new RegExp(gatilho.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")));
   }
+});
+
+test("migration 0037 adiciona vínculo entre lançamento e recorrência", () => {
+  assert.match(recurringLinkMigration, /ALTER TABLE lancamentos ADD COLUMN recorrencia_id INTEGER REFERENCES lancamentos_recorrentes\(id\)/);
 });
