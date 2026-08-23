@@ -248,6 +248,7 @@ function alternarTelas(estaLogado) {
     const u = obterUsuarioLogado();
     if (bAdmin) bAdmin.style.display = u.perfil === "superadmin" ? "inline-block" : "none";
     atualizarAvatarTopo(u);
+    window.dispatchEvent(new CustomEvent("cadimus:usuario-logado", { detail: { usuario: u } }));
     if (window.carregarCarteiras) window.carregarCarteiras();
 
     // Busca dados completos do usuário para atualizar avatar (foto pode não estar na sessão)

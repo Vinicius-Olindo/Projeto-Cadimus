@@ -28,6 +28,7 @@ const DASHBOARD_LAYOUT_AREAS = [
 ];
 const DASHBOARD_LAYOUT_CARDS = DASHBOARD_LAYOUT_AREAS.flatMap((area) => area.cards);
 const DASHBOARD_LAYOUT_BANNER_ID = "dashboard-layout-banner";
+const DASHBOARD_LAYOUT_STORAGE_ULTIMO = `${DASHBOARD_LAYOUT_STORAGE_PREFIX}_ultimo`;
 
 let dashboardLayoutEditando = false;
 let dashboardLayoutCardArrastado = null;
@@ -35,11 +36,44 @@ let dashboardLayoutAreaArrastada = null;
 let dashboardLayoutOrdemAntesEdicao = null;
 let dashboardLayoutAplicandoOrdem = false;
 let dashboardLayoutReaplicacaoPendente = false;
+let dashboardLayoutConfigurado = false;
 
 function obterChaveLayoutDashboard() {
   const usuario = typeof obterUsuarioLogado === "function" ? obterUsuarioLogado() : null;
   const usuarioId = usuario?.id || "anonimo";
   return `${DASHBOARD_LAYOUT_STORAGE_PREFIX}_${usuarioId}`;
+}
+
+function obterChavesLeituraLayoutDashboard() {
+  const chaves = [obterChaveLayoutDashboard(), DASHBOARD_LAYOUT_STORAGE_ULTIMO, `${DASHBOARD_LAYOUT_STORAGE_PREFIX}_anonimo`];
+  return [...new Set(chaves.filter(Boolean))];
+}
+
+function lerOrdemLayoutDashboardSalva() {
+  for (const chave of obterChavesLeituraLayoutDashboard()) {
+    try {
+      const valor = lerLocalStorageSeguro(chave, "");
+      if (!valor) continue;
+      const ordem = normalizarOrdemLayoutDashboard(JSON.parse(valor));
+      if (Object.keys(ordem).length > 0) return ordem;
+    } catch {
+      // Ignora layouts antigos/corrompidos e tenta a próxima chave.
+    }
+  }
+
+  return {};
+}
+
+function gravarOrdemLayoutDashboardSalva(ordem) {
+  const valor = JSON.stringify(ordem);
+  gravarLocalStorageSeguro(obterChaveLayoutDashboard(), valor);
+  gravarLocalStorageSeguro(DASHBOARD_LAYOUT_STORAGE_ULTIMO, valor);
+}
+
+function removerOrdemLayoutDashboardSalva() {
+  removerLocalStorageSeguro(obterChaveLayoutDashboard());
+  removerLocalStorageSeguro(DASHBOARD_LAYOUT_STORAGE_ULTIMO);
+  removerLocalStorageSeguro(`${DASHBOARD_LAYOUT_STORAGE_PREFIX}_anonimo`);
 }
 
 function obterAreaLayoutDashboard(chave) {
@@ -153,14 +187,7 @@ function aplicarLayoutDashboardSalvo() {
   const areas = obterAreasLayoutDashboard();
   if (areas.length === 0) return false;
 
-  let ordemSalva = {};
-  try {
-    ordemSalva = JSON.parse(lerLocalStorageSeguro(obterChaveLayoutDashboard(), "{}") || "{}");
-  } catch {
-    ordemSalva = {};
-  }
-
-  const ordemNormalizada = normalizarOrdemLayoutDashboard(ordemSalva);
+  const ordemNormalizada = lerOrdemLayoutDashboardSalva();
   if (Object.keys(ordemNormalizada).length === 0) return false;
 
   aplicarOrdemLayoutDashboard(ordemNormalizada);
@@ -182,7 +209,7 @@ function agendarReaplicacaoLayoutDashboard() {
 }
 
 function salvarLayoutDashboard() {
-  gravarLocalStorageSeguro(obterChaveLayoutDashboard(), JSON.stringify(obterOrdemAtualLayoutDashboard()));
+  gravarOrdemLayoutDashboardSalva(obterOrdemAtualLayoutDashboard());
   dashboardLayoutOrdemAntesEdicao = null;
   mostrarToast("Layout do dashboard salvo", "sucesso");
 }
@@ -190,7 +217,7 @@ function salvarLayoutDashboard() {
 function resetarLayoutDashboard() {
   if (obterAreasLayoutDashboard().length === 0) return;
 
-  removerLocalStorageSeguro(obterChaveLayoutDashboard());
+  removerOrdemLayoutDashboardSalva();
   aplicarOrdemLayoutDashboard(
     DASHBOARD_LAYOUT_AREAS.reduce((ordem, area) => {
       ordem[area.chave] = area.cards;
@@ -362,11 +389,13 @@ function configurarEventosLayoutDashboard() {
 }
 
 function configurarDashboardLayout() {
+  if (dashboardLayoutConfigurado) return;
   const botao = document.getElementById("btn-editar-layout-dashboard");
   const cancelar = document.getElementById("btn-cancelar-layout-dashboard");
   const resetar = document.getElementById("btn-resetar-layout-dashboard");
   const areas = obterAreasLayoutDashboard();
   if (!botao || areas.length === 0) return;
+  dashboardLayoutConfigurado = true;
 
   aplicarLayoutDashboardSalvo();
   configurarEventosLayoutDashboard();
@@ -379,5 +408,6 @@ function configurarDashboardLayout() {
   botao.addEventListener("click", alternarModoLayoutDashboard);
   cancelar?.addEventListener("click", cancelarModoLayoutDashboard);
   resetar?.addEventListener("click", resetarLayoutDashboard);
+  window.addEventListener("cadimus:usuario-logado", reaplicarLayoutDashboardSalvo);
   atualizarEstadoModoLayoutDashboard();
 }
