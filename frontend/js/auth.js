@@ -427,16 +427,24 @@ document.addEventListener("DOMContentLoaded", () => {
     window.history.replaceState({}, "", window.location.pathname);
   });
 
+  const ICONE_SENHA_VISIVEL = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>';
+  const ICONE_SENHA_OCULTA = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M3 3l18 18" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M10.7 5.2A10.7 10.7 0 0 1 12 5c6 0 9.5 7 9.5 7a16.2 16.2 0 0 1-2.7 3.5M6.5 6.7C3.9 8.4 2.5 12 2.5 12s3.5 7 9.5 7c1.6 0 3-.4 4.2-1" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><path d="M9.9 9.9a3 3 0 0 0 4.2 4.2" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></svg>';
+
+  function atualizarBotaoSenha(botao, mostrando) {
+    botao.setAttribute("aria-label", mostrando ? "Ocultar senha" : "Mostrar senha");
+    botao.innerHTML = mostrando ? ICONE_SENHA_OCULTA : ICONE_SENHA_VISIVEL;
+  }
+
   // Mostrar/ocultar senha (funciona em qualquer campo de senha da página,
   // não só na tela de redefinir — basta ter o botão .btn-toggle-senha do lado)
   document.querySelectorAll(".btn-toggle-senha").forEach((botao) => {
+    atualizarBotaoSenha(botao, false);
     botao.addEventListener("click", () => {
       const alvo = document.getElementById(botao.dataset.alvo);
       if (!alvo) return;
       const mostrando = alvo.type === "text";
       alvo.type = mostrando ? "password" : "text";
-      botao.setAttribute("aria-label", mostrando ? "Mostrar senha" : "Ocultar senha");
-      botao.textContent = mostrando ? "Ver" : "Ocultar";
+      atualizarBotaoSenha(botao, !mostrando);
     });
   });
 

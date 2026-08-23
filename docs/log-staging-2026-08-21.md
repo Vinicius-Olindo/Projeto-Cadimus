@@ -81,7 +81,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Dashboard em telas largas passou a usar mais área horizontal e os valores do resumo de Bonificações deixaram de quebrar no meio.
 - Seletor de carteiras foi padronizado para carteiras novas, individuais e compartilhadas usarem o mesmo sistema de cores, mantendo destaque apenas na carteira ativa.
 - Logo do topo foi refinada no padrão de marca limpa, com símbolo circular, nome maior e sem cápsula externa.
-- Botão de mostrar/ocultar senha passou a usar texto curto centralizado, evitando desalinhamento visual dentro do campo.
+- Botão de mostrar/ocultar senha passou a usar ícone de olho/olho cortado, evitando desalinhamento visual dentro do campo.
 - Popup de Novo lançamento ganhou atalhos para lançamento simples, compra parcelada, despesa fixa e bonificação, redirecionando para os fluxos corretos.
 - Atalhos do popup de Novo lançamento e cards de fixas, parceladas e bonificações foram padronizados no mesmo sistema visual.
 - Botão de transferência passou a aparecer apenas quando a carteira selecionada é pessoal; carteiras compartilhadas ocultam o atalho.

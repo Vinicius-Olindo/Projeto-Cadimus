@@ -3042,7 +3042,7 @@ button.item-status:active {
 
 .campo-senha-toggle input {
   margin-bottom: 0;
-  padding-right: 76px;
+  padding-right: 46px;
   width: 100%;
 }
 
@@ -3051,21 +3051,22 @@ button.item-status:active {
   top: 5px;
   right: 6px;
   bottom: 5px;
-  min-width: 58px;
+  width: 34px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   background: transparent;
   border: none;
-  padding: 0 8px;
+  padding: 0;
   border-radius: calc(var(--raio-md) - 4px);
-  font-size: 0.7rem;
-  font-weight: 700;
-  line-height: 1;
   color: var(--cor-texto-suave);
   cursor: pointer;
-  text-transform: uppercase;
-  letter-spacing: 0.02em;
+}
+
+.btn-toggle-senha svg {
+  width: 18px;
+  height: 18px;
+  pointer-events: none;
 }
 
 .btn-toggle-senha:hover {
