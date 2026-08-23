@@ -71,6 +71,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Migration `0037` adiciona `lancamentos.recorrencia_id`, permitindo que bonificações recorrentes gerem lançamentos sem quebrar a listagem.
 - Card de Bonificações foi ajustado para exibir valores e detalhes de frequência sem reticências/corte visual.
 - Dashboard em telas largas passou a usar mais área horizontal e os valores do resumo de Bonificações deixaram de quebrar no meio.
+- Seletor de carteiras foi padronizado para carteiras novas, individuais e compartilhadas usarem o mesmo sistema de cores, mantendo destaque apenas na carteira ativa.
 - Campos de valores financeiros passaram a exibir e aceitar o padrão brasileiro `R$ 0,00`.
 - Cards e linhas de lançamentos foram ajustados para acomodar valores financeiros muito altos sem cortar o texto.
 - Botões de layout do dashboard foram agrupados e padronizados com os demais controles do topo.

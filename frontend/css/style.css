@@ -828,9 +828,10 @@ button:active {
    ========================================== */
 .carteira-tabs {
   display: inline-flex;
-  gap: 2px;
-  padding: 3px;
-  background: var(--cor-fundo-card);
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 88%, var(--cor-superficie));
   border: 1px solid var(--cor-pauta-fraca);
   border-radius: 999px;
   overflow-x: auto;
@@ -843,18 +844,19 @@ button:active {
 }
 
 .tab-carteira {
-  background: transparent;
-  color: var(--cor-texto-suave);
-  border: none;
-  padding: 5px 12px;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 72%, transparent);
+  color: color-mix(in srgb, var(--cor-texto) 78%, var(--cor-texto-suave));
+  border: 1px solid transparent;
+  padding: 6px 11px;
   border-radius: 999px;
   font-size: 0.78rem;
+  font-weight: 600;
   white-space: nowrap;
   flex-shrink: 0;
   display: inline-flex;
   align-items: center;
   gap: 5px;
-  transition: background 0.12s, color 0.12s;
+  transition: background 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s;
 }
 
 .tab-carteira-icone {
@@ -869,7 +871,9 @@ button:active {
 
 .tab-carteira.ativo {
   background: var(--cor-texto);
+  border-color: var(--cor-texto);
   color: var(--cor-superficie-alta);
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--cor-texto) 14%, transparent);
 }
 
 .tab-carteira.ativo .tab-carteira-icone {
@@ -877,24 +881,26 @@ button:active {
   stroke: var(--cor-superficie-alta);
 }
 
-/* Carteira compartilhada inativa: toque de cor da marca */
+/* Carteira compartilhada usa o mesmo padrão de cor; o tipo é indicado pelo ícone. */
 .tab-carteira.tab-compartilhada:not(.ativo) {
-  color: var(--cor-texto-suave);
+  color: color-mix(in srgb, var(--cor-texto) 78%, var(--cor-texto-suave));
 }
 
 .tab-carteira.tab-compartilhada.ativo {
-  background: var(--cor-marca);
-  color: #fff;
+  background: var(--cor-texto);
+  border-color: var(--cor-texto);
+  color: var(--cor-superficie-alta);
 }
 
 .tab-carteira.tab-compartilhada.ativo .tab-carteira-icone {
-  stroke: #fff;
+  stroke: var(--cor-superficie-alta);
   opacity: 0.9;
 }
 
 .tab-carteira:not(.ativo):hover {
   color: var(--cor-texto);
-  background: color-mix(in srgb, var(--cor-texto) 7%, transparent);
+  border-color: color-mix(in srgb, var(--cor-texto) 10%, transparent);
+  background: color-mix(in srgb, var(--cor-superficie-alta) 92%, var(--cor-marca) 8%);
 }
 
 .tab-carteira:not(.ativo):hover .tab-carteira-icone {
@@ -905,18 +911,17 @@ button:active {
 .tab-carteira-separador {
   width: 1px;
   height: 16px;
-  background: var(--cor-pauta-forte);
+  background: color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent);
   flex-shrink: 0;
-  align-self: center;
-  margin: 0 2px;
+  margin: 0 1px;
 }
 
 /* Botão + para nova carteira: ícone sem label, compacto */
 .tab-carteira-add {
-  background: transparent;
-  border: none;
+  background: color-mix(in srgb, var(--cor-marca) 8%, transparent);
+  border: 1px solid transparent;
   color: var(--cor-marca);
-  padding: 5px 8px;
+  padding: 6px 9px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
@@ -927,16 +932,17 @@ button:active {
 
 .tab-carteira-add:hover {
   color: var(--cor-marca-forte);
-  background: color-mix(in srgb, var(--cor-marca) 12%, transparent);
+  border-color: color-mix(in srgb, var(--cor-marca) 16%, transparent);
+  background: color-mix(in srgb, var(--cor-marca) 14%, transparent);
   transform: none;
 }
 
 .tab-carteira-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 3px;
   flex-shrink: 0;
-  padding-right: 4px;
+  padding-right: 2px;
   cursor: grab;
   border-radius: 999px;
   transition: opacity 0.12s, box-shadow 0.12s;
@@ -951,22 +957,24 @@ button:active {
 }
 
 .btn-gerenciar-membros {
-  background: color-mix(in srgb, var(--cor-texto) 8%, transparent);
-  border: none;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 68%, transparent);
+  border: 1px solid transparent;
   color: var(--cor-texto-suave);
   font-size: 0.7rem;
-  padding: 5px;
+  padding: 4px;
   border-radius: 999px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 22px;
-  height: 22px;
+  width: 21px;
+  height: 21px;
 }
 
 .btn-gerenciar-membros:hover {
-  color: var(--cor-marca);
+  color: var(--cor-texto);
+  border-color: color-mix(in srgb, var(--cor-texto) 10%, transparent);
+  background: color-mix(in srgb, var(--cor-superficie-alta) 92%, var(--cor-marca) 8%);
 }
 
 .opcao-membro-desabilitada {
