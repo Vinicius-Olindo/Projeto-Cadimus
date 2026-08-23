@@ -632,7 +632,7 @@ async function carregarCartoesCredito() {
       div.innerHTML = `
         <div class="cartao-item-header">
           <div class="cartao-item-bandeira" style="background:${cor}">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#fff" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="var(--cor-superficie-alta)" stroke-width="2"><rect x="1" y="4" width="22" height="16" rx="2"/><line x1="1" y1="10" x2="23" y2="10"/></svg>
           </div>
           <div class="cartao-item-info">
             <strong>${escaparHtml(cartao.nome)}</strong>

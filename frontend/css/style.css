@@ -106,11 +106,11 @@ button {
   box-sizing: border-box;
   object-fit: cover;
   border-radius: 50%;
-  background: #fff;
+  background: var(--cor-superficie-alta);
   padding: 4px;
   box-shadow:
     0 0 0 1px color-mix(in srgb, var(--cor-receita) 42%, var(--cor-pauta-forte)),
-    0 5px 12px color-mix(in srgb, #000 12%, transparent);
+    0 5px 12px var(--cor-sombra);
 }
 
 .header-logo-wrapper span {
@@ -145,7 +145,7 @@ button {
   border: 1px solid var(--cor-pauta-fraca);
   border-radius: 999px;
   background: color-mix(in srgb, var(--cor-fundo-card) 82%, transparent);
-  box-shadow: 0 1px 2px rgba(20, 18, 15, 0.04);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--cor-sombra) 42%, transparent);
 }
 
 .acoes-topo-grupo .acoes-topo-divider {
@@ -358,7 +358,9 @@ button:active {
   justify-content: center;
   position: relative;
   flex-shrink: 0;
-  box-shadow: inset 0 1px 2px rgba(20, 18, 15, 0.08), 0 1px 2px rgba(20, 18, 15, 0.04);
+  box-shadow:
+    inset 0 1px 2px color-mix(in srgb, var(--cor-sombra) 52%, transparent),
+    0 1px 2px color-mix(in srgb, var(--cor-sombra) 36%, transparent);
 }
 
 .tema-switch:hover {
@@ -393,7 +395,7 @@ button:active {
   height: 22px;
   border-radius: 50%;
   background: var(--cor-superficie-alta);
-  box-shadow: 0 2px 6px rgba(20, 18, 15, 0.18);
+  box-shadow: 0 2px 6px color-mix(in srgb, var(--cor-sombra) 82%, transparent);
   transition: transform 0.2s ease, background 0.2s ease;
 }
 
@@ -405,15 +407,15 @@ button:active {
 
 .tema-switch.tema-switch-escuro .tema-switch-thumb {
   transform: translateX(28px);
-  background: color-mix(in srgb, var(--cor-marca) 78%, #15120f);
+  background: color-mix(in srgb, var(--cor-marca) 78%, var(--cor-texto));
 }
 
 .dark-mode .tema-switch {
-  background: color-mix(in srgb, var(--cor-fundo-card) 72%, #000) !important;
+  background: color-mix(in srgb, var(--cor-fundo-card) 72%, var(--cor-fundo)) !important;
 }
 
 .dark-mode .tema-switch-thumb {
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.38);
+  box-shadow: 0 2px 8px var(--cor-sombra);
 }
 
 /* Sair: ícone + texto, destaque sutil */
@@ -541,7 +543,7 @@ button:active {
 
 .modal-notificacoes .painel-notificacoes-header .btn-fechar-modal:hover {
   color: var(--cor-despesa);
-  background: rgba(239, 68, 68, 0.08);
+  background: color-mix(in srgb, var(--cor-despesa) 8%, transparent);
 }
 
 .painel-notificacoes-lista {
@@ -692,7 +694,7 @@ button:active {
   background: var(--cor-superficie);
   border: 1px solid var(--cor-borda);
   border-radius: 12px;
-  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 8px 32px color-mix(in srgb, var(--cor-sombra) 72%, transparent);
   z-index: 1000;
   overflow: hidden;
   animation: dropdownSlideIn 0.15s ease;
@@ -1212,7 +1214,7 @@ button:active {
 }
 
 .dark-mode #btn-editar-layout-dashboard.ativo {
-  color: #1d160b !important;
+  color: var(--cor-fundo) !important;
 }
 
 #btn-resetar-layout-dashboard:hover {
@@ -1356,7 +1358,7 @@ button:active {
 
 .stat-card:hover {
   transform: translateY(-2px);
-  box-shadow: var(--sombra-cartao), 0 4px 16px rgba(0,0,0,0.06);
+  box-shadow: var(--sombra-cartao), 0 4px 16px color-mix(in srgb, var(--cor-sombra) 46%, transparent);
 }
 
 .stat-card-topo {
@@ -1523,7 +1525,7 @@ button:active {
 .periodo-btn.ativo {
   background: var(--cor-fundo);
   color: var(--cor-texto);
-  box-shadow: 0 1px 3px rgba(0,0,0,0.08);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--cor-sombra) 52%, transparent);
   font-weight: 600;
 }
 
@@ -1748,7 +1750,7 @@ button:active {
   font-size: 0.7rem;
   font-weight: 500;
   color: var(--cor-receita);
-  background: rgba(16, 185, 129, 0.12);
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
   margin-left: 0.5rem;
@@ -2010,20 +2012,20 @@ button:active {
 }
 
 .comparativo-barra-receita {
-  background: linear-gradient(to top, color-mix(in srgb, var(--cor-receita) 78%, black), color-mix(in srgb, var(--cor-receita) 88%, white));
+  background: linear-gradient(to top, color-mix(in srgb, var(--cor-receita) 78%, var(--cor-texto)), color-mix(in srgb, var(--cor-receita) 88%, var(--cor-superficie-alta)));
 }
 
 .comparativo-barra-despesa {
-  background: linear-gradient(to top, color-mix(in srgb, var(--cor-despesa) 78%, black), color-mix(in srgb, var(--cor-despesa) 88%, white));
+  background: linear-gradient(to top, color-mix(in srgb, var(--cor-despesa) 78%, var(--cor-texto)), color-mix(in srgb, var(--cor-despesa) 88%, var(--cor-superficie-alta)));
 }
 
 .comparativo-barra-receita.comparativo-barra-atual {
-  background: linear-gradient(to top, var(--cor-receita), color-mix(in srgb, var(--cor-receita) 90%, white));
+  background: linear-gradient(to top, var(--cor-receita), color-mix(in srgb, var(--cor-receita) 90%, var(--cor-superficie-alta)));
   box-shadow: 0 -2px 8px color-mix(in srgb, var(--cor-receita) 30%, transparent);
 }
 
 .comparativo-barra-despesa.comparativo-barra-atual {
-  background: linear-gradient(to top, var(--cor-despesa), color-mix(in srgb, var(--cor-despesa) 90%, white));
+  background: linear-gradient(to top, var(--cor-despesa), color-mix(in srgb, var(--cor-despesa) 90%, var(--cor-superficie-alta)));
   box-shadow: 0 -2px 8px color-mix(in srgb, var(--cor-despesa) 30%, transparent);
 }
 
@@ -2320,7 +2322,7 @@ button:active {
   top: 1px;
   width: 5px;
   height: 10px;
-  border: solid #fff;
+  border: solid var(--cor-superficie-alta);
   border-width: 0 2px 2px 0;
   transform: rotate(45deg);
 }
@@ -2368,7 +2370,7 @@ button:active {
   border: none;
   border-radius: var(--raio-botoes);
   background: var(--cor-marca);
-  color: #fff;
+  color: var(--cor-superficie-alta);
   font-weight: 600;
   font-size: 0.8rem;
   cursor: pointer;
@@ -2512,7 +2514,7 @@ button:active {
 .popup-nota-overlay {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.4);
+  background: var(--cor-overlay);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -2527,7 +2529,7 @@ button:active {
   max-width: 420px;
   width: 100%;
   padding: 20px;
-  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 12px 32px var(--cor-sombra);
 }
 
 .popup-nota-header {
@@ -2892,7 +2894,7 @@ button.item-status:active {
   height: 72px;
   width: auto;
   border-radius: 18px;
-  background: #fff;
+  background: var(--cor-superficie-alta);
   padding: 4px;
   box-shadow: 0 0 0 1px color-mix(in srgb, var(--cor-pauta-forte) 65%, transparent);
 }
@@ -3274,11 +3276,11 @@ textarea::placeholder {
 
 #btn-confirmacao-confirmar.confirmacao-perigo {
   background: var(--cor-despesa);
-  color: #fff;
+  color: var(--cor-superficie-alta);
 }
 
 #btn-confirmacao-confirmar.confirmacao-perigo:hover {
-  background: color-mix(in srgb, var(--cor-despesa) 85%, black);
+  background: color-mix(in srgb, var(--cor-despesa) 85%, var(--cor-texto));
   transform: translateY(-1px);
 }
 
@@ -3782,7 +3784,7 @@ textarea::placeholder {
 
 .btn-convite:hover {
   background: var(--cor-marca);
-  color: #fff;
+  color: var(--cor-superficie-alta);
 }
 
 /* Modal convite */
@@ -3808,7 +3810,7 @@ textarea::placeholder {
   background: var(--cor-marca);
   border: none;
   border-radius: 8px;
-  color: #fff;
+  color: var(--cor-superficie-alta);
   font-size: 0.85rem;
   font-weight: 500;
   cursor: pointer;
@@ -3839,7 +3841,7 @@ textarea::placeholder {
   background: var(--cor-superficie);
   border-radius: 16px;
   padding: 32px;
-  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 4px 24px color-mix(in srgb, var(--cor-sombra) 62%, transparent);
   text-align: center;
 }
 
@@ -3880,7 +3882,7 @@ textarea::placeholder {
   background: var(--cor-marca);
   border: none;
   border-radius: 8px;
-  color: #fff;
+  color: var(--cor-superficie-alta);
   font-size: 0.9rem;
   font-weight: 600;
   cursor: pointer;
@@ -4165,7 +4167,7 @@ textarea::placeholder {
 
 .fixa-btn-toggle:hover {
   transform: scale(1.08);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  box-shadow: 0 2px 8px color-mix(in srgb, var(--cor-sombra) 52%, transparent);
 }
 
 .fixa-btn {
@@ -5261,7 +5263,7 @@ textarea::placeholder {
   font-size: 0.75rem;
   font-weight: 500;
   color: var(--cor-receita);
-  background: rgba(16, 185, 129, 0.12);
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
 }
@@ -5369,9 +5371,9 @@ textarea::placeholder {
   border-radius: 999px;
 }
 
-.prioridade-alta { background: rgba(239, 68, 68, 0.12); color: #ef4444; }
-.prioridade-media { background: rgba(245, 158, 11, 0.12); color: #f59e0b; }
-.prioridade-baixa { background: rgba(59, 130, 246, 0.12); color: #3b82f6; }
+.prioridade-alta { background: color-mix(in srgb, var(--cor-despesa) 12%, transparent); color: var(--cor-despesa); }
+.prioridade-media { background: color-mix(in srgb, var(--cor-pendente) 12%, transparent); color: var(--cor-pendente); }
+.prioridade-baixa { background: color-mix(in srgb, var(--cor-receita) 10%, transparent); color: var(--cor-receita); }
 
 .plano-card-desc {
   font-size: 0.8rem;
@@ -5412,7 +5414,7 @@ textarea::placeholder {
   font-size: 0.72rem;
   font-weight: 500;
   color: var(--cor-receita);
-  background: rgba(16, 185, 129, 0.12);
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
 }
@@ -5437,9 +5439,9 @@ textarea::placeholder {
   text-transform: capitalize;
 }
 
-.status-ativo { background: rgba(16, 185, 129, 0.12); color: #10b981; }
-.status-concluido { background: rgba(99, 102, 241, 0.12); color: #6366f1; }
-.status-cancelado { background: rgba(107, 114, 128, 0.12); color: #6b7280; }
+.status-ativo { background: color-mix(in srgb, var(--cor-receita) 12%, transparent); color: var(--cor-receita); }
+.status-concluido { background: color-mix(in srgb, var(--cor-marca) 12%, transparent); color: var(--cor-marca); }
+.status-cancelado { background: color-mix(in srgb, var(--cor-texto-suave) 12%, transparent); color: var(--cor-texto-suave); }
 
 /* ==========================================
    MODAL PLANO — Ícone & Cor selectors
@@ -5465,7 +5467,7 @@ textarea::placeholder {
 }
 
 .plano-icone-btn:hover { border-color: var(--cor-marca); }
-.plano-icone-btn.selecionado { border-color: var(--cor-marca); background: rgba(99, 102, 241, 0.1); }
+.plano-icone-btn.selecionado { border-color: var(--cor-marca); background: color-mix(in srgb, var(--cor-marca) 10%, transparent); }
 
 .plano-cor-selector {
   display: flex;
@@ -5601,9 +5603,9 @@ textarea::placeholder {
   width: 16px;
   height: 16px;
   border-radius: 50%;
-  background: #fff;
+  background: var(--cor-superficie-alta);
   transition: transform 0.2s;
-  box-shadow: 0 1px 3px rgba(0,0,0,0.2);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--cor-sombra) 72%, transparent);
 }
 
 .plano-toggle input:checked + .plano-toggle-slider {
@@ -5651,8 +5653,8 @@ textarea::placeholder {
   font-weight: 500;
   padding: 0.1rem 0.4rem;
   border-radius: 999px;
-  background: rgba(59, 130, 246, 0.12);
-  color: #3b82f6;
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+  color: var(--cor-marca);
   margin-left: 0.4rem;
 }
 
@@ -5721,7 +5723,7 @@ textarea::placeholder {
   width: 74px;
   height: 74px;
   border-radius: 50%;
-  background: var(--cor-fundo-card, #fff);
+  background: var(--cor-fundo-card);
   z-index: 1;
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cor-texto) 8%, transparent);
 }
@@ -5882,13 +5884,13 @@ textarea::placeholder {
 }
 
 .tendencia-dot.tendencia-receita {
-  fill: var(--cor-receita, #2e7d32);
-  stroke: var(--cor-fundo-card, #fff);
+  fill: var(--cor-receita);
+  stroke: var(--cor-fundo-card);
 }
 
 .tendencia-dot.tendencia-despesa {
-  fill: var(--cor-despesa, #c62828);
-  stroke: var(--cor-fundo-card, #fff);
+  fill: var(--cor-despesa);
+  stroke: var(--cor-fundo-card);
 }
 
 .tendencia-rotulos {
@@ -6055,9 +6057,9 @@ textarea::placeholder {
   flex-shrink: 0;
 }
 
-.score-criterio-ok { background: var(--cor-receita, #2e7d32); color: #fff; }
-.score-criterio-medio { background: var(--cor-pendente, #f9a825); color: #000; }
-.score-criterio-ruim { background: var(--cor-despesa, #c62828); color: #fff; }
+.score-criterio-ok { background: var(--cor-receita); color: var(--cor-superficie-alta); }
+.score-criterio-medio { background: var(--cor-pendente); color: var(--cor-fundo); }
+.score-criterio-ruim { background: var(--cor-despesa); color: var(--cor-superficie-alta); }
 
 .score-criterio-texto {
   color: var(--cor-texto, #333);
@@ -6073,7 +6075,7 @@ textarea::placeholder {
 
 .score-criterio .score-criterio-texto,
 .score-criterio .score-criterio-valor {
-  color: #fff;
+  color: var(--cor-superficie-alta);
 }
 
 @media (max-width: 480px) {
@@ -6104,15 +6106,15 @@ textarea::placeholder {
   bottom: 0;
   left: 0;
   right: 0;
-  background: var(--cor-fundo-card, #fff);
-  border-top: 1px solid var(--cor-borda, #e0e0e0);
+  background: var(--cor-fundo-card);
+  border-top: 1px solid var(--cor-pauta-forte);
   padding: 12px 16px;
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 12px;
   z-index: 9999;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.1);
+  box-shadow: 0 -2px 10px color-mix(in srgb, var(--cor-sombra) 62%, transparent);
 }
 
 .pwa-install-texto {
@@ -6127,8 +6129,8 @@ textarea::placeholder {
 }
 
 .pwa-install-btn {
-  background: var(--cor-marca, #a97a2f);
-  color: #fff;
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
   border: none;
   border-radius: 6px;
   padding: 6px 16px;
@@ -6256,12 +6258,12 @@ textarea::placeholder {
 }
 
 .plano-kpi {
-  background: var(--cor-fundo-card, #fff);
-  border: 1px solid var(--cor-borda, #e0e0e0);
+  background: var(--cor-fundo-card);
+  border: 1px solid var(--cor-pauta-forte);
   border-radius: 10px;
   padding: 14px;
   text-align: center;
-  border-top: 3px solid var(--cor-receita, #2e7d32);
+  border-top: 3px solid var(--cor-receita);
 }
 
 .plano-kpi-despesa { border-top-color: var(--cor-despesa, #c62828); }
@@ -6346,21 +6348,21 @@ textarea::placeholder {
 .plano-alerta-item:last-child { margin-bottom: 0; }
 
 .plano-alerta-ok {
-  background: rgba(46, 125, 50, 0.08);
-  color: var(--cor-receita, #2e7d32);
-  border-left: 3px solid var(--cor-receita, #2e7d32);
+  background: color-mix(in srgb, var(--cor-receita) 8%, transparent);
+  color: var(--cor-receita);
+  border-left: 3px solid var(--cor-receita);
 }
 
 .plano-alerta-aviso {
-  background: rgba(249, 168, 37, 0.08);
-  color: #b8860b;
-  border-left: 3px solid var(--cor-pendente, #f9a825);
+  background: color-mix(in srgb, var(--cor-pendente) 8%, transparent);
+  color: var(--cor-pendente);
+  border-left: 3px solid var(--cor-pendente);
 }
 
 .plano-alerta-erro {
-  background: rgba(198, 40, 40, 0.08);
-  color: var(--cor-despesa, #c62828);
-  border-left: 3px solid var(--cor-despesa, #c62828);
+  background: color-mix(in srgb, var(--cor-despesa) 8%, transparent);
+  color: var(--cor-despesa);
+  border-left: 3px solid var(--cor-despesa);
 }
 
 /* ==========================================
@@ -6485,8 +6487,8 @@ textarea::placeholder {
   font-weight: 600;
 }
 
-.plano-status-recebido { background: rgba(46,125,50,0.1); color: var(--cor-receita); }
-.plano-status-pendente { background: rgba(249,168,37,0.1); color: var(--cor-pendente); }
+.plano-status-recebido { background: color-mix(in srgb, var(--cor-receita) 10%, transparent); color: var(--cor-receita); }
+.plano-status-pendente { background: color-mix(in srgb, var(--cor-pendente) 10%, transparent); color: var(--cor-pendente); }
 
 @media (max-width: 700px) {
   .plano-kpi-grid { grid-template-columns: repeat(2, 1fr); }
@@ -6506,27 +6508,27 @@ textarea::placeholder {
   left: 0;
   right: 0;
   bottom: 0;
-  background: rgba(0, 0, 0, 0.5);
+  background: var(--cor-overlay);
   z-index: 99998;
 }
 
 .onboarding-highlight {
   position: fixed;
-  border: 2px solid var(--cor-marca, #a97a2f);
+  border: 2px solid var(--cor-marca);
   border-radius: 8px;
   z-index: 99999;
   pointer-events: none;
-  box-shadow: 0 0 0 9999px rgba(0, 0, 0, 0.5);
+  box-shadow: 0 0 0 9999px var(--cor-overlay);
 }
 
 .onboarding-tooltip {
   position: fixed;
-  background: var(--cor-fundo-card, #fff);
+  background: var(--cor-fundo-card);
   border-radius: 12px;
   padding: 16px;
   width: 280px;
   z-index: 100000;
-  box-shadow: 0 8px 30px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 8px 30px var(--cor-sombra);
 }
 
 .onboarding-tooltip-titulo {
@@ -6574,8 +6576,8 @@ textarea::placeholder {
 }
 
 .onboarding-proximo {
-  background: var(--cor-marca, #a97a2f);
-  color: #fff;
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
 }
 
 @media (max-width: 480px) {
@@ -6849,9 +6851,9 @@ textarea::placeholder {
   font-size: 1rem;
   flex-shrink: 0;
 }
-.rel-insight-icone.insight-alerta { background: rgba(198,40,40,0.1); color: var(--cor-despesa); }
-.rel-insight-icone.insight-ok { background: rgba(46,125,50,0.1); color: var(--cor-receita); }
-.rel-insight-icone.insight-info { background: rgba(169,122,47,0.1); color: var(--cor-marca); }
+.rel-insight-icone.insight-alerta { background: color-mix(in srgb, var(--cor-despesa) 10%, transparent); color: var(--cor-despesa); }
+.rel-insight-icone.insight-ok { background: color-mix(in srgb, var(--cor-receita) 10%, transparent); color: var(--cor-receita); }
+.rel-insight-icone.insight-info { background: color-mix(in srgb, var(--cor-marca) 10%, transparent); color: var(--cor-marca); }
 .rel-insight-texto { font-size: 0.85rem; color: var(--cor-texto); line-height: 1.4; }
 
 /* Comparações */
@@ -7095,11 +7097,11 @@ textarea::placeholder {
   border-radius: 0 3px 3px 0;
 }
 .settings-nav-perigo { color: var(--cor-despesa) !important; }
-.settings-nav-perigo:hover { background: rgba(198,40,40,0.06); }
+.settings-nav-perigo:hover { background: color-mix(in srgb, var(--cor-despesa) 6%, transparent); }
 .settings-badge {
   margin-left: auto;
   background: var(--cor-despesa);
-  color: #fff;
+  color: var(--cor-superficie-alta);
   font-size: 0.65rem;
   font-weight: 700;
   padding: 1px 6px;
@@ -7234,7 +7236,7 @@ textarea::placeholder {
   width: 16px;
   left: 3px;
   bottom: 3px;
-  background: #fff;
+  background: var(--cor-superficie-alta);
   border-radius: 50%;
   transition: 0.3s;
 }
@@ -7242,8 +7244,8 @@ textarea::placeholder {
 .settings-toggle input:checked + .settings-toggle-slider::before { transform: translateX(18px); }
 /* Danger zone */
 .settings-card-perigo {
-  border-color: rgba(198,40,40,0.3);
-  background: rgba(198,40,40,0.03);
+  border-color: color-mix(in srgb, var(--cor-despesa) 30%, transparent);
+  background: color-mix(in srgb, var(--cor-despesa) 3%, transparent);
 }
 .settings-card-perigo h4 { color: var(--cor-despesa); }
 
