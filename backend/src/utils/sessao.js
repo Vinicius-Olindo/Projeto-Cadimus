@@ -2,7 +2,7 @@
 // sessao.js - Criação e validação de sessões de login
 // ==========================================
 
-const DURACAO_SESSAO_MS = 7 * 24 * 60 * 60 * 1000; // 7 dias
+const DURACAO_SESSAO_MS = 30 * 60 * 1000; // 30 minutos de inatividade
 
 export async function criarSessao(env, usuarioId) {
   const token = crypto.randomUUID();
@@ -20,7 +20,12 @@ export async function criarSessao(env, usuarioId) {
  * sem precisar de um job agendado separado.
  */
 export async function limparSessoesExpiradas(env) {
-  await env.DB.prepare(`DELETE FROM sessoes WHERE expira_em < datetime('now')`).run();
+  await env.DB.prepare(`DELETE FROM sessoes WHERE expira_em < ?`).bind(new Date().toISOString()).run();
+}
+
+export async function renovarSessao(env, token) {
+  const expiraEm = new Date(Date.now() + DURACAO_SESSAO_MS).toISOString();
+  await env.DB.prepare(`UPDATE sessoes SET expira_em = ? WHERE token = ?`).bind(expiraEm, token).run();
 }
 
 /**
@@ -51,7 +56,12 @@ export async function obterUsuarioDaSessao(request, env, ctx) {
   // Limpeza em background: não atrasa a resposta, mas vai varrendo registros
   // mortos a cada requisição autenticada (lazy cleanup sem job agendado)
   if (ctx?.waitUntil) {
-    ctx.waitUntil(limparSessoesExpiradas(env));
+    ctx.waitUntil(Promise.all([
+      limparSessoesExpiradas(env),
+      renovarSessao(env, token),
+    ]));
+  } else {
+    await renovarSessao(env, token);
   }
 
   return { id: sessao.id, nome_usuario: sessao.nome_usuario, perfil: sessao.perfil };

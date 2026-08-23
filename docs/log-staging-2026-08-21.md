@@ -60,6 +60,10 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Badge vermelho some ao abrir alertas e pode voltar no dia seguinte se a pendência continuar.
 - Textos com acentuação quebrada foram corrigidos.
 
+### Segurança e sessão
+
+- Sessões agora expiram após 30 minutos de inatividade: frontend desloga automaticamente e backend renova a sessão apenas quando há requisições autenticadas.
+
 ### UI e CSS
 
 - Seletor claro/escuro foi melhorado.

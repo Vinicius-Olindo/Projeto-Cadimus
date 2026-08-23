@@ -24,6 +24,11 @@ const sessaoMemoria = {
   usuario: null,
 };
 
+const TEMPO_LIMITE_INATIVIDADE_MS = 30 * 60 * 1000;
+const EVENTOS_ATIVIDADE_SESSAO = ["click", "keydown", "mousemove", "mousedown", "scroll", "touchstart"];
+let timerInatividadeSessao = null;
+let ultimoRegistroAtividadeSessao = 0;
+
 function lerStorageSeguro(storage, chave, fallback = null) {
   try {
     return storage.getItem(chave);
@@ -73,11 +78,21 @@ function removerSessionStorageSeguro(chave) {
 }
 
 function obterToken() {
-  if (sessaoMemoria.token) return sessaoMemoria.token;
+  if (sessaoMemoria.token) {
+    if (sessaoExpiradaPorInatividade()) {
+      limparSessao();
+      return null;
+    }
+    return sessaoMemoria.token;
+  }
   const salvo = lerSessionStorageSeguro("sessao");
   if (salvo) {
     try {
       const dados = JSON.parse(salvo);
+      if (sessaoExpiradaPorInatividade(dados)) {
+        limparSessao();
+        return null;
+      }
       sessaoMemoria.token = dados.token;
       sessaoMemoria.usuario = dados.usuario;
       return dados.token;
@@ -95,13 +110,89 @@ function obterUsuarioLogado() {
 function salvarSessao(token, usuario) {
   sessaoMemoria.token = token;
   sessaoMemoria.usuario = usuario;
-  gravarSessionStorageSeguro("sessao", JSON.stringify({ token, usuario }));
+  gravarSessionStorageSeguro("sessao", JSON.stringify({ token, usuario, ultimaAtividade: Date.now() }));
+  iniciarMonitoramentoInatividade();
 }
 
 function limparSessao() {
   sessaoMemoria.token = null;
   sessaoMemoria.usuario = null;
   removerSessionStorageSeguro("sessao");
+  pararMonitoramentoInatividade();
+}
+
+function lerDadosSessao() {
+  try {
+    return JSON.parse(lerSessionStorageSeguro("sessao", "{}") || "{}");
+  } catch {
+    return {};
+  }
+}
+
+function sessaoExpiradaPorInatividade(dadosSessao = lerDadosSessao()) {
+  if (!dadosSessao?.token) return false;
+  const ultimaAtividade = Number(dadosSessao.ultimaAtividade || 0);
+  return !ultimaAtividade || Date.now() - ultimaAtividade >= TEMPO_LIMITE_INATIVIDADE_MS;
+}
+
+function registrarAtividadeSessao({ forcar = false } = {}) {
+  if (!sessaoMemoria.token && !lerSessionStorageSeguro("sessao")) return;
+
+  const agora = Date.now();
+  if (!forcar && agora - ultimoRegistroAtividadeSessao < 15000) return;
+  ultimoRegistroAtividadeSessao = agora;
+
+  const sessao = lerDadosSessao();
+  if (!sessao.token) return;
+  sessao.ultimaAtividade = agora;
+  gravarSessionStorageSeguro("sessao", JSON.stringify(sessao));
+  agendarExpiracaoPorInatividade();
+}
+
+function agendarExpiracaoPorInatividade() {
+  clearTimeout(timerInatividadeSessao);
+  const sessao = lerDadosSessao();
+  if (!sessao.token) return;
+
+  const ultimaAtividade = Number(sessao.ultimaAtividade || Date.now());
+  const restante = Math.max(0, TEMPO_LIMITE_INATIVIDADE_MS - (Date.now() - ultimaAtividade));
+  timerInatividadeSessao = setTimeout(expirarSessaoPorInatividade, restante + 250);
+}
+
+async function expirarSessaoPorInatividade() {
+  if (!sessaoExpiradaPorInatividade()) {
+    agendarExpiracaoPorInatividade();
+    return;
+  }
+
+  try {
+    if (obterToken()) await CadimusAuthApi.logout();
+  } catch (erro) {
+    console.warn("Não foi possível encerrar a sessão expirada no servidor:", erro);
+  }
+
+  limparSessao();
+  alternarTelas(false);
+  if (typeof mostrarAviso === "function") {
+    await mostrarAviso("Sua sessão expirou por inatividade. Faça login novamente.");
+  }
+}
+
+function iniciarMonitoramentoInatividade() {
+  pararMonitoramentoInatividade();
+  registrarAtividadeSessao({ forcar: true });
+  EVENTOS_ATIVIDADE_SESSAO.forEach((evento) => {
+    window.addEventListener(evento, registrarAtividadeSessao, { passive: true });
+  });
+  agendarExpiracaoPorInatividade();
+}
+
+function pararMonitoramentoInatividade() {
+  clearTimeout(timerInatividadeSessao);
+  timerInatividadeSessao = null;
+  EVENTOS_ATIVIDADE_SESSAO.forEach((evento) => {
+    window.removeEventListener(evento, registrarAtividadeSessao);
+  });
 }
 
 function atualizarAvatarTopo(usuario) {
@@ -172,6 +263,7 @@ function alternarTelas(estaLogado) {
           sessao.usuario.email = dados.email;
           sessao.usuario.telefone = dados.telefone;
           sessao.usuario.salario = dados.salario;
+          sessao.ultimaAtividade = sessao.ultimaAtividade || Date.now();
           gravarSessionStorageSeguro("sessao", JSON.stringify(sessao));
         }
         atualizarAvatarTopo(dados);
@@ -399,6 +491,7 @@ document.addEventListener("DOMContentLoaded", () => {
   // Verifica se há sessão salva (sessionStorage sobrevive a reload)
   const tokenSessao = obterToken();
   if (tokenSessao) {
+    iniciarMonitoramentoInatividade();
     alternarTelas(true);
   } else {
     alternarTelas(false);
