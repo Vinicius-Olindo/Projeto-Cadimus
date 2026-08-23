@@ -6,7 +6,8 @@
 //            cache-first para ícones e logos (raramente mudam).
 // ==========================================
 
-const CACHE_NAME = "cadimus-cache-v10";
+const CACHE_NAME = "cadimus-cache-v11";
+const CACHE_PREFIX = "cadimus-cache-";
 
 const RECURSOS_ESTATISCOS = [
   "./assets/icon-192.png",
@@ -28,7 +29,11 @@ self.addEventListener("activate", (evento) => {
   evento.waitUntil(
     caches
       .keys()
-      .then((chaves) => Promise.all(chaves.filter((chave) => chave !== CACHE_NAME).map((chave) => caches.delete(chave))))
+      .then((chaves) => Promise.all(
+        chaves
+          .filter((chave) => chave.startsWith(CACHE_PREFIX) && chave !== CACHE_NAME)
+          .map((chave) => caches.delete(chave)),
+      ))
       .then(() => self.clients.claim()),
   );
 });

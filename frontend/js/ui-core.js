@@ -181,12 +181,33 @@ function pedirConfirmacao(mensagem, opcoes = {}) {
 // ==========================================
 // PWA - Registro do Service Worker
 // ==========================================
+const CADIMUS_CACHE_ATUAL = "cadimus-cache-v11";
+
+function limparCachesCadimusAntigos() {
+  if (!("caches" in window)) return;
+
+  caches.keys()
+    .then((chaves) => Promise.all(
+      chaves
+        .filter((chave) => chave.startsWith("cadimus-cache-") && chave !== CADIMUS_CACHE_ATUAL)
+        .map((chave) => caches.delete(chave)),
+    ))
+    .catch((erro) => console.warn("Não foi possível limpar caches antigos do Cadimus:", erro));
+}
+
 if ("serviceWorker" in navigator) {
   window.addEventListener("load", () => {
-    navigator.serviceWorker.register("sw.js").catch((erro) => {
-      console.error("Erro ao registrar o service worker:", erro);
-    });
+    navigator.serviceWorker.register("sw.js")
+      .then((registro) => {
+        registro.update?.();
+        limparCachesCadimusAntigos();
+      })
+      .catch((erro) => {
+        console.error("Erro ao registrar o service worker:", erro);
+      });
   });
+} else {
+  limparCachesCadimusAntigos();
 }
 
 document.addEventListener("DOMContentLoaded", () => {

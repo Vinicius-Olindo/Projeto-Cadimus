@@ -77,6 +77,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Popup de Novo lançamento ganhou atalhos para lançamento simples, compra parcelada, despesa fixa e bonificação, redirecionando para os fluxos corretos.
 - Botão de transferência passou a aparecer apenas quando a carteira selecionada é pessoal; carteiras compartilhadas ocultam o atalho.
 - Cores da interface foram revisadas para substituir pretos/brancos/cinzas fixos por variáveis da paleta (`--cor-*`) e `color-mix`, mantendo exceções em exportações/PDF e paletas de gráficos.
+- Limpeza geral de cache aplicada: assets CSS/JS foram versionados em `v=100`, Service Worker subiu para `cadimus-cache-v11` e o app remove caches antigos `cadimus-cache-*` automaticamente.
 - Campos de valores financeiros passaram a exibir e aceitar o padrão brasileiro `R$ 0,00`.
 - Cards e linhas de lançamentos foram ajustados para acomodar valores financeiros muito altos sem cortar o texto.
 - Botões de layout do dashboard foram agrupados e padronizados com os demais controles do topo.
