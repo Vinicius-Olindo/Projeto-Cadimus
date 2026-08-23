@@ -162,6 +162,21 @@ async function salvarOrdemCarteiras() {
   }
 }
 
+function obterCarteiraSelecionada() {
+  const carteiraId = document.getElementById("seletor-carteira")?.value;
+  return carteirasDoUsuario.find((carteira) => String(carteira.id) === String(carteiraId)) || null;
+}
+
+function atualizarVisibilidadeTransferencia() {
+  const btnTransferencia = document.getElementById("btn-transferencia");
+  if (!btnTransferencia) return;
+
+  const carteira = obterCarteiraSelecionada();
+  const podeTransferir = carteira && carteira.tipo !== "compartilhada";
+  btnTransferencia.hidden = !podeTransferir;
+  btnTransferencia.setAttribute("aria-hidden", String(!podeTransferir));
+}
+
 function selecionarCarteira(id) {
   const inputOculto = document.getElementById("seletor-carteira");
   if (!inputOculto) return;
@@ -170,6 +185,7 @@ function selecionarCarteira(id) {
   document.querySelectorAll(".tab-carteira").forEach((t) => {
     t.classList.toggle("ativo", t.dataset.valor === String(id));
   });
+  atualizarVisibilidadeTransferencia();
   inputOculto.dispatchEvent(new Event("change"));
 }
 
@@ -306,7 +322,14 @@ function configurarModalTransferencia() {
   }
 
   // Abrir modal
-  function abrirModalTransferencia() {
+  async function abrirModalTransferencia() {
+    const carteiraAtual = obterCarteiraSelecionada();
+    if (carteiraAtual?.tipo === "compartilhada") {
+      atualizarVisibilidadeTransferencia();
+      await mostrarAviso("Transferências ficam disponíveis apenas em carteiras pessoais.");
+      return;
+    }
+
     preencherSelectsCarteiras();
     document.getElementById("transferencia-data").valueAsDate = new Date();
     modal.style.display = "flex";
