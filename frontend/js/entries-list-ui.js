@@ -270,6 +270,12 @@ function filtrarLancamentosPendentes() {
   mostrarToast("Mostrando lançamentos pendentes", "info");
 }
 
+function limparFiltrosPeloResumo() {
+  limparFiltros();
+  document.querySelector(".lancamentos-cabecalho")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  mostrarToast("Filtros de lançamentos limpos", "info");
+}
+
 function configurarBuscaLancamentos() {
   const campo = document.getElementById("busca-lancamento");
   if (!campo) return;
@@ -316,6 +322,16 @@ function configurarBuscaLancamentos() {
       if (evento.key !== "Enter" && evento.key !== " ") return;
       evento.preventDefault();
       filtrarLancamentosPendentes();
+    });
+  }
+
+  const cardReceitas = document.getElementById("resumo-receitas-item");
+  if (cardReceitas) {
+    cardReceitas.addEventListener("click", limparFiltrosPeloResumo);
+    cardReceitas.addEventListener("keydown", (evento) => {
+      if (evento.key !== "Enter" && evento.key !== " ") return;
+      evento.preventDefault();
+      limparFiltrosPeloResumo();
     });
   }
 
