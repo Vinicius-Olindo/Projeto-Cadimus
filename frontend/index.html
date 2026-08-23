@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=9" />
-    <link rel="stylesheet" href="css/style.css?v=39" />
+    <link rel="stylesheet" href="css/style.css?v=40" />
   </head>
   <body>
     <main class="app-container">
@@ -37,7 +37,7 @@
             <input type="text" id="usuario" placeholder="Usuário" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required />
             <div class="campo-senha-toggle">
               <input type="password" id="senha" placeholder="Senha" autocomplete="current-password" required />
-              <button type="button" class="btn-toggle-senha" data-alvo="senha" aria-label="Mostrar senha">👁</button>
+              <button type="button" class="btn-toggle-senha" data-alvo="senha" aria-label="Mostrar senha">Ver</button>
             </div>
             <button type="submit">Entrar</button>
             <div class="login-links">
@@ -56,13 +56,13 @@
             <input type="text" id="redefinir-usuario-autocomplete" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
             <div class="campo-senha-toggle">
               <input type="password" id="redefinir-nova-senha" placeholder="Nova senha" autocomplete="new-password" minlength="6" required />
-              <button type="button" class="btn-toggle-senha" data-alvo="redefinir-nova-senha" aria-label="Mostrar senha">👁</button>
+              <button type="button" class="btn-toggle-senha" data-alvo="redefinir-nova-senha" aria-label="Mostrar senha">Ver</button>
             </div>
             <span class="dica-campo">Mínimo de 6 caracteres</span>
 
             <div class="campo-senha-toggle">
               <input type="password" id="redefinir-confirmar-senha" placeholder="Confirmar nova senha" autocomplete="new-password" minlength="6" required />
-              <button type="button" class="btn-toggle-senha" data-alvo="redefinir-confirmar-senha" aria-label="Mostrar senha">👁</button>
+              <button type="button" class="btn-toggle-senha" data-alvo="redefinir-confirmar-senha" aria-label="Mostrar senha">Ver</button>
             </div>
             <span class="dica-campo dica-erro" id="aviso-senhas-diferentes" style="display: none">As senhas não coincidem.</span>
 
@@ -2294,7 +2294,7 @@
     <script src="js/budgets-api.js?v=89"></script>
     <script src="js/goals-api.js?v=89"></script>
     <script src="js/scheduled-api.js?v=89"></script>
-    <script src="js/auth.js?v=89"></script>
+    <script src="js/auth.js?v=90"></script>
     <script src="js/ui-formatters.js?v=89"></script>
     <script src="js/money-utils.js?v=89"></script>
     <script src="js/money-ui.js?v=89"></script>

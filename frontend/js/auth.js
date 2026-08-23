@@ -344,7 +344,7 @@ document.addEventListener("DOMContentLoaded", () => {
       const mostrando = alvo.type === "text";
       alvo.type = mostrando ? "password" : "text";
       botao.setAttribute("aria-label", mostrando ? "Mostrar senha" : "Ocultar senha");
-      botao.textContent = mostrando ? "👁" : "🙈";
+      botao.textContent = mostrando ? "Ver" : "Ocultar";
     });
   });
 

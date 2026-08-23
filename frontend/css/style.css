@@ -2974,25 +2974,34 @@ button.item-status:active {
 
 .campo-senha-toggle input {
   margin-bottom: 0;
-  padding-right: 40px;
+  padding-right: 76px;
   width: 100%;
 }
 
 .btn-toggle-senha {
   position: absolute;
+  top: 5px;
   right: 6px;
-  top: 50%;
-  transform: translateY(-50%);
+  bottom: 5px;
+  min-width: 58px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
   background: transparent;
   border: none;
-  padding: 4px 8px;
-  font-size: 1rem;
+  padding: 0 8px;
+  border-radius: calc(var(--raio-md) - 4px);
+  font-size: 0.7rem;
+  font-weight: 700;
   line-height: 1;
   color: var(--cor-texto-suave);
   cursor: pointer;
+  text-transform: uppercase;
+  letter-spacing: 0.02em;
 }
 
 .btn-toggle-senha:hover {
+  background: color-mix(in srgb, var(--cor-texto) 6%, transparent);
   color: var(--cor-marca);
 }
 
