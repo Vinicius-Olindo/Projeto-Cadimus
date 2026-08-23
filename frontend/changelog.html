@@ -3,13 +3,14 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Changelog — Gestor Financeiro</title>
+  <title>Changelog — Cadimus</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --cor-fundo: #f7f8f7;
-      --cor-fundo-card: #ffffff;
+      --cor-fundo-card: #fffdf6;
+      --cor-superficie: #ffffff;
       --cor-texto: #1a1a1a;
       --cor-texto-suave: #3d4d3f;
       --cor-marca: #a97a2f;
@@ -17,16 +18,19 @@
       --cor-receita: #2e7d32;
       --cor-despesa: #c62828;
       --cor-pendente: #f9a825;
+      --cor-borda-marca: #d6b06a;
     }
     @media (prefers-color-scheme: dark) {
       :root { --auto-dark: 1; }
     }
     :root.dark-mode {
       --cor-fundo: #111311;
-      --cor-fundo-card: #1a1c1a;
+      --cor-fundo-card: #162116;
+      --cor-superficie: #1a271a;
       --cor-texto: #e8e8e8;
       --cor-texto-suave: #a8b8aa;
-      --cor-pauta-fraca: #2a2e2a;
+      --cor-pauta-fraca: #2a3a2b;
+      --cor-borda-marca: #4d3b1e;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -40,31 +44,55 @@
     }
     .page-header {
       border-bottom: 1px solid var(--cor-pauta-fraca);
-      padding: 16px 24px;
+      padding: 18px 24px;
       background: var(--cor-fundo-card);
     }
     .page-header-inner {
-      max-width: 800px;
+      max-width: 920px;
       margin: 0 auto;
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
     }
-    .page-header a { color: var(--cor-texto-suave); text-decoration: none; font-size: 0.85rem; }
-    .page-header a:hover { color: var(--cor-marca); }
-    .page-header h1 { font-size: 1.1rem; font-weight: 600; }
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border: 1px solid var(--cor-borda-marca);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+      color: var(--cor-marca);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .back-button:hover { background: color-mix(in srgb, var(--cor-marca) 18%, transparent); }
+    .page-header h1 { font-size: clamp(1.25rem, 3vw, 1.7rem); font-weight: 700; }
     .page-content {
-      max-width: 800px;
+      max-width: 920px;
       margin: 0 auto;
-      padding: 32px 24px 60px;
+      padding: 34px 24px 64px;
       flex: 1;
     }
+    .page-lead {
+      padding: 14px 16px;
+      border-left: 4px solid var(--cor-marca);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--cor-marca) 8%, transparent);
+      margin: 0 0 18px;
+      color: var(--cor-texto-suave);
+      font-size: 0.92rem;
+    }
     .changelog-entry {
-      background: var(--cor-fundo-card);
+      background: var(--cor-superficie);
       border: 1px solid var(--cor-pauta-fraca);
-      border-radius: 10px;
-      padding: 20px;
-      margin-bottom: 16px;
+      border-radius: 18px;
+      padding: clamp(20px, 4vw, 30px);
+      margin-bottom: 18px;
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.04);
     }
     .changelog-header {
       display: flex;
@@ -148,18 +176,19 @@
 <body>
   <header class="page-header">
     <div class="page-header-inner">
-      <a href="/">&larr; Voltar</a>
       <h1>Changelog</h1>
+      <a href="index.html" class="back-button">← Voltar para a página principal</a>
     </div>
   </header>
 
   <main class="page-content">
+    <p class="page-lead">Histórico das principais mudanças do Cadimus. A versão staging recebe ajustes frequentes de experiência, layout, segurança e fluxos financeiros antes da consolidação na versão principal.</p>
 
     <div class="changelog-entry">
       <div class="changelog-header">
         <span class="changelog-version">v1.1.0-staging</span>
         <span class="changelog-tag tag-improve">Improve</span>
-        <span class="changelog-date">21 de agosto de 2026</span>
+        <span class="changelog-date">23 de agosto de 2026</span>
       </div>
       <div class="changelog-section">
         <div class="changelog-section-title">Novidades</div>
@@ -168,6 +197,8 @@
           <li class="li-feature">Central de notificações com histórico, leitura e arquivamento</li>
           <li class="li-feature">Seletor visual para modo claro/escuro/automático</li>
           <li class="li-feature">Modo de edição do layout dos cards analíticos do dashboard</li>
+          <li class="li-feature">Modo layout agora inclui Comparar períodos e a área de Lançamentos</li>
+          <li class="li-feature">Atalhos rápidos de lançamento aplicados aos fluxos de Fixa, Parcelada e Bonificação</li>
         </ul>
       </div>
       <div class="changelog-section">
@@ -219,6 +250,7 @@
           <li class="li-fix">Sessão passa a expirar após 30 minutos de inatividade</li>
           <li class="li-improve">Espaçamento dos atalhos superiores, alertas, tema e avatar refinado</li>
           <li class="li-improve">Logo ajustada para manter contraste correto nos temas claro e escuro</li>
+          <li class="li-improve">Páginas institucionais de Privacidade, Termos e Changelog revisadas com botão de retorno à página principal</li>
         </ul>
       </div>
       <div class="changelog-section">
@@ -232,6 +264,7 @@
           <li class="li-fix">Banner de instalação PWA evita chamar preventDefault quando não exibirá o prompt</li>
           <li class="li-fix">Trecho CSS inválido/duplicado em botões de despesas fixas foi removido</li>
           <li class="li-fix">Correção ortográfica em comentário de orçamentos mensais</li>
+          <li class="li-fix">Valores do resumo de Bonificações alinhados na mesma linha visual</li>
         </ul>
       </div>
     </div>
@@ -248,7 +281,7 @@
           <li class="li-feature">Tela de Relatórios Financeiros completa com 7 abas (Resumo, Categorias, Contas, Detalhes, Comparativo, Insights, Tabela)</li>
           <li class="li-feature">Configurações redesenhadas com layout modular e sidebar (12 módulos)</li>
           <li class="li-feature">Rodapé único com créditos Olinbyte Digital</li>
-          <li class="li-feature">Páginas de Política de Privacidade, Termos de Uso, Ajuda e Changelog</li>
+          <li class="li-feature">Páginas de Política de Privacidade, Termos de Uso e Changelog</li>
           <li class="li-feature">Gráficos SVG: Fluxo de Caixa, Barras Receitas×Despesas, Donut de categorias, Evolução por categoria</li>
           <li class="li-feature">Insights automáticos com análises financeiras</li>
           <li class="li-feature">Exportação de relatórios em PDF, CSV e JSON</li>

@@ -144,12 +144,12 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - Rodapé único com créditos Olinbyte Digital
 
 ### Páginas Estáticas
-- **Política de Privacidade**: 12 seções (dados, uso, segurança, compartilhamento, direitos, etc.)
-- **Termos de Uso**: 12 seções (aceitação, elegibilidade, responsabilidades, propriedade intelectual, etc.)
-- **Ajuda**: FAQ completo com perguntas e respostas sobre todas as funcionalidades
-- **Changelog**: Histórico de versões com tags coloridas (feature/fix/improve)
+- **Política de Privacidade**: página revisada com dados coletados, uso, segurança, retenção e direitos do usuário
+- **Termos de Uso**: página revisada com regras de uso, responsabilidades, disponibilidade e limitações
+- **Changelog**: histórico de versões com tags coloridas (feature/fix/improve)
+- Botão de retorno para a página principal em todas as páginas institucionais
 - Design consistente com suporte automático a dark mode
-- Acessíveis via rodapé em todas as páginas
+- Acessíveis pelo rodapé da aplicação principal
 
 ---
 
@@ -173,7 +173,7 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - Hash de senhas com **PBKDF2** (100.000 iterações)
 - Comparação constante de tempo contra timing attacks
 - Rate limiting no login (5 tentativas / 15 min)
-- Sessões com limpeza automática (24h)
+- Sessões com expiração por inatividade após 30 minutos
 - Tokens de recuperação de senha com expiração (30 min)
 - Escape HTML para prevenir XSS
 - CORS configurável por origem
@@ -195,7 +195,6 @@ Cadimus/
 │   ├── offline.html            # Fallback offline
 │   ├── politica-privacidade.html
 │   ├── termos-uso.html
-│   ├── ajuda.html
 │   ├── changelog.html
 │   ├── _headers                # CSP + security headers
 │   ├── manifest.json           # PWA manifest

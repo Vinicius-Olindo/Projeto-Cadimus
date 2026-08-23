@@ -3,27 +3,31 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Termos de Uso — Gestor Financeiro</title>
+  <title>Termos de Uso — Cadimus</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
   <style>
     :root {
       --cor-fundo: #f7f8f7;
-      --cor-fundo-card: #ffffff;
+      --cor-fundo-card: #fffdf6;
+      --cor-superficie: #ffffff;
       --cor-texto: #1a1a1a;
       --cor-texto-suave: #3d4d3f;
       --cor-marca: #a97a2f;
       --cor-pauta-fraca: #e4e8e4;
+      --cor-borda-marca: #d6b06a;
     }
     @media (prefers-color-scheme: dark) {
       :root { --auto-dark: 1; }
     }
     :root.dark-mode {
       --cor-fundo: #111311;
-      --cor-fundo-card: #1a1c1a;
+      --cor-fundo-card: #162116;
+      --cor-superficie: #1a271a;
       --cor-texto: #e8e8e8;
       --cor-texto-suave: #a8b8aa;
-      --cor-pauta-fraca: #2a2e2a;
+      --cor-pauta-fraca: #2a3a2b;
+      --cor-borda-marca: #4d3b1e;
     }
     * { margin: 0; padding: 0; box-sizing: border-box; }
     body {
@@ -37,24 +41,52 @@
     }
     .page-header {
       border-bottom: 1px solid var(--cor-pauta-fraca);
-      padding: 16px 24px;
+      padding: 18px 24px;
       background: var(--cor-fundo-card);
     }
     .page-header-inner {
-      max-width: 800px;
+      max-width: 920px;
       margin: 0 auto;
       display: flex;
       align-items: center;
-      gap: 12px;
+      justify-content: space-between;
+      gap: 16px;
+      flex-wrap: wrap;
     }
-    .page-header a { color: var(--cor-texto-suave); text-decoration: none; font-size: 0.85rem; }
-    .page-header a:hover { color: var(--cor-marca); }
-    .page-header h1 { font-size: 1.1rem; font-weight: 600; }
+    .back-button {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 9px 14px;
+      border: 1px solid var(--cor-borda-marca);
+      border-radius: 999px;
+      background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+      color: var(--cor-marca);
+      text-decoration: none;
+      font-size: 0.82rem;
+      font-weight: 700;
+    }
+    .back-button:hover { background: color-mix(in srgb, var(--cor-marca) 18%, transparent); }
+    .page-header h1 { font-size: clamp(1.25rem, 3vw, 1.7rem); font-weight: 700; }
     .page-content {
-      max-width: 800px;
+      max-width: 920px;
       margin: 0 auto;
-      padding: 32px 24px 60px;
+      padding: 34px 24px 64px;
       flex: 1;
+    }
+    .page-card {
+      background: var(--cor-superficie);
+      border: 1px solid var(--cor-pauta-fraca);
+      border-radius: 18px;
+      padding: clamp(22px, 4vw, 34px);
+      box-shadow: 0 14px 36px rgba(0, 0, 0, 0.04);
+    }
+    .page-lead {
+      padding: 14px 16px;
+      border-left: 4px solid var(--cor-marca);
+      border-radius: 12px;
+      background: color-mix(in srgb, var(--cor-marca) 8%, transparent);
+      margin: 18px 0 22px;
     }
     .page-content h2 { font-size: 1.1rem; font-weight: 600; margin: 28px 0 10px; }
     .page-content h2:first-child { margin-top: 0; }
@@ -85,24 +117,27 @@
 <body>
   <header class="page-header">
     <div class="page-header-inner">
-      <a href="/">&larr; Voltar</a>
       <h1>Termos de Uso</h1>
+      <a href="index.html" class="back-button">← Voltar para a página principal</a>
     </div>
   </header>
 
   <main class="page-content">
-    <p><strong>Última atualização:</strong> 1 de agosto de 2026</p>
+    <article class="page-card">
+    <p><strong>Última atualização:</strong> 23 de agosto de 2026</p>
+    <p class="page-lead">Estes termos definem as regras básicas para usar o Cadimus com segurança, responsabilidade e clareza. O aplicativo é uma ferramenta de organização financeira, não uma consultoria financeira.</p>
 
     <h2>1. Aceitação dos Termos</h2>
-    <p>Ao acessar ou utilizar o <strong>Gestor Financeiro</strong> ("Aplicação"), você concorda com estes Termos de Uso. Se não concordar, não utilize a Aplicação.</p>
+    <p>Ao acessar ou utilizar o <strong>Cadimus</strong> ("Aplicação"), você concorda com estes Termos de Uso. Se não concordar, não utilize a Aplicação.</p>
 
     <h2>2. Descrição do Serviço</h2>
-    <p>O Gestor Financeiro é uma aplicação web para controle financeiro pessoal e familiar que permite:</p>
+    <p>O Cadimus é uma aplicação web para controle financeiro pessoal, familiar e de carteiras compartilhadas que permite:</p>
     <ul>
       <li>Registrar e gerenciar receitas, despesas e transferências.</li>
       <li>Criar e acompanhar metas e orçamentos financeiros.</li>
       <li>Gerenciar carteiras, cartões de crédito e despesas fixas.</li>
       <li>Gerar relatórios e análises financeiras.</li>
+      <li>Criar bonificações recorrentes, compras parceladas e lançamentos fixos.</li>
       <li>Importar e exportar dados financeiros.</li>
     </ul>
 
@@ -112,7 +147,7 @@
       <li>Ter pelo menos 18 anos de idade.</li>
       <li>Ter capacidade legal para celebrar contratos.</li>
       <li>Fornecer informações de registro precisas e completas.</li>
-      <li>Manter a segurança da sua conta e senha.</li>
+      <li>Manter a segurança da sua conta, senha e dispositivos.</li>
     </ul>
 
     <h2>4. Responsabilidades do Usuário</h2>
@@ -124,6 +159,7 @@
       <li>Não sobrecarregar ou prejudicar o funcionamento da Aplicação.</li>
       <li>Manter seus dados de cadastro atualizados.</li>
       <li>Responsabilizar-se pela precisão dos dados financeiros inseridos.</li>
+      <li>Revisar lançamentos automáticos, recorrentes e parcelados gerados pela Aplicação.</li>
     </ul>
 
     <h2>5. Propriedade Intelectual</h2>
@@ -153,7 +189,7 @@
     <ul>
       <li>Perdas financeiras decorrentes do uso da Aplicação.</li>
       <li>Danos indiretos, incidentais ou consequenciais.</li>
-      <li>Perda de dados por falhas técnicas ou force majeure.</li>
+      <li>Perda de dados por falhas técnicas ou eventos de força maior.</li>
     </ul>
 
     <h2>11. Legislação Aplicável</h2>
@@ -165,6 +201,7 @@
       <li><strong>E-mail:</strong> contato@olinbytedigital.pages.dev</li>
       <li><strong>Site:</strong> <a href="https://olinbytedigital.pages.dev/" target="_blank">Olinbyte Digital</a></li>
     </ul>
+    </article>
   </main>
 
   <footer class="page-footer">
