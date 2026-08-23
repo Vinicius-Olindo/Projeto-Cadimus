@@ -93,31 +93,38 @@ button {
 }
 
 .header-logo-wrapper {
-  display: flex;
+  display: inline-flex;
   align-items: center;
-  gap: 8px;
+  gap: 9px;
   flex-shrink: 0;
+  padding: 5px 10px 5px 6px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 56%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 76%, transparent);
+  box-shadow: 0 8px 18px color-mix(in srgb, #000 5%, transparent);
 }
 
 .header-logo-wrapper img {
-  width: 28px;
-  height: 28px;
+  width: 30px;
+  height: 30px;
   box-sizing: border-box;
   object-fit: contain;
   border-radius: 50%;
   background: #fff;
-  padding: 2px;
+  padding: 3px;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent),
-    0 4px 10px color-mix(in srgb, #000 10%, transparent);
+    0 0 0 1px color-mix(in srgb, var(--cor-receita) 34%, var(--cor-pauta-forte)),
+    0 4px 10px color-mix(in srgb, #000 12%, transparent);
 }
 
 .header-logo-wrapper span {
-  font-family: var(--fonte-display);
+  font-family: var(--fonte-corpo);
   font-style: italic;
-  font-weight: 500;
-  font-size: 1.25rem;
+  font-weight: 700;
+  font-size: 1.08rem;
   color: var(--cor-texto);
+  letter-spacing: -0.02em;
+  line-height: 1;
 }
 
 .acoes-topo,
