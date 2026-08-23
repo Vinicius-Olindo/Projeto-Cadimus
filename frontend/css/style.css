@@ -1361,6 +1361,19 @@ button:active {
   box-shadow: var(--sombra-cartao), 0 4px 16px color-mix(in srgb, var(--cor-sombra) 46%, transparent);
 }
 
+.stat-card-atalho {
+  cursor: pointer;
+}
+
+.stat-card-atalho:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--cor-marca) 38%, transparent);
+  outline-offset: 3px;
+}
+
+.stat-card-atalho:hover .stat-desc {
+  color: var(--cor-texto);
+}
+
 .stat-card-topo {
   display: flex;
   align-items: center;
