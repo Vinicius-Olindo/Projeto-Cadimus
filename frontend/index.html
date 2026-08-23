@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=9" />
-    <link rel="stylesheet" href="css/style.css?v=41" />
+    <link rel="stylesheet" href="css/style.css?v=42" />
   </head>
   <body>
     <main class="app-container">
@@ -1336,6 +1336,25 @@
     <div id="modal-lancamento" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
       <div class="modal-content">
         <h3 id="titulo-modal-lancamento">Novo lançamento</h3>
+        <p class="modal-subtitulo lancamento-modal-subtitulo" id="subtitulo-modal-lancamento">Escolha o tipo de registro e cadastre pelo caminho mais rápido.</p>
+        <div class="lancamento-tipo-rapido" id="lancamento-tipo-rapido" aria-label="Tipo de lançamento">
+          <button type="button" class="ativo" data-atalho-lancamento="simples">
+            <span>Lançamento</span>
+            <small>Receita ou despesa única</small>
+          </button>
+          <button type="button" data-atalho-lancamento="parcelada">
+            <span>Parcelada</span>
+            <small>Compra em parcelas</small>
+          </button>
+          <button type="button" data-atalho-lancamento="fixa">
+            <span>Fixa</span>
+            <small>Repete todo mês</small>
+          </button>
+          <button type="button" data-atalho-lancamento="bonificacao">
+            <span>Bonificação</span>
+            <small>Receita recorrente</small>
+          </button>
+        </div>
         <form id="form-lancamento">
           <input type="hidden" id="lancamento-editando-id" value="" />
           <div class="campo">
@@ -2303,7 +2322,7 @@
     <script src="js/dashboard-layout-ui.js?v=90"></script>
     <script src="js/wallets-ui.js?v=89"></script>
     <script src="js/categories-ui.js?v=89"></script>
-    <script src="js/entries-modal-ui.js?v=89"></script>
+    <script src="js/entries-modal-ui.js?v=90"></script>
     <script src="js/entries-list-ui.js?v=89"></script>
     <script src="js/notifications-ui.js?v=89"></script>
     <script src="js/batch-note-ui.js?v=89"></script>

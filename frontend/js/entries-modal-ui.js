@@ -11,6 +11,8 @@ function fecharModalLancamento() {
   const modal = document.getElementById("modal-lancamento");
   const form = document.getElementById("form-lancamento");
   const campoCategoriaNova = document.getElementById("categoria-nova");
+  const atalhos = document.getElementById("lancamento-tipo-rapido");
+  const subtitulo = document.getElementById("subtitulo-modal-lancamento");
 
   modal.style.display = "none";
   liberarFoco();
@@ -18,8 +20,28 @@ function fecharModalLancamento() {
   document.getElementById("lancamento-editando-id").value = "";
   document.getElementById("titulo-modal-lancamento").innerText = "Novo lançamento";
   document.getElementById("btn-salvar-lancamento").innerText = "Salvar";
+  if (atalhos) atalhos.hidden = false;
+  if (subtitulo) {
+    subtitulo.hidden = false;
+    subtitulo.innerText = "Escolha o tipo de registro e cadastre pelo caminho mais rápido.";
+  }
+  document.querySelectorAll("[data-atalho-lancamento]").forEach((btn) => {
+    btn.classList.toggle("ativo", btn.dataset.atalhoLancamento === "simples");
+  });
   campoCategoriaNova.style.display = "none";
   campoCategoriaNova.required = false;
+}
+
+function alternarAtalhosModalLancamento(editando = false) {
+  const atalhos = document.getElementById("lancamento-tipo-rapido");
+  const subtitulo = document.getElementById("subtitulo-modal-lancamento");
+  if (atalhos) atalhos.hidden = editando;
+  if (subtitulo) {
+    subtitulo.hidden = false;
+    subtitulo.innerText = editando
+      ? "Atualize os dados deste lançamento."
+      : "Escolha o tipo de registro e cadastre pelo caminho mais rápido.";
+  }
 }
 
 async function abrirModalNovoLancamento() {
@@ -33,9 +55,32 @@ async function abrirModalNovoLancamento() {
   document.getElementById("lancamento-editando-id").value = "";
   document.getElementById("titulo-modal-lancamento").innerText = "Novo lançamento";
   document.getElementById("btn-salvar-lancamento").innerText = "Salvar";
+  alternarAtalhosModalLancamento(false);
   document.getElementById("data-compra").valueAsDate = new Date();
   document.getElementById("modal-lancamento").style.display = "flex";
   trapFoco(document.getElementById("modal-lancamento"));
+}
+
+async function abrirAtalhoLancamentoRapido(tipo) {
+  if (tipo === "simples") return;
+  fecharModalLancamento();
+
+  if (tipo === "parcelada" && typeof abrirModalComprasParceladas === "function") {
+    await abrirModalComprasParceladas();
+    return;
+  }
+
+  if (tipo === "fixa" && typeof abrirModalDespesasFixas === "function") {
+    await abrirModalDespesasFixas();
+    return;
+  }
+
+  if (tipo === "bonificacao" && typeof abrirModalBonificacao === "function") {
+    await abrirModalBonificacao();
+    return;
+  }
+
+  await mostrarAviso("Esse fluxo ainda não está disponível.");
 }
 
 async function editarLancamento(id) {
@@ -57,6 +102,7 @@ async function editarLancamento(id) {
 
   document.getElementById("titulo-modal-lancamento").innerText = "Editar lançamento";
   document.getElementById("btn-salvar-lancamento").innerText = "Salvar edição";
+  alternarAtalhosModalLancamento(true);
   document.getElementById("modal-lancamento").style.display = "flex";
   trapFoco(document.getElementById("modal-lancamento"));
 }
@@ -68,6 +114,7 @@ function configurarModal() {
   const form = document.getElementById("form-lancamento");
   const selectCategoria = document.getElementById("categoria");
   const campoCategoriaNova = document.getElementById("categoria-nova");
+  const atalhosLancamento = document.getElementById("lancamento-tipo-rapido");
 
   if (!modal || !btnNovo || !btnFechar || !form) return;
 
@@ -80,6 +127,14 @@ function configurarModal() {
 
   btnNovo.addEventListener("click", abrirModalNovoLancamento);
   btnFechar.addEventListener("click", fecharModalLancamento);
+  atalhosLancamento?.addEventListener("click", async (evento) => {
+    const botao = evento.target.closest("[data-atalho-lancamento]");
+    if (!botao) return;
+    evento.preventDefault();
+    atalhosLancamento.querySelectorAll("[data-atalho-lancamento]").forEach((item) => item.classList.remove("ativo"));
+    botao.classList.add("ativo");
+    await abrirAtalhoLancamentoRapido(botao.dataset.atalhoLancamento);
+  });
 
   form.addEventListener("submit", async (evento) => {
     evento.preventDefault();

@@ -3149,6 +3149,65 @@ textarea::placeholder {
   margin-bottom: 18px;
 }
 
+#modal-lancamento .modal-content {
+  max-width: 460px;
+}
+
+.lancamento-modal-subtitulo {
+  margin: -8px 0 14px;
+}
+
+.lancamento-tipo-rapido {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.lancamento-tipo-rapido[hidden] {
+  display: none;
+}
+
+.lancamento-tipo-rapido button {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 3px;
+  min-height: 68px;
+  padding: 11px 12px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 72%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 68%, transparent);
+  color: var(--cor-texto);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.lancamento-tipo-rapido button:hover {
+  border-color: color-mix(in srgb, var(--cor-marca) 34%, var(--cor-pauta-forte));
+  background: color-mix(in srgb, var(--cor-marca) 7%, var(--cor-superficie-alta));
+  transform: translateY(-1px);
+}
+
+.lancamento-tipo-rapido button.ativo {
+  border-color: color-mix(in srgb, var(--cor-marca) 70%, var(--cor-pauta-forte));
+  background: color-mix(in srgb, var(--cor-marca) 12%, var(--cor-superficie-alta));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cor-marca) 18%, transparent);
+}
+
+.lancamento-tipo-rapido span {
+  font-weight: 700;
+  font-size: 0.82rem;
+  line-height: 1.1;
+}
+
+.lancamento-tipo-rapido small {
+  color: var(--cor-texto-suave);
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
 .modal-compacto {
   max-width: 360px;
   text-align: center;
@@ -4479,6 +4538,10 @@ textarea::placeholder {
 @media (max-width: 480px) {
   .app-container {
     padding: 20px 14px 48px;
+  }
+
+  .lancamento-tipo-rapido {
+    grid-template-columns: 1fr;
   }
 
   .btn-topo-label {
