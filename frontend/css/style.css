@@ -2953,9 +2953,11 @@ button.item-status:active {
 
 .campo-senha-toggle {
   position: relative;
+  margin-bottom: 14px;
 }
 
 .campo-senha-toggle input {
+  margin-bottom: 0;
   padding-right: 40px;
   width: 100%;
 }

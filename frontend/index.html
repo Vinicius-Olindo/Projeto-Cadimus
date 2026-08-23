@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=9" />
-    <link rel="stylesheet" href="css/style.css?v=34" />
+    <link rel="stylesheet" href="css/style.css?v=35" />
   </head>
   <body>
     <main class="app-container">
@@ -35,7 +35,10 @@
           <span class="subtitulo">Gestor Financeiro</span>
           <form id="login-form">
             <input type="text" id="usuario" placeholder="Usuário" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" required />
-            <input type="password" id="senha" placeholder="Senha" autocomplete="current-password" required />
+            <div class="campo-senha-toggle">
+              <input type="password" id="senha" placeholder="Senha" autocomplete="current-password" required />
+              <button type="button" class="btn-toggle-senha" data-alvo="senha" aria-label="Mostrar senha">👁</button>
+            </div>
             <button type="submit">Entrar</button>
             <div class="login-links">
               <button type="button" id="link-esqueci-senha" class="login-link">Esqueci minha senha</button>
