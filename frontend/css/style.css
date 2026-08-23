@@ -50,13 +50,14 @@ button {
    LAYOUT GERAL
    ========================================== */
 .app-container {
-  padding: 28px 20px 20px;
+  padding: 28px clamp(16px, 2vw, 32px) 20px;
   flex: 1;
 }
 
 /* Dashboard é o painel de controle de verdade — precisa de espaço pra duas colunas */
 #dashboard-section {
-  max-width: 1240px;
+  width: 100%;
+  max-width: 1360px;
   margin: 0 auto;
 }
 
@@ -1229,7 +1230,7 @@ button:active {
 
 @media (min-width: 900px) {
   #conteudo-periodo {
-    grid-template-columns: minmax(0, 1fr) 360px;
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 0.34fr);
     align-items: start;
   }
 
@@ -3940,7 +3941,7 @@ textarea::placeholder {
 
 .bonificacoes-resumo {
   display: grid;
-  grid-template-columns: repeat(3, minmax(92px, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 8px;
   margin-bottom: 12px;
 }
@@ -3967,11 +3968,11 @@ textarea::placeholder {
 .bonificacoes-resumo strong {
   color: var(--cor-receita);
   font-family: var(--fonte-mono);
-  font-size: clamp(0.72rem, 1.05vw, 0.94rem);
+  font-size: clamp(0.68rem, 0.95vw, 0.9rem);
   font-weight: 700;
   line-height: 1.2;
-  overflow-wrap: anywhere;
-  white-space: normal;
+  letter-spacing: -0.03em;
+  white-space: nowrap;
 }
 
 #lista-bonificacoes-painel .linha-item {
