@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=100" />
-    <link rel="stylesheet" href="css/style.css?v=100" />
+    <link rel="stylesheet" href="css/style.css?v=101" />
   </head>
   <body>
     <main class="app-container">
@@ -1210,8 +1210,13 @@
                 <h3>Aparência</h3>
                 <p>Personalize a interface do sistema.</p>
               </div>
-              <div class="settings-card">
-                <h4>Tema</h4>
+              <div class="settings-card settings-card-destaque">
+                <div class="settings-card-topo">
+                  <div>
+                    <h4>Tema</h4>
+                    <p class="settings-desc">Escolha como o Cadimus deve se adaptar ao seu ambiente.</p>
+                  </div>
+                </div>
                 <div class="settings-tema-opcoes">
                   <button type="button" class="settings-tema-btn" data-tema="claro">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"><circle cx="12" cy="12" r="5"/><line x1="12" y1="1" x2="12" y2="3"/><line x1="12" y1="21" x2="12" y2="23"/><line x1="4.22" y1="4.22" x2="5.64" y2="5.64"/><line x1="18.36" y1="18.36" x2="19.78" y2="19.78"/><line x1="1" y1="12" x2="3" y2="12"/><line x1="21" y1="12" x2="23" y2="12"/><line x1="4.22" y1="19.78" x2="5.64" y2="18.36"/><line x1="18.36" y1="5.64" x2="19.78" y2="4.22"/></svg>
@@ -1229,15 +1234,21 @@
               </div>
               <div class="settings-card">
                 <h4>Interface</h4>
-                <div class="settings-card-linha">
-                  <span>Mostrar animações</span>
+                <div class="settings-card-linha settings-card-linha-explicada">
+                  <div>
+                    <strong>Mostrar animações</strong>
+                    <p class="settings-desc">Mantém transições suaves em cards, gráficos e modais.</p>
+                  </div>
                   <label class="settings-toggle">
                     <input type="checkbox" id="toggle-animacoes" checked />
                     <span class="settings-toggle-slider"></span>
                   </label>
                 </div>
-                <div class="settings-card-linha">
-                  <span>Ocultar valores financeiros</span>
+                <div class="settings-card-linha settings-card-linha-explicada">
+                  <div>
+                    <strong>Ocultar valores financeiros</strong>
+                    <p class="settings-desc">Use quando estiver compartilhando a tela ou em ambiente público.</p>
+                  </div>
                   <label class="settings-toggle">
                     <input type="checkbox" id="toggle-ocultar-valores" />
                     <span class="settings-toggle-slider"></span>
@@ -1275,22 +1286,26 @@
                 <h3>Sistema</h3>
                 <p>Informações do sistema.</p>
               </div>
-              <div class="settings-card">
-                <div class="settings-card-linha">
+              <div class="settings-system-grid">
+                <div class="settings-system-card">
                   <span>Versão</span>
-                  <span class="settings-valor">1.0.0</span>
+                  <strong>1.1.0</strong>
+                  <p>Staging de testes</p>
                 </div>
-                <div class="settings-card-linha">
+                <div class="settings-system-card">
                   <span>Banco de dados</span>
-                  <span class="settings-valor">D1 (Cloudflare)</span>
+                  <strong>D1</strong>
+                  <p>Cloudflare</p>
                 </div>
-                <div class="settings-card-linha">
+                <div class="settings-system-card">
                   <span>Hospedagem</span>
-                  <span class="settings-valor">Cloudflare Pages</span>
+                  <strong>Pages</strong>
+                  <p>Frontend estático</p>
                 </div>
-                <div class="settings-card-linha">
+                <div class="settings-system-card">
                   <span>Backend</span>
-                  <span class="settings-valor">Cloudflare Workers</span>
+                  <strong>Workers</strong>
+                  <p>API serverless</p>
                 </div>
               </div>
             </div>
@@ -1915,6 +1930,12 @@
         <p class="modal-subtitulo" id="meta-categoria-label">Categoria</p>
         <form id="form-meta">
           <input type="hidden" id="meta-categoria-nome" />
+          <div class="campo" id="campo-meta-categoria-select" style="display: none">
+            <label for="meta-categoria-select">Categoria</label>
+            <select id="meta-categoria-select">
+              <option value="" disabled selected>Escolher categoria</option>
+            </select>
+          </div>
           <div class="campo">
             <label for="meta-valor">Limite mensal</label>
             <input type="text" id="meta-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
@@ -2335,10 +2356,10 @@
     <script src="js/dashboard-pdf-ui.js?v=100"></script>
     <script src="js/entries-actions-ui.js?v=100"></script>
     <script src="js/admin-shell-ui.js?v=100"></script>
-    <script src="js/admin-settings-ui.js?v=100"></script>
+    <script src="js/admin-settings-ui.js?v=101"></script>
     <script src="js/profile-image-ui.js?v=100"></script>
     <script src="js/admin-users-ui.js?v=100"></script>
-    <script src="js/admin-categories-ui.js?v=100"></script>
+    <script src="js/admin-categories-ui.js?v=101"></script>
     <script src="js/reports-shell-ui.js?v=100"></script>
     <script src="js/reports-charts-ui.js?v=100"></script>
     <script src="js/reports-tables-ui.js?v=100"></script>
@@ -2350,11 +2371,11 @@
     <script src="js/fixed-expenses-ui.js?v=100"></script>
     <script src="js/installments-ui.js?v=100"></script>
     <script src="js/budgets-ui.js?v=100"></script>
-    <script src="js/goals-ui.js?v=100"></script>
+    <script src="js/goals-ui.js?v=101"></script>
     <script src="js/main.js?v=100" defer></script>
     <script src="js/importar.js?v=100" defer></script>
     <script src="js/exportar.js?v=100" defer></script>
-    <script src="js/recorrentes.js?v=100" defer></script>
+    <script src="js/recorrentes.js?v=101" defer></script>
     <script src="js/bonuses-ui.js?v=100" defer></script>
   </body>
 </html>

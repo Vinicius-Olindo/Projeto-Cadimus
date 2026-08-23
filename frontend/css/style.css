@@ -3762,6 +3762,18 @@ textarea::placeholder {
   color: var(--cor-texto-suave);
 }
 
+#lista-categorias,
+#lista-recorrentes-admin,
+#lista-metas-settings {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+  gap: 10px;
+}
+
+#lista-recorrentes-admin {
+  grid-template-columns: 1fr;
+}
+
 /* Botão convidar usuário */
 .acoes-admin-usuarios {
   margin-bottom: 14px;
@@ -3945,6 +3957,7 @@ textarea::placeholder {
 
 /* Estado vazio admin */
 .estado-vazio-admin {
+  grid-column: 1 / -1;
   text-align: center;
   padding: 2rem 1rem;
   color: var(--cor-texto-suave);
@@ -7134,6 +7147,9 @@ textarea::placeholder {
   padding: 16px;
   margin-bottom: 16px;
 }
+.settings-card-destaque {
+  background: linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 8%, var(--cor-fundo)), var(--cor-fundo));
+}
 .settings-card h4 {
   font-size: 0.9rem;
   font-weight: 600;
@@ -7156,6 +7172,16 @@ textarea::placeholder {
 }
 .settings-card-linha:last-child { border-bottom: none; }
 .settings-card-linha span { font-size: 0.85rem; color: var(--cor-texto); }
+.settings-card-linha-explicada {
+  gap: 18px;
+  align-items: flex-start;
+}
+.settings-card-linha-explicada strong {
+  display: block;
+  margin-bottom: 2px;
+  color: var(--cor-texto);
+  font-size: 0.86rem;
+}
 .settings-valor {
   font-size: 0.85rem;
   color: var(--cor-texto-suave);
@@ -7184,6 +7210,127 @@ textarea::placeholder {
   display: flex;
   gap: 10px;
   margin-top: 12px;
+}
+.settings-mini-card {
+  padding: 14px;
+  margin-bottom: 10px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-superficie) 72%, transparent);
+}
+#lista-categorias .settings-mini-card,
+#lista-recorrentes-admin .settings-mini-card,
+#lista-metas-settings .settings-mini-card {
+  margin-bottom: 0;
+}
+.settings-mini-card-topo,
+.settings-mini-card-meta,
+.settings-mini-card-acoes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.settings-mini-card-topo strong {
+  display: block;
+  color: var(--cor-texto);
+  font-size: 0.92rem;
+  line-height: 1.25;
+}
+.settings-mini-card-label {
+  display: block;
+  margin-bottom: 3px;
+  color: var(--cor-texto-suave);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.settings-mini-card-meta {
+  margin-top: 10px;
+  color: var(--cor-texto-suave);
+  font-size: 0.75rem;
+  line-height: 1.35;
+}
+.settings-mini-card-meta strong {
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: 0.82rem;
+  white-space: nowrap;
+}
+.settings-mini-card-acoes {
+  justify-content: flex-end;
+  margin-top: 12px;
+  flex-wrap: wrap;
+}
+.settings-categoria-nome {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+.settings-categoria-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cor-marca) 12%, transparent);
+  color: var(--cor-marca-forte);
+  font-weight: 800;
+}
+.settings-recorrente-card {
+  border-left: 3px solid var(--cor-pendente);
+}
+.settings-recorrente-card.settings-recorrente-receita {
+  border-left-color: var(--cor-receita);
+}
+.settings-recorrente-card.settings-recorrente-despesa {
+  border-left-color: var(--cor-despesa);
+}
+.settings-progress {
+  height: 7px;
+  margin-top: 12px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--cor-pauta-fraca);
+}
+.settings-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--cor-receita), var(--cor-marca));
+}
+.settings-system-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+}
+.settings-system-card {
+  min-height: 118px;
+  padding: 18px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--cor-superficie) 72%, transparent);
+}
+.settings-system-card span {
+  color: var(--cor-texto-suave);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.settings-system-card strong {
+  display: block;
+  margin-top: 10px;
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: 1.35rem;
+}
+.settings-system-card p {
+  margin: 8px 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
 }
 .settings-tema-opcoes {
   display: flex;

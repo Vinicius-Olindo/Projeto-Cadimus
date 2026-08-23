@@ -4,6 +4,18 @@
 function configurarSubAbasAdmin() {
   const navItems = document.querySelectorAll(".settings-nav-item");
 
+  function carregarPainelSettings(painelId) {
+    if (painelId === "sp-categorias") carregarListaCategorias();
+    if (painelId === "sp-usuarios") carregarUsuarios();
+    if (painelId === "sp-recorrentes") carregarPainelRecorrentes();
+    if (painelId === "sp-perfil") preencherPerfilAtual();
+    if (painelId === "sp-tema") sincronizarToggleTema();
+    if (painelId === "sp-contas") carregarSettingsContas();
+    if (painelId === "sp-cartoes") carregarSettingsCartoes();
+    if (painelId === "sp-metas") carregarSettingsMetas();
+    if (painelId === "sp-orcamentos") carregarSettingsOrcamentos();
+  }
+
   navItems.forEach((item) => {
     item.addEventListener("click", () => {
       navItems.forEach((t) => t.classList.remove("ativo"));
@@ -13,16 +25,7 @@ function configurarSubAbasAdmin() {
       const painel = document.getElementById(item.dataset.settingsPainel);
       if (painel) painel.style.display = "block";
 
-      const painelId = item.dataset.settingsPainel;
-      if (painelId === "sp-categorias") carregarListaCategorias();
-      if (painelId === "sp-usuarios") carregarUsuarios();
-      if (painelId === "sp-recorrentes") carregarPainelRecorrentes();
-      if (painelId === "sp-perfil") preencherPerfilAtual();
-      if (painelId === "sp-tema") sincronizarToggleTema();
-      if (painelId === "sp-contas") carregarSettingsContas();
-      if (painelId === "sp-cartoes") carregarSettingsCartoes();
-      if (painelId === "sp-metas") carregarSettingsMetas();
-      if (painelId === "sp-orcamentos") carregarSettingsOrcamentos();
+      carregarPainelSettings(item.dataset.settingsPainel);
     });
   });
 
@@ -99,6 +102,11 @@ function configurarSubAbasAdmin() {
         mostrarToast("Valores visíveis novamente");
       }
     });
+  }
+
+  const itemAtivo = document.querySelector(".settings-nav-item.ativo");
+  if (itemAtivo?.dataset.settingsPainel) {
+    carregarPainelSettings(itemAtivo.dataset.settingsPainel);
   }
 }
 
@@ -183,16 +191,28 @@ async function carregarSettingsMetas() {
     if (!resposta.ok) return;
     const metas = await resposta.json();
     if (metas.length === 0) {
-      container.innerHTML = '<span class="dica-campo">Nenhuma meta definida.</span>';
+      container.innerHTML = '<div class="estado-vazio-admin"><div class="icone-vazio">🎯</div><p>Nenhuma meta definida.<br>Crie uma meta para acompanhar seu limite mensal por categoria.</p></div>';
       return;
     }
     container.innerHTML = metas.map(m => {
-      const pct = m.meta_valor > 0 ? Math.min(100, Math.round((m.valor_atual / m.meta_valor) * 100)) : 0;
+      const valorAtual = valorMonetario(m, "valor_atual");
+      const valorMeta = valorMonetario(m, "meta_valor") || valorMonetario(m, "valor_limite");
+      const pct = valorMeta > 0 ? Math.min(100, Math.round((valorAtual / valorMeta) * 100)) : 0;
       return `
-        <div class="linha-item linha-usuario" style="border-bottom:1px solid var(--cor-pauta-fraca)">
-          <div class="fixa-conteudo">
-            <span class="item-descricao">${escaparHtml(m.categoria)}</span>
-            <span class="item-categoria">${formatadorBRL.format(m.valor_atual)} / ${formatadorBRL.format(m.meta_valor)} (${pct}%)</span>
+        <div class="settings-mini-card settings-meta-card">
+          <div class="settings-mini-card-topo">
+            <div>
+              <span class="settings-mini-card-label">Meta mensal</span>
+              <strong>${escaparHtml(m.categoria)}</strong>
+            </div>
+            <span class="item-status status-pendente">${pct}%</span>
+          </div>
+          <div class="settings-progress">
+            <span style="width: ${pct}%"></span>
+          </div>
+          <div class="settings-mini-card-meta">
+            <span>${formatadorBRL.format(valorAtual)}</span>
+            <span>${formatadorBRL.format(valorMeta)}</span>
           </div>
         </div>
       `;
@@ -204,8 +224,8 @@ async function carregarSettingsMetas() {
 
 const btnNovaMetaSettings = document.getElementById("btn-nova-meta-settings");
 if (btnNovaMetaSettings) {
-  btnNovaMetaSettings.addEventListener("click", () => {
-    abrirModalMeta("", "", "");
+  btnNovaMetaSettings.addEventListener("click", async () => {
+    await abrirModalMeta("", "", "");
   });
 }
 

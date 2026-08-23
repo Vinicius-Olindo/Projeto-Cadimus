@@ -70,16 +70,26 @@ async function carregarListaCategorias() {
         return;
       }
 
-      filtradas.forEach((cat) => {
+      filtradas.forEach((cat, indice) => {
         const div = document.createElement("div");
-        div.className = "linha-item linha-usuario";
+        div.className = "settings-mini-card settings-categoria-card";
         div.innerHTML = `
-          <div class="item-info-principal linha-usuario-info">
-            <span class="item-descricao">${escaparHtml(cat.nome)}</span>
+          <div class="settings-mini-card-topo">
+            <div class="settings-categoria-nome">
+              <span class="settings-categoria-icone">${String(cat.nome || "?").trim().slice(0, 1).toUpperCase()}</span>
+              <div>
+                <span class="settings-mini-card-label">Categoria ${indice + 1}</span>
+                <strong>${escaparHtml(cat.nome)}</strong>
+              </div>
+            </div>
+            <span class="item-status status-pago">Ativa</span>
           </div>
-          <div class="item-valores">
-            <button type="button" class="btn-editar-usuario" data-id="${cat.id}" data-nome="${escaparHtml(cat.nome)}" title="Renomear categoria">Editar</button>
-            <button type="button" class="btn-excluir-conta" data-id="${cat.id}" title="Excluir categoria">Excluir</button>
+          <div class="settings-mini-card-meta">
+            <span>Disponível em lançamentos, metas e relatórios</span>
+          </div>
+          <div class="settings-mini-card-acoes">
+            <button type="button" class="fixa-btn btn-editar-usuario" data-id="${cat.id}" data-nome="${escaparHtml(cat.nome)}" title="Renomear categoria">Editar</button>
+            <button type="button" class="fixa-btn-excluir btn-excluir-conta" data-id="${cat.id}" title="Excluir categoria">Excluir</button>
           </div>
         `;
         container.appendChild(div);

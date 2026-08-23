@@ -44,15 +44,22 @@ async function carregarPainelRecorrentes() {
         detalhe += ` · Dia ${rec.dia_mes || 1}`;
       }
 
+      const classeTipo = rec.tipo === "receita" ? "settings-recorrente-receita" : "settings-recorrente-despesa";
       const div = document.createElement("div");
-      div.className = "linha-item linha-usuario";
+      div.className = `settings-mini-card settings-recorrente-card ${classeTipo}`;
       div.innerHTML = `
-        <div class="item-info-principal linha-usuario-info">
-          <span class="item-descricao">${escaparHtml(rec.descricao)}</span>
-          <span class="item-categoria">${detalhe} · ${valorFormatado}</span>
-        </div>
-        <div class="item-valores">
+        <div class="settings-mini-card-topo">
+          <div>
+            <span class="settings-mini-card-label">${escaparHtml(rec.categoria || "Recorrência")}</span>
+            <strong>${escaparHtml(rec.descricao)}</strong>
+          </div>
           <span class="item-status ${rec.ativo ? "status-pago" : "status-pendente"}">${rec.ativo ? "Ativa" : "Pausada"}</span>
+        </div>
+        <div class="settings-mini-card-meta">
+          <span>${detalhe}</span>
+          <strong>${rec.tipo === "receita" ? "+" : "−"} ${valorFormatado}</strong>
+        </div>
+        <div class="settings-mini-card-acoes">
           <button type="button" class="fixa-btn btn-editar-recorrencia" data-id="${rec.id}">Editar</button>
           <button type="button" class="fixa-btn btn-alternar-recorrencia" data-id="${rec.id}">${rec.ativo ? "Pausar" : "Ativar"}</button>
           <button type="button" class="fixa-btn-excluir btn-excluir-recorrencia" data-id="${rec.id}">Excluir</button>

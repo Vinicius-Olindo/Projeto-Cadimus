@@ -28,15 +28,46 @@ function obterMetaPorCategoria(categoria) {
   return metasCarregadas.find((m) => m.categoria === categoria);
 }
 
-function abrirModalMeta(categoria, valorAtual, dataLimite) {
+async function abrirModalMeta(categoria, valorAtual, dataLimite) {
   const modal = document.getElementById("modal-meta");
   if (!modal) return;
 
-  document.getElementById("meta-categoria-nome").value = categoria;
-  document.getElementById("meta-categoria-label").textContent = `Categoria: ${categoria}`;
+  const categoriaInicial = categoria || "";
+  const inputCategoria = document.getElementById("meta-categoria-nome");
+  const labelCategoria = document.getElementById("meta-categoria-label");
+  const campoCategoriaSelect = document.getElementById("campo-meta-categoria-select");
+  const selectCategoria = document.getElementById("meta-categoria-select");
+
+  inputCategoria.value = categoriaInicial;
+
+  if (categoriaInicial) {
+    if (campoCategoriaSelect) campoCategoriaSelect.style.display = "none";
+    labelCategoria.textContent = `Categoria: ${categoriaInicial}`;
+  } else {
+    labelCategoria.textContent = "Escolha uma categoria para acompanhar";
+    if (campoCategoriaSelect && selectCategoria) {
+      campoCategoriaSelect.style.display = "block";
+      await popularSelectCategorias(selectCategoria);
+      selectCategoria.value = "";
+      selectCategoria.onchange = () => {
+        inputCategoria.value = selectCategoria.value;
+        const metaExistente = obterMetaPorCategoria(selectCategoria.value);
+        if (metaExistente) {
+          definirValorInputMonetario("meta-valor", valorMonetario(metaExistente, "valor_limite"));
+          document.getElementById("meta-data-limite").value = metaExistente.data_limite || "";
+          document.getElementById("btn-remover-meta").style.display = "inline-block";
+        } else {
+          definirValorInputMonetario("meta-valor", "");
+          document.getElementById("meta-data-limite").value = "";
+          document.getElementById("btn-remover-meta").style.display = "none";
+        }
+      };
+    }
+  }
+
   definirValorInputMonetario("meta-valor", valorAtual);
   document.getElementById("meta-data-limite").value = dataLimite || "";
-  document.getElementById("btn-remover-meta").style.display = valorAtual ? "inline-block" : "none";
+  document.getElementById("btn-remover-meta").style.display = categoriaInicial && valorAtual ? "inline-block" : "none";
   modal.style.display = "flex";
   trapFoco(modal);
 }
@@ -59,6 +90,11 @@ function configurarModalMeta() {
 
     const carteiraId = document.getElementById("seletor-carteira").value;
     const categoria = document.getElementById("meta-categoria-nome").value;
+    if (!categoria) {
+      await mostrarAviso("Selecione uma categoria para salvar a meta.");
+      return;
+    }
+
     const valorLimitePayload = montarPayloadMonetario("meta-valor", "valor_limite");
     const valorLimite = valorLimitePayload.valor_limite;
     const dataLimite = document.getElementById("meta-data-limite").value || null;
