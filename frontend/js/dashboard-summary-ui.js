@@ -15,6 +15,7 @@ function renderizarResumoCategorias(totaisPorCategoria) {
   if (!card || !container) return;
 
   const categorias = Object.entries(totaisPorCategoria).sort((a, b) => b[1] - a[1]);
+  const TOP_GASTOS_CATEGORIAS = 3;
 
   if (categorias.length === 0) {
     card.style.display = "none";
@@ -54,9 +55,7 @@ function renderizarResumoCategorias(totaisPorCategoria) {
 
   if (legendaEl) {
     legendaEl.innerHTML = "";
-    const itensLegenda = categorias.slice(0, 5);
-    const restanteLegenda = categorias.slice(5).reduce((soma, [, valor]) => soma + valor, 0);
-    if (restanteLegenda > 0) itensLegenda.push(["Outras", restanteLegenda]);
+    const itensLegenda = categorias.slice(0, TOP_GASTOS_CATEGORIAS);
 
     itensLegenda.forEach(([cat, valor], i) => {
       const cor = cores[i % cores.length];
@@ -77,11 +76,9 @@ function renderizarResumoCategorias(totaisPorCategoria) {
   container.innerHTML = "";
 
   const maiorValor = categorias[0][1];
-  const TOP_N = 5;
+  const TOP_N = TOP_GASTOS_CATEGORIAS;
   const principais = categorias.slice(0, TOP_N);
-  const restante = categorias.slice(TOP_N).reduce((soma, [, valor]) => soma + valor, 0);
-
-  const linhas = restante > 0 ? [...principais, ["Outras", restante]] : principais;
+  const linhas = principais;
 
   linhas.forEach(([categoria, valor], indice) => {
     const meta = categoria !== "Outras" ? obterMetaPorCategoria(categoria) : null;
