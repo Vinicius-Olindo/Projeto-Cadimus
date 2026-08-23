@@ -44,6 +44,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Cards analíticos da coluna direita ganharam modo de edição de layout com drag-and-drop local.
 - Modo de edição de layout recebeu banner explicativo, estado de botão "Salvar layout" e handle visual nos cards.
 - Modo de edição de layout recebeu opção de cancelar e botões ↑/↓ para reorganizar cards sem arrastar.
+- Layout customizado do dashboard agora é reaplicado após atualizações dinâmicas dos cards e permanece salvo até o usuário restaurar o padrão.
 - Cards principais de receitas, despesas e saldo do período ganharam descrições curtas de contexto.
 - Card "A pagar" ganhou descrição curta de contexto para compromissos pendentes.
 - Card "Saúde financeira" foi simplificado com diagnóstico curto e pílulas dos principais critérios, mantendo a fórmula do score; textos das pílulas foram padronizados em branco para melhorar contraste.

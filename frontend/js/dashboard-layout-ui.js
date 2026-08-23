@@ -19,6 +19,8 @@ const DASHBOARD_LAYOUT_CARDS = [
 let dashboardLayoutEditando = false;
 let dashboardLayoutCardArrastado = null;
 let dashboardLayoutOrdemAntesEdicao = [];
+let dashboardLayoutAplicandoOrdem = false;
+let dashboardLayoutReaplicacaoPendente = false;
 const DASHBOARD_LAYOUT_BANNER_ID = "dashboard-layout-banner";
 
 function obterChaveLayoutDashboard() {
@@ -51,13 +53,14 @@ function aplicarOrdemLayoutDashboard(ordem) {
   const container = obterContainerLayoutDashboard();
   if (!container || !Array.isArray(ordem)) return;
   const idsAplicados = new Set();
+  const cardsOrdenados = [];
 
   ordem
     .filter((id) => DASHBOARD_LAYOUT_CARDS.includes(id))
     .forEach((id) => {
       const card = document.getElementById(id);
       if (card && card.parentElement === container) {
-        container.appendChild(card);
+        cardsOrdenados.push(card);
         idsAplicados.add(id);
       }
     });
@@ -66,8 +69,17 @@ function aplicarOrdemLayoutDashboard(ordem) {
     .filter((id) => !idsAplicados.has(id))
     .forEach((id) => {
       const card = document.getElementById(id);
-      if (card && card.parentElement === container) container.appendChild(card);
+      if (card && card.parentElement === container) cardsOrdenados.push(card);
     });
+
+  dashboardLayoutAplicandoOrdem = true;
+  try {
+    cardsOrdenados.forEach((card, indice) => {
+      if (container.children[indice] !== card) container.insertBefore(card, container.children[indice] || null);
+    });
+  } finally {
+    dashboardLayoutAplicandoOrdem = false;
+  }
 }
 
 function obterOuCriarBannerLayoutDashboard(container) {
@@ -90,7 +102,7 @@ function obterOuCriarBannerLayoutDashboard(container) {
 
 function aplicarLayoutDashboardSalvo() {
   const container = obterContainerLayoutDashboard();
-  if (!container) return;
+  if (!container) return false;
 
   let ordemSalva = [];
   try {
@@ -99,9 +111,24 @@ function aplicarLayoutDashboardSalvo() {
     ordemSalva = [];
   }
 
-  if (!Array.isArray(ordemSalva) || ordemSalva.length === 0) return;
+  if (!Array.isArray(ordemSalva) || ordemSalva.length === 0) return false;
 
   aplicarOrdemLayoutDashboard(ordemSalva);
+  return true;
+}
+
+function reaplicarLayoutDashboardSalvo() {
+  if (dashboardLayoutEditando) return;
+  aplicarLayoutDashboardSalvo();
+}
+
+function agendarReaplicacaoLayoutDashboard() {
+  if (dashboardLayoutEditando || dashboardLayoutAplicandoOrdem || dashboardLayoutReaplicacaoPendente) return;
+  dashboardLayoutReaplicacaoPendente = true;
+  requestAnimationFrame(() => {
+    dashboardLayoutReaplicacaoPendente = false;
+    reaplicarLayoutDashboardSalvo();
+  });
 }
 
 function salvarLayoutDashboard() {
@@ -114,11 +141,14 @@ function resetarLayoutDashboard() {
   const container = obterContainerLayoutDashboard();
   if (!container) return;
 
-  if (!dashboardLayoutEditando) removerLocalStorageSeguro(obterChaveLayoutDashboard());
+  removerLocalStorageSeguro(obterChaveLayoutDashboard());
   aplicarOrdemLayoutDashboard(DASHBOARD_LAYOUT_CARDS);
+  dashboardLayoutOrdemAntesEdicao = [];
+  dashboardLayoutEditando = false;
+  atualizarEstadoModoLayoutDashboard();
   atualizarControlesCardsLayoutDashboard();
 
-  mostrarToast(dashboardLayoutEditando ? "Layout padrão aplicado. Clique em Salvar layout para confirmar." : "Layout padrão restaurado", "sucesso");
+  mostrarToast("Layout padrão restaurado", "sucesso");
 }
 
 function removerControlesCardsLayoutDashboard() {
@@ -276,6 +306,9 @@ function configurarDashboardLayout() {
 
   aplicarLayoutDashboardSalvo();
   configurarEventosLayoutDashboard();
+
+  const observer = new MutationObserver(agendarReaplicacaoLayoutDashboard);
+  observer.observe(container, { childList: true });
 
   botao.addEventListener("click", alternarModoLayoutDashboard);
   cancelar?.addEventListener("click", cancelarModoLayoutDashboard);
