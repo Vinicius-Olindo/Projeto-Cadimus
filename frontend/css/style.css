@@ -4165,10 +4165,14 @@ textarea::placeholder {
 }
 
 .bonificacoes-resumo span {
+  display: flex;
+  align-items: flex-start;
   color: var(--cor-texto-suave);
   font-size: 0.62rem;
   font-weight: 700;
   letter-spacing: 0.08em;
+  line-height: 1.2;
+  min-height: 2.4em;
   text-transform: uppercase;
 }
 
