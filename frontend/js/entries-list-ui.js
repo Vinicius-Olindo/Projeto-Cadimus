@@ -161,7 +161,11 @@ function renderizarListaLancamentos() {
       const dataVenc = new Date(l.data_compra + "T23:59:59");
       const atrasado = l.status !== "pago" && dataVenc < hoje;
       const statusAtual = l.status === "pago" ? "pago" : atrasado ? "atrasado" : "pendente";
-      if (statusAtual !== statusFiltro) return false;
+      if (statusFiltro === "nao_atrasado") {
+        if (atrasado) return false;
+      } else if (statusAtual !== statusFiltro) {
+        return false;
+      }
     }
     if (categoriaFiltro && l.categoria !== categoriaFiltro) return false;
     return true;

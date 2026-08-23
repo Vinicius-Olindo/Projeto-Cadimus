@@ -30,6 +30,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Linhas de lançamentos foram ajustadas para valores financeiros muito altos não deformarem chips, autor e ações.
 - Edições, exclusões, status, importações, transferências e rotinas financeiras agora invalidam caches dos gráficos antes de recarregar o dashboard.
 - Busca e filtros continuam funcionando antes da paginação.
+- Filtro de status dos lançamentos agora permite separar contas atrasadas de contas não atrasadas.
 - Totais do dashboard continuam usando todos os lançamentos carregados, não apenas a página atual.
 
 ### Dashboard
