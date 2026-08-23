@@ -66,6 +66,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Atalho de Bonificação foi padronizado visualmente com os demais botões financeiros do topo.
 - Botões de salvar/cancelar dos modais financeiros foram padronizados no mesmo modelo do modal de cartão.
 - Cadastro de recorrências ganhou fallback para bancos legados sem `valor_centavos` e erro backend mais explícito em staging.
+- Roteamento do Worker foi corrigido para `/api/lancamentos-recorrentes` não cair indevidamente em `/api/lancamentos`.
 - Campos de valores financeiros passaram a exibir e aceitar o padrão brasileiro `R$ 0,00`.
 - Cards e linhas de lançamentos foram ajustados para acomodar valores financeiros muito altos sem cortar o texto.
 - Botões de layout do dashboard foram agrupados e padronizados com os demais controles do topo.

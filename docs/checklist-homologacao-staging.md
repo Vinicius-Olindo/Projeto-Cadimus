@@ -37,6 +37,7 @@ Ambientes:
 - Card "Saldo do período" mantém valor monetário em uma linha e no mesmo padrão visual dos demais cards de resumo.
 - Bonificações recorrentes aparecem no card próprio, com previsto, recebido, pendente e cadastro como receita recorrente.
 - Cadastro/edição de bonificação não permite escolher despesa e salva recorrências diárias/semanais/mensais sem erro.
+- Endpoint `/api/lancamentos-recorrentes` deve responder pela rota de recorrências, não pela rota de lançamentos comuns.
 - Modais financeiros usam botões de salvar e cancelar no mesmo padrão visual do modal de cartão.
 - Gráficos do dashboard exibem valores legíveis no modo claro/escuro e resumo contextual sem poluir ou vazar da visualização.
 - Card "Para onde foi o dinheiro" exibe donut, maior categoria e ranking sem excesso visual.

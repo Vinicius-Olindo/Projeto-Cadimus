@@ -69,13 +69,6 @@ export default {
       }
 
       // ==========================================
-      // ROTA 2: LANÇAMENTOS
-      // ==========================================
-      if (url.pathname.startsWith("/api/lancamentos")) {
-        return comCors(await processarLancamentos(request, env, ctx), frontendUrl, request);
-      }
-
-      // ==========================================
       // ROTA 3: USUÁRIOS (Painel Admin)
       // ==========================================
       if (url.pathname.startsWith("/api/usuarios")) {
@@ -135,6 +128,13 @@ export default {
       // ==========================================
       if (url.pathname.startsWith("/api/lancamentos-recorrentes")) {
         return comCors(await processarLancamentosRecorrentes(request, env, ctx), frontendUrl, request);
+      }
+
+      // ==========================================
+      // ROTA 2: LANÇAMENTOS
+      // ==========================================
+      if (url.pathname.startsWith("/api/lancamentos")) {
+        return comCors(await processarLancamentos(request, env, ctx), frontendUrl, request);
       }
 
       // ==========================================
