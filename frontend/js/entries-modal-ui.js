@@ -25,7 +25,7 @@ function fecharModalLancamento() {
     subtitulo.hidden = false;
     subtitulo.innerText = "Escolha o tipo de registro e cadastre pelo caminho mais rápido.";
   }
-  document.querySelectorAll("[data-atalho-lancamento]").forEach((btn) => {
+  atalhos?.querySelectorAll("[data-atalho-lancamento]").forEach((btn) => {
     btn.classList.toggle("ativo", btn.dataset.atalhoLancamento === "simples");
   });
   campoCategoriaNova.style.display = "none";
@@ -42,6 +42,109 @@ function alternarAtalhosModalLancamento(editando = false) {
       ? "Atualize os dados deste lançamento."
       : "Escolha o tipo de registro e cadastre pelo caminho mais rápido.";
   }
+}
+
+const atalhosFluxoLancamento = [
+  {
+    tipo: "simples",
+    classe: "lancamento-atalho-simples",
+    icone: "↕",
+    titulo: "Lançamento",
+    descricao: "Receita ou despesa única",
+  },
+  {
+    tipo: "parcelada",
+    classe: "lancamento-atalho-parcelada",
+    icone: "▦",
+    titulo: "Parcelada",
+    descricao: "Compra em parcelas",
+  },
+  {
+    tipo: "fixa",
+    classe: "lancamento-atalho-fixa",
+    icone: "↻",
+    titulo: "Fixa",
+    descricao: "Repete todo mês",
+  },
+  {
+    tipo: "bonificacao",
+    classe: "lancamento-atalho-bonificacao",
+    icone: "✦",
+    titulo: "Bonificação",
+    descricao: "Receita recorrente",
+  },
+];
+
+function montarAtalhosFluxoLancamento(ativo = "simples") {
+  return atalhosFluxoLancamento
+    .map(
+      (atalho) => `
+        <button type="button" class="${atalho.tipo === ativo ? "ativo " : ""}lancamento-atalho-card ${atalho.classe}" data-atalho-lancamento="${atalho.tipo}">
+          <span class="lancamento-atalho-icone">${atalho.icone}</span>
+          <span class="lancamento-atalho-texto">
+            <strong>${atalho.titulo}</strong>
+            <small>${atalho.descricao}</small>
+          </span>
+        </button>
+      `
+    )
+    .join("");
+}
+
+function atualizarAtalhoFluxoAtivo(container, ativo) {
+  container?.querySelectorAll("[data-atalho-lancamento]").forEach((btn) => {
+    btn.classList.toggle("ativo", btn.dataset.atalhoLancamento === ativo);
+  });
+}
+
+function atualizarAtalhosContextuaisLancamento() {
+  document.querySelectorAll("[data-atalhos-contextuais-lancamento]").forEach((container) => {
+    atualizarAtalhoFluxoAtivo(container, container.dataset.atalhosContextuaisLancamento);
+  });
+}
+
+function configurarAtalhosContextuaisLancamento() {
+  const alvos = [
+    { modalId: "modal-compra-parcelada", ativo: "parcelada" },
+    { modalId: "modal-despesas-fixas", ativo: "fixa" },
+    { modalId: "modal-recorrencia", ativo: "bonificacao" },
+  ];
+
+  alvos.forEach(({ modalId, ativo }) => {
+    const modal = document.getElementById(modalId);
+    const subtitulo = modal?.querySelector(".modal-subtitulo");
+    if (!modal || !subtitulo || modal.querySelector("[data-atalhos-contextuais-lancamento]")) return;
+
+    const container = document.createElement("div");
+    container.className = "lancamento-tipo-rapido lancamento-tipo-contextual";
+    container.setAttribute("data-atalhos-contextuais-lancamento", ativo);
+    container.setAttribute("aria-label", "Tipo de lançamento");
+    container.innerHTML = montarAtalhosFluxoLancamento(ativo);
+    subtitulo.insertAdjacentElement("afterend", container);
+
+    container.addEventListener("click", async (evento) => {
+      const botao = evento.target.closest("[data-atalho-lancamento]");
+      if (!botao) return;
+      evento.preventDefault();
+      if (botao.classList.contains("ativo")) return;
+      atualizarAtalhoFluxoAtivo(container, botao.dataset.atalhoLancamento);
+      await abrirAtalhoLancamentoRapido(botao.dataset.atalhoLancamento);
+    });
+  });
+}
+
+function fecharModaisFluxoLancamento() {
+  const modalLancamento = document.getElementById("modal-lancamento");
+  if (modalLancamento && modalLancamento.style.display !== "none") {
+    fecharModalLancamento();
+  }
+
+  ["modal-compra-parcelada", "modal-despesas-fixas", "modal-recorrencia"].forEach((id) => {
+    const modal = document.getElementById(id);
+    if (modal) modal.style.display = "none";
+  });
+  atualizarAtalhosContextuaisLancamento();
+  liberarFoco();
 }
 
 async function abrirModalNovoLancamento() {
@@ -62,8 +165,13 @@ async function abrirModalNovoLancamento() {
 }
 
 async function abrirAtalhoLancamentoRapido(tipo) {
-  if (tipo === "simples") return;
-  fecharModalLancamento();
+  if (tipo === "simples") {
+    fecharModaisFluxoLancamento();
+    await abrirModalNovoLancamento();
+    return;
+  }
+
+  fecharModaisFluxoLancamento();
 
   if (tipo === "parcelada" && typeof abrirModalComprasParceladas === "function") {
     await abrirModalComprasParceladas();
@@ -118,6 +226,8 @@ function configurarModal() {
 
   if (!modal || !btnNovo || !btnFechar || !form) return;
 
+  configurarAtalhosContextuaisLancamento();
+
   selectCategoria?.addEventListener("change", () => {
     const escolheuNova = selectCategoria.value === "__nova__";
     campoCategoriaNova.style.display = escolheuNova ? "block" : "none";
@@ -131,6 +241,7 @@ function configurarModal() {
     const botao = evento.target.closest("[data-atalho-lancamento]");
     if (!botao) return;
     evento.preventDefault();
+    if (botao.classList.contains("ativo")) return;
     atalhosLancamento.querySelectorAll("[data-atalho-lancamento]").forEach((item) => item.classList.remove("ativo"));
     botao.classList.add("ativo");
     await abrirAtalhoLancamentoRapido(botao.dataset.atalhoLancamento);

@@ -3241,6 +3241,11 @@ textarea::placeholder {
   display: none;
 }
 
+.lancamento-tipo-contextual {
+  margin-top: -4px;
+  margin-bottom: 18px;
+}
+
 .lancamento-tipo-rapido button {
   display: flex;
   flex-direction: row;
