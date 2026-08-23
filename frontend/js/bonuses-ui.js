@@ -145,7 +145,7 @@ async function carregarPainelBonificacoes(lancamentosDoPeriodo = ultimoLoteLanca
       const ocorrencias = contarOcorrenciasBonificacao(rec, ano, mes);
       const sufixo = rec.frequencia === "diaria" ? "/dia" : rec.frequencia === "semanal" ? "/sem." : rec.frequencia === "quinzenal" ? "/quinz." : "/mês";
       const div = document.createElement("div");
-      div.className = "linha-item linha-usuario";
+      div.className = "linha-item linha-usuario lancamento-recorrente-card lancamento-recorrente-bonificacao";
       div.innerHTML = `
         <button type="button" class="fixa-btn-toggle btn-alternar-bonificacao ${rec.ativo ? "fixa-ativa" : "fixa-pausada"}" data-id="${rec.id}" title="${rec.ativo ? "Pausar" : "Ativar"}">
           ${rec.ativo

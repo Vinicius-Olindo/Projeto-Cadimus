@@ -155,7 +155,7 @@ async function carregarPainelDespesasFixas() {
       const classeDestaque = aviso ? (aviso.atrasado ? "linha-vencimento-atrasado" : "linha-vencimento-proximo") : "";
 
       const div = document.createElement("div");
-      div.className = `linha-item linha-usuario ${classeDestaque}`.trim();
+      div.className = `linha-item linha-usuario lancamento-recorrente-card lancamento-recorrente-fixa ${classeDestaque}`.trim();
       div.innerHTML = `
         <button type="button" class="fixa-btn-toggle btn-alternar-fixa ${fixa.ativo ? "fixa-ativa" : "fixa-pausada"}" data-id="${fixa.id}" title="${fixa.ativo ? "Pausar" : "Ativar"}">
           ${fixa.ativo

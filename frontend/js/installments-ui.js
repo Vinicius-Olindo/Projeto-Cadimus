@@ -200,7 +200,7 @@ async function carregarPainelComprasParceladas() {
       }
 
       const div = document.createElement("div");
-      div.className = "linha-item linha-usuario";
+      div.className = "linha-item linha-usuario lancamento-recorrente-card lancamento-recorrente-parcelada";
       div.innerHTML = `
         ${!concluida ? `
         <button type="button" class="fixa-btn-toggle btn-alternar-parcela ${compra.ativo ? "fixa-ativa" : "fixa-pausada"}" data-id="${compra.id}" title="${compra.ativo ? "Pausar" : "Ativar"}">

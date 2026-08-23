@@ -3229,13 +3229,13 @@ textarea::placeholder {
 
 .lancamento-tipo-rapido button {
   display: flex;
-  flex-direction: column;
-  align-items: flex-start;
-  gap: 3px;
-  min-height: 68px;
-  padding: 11px 12px;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  min-height: 78px;
+  padding: 13px;
   border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 72%, transparent);
-  border-radius: 14px;
+  border-radius: 16px;
   background: color-mix(in srgb, var(--cor-superficie-alta) 68%, transparent);
   color: var(--cor-texto);
   text-align: left;
@@ -3255,16 +3255,53 @@ textarea::placeholder {
   box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cor-marca) 18%, transparent);
 }
 
-.lancamento-tipo-rapido span {
+.lancamento-atalho-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+  color: var(--cor-marca-forte);
+  font-family: var(--fonte-mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.lancamento-atalho-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.lancamento-atalho-texto strong {
   font-weight: 700;
   font-size: 0.82rem;
   line-height: 1.1;
 }
 
-.lancamento-tipo-rapido small {
+.lancamento-atalho-texto small {
   color: var(--cor-texto-suave);
   font-size: 0.68rem;
   line-height: 1.25;
+}
+
+.lancamento-atalho-parcelada .lancamento-atalho-icone {
+  background: color-mix(in srgb, var(--cor-pendente) 12%, transparent);
+  color: var(--cor-pendente);
+}
+
+.lancamento-atalho-fixa .lancamento-atalho-icone {
+  background: color-mix(in srgb, var(--cor-despesa) 10%, transparent);
+  color: var(--cor-despesa);
+}
+
+.lancamento-atalho-bonificacao .lancamento-atalho-icone {
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
+  color: var(--cor-receita);
 }
 
 .modal-compacto {
@@ -4132,6 +4169,46 @@ textarea::placeholder {
   border-radius: 14px;
   margin-top: 10px;
   background: color-mix(in srgb, var(--cor-receita) 4%, transparent);
+}
+
+.lancamento-recorrente-card {
+  border: 1px solid var(--cor-pauta-fraca) !important;
+  border-left: 3px solid var(--cor-marca) !important;
+  border-radius: 16px !important;
+  background: color-mix(in srgb, var(--cor-superficie) 72%, transparent) !important;
+  box-shadow: 0 10px 24px -20px var(--cor-sombra);
+  transition: border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.lancamento-recorrente-card:hover {
+  border-color: color-mix(in srgb, var(--cor-marca) 34%, var(--cor-pauta-fraca)) !important;
+  box-shadow: 0 14px 30px -22px var(--cor-sombra);
+  transform: translateY(-1px);
+}
+
+.lancamento-recorrente-card.lancamento-recorrente-fixa {
+  border-left-color: var(--cor-despesa) !important;
+}
+
+.lancamento-recorrente-card.lancamento-recorrente-parcelada {
+  border-left-color: var(--cor-pendente) !important;
+}
+
+.lancamento-recorrente-card.lancamento-recorrente-bonificacao {
+  border-left-color: var(--cor-receita) !important;
+}
+
+.lancamento-recorrente-card .fixa-conteudo {
+  gap: 6px;
+}
+
+.lancamento-recorrente-card .item-descricao {
+  font-size: 0.92rem;
+}
+
+.lancamento-recorrente-card .item-categoria {
+  white-space: normal;
+  overflow-wrap: anywhere;
 }
 
 #lista-bonificacoes-painel .item-categoria {

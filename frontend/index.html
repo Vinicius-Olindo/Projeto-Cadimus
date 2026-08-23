@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=100" />
-    <link rel="stylesheet" href="css/style.css?v=102" />
+    <link rel="stylesheet" href="css/style.css?v=103" />
   </head>
   <body>
     <main class="app-container">
@@ -1355,21 +1355,33 @@
         <h3 id="titulo-modal-lancamento">Novo lançamento</h3>
         <p class="modal-subtitulo lancamento-modal-subtitulo" id="subtitulo-modal-lancamento">Escolha o tipo de registro e cadastre pelo caminho mais rápido.</p>
         <div class="lancamento-tipo-rapido" id="lancamento-tipo-rapido" aria-label="Tipo de lançamento">
-          <button type="button" class="ativo" data-atalho-lancamento="simples">
-            <span>Lançamento</span>
-            <small>Receita ou despesa única</small>
+          <button type="button" class="ativo lancamento-atalho-card lancamento-atalho-simples" data-atalho-lancamento="simples">
+            <span class="lancamento-atalho-icone">↕</span>
+            <span class="lancamento-atalho-texto">
+              <strong>Lançamento</strong>
+              <small>Receita ou despesa única</small>
+            </span>
           </button>
-          <button type="button" data-atalho-lancamento="parcelada">
-            <span>Parcelada</span>
-            <small>Compra em parcelas</small>
+          <button type="button" class="lancamento-atalho-card lancamento-atalho-parcelada" data-atalho-lancamento="parcelada">
+            <span class="lancamento-atalho-icone">▦</span>
+            <span class="lancamento-atalho-texto">
+              <strong>Parcelada</strong>
+              <small>Compra em parcelas</small>
+            </span>
           </button>
-          <button type="button" data-atalho-lancamento="fixa">
-            <span>Fixa</span>
-            <small>Repete todo mês</small>
+          <button type="button" class="lancamento-atalho-card lancamento-atalho-fixa" data-atalho-lancamento="fixa">
+            <span class="lancamento-atalho-icone">↻</span>
+            <span class="lancamento-atalho-texto">
+              <strong>Fixa</strong>
+              <small>Repete todo mês</small>
+            </span>
           </button>
-          <button type="button" data-atalho-lancamento="bonificacao">
-            <span>Bonificação</span>
-            <small>Receita recorrente</small>
+          <button type="button" class="lancamento-atalho-card lancamento-atalho-bonificacao" data-atalho-lancamento="bonificacao">
+            <span class="lancamento-atalho-icone">✦</span>
+            <span class="lancamento-atalho-texto">
+              <strong>Bonificação</strong>
+              <small>Receita recorrente</small>
+            </span>
           </button>
         </div>
         <form id="form-lancamento">
@@ -2370,14 +2382,14 @@
     <script src="js/planning-dashboard-ui.js?v=100"></script>
     <script src="js/planning-plans-ui.js?v=100"></script>
     <script src="js/planning-goals-ui.js?v=100"></script>
-    <script src="js/fixed-expenses-ui.js?v=100"></script>
-    <script src="js/installments-ui.js?v=100"></script>
+    <script src="js/fixed-expenses-ui.js?v=103"></script>
+    <script src="js/installments-ui.js?v=103"></script>
     <script src="js/budgets-ui.js?v=100"></script>
     <script src="js/goals-ui.js?v=101"></script>
     <script src="js/main.js?v=100" defer></script>
     <script src="js/importar.js?v=100" defer></script>
     <script src="js/exportar.js?v=100" defer></script>
     <script src="js/recorrentes.js?v=101" defer></script>
-    <script src="js/bonuses-ui.js?v=100" defer></script>
+    <script src="js/bonuses-ui.js?v=103" defer></script>
   </body>
 </html>

@@ -77,6 +77,7 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 - Logo do topo foi refinada no padrão de marca limpa, com símbolo circular, nome maior e sem cápsula externa.
 - Botão de mostrar/ocultar senha passou a usar texto curto centralizado, evitando desalinhamento visual dentro do campo.
 - Popup de Novo lançamento ganhou atalhos para lançamento simples, compra parcelada, despesa fixa e bonificação, redirecionando para os fluxos corretos.
+- Atalhos do popup de Novo lançamento e cards de fixas, parceladas e bonificações foram padronizados no mesmo sistema visual.
 - Botão de transferência passou a aparecer apenas quando a carteira selecionada é pessoal; carteiras compartilhadas ocultam o atalho.
 - Cores da interface foram revisadas para substituir pretos/brancos/cinzas fixos por variáveis da paleta (`--cor-*`) e `color-mix`, mantendo exceções em exportações/PDF e paletas de gráficos.
 - Limpeza geral de cache aplicada: assets CSS/JS foram versionados em `v=100`, Service Worker subiu para `cadimus-cache-v11` e o app remove caches antigos `cadimus-cache-*` automaticamente.
