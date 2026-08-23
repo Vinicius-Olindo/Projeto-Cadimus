@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=100" />
-    <link rel="stylesheet" href="css/style.css?v=110" />
+    <link rel="stylesheet" href="css/style.css?v=111" />
   </head>
   <body>
     <main class="app-container">
@@ -346,50 +346,52 @@
               </div>
             </div>
 
-            <div class="lancamentos-cabecalho">
-              <h3>Lançamentos</h3>
-              <div class="botoes-cabecalho">
-                <button id="btn-transferencia" class="btn-secundario" hidden>↔ Transferir</button>
-                <button id="btn-novo-gasto">+ Novo lançamento</button>
+            <div class="card-lancamentos-bloco" id="card-lancamentos">
+              <div class="lancamentos-cabecalho">
+                <h3>Lançamentos</h3>
+                <div class="botoes-cabecalho">
+                  <button id="btn-transferencia" class="btn-secundario" hidden>↔ Transferir</button>
+                  <button id="btn-novo-gasto">+ Novo lançamento</button>
+                </div>
               </div>
-            </div>
-            <div class="lote-barra" id="lote-barra" style="display: none">
-              <span class="lote-contador" id="lote-contador">0 selecionados</span>
-              <div class="lote-acoes">
-                <select id="lote-status">
-                  <option value="">Alterar status...</option>
-                  <option value="pago">Marcar como Pago</option>
-                  <option value="pendente">Marcar como Pendente</option>
-                </select>
-                <select id="lote-categoria">
-                  <option value="">Alterar categoria...</option>
-                </select>
-                <button type="button" class="lote-btn-aplicar" id="lote-btn-aplicar">Aplicar</button>
-                <button type="button" class="lote-btn-cancelar" id="lote-btn-cancelar">Cancelar</button>
+              <div class="lote-barra" id="lote-barra" style="display: none">
+                <span class="lote-contador" id="lote-contador">0 selecionados</span>
+                <div class="lote-acoes">
+                  <select id="lote-status">
+                    <option value="">Alterar status...</option>
+                    <option value="pago">Marcar como Pago</option>
+                    <option value="pendente">Marcar como Pendente</option>
+                  </select>
+                  <select id="lote-categoria">
+                    <option value="">Alterar categoria...</option>
+                  </select>
+                  <button type="button" class="lote-btn-aplicar" id="lote-btn-aplicar">Aplicar</button>
+                  <button type="button" class="lote-btn-cancelar" id="lote-btn-cancelar">Cancelar</button>
+                </div>
               </div>
-            </div>
-            <div class="busca-lancamentos">
-              <input type="search" id="busca-lancamento" placeholder="Buscar por descrição ou categoria..." />
-              <div class="filtros-lancamentos">
-                <select id="filtro-tipo">
-                  <option value="">Todos os tipos</option>
-                  <option value="receita">Receita</option>
-                  <option value="despesa">Despesa</option>
-                </select>
-                <select id="filtro-status">
-                  <option value="">Todos os status</option>
-                  <option value="pago">Pago</option>
-                  <option value="pendente">Pendente</option>
-                  <option value="atrasado">Contas atrasadas</option>
-                  <option value="nao_atrasado">Não atrasadas</option>
-                </select>
-                <select id="filtro-categoria-lancamento">
-                  <option value="">Todas as categorias</option>
-                </select>
+              <div class="busca-lancamentos">
+                <input type="search" id="busca-lancamento" placeholder="Buscar por descrição ou categoria..." />
+                <div class="filtros-lancamentos">
+                  <select id="filtro-tipo">
+                    <option value="">Todos os tipos</option>
+                    <option value="receita">Receita</option>
+                    <option value="despesa">Despesa</option>
+                  </select>
+                  <select id="filtro-status">
+                    <option value="">Todos os status</option>
+                    <option value="pago">Pago</option>
+                    <option value="pendente">Pendente</option>
+                    <option value="atrasado">Contas atrasadas</option>
+                    <option value="nao_atrasado">Não atrasadas</option>
+                  </select>
+                  <select id="filtro-categoria-lancamento">
+                    <option value="">Todas as categorias</option>
+                  </select>
+                </div>
               </div>
+              <div class="lista-lancamentos" id="lista-lancamentos"></div>
+              <div class="lancamentos-paginacao" id="lancamentos-paginacao" aria-label="Paginação de lançamentos"></div>
             </div>
-            <div class="lista-lancamentos" id="lista-lancamentos"></div>
-            <div class="lancamentos-paginacao" id="lancamentos-paginacao" aria-label="Paginação de lançamentos"></div>
           </div>
 
           <!-- COLUNA DIREITA: tudo analítico -->
@@ -2354,7 +2356,7 @@
     <script src="js/money-ui.js?v=100"></script>
     <script src="js/components.js?v=100"></script>
     <script src="js/ui-core.js?v=100"></script>
-    <script src="js/dashboard-layout-ui.js?v=100"></script>
+    <script src="js/dashboard-layout-ui.js?v=101"></script>
     <script src="js/wallets-ui.js?v=100"></script>
     <script src="js/categories-ui.js?v=100"></script>
     <script src="js/entries-modal-ui.js?v=109"></script>

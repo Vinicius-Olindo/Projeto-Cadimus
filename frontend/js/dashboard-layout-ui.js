@@ -3,25 +3,38 @@
 // ==========================================
 
 const DASHBOARD_LAYOUT_STORAGE_PREFIX = "cadimus_dashboard_layout";
-const DASHBOARD_LAYOUT_CARDS = [
-  "resumo-categorias",
-  "card-tendencia",
-  "card-comparativo",
-  "card-por-autor",
-  "card-despesas-fixas",
-  "card-compras-parceladas",
-  "card-bonificacoes",
-  "card-orcamentos",
-  "card-cartoes-credito",
-  "card-score",
+const DASHBOARD_LAYOUT_AREAS = [
+  {
+    chave: "lancamentos",
+    seletor: "#dashboard-section .area-lancamentos",
+    cards: ["card-comparativo-periodo", "card-lancamentos"],
+  },
+  {
+    chave: "controle",
+    seletor: "#dashboard-section .area-controle",
+    cards: [
+      "resumo-categorias",
+      "card-tendencia",
+      "card-comparativo",
+      "card-por-autor",
+      "card-despesas-fixas",
+      "card-compras-parceladas",
+      "card-bonificacoes",
+      "card-orcamentos",
+      "card-cartoes-credito",
+      "card-score",
+    ],
+  },
 ];
+const DASHBOARD_LAYOUT_CARDS = DASHBOARD_LAYOUT_AREAS.flatMap((area) => area.cards);
+const DASHBOARD_LAYOUT_BANNER_ID = "dashboard-layout-banner";
 
 let dashboardLayoutEditando = false;
 let dashboardLayoutCardArrastado = null;
-let dashboardLayoutOrdemAntesEdicao = [];
+let dashboardLayoutAreaArrastada = null;
+let dashboardLayoutOrdemAntesEdicao = null;
 let dashboardLayoutAplicandoOrdem = false;
 let dashboardLayoutReaplicacaoPendente = false;
-const DASHBOARD_LAYOUT_BANNER_ID = "dashboard-layout-banner";
 
 function obterChaveLayoutDashboard() {
   const usuario = typeof obterUsuarioLogado === "function" ? obterUsuarioLogado() : null;
@@ -29,54 +42,90 @@ function obterChaveLayoutDashboard() {
   return `${DASHBOARD_LAYOUT_STORAGE_PREFIX}_${usuarioId}`;
 }
 
+function obterAreaLayoutDashboard(chave) {
+  const area = DASHBOARD_LAYOUT_AREAS.find((item) => item.chave === chave);
+  const container = area ? document.querySelector(area.seletor) : null;
+  return container ? { ...area, container } : null;
+}
+
+function obterAreasLayoutDashboard() {
+  return DASHBOARD_LAYOUT_AREAS
+    .map((area) => ({ ...area, container: document.querySelector(area.seletor) }))
+    .filter((area) => area.container);
+}
+
 function obterContainerLayoutDashboard() {
-  return document.querySelector("#dashboard-section .area-controle");
+  return obterAreaLayoutDashboard("controle")?.container || null;
 }
 
 function obterCardsLayoutDashboard() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return [];
-  return DASHBOARD_LAYOUT_CARDS
-    .map((id) => container.querySelector(`#${id}`))
+  return obterAreasLayoutDashboard().flatMap((area) =>
+    area.cards
+      .map((id) => area.container.querySelector(`#${id}`))
+      .filter(Boolean)
+  );
+}
+
+function obterCardsAreaLayoutDashboard(area) {
+  if (!area?.container) return [];
+  return area.cards
+    .map((id) => area.container.querySelector(`#${id}`))
     .filter(Boolean);
 }
 
 function obterOrdemAtualLayoutDashboard() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return [];
-  return Array.from(container.children)
-    .map((el) => el.id)
-    .filter((id) => DASHBOARD_LAYOUT_CARDS.includes(id));
+  return obterAreasLayoutDashboard().reduce((ordem, area) => {
+    ordem[area.chave] = Array.from(area.container.children)
+      .map((el) => el.id)
+      .filter((id) => area.cards.includes(id));
+    return ordem;
+  }, {});
 }
 
-function aplicarOrdemLayoutDashboard(ordem) {
-  const container = obterContainerLayoutDashboard();
-  if (!container || !Array.isArray(ordem)) return;
+function normalizarOrdemLayoutDashboard(ordem) {
+  if (Array.isArray(ordem)) {
+    return { controle: ordem };
+  }
+  return ordem && typeof ordem === "object" ? ordem : {};
+}
+
+function aplicarOrdemEmAreaLayoutDashboard(area, ordem = []) {
+  if (!area?.container || !Array.isArray(ordem)) return;
   const idsAplicados = new Set();
   const cardsOrdenados = [];
 
   ordem
-    .filter((id) => DASHBOARD_LAYOUT_CARDS.includes(id))
+    .filter((id) => area.cards.includes(id))
     .forEach((id) => {
       const card = document.getElementById(id);
-      if (card && card.parentElement === container) {
+      if (card && card.parentElement === area.container) {
         cardsOrdenados.push(card);
         idsAplicados.add(id);
       }
     });
 
-  DASHBOARD_LAYOUT_CARDS
+  area.cards
     .filter((id) => !idsAplicados.has(id))
     .forEach((id) => {
       const card = document.getElementById(id);
-      if (card && card.parentElement === container) cardsOrdenados.push(card);
+      if (card && card.parentElement === area.container) cardsOrdenados.push(card);
     });
+
+  cardsOrdenados.forEach((card, indice) => {
+    if (area.container.children[indice] !== card) area.container.insertBefore(card, area.container.children[indice] || null);
+  });
+}
+
+function aplicarOrdemLayoutDashboard(ordem) {
+  const ordemNormalizada = normalizarOrdemLayoutDashboard(ordem);
 
   dashboardLayoutAplicandoOrdem = true;
   try {
-    cardsOrdenados.forEach((card, indice) => {
-      if (container.children[indice] !== card) container.insertBefore(card, container.children[indice] || null);
+    obterAreasLayoutDashboard().forEach((area) => {
+      aplicarOrdemEmAreaLayoutDashboard(area, ordemNormalizada[area.chave] || area.cards);
     });
+    const banner = document.getElementById(DASHBOARD_LAYOUT_BANNER_ID);
+    if (banner?.parentElement) banner.parentElement.prepend(banner);
   } finally {
     dashboardLayoutAplicandoOrdem = false;
   }
@@ -101,19 +150,20 @@ function obterOuCriarBannerLayoutDashboard(container) {
 }
 
 function aplicarLayoutDashboardSalvo() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return false;
+  const areas = obterAreasLayoutDashboard();
+  if (areas.length === 0) return false;
 
-  let ordemSalva = [];
+  let ordemSalva = {};
   try {
-    ordemSalva = JSON.parse(lerLocalStorageSeguro(obterChaveLayoutDashboard(), "[]") || "[]");
+    ordemSalva = JSON.parse(lerLocalStorageSeguro(obterChaveLayoutDashboard(), "{}") || "{}");
   } catch {
-    ordemSalva = [];
+    ordemSalva = {};
   }
 
-  if (!Array.isArray(ordemSalva) || ordemSalva.length === 0) return false;
+  const ordemNormalizada = normalizarOrdemLayoutDashboard(ordemSalva);
+  if (Object.keys(ordemNormalizada).length === 0) return false;
 
-  aplicarOrdemLayoutDashboard(ordemSalva);
+  aplicarOrdemLayoutDashboard(ordemNormalizada);
   return true;
 }
 
@@ -133,17 +183,21 @@ function agendarReaplicacaoLayoutDashboard() {
 
 function salvarLayoutDashboard() {
   gravarLocalStorageSeguro(obterChaveLayoutDashboard(), JSON.stringify(obterOrdemAtualLayoutDashboard()));
-  dashboardLayoutOrdemAntesEdicao = [];
+  dashboardLayoutOrdemAntesEdicao = null;
   mostrarToast("Layout do dashboard salvo", "sucesso");
 }
 
 function resetarLayoutDashboard() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return;
+  if (obterAreasLayoutDashboard().length === 0) return;
 
   removerLocalStorageSeguro(obterChaveLayoutDashboard());
-  aplicarOrdemLayoutDashboard(DASHBOARD_LAYOUT_CARDS);
-  dashboardLayoutOrdemAntesEdicao = [];
+  aplicarOrdemLayoutDashboard(
+    DASHBOARD_LAYOUT_AREAS.reduce((ordem, area) => {
+      ordem[area.chave] = area.cards;
+      return ordem;
+    }, {})
+  );
+  dashboardLayoutOrdemAntesEdicao = null;
   dashboardLayoutEditando = false;
   atualizarEstadoModoLayoutDashboard();
   atualizarControlesCardsLayoutDashboard();
@@ -156,17 +210,17 @@ function removerControlesCardsLayoutDashboard() {
 }
 
 function moverCardLayoutDashboard(card, direcao) {
-  const container = obterContainerLayoutDashboard();
-  if (!container || !card) return;
-  const cardsVisiveis = obterCardsLayoutDashboard().filter((item) => item.offsetParent !== null);
+  const area = obterAreasLayoutDashboard().find((item) => item.container === card?.parentElement);
+  if (!area || !card) return;
+  const cardsVisiveis = obterCardsAreaLayoutDashboard(area).filter((item) => item.offsetParent !== null);
   const indice = cardsVisiveis.indexOf(card);
   if (indice < 0) return;
 
   const alvo = cardsVisiveis[indice + direcao];
   if (!alvo) return;
 
-  if (direcao < 0) container.insertBefore(card, alvo);
-  else container.insertBefore(alvo, card);
+  if (direcao < 0) area.container.insertBefore(card, alvo);
+  else area.container.insertBefore(alvo, card);
   atualizarControlesCardsLayoutDashboard();
 }
 
@@ -176,23 +230,25 @@ function atualizarControlesCardsLayoutDashboard() {
     return;
   }
 
-  const cardsVisiveis = obterCardsLayoutDashboard().filter((card) => card.offsetParent !== null);
-  cardsVisiveis.forEach((card, indice) => {
-    let acoes = card.querySelector(":scope > .dashboard-layout-card-acoes");
-    if (!acoes) {
-      acoes = document.createElement("div");
-      acoes.className = "dashboard-layout-card-acoes";
-      acoes.innerHTML = `
-        <button type="button" data-layout-mover="-1" title="Mover card para cima" aria-label="Mover card para cima">↑</button>
-        <button type="button" data-layout-mover="1" title="Mover card para baixo" aria-label="Mover card para baixo">↓</button>
-      `;
-      card.appendChild(acoes);
-    }
+  obterAreasLayoutDashboard().forEach((area) => {
+    const cardsVisiveis = obterCardsAreaLayoutDashboard(area).filter((card) => card.offsetParent !== null);
+    cardsVisiveis.forEach((card, indice) => {
+      let acoes = card.querySelector(":scope > .dashboard-layout-card-acoes");
+      if (!acoes) {
+        acoes = document.createElement("div");
+        acoes.className = "dashboard-layout-card-acoes";
+        acoes.innerHTML = `
+          <button type="button" data-layout-mover="-1" title="Mover card para cima" aria-label="Mover card para cima">↑</button>
+          <button type="button" data-layout-mover="1" title="Mover card para baixo" aria-label="Mover card para baixo">↓</button>
+        `;
+        card.appendChild(acoes);
+      }
 
-    const btnSubir = acoes.querySelector('[data-layout-mover="-1"]');
-    const btnDescer = acoes.querySelector('[data-layout-mover="1"]');
-    if (btnSubir) btnSubir.disabled = indice === 0;
-    if (btnDescer) btnDescer.disabled = indice === cardsVisiveis.length - 1;
+      const btnSubir = acoes.querySelector('[data-layout-mover="-1"]');
+      const btnDescer = acoes.querySelector('[data-layout-mover="1"]');
+      if (btnSubir) btnSubir.disabled = indice === 0;
+      if (btnDescer) btnDescer.disabled = indice === cardsVisiveis.length - 1;
+    });
   });
 }
 
@@ -200,11 +256,11 @@ function atualizarEstadoModoLayoutDashboard() {
   const botao = document.getElementById("btn-editar-layout-dashboard");
   const cancelar = document.getElementById("btn-cancelar-layout-dashboard");
   const divisorCancelar = document.querySelector(".acoes-topo-divider-cancelar-layout");
-  const container = obterContainerLayoutDashboard();
-  if (!container || !botao) return;
+  const areas = obterAreasLayoutDashboard();
+  if (areas.length === 0 || !botao) return;
   const label = botao.querySelector(".btn-topo-label");
 
-  container.classList.toggle("dashboard-layout-editando", dashboardLayoutEditando);
+  areas.forEach((area) => area.container.classList.toggle("dashboard-layout-editando", dashboardLayoutEditando));
   botao.classList.toggle("ativo", dashboardLayoutEditando);
   botao.setAttribute("aria-pressed", String(dashboardLayoutEditando));
   botao.title = dashboardLayoutEditando ? "Salvar layout do dashboard" : "Editar layout do dashboard";
@@ -212,7 +268,10 @@ function atualizarEstadoModoLayoutDashboard() {
   if (cancelar) cancelar.hidden = !dashboardLayoutEditando;
   if (divisorCancelar) divisorCancelar.hidden = !dashboardLayoutEditando;
 
-  const banner = dashboardLayoutEditando ? obterOuCriarBannerLayoutDashboard(container) : document.getElementById(DASHBOARD_LAYOUT_BANNER_ID);
+  const areaBanner = obterAreaLayoutDashboard("lancamentos") || obterAreaLayoutDashboard("controle");
+  const banner = dashboardLayoutEditando && areaBanner
+    ? obterOuCriarBannerLayoutDashboard(areaBanner.container)
+    : document.getElementById(DASHBOARD_LAYOUT_BANNER_ID);
   if (banner) banner.hidden = !dashboardLayoutEditando;
 
   obterCardsLayoutDashboard().forEach((card) => {
@@ -238,7 +297,7 @@ function alternarModoLayoutDashboard() {
 function cancelarModoLayoutDashboard() {
   if (!dashboardLayoutEditando) return;
   aplicarOrdemLayoutDashboard(dashboardLayoutOrdemAntesEdicao);
-  dashboardLayoutOrdemAntesEdicao = [];
+  dashboardLayoutOrdemAntesEdicao = null;
   dashboardLayoutEditando = false;
   atualizarEstadoModoLayoutDashboard();
   mostrarToast("Edição de layout cancelada", "info");
@@ -257,15 +316,15 @@ function obterCardDepoisDoArraste(container, y) {
   }, { offset: Number.NEGATIVE_INFINITY, element: null }).element;
 }
 
-function configurarEventosLayoutDashboard() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return;
+function configurarEventosAreaLayoutDashboard(area) {
+  const { container } = area;
 
   container.addEventListener("dragstart", (evento) => {
     if (!dashboardLayoutEditando) return;
     const card = evento.target.closest(".dashboard-card-editavel");
-    if (!card) return;
+    if (!card || card.parentElement !== container) return;
     dashboardLayoutCardArrastado = card;
+    dashboardLayoutAreaArrastada = container;
     card.classList.add("arrastando");
     card.setAttribute("aria-grabbed", "true");
     evento.dataTransfer.effectAllowed = "move";
@@ -276,11 +335,12 @@ function configurarEventosLayoutDashboard() {
     dashboardLayoutCardArrastado?.classList.remove("arrastando");
     dashboardLayoutCardArrastado?.setAttribute("aria-grabbed", "false");
     dashboardLayoutCardArrastado = null;
+    dashboardLayoutAreaArrastada = null;
     atualizarControlesCardsLayoutDashboard();
   });
 
   container.addEventListener("dragover", (evento) => {
-    if (!dashboardLayoutEditando || !dashboardLayoutCardArrastado) return;
+    if (!dashboardLayoutEditando || !dashboardLayoutCardArrastado || dashboardLayoutAreaArrastada !== container) return;
     evento.preventDefault();
     const depois = obterCardDepoisDoArraste(container, evento.clientY);
     if (depois) container.insertBefore(dashboardLayoutCardArrastado, depois);
@@ -297,18 +357,24 @@ function configurarEventosLayoutDashboard() {
   });
 }
 
+function configurarEventosLayoutDashboard() {
+  obterAreasLayoutDashboard().forEach(configurarEventosAreaLayoutDashboard);
+}
+
 function configurarDashboardLayout() {
   const botao = document.getElementById("btn-editar-layout-dashboard");
   const cancelar = document.getElementById("btn-cancelar-layout-dashboard");
   const resetar = document.getElementById("btn-resetar-layout-dashboard");
-  const container = obterContainerLayoutDashboard();
-  if (!botao || !container) return;
+  const areas = obterAreasLayoutDashboard();
+  if (!botao || areas.length === 0) return;
 
   aplicarLayoutDashboardSalvo();
   configurarEventosLayoutDashboard();
 
-  const observer = new MutationObserver(agendarReaplicacaoLayoutDashboard);
-  observer.observe(container, { childList: true });
+  areas.forEach((area) => {
+    const observer = new MutationObserver(agendarReaplicacaoLayoutDashboard);
+    observer.observe(area.container, { childList: true });
+  });
 
   botao.addEventListener("click", alternarModoLayoutDashboard);
   cancelar?.addEventListener("click", cancelarModoLayoutDashboard);

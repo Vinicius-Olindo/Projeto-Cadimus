@@ -1239,6 +1239,14 @@ button:active {
 
 .area-lancamentos {
   order: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card-lancamentos-bloco {
+  display: flex;
+  flex-direction: column;
 }
 
 @media (min-width: 900px) {
@@ -1255,9 +1263,6 @@ button:active {
   .area-lancamentos {
     grid-column: 1;
     order: unset;
-    display: flex;
-    flex-direction: column;
-    gap: 16px;
   }
 
   .area-controle {
