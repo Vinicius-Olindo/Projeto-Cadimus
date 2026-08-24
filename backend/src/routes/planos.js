@@ -2,7 +2,7 @@
 // planos.js - Planos financeiros (viagem, compra, reserva, etc.)
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 
 export async function processarPlanos(request, env, ctx) {
   const metodo = request.method;

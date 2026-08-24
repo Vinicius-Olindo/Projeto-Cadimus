@@ -4,7 +4,7 @@
 
 // @ts-check
 
-import { reaisParaCentavos, centavosParaReais } from "./dinheiro.js";
+import { reaisParaCentavos, centavosParaReais } from "./dinheiro.ts";
 
 /**
  * Recorrência como vem do banco ou dos testes.

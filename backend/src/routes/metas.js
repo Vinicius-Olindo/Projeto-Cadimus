@@ -4,7 +4,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 
 export async function processarMetas(request, env, ctx) {
   const metodo = request.method;

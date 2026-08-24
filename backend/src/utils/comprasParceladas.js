@@ -4,7 +4,7 @@
 
 // @ts-check
 
-import { centavosParaReais, reaisParaCentavos } from "./dinheiro.js";
+import { centavosParaReais, reaisParaCentavos } from "./dinheiro.ts";
 
 /**
  * Compra parcelada como vem do banco ou dos testes.

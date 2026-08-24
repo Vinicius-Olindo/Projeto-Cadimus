@@ -6,7 +6,7 @@ import {
   normalizarCentavos,
   reaisParaCentavos,
   somarCentavos,
-} from "../src/utils/dinheiro.js";
+} from "../src/utils/dinheiro.ts";
 
 test("reaisParaCentavos aceita números e strings decimais", () => {
   assert.equal(reaisParaCentavos(10.5), 1050);

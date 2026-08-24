@@ -7,7 +7,7 @@ import { gerarLancamentosFixosDoMes } from "../utils/despesasFixas.js";
 import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
 import { erroCliente, erroInterno } from "../utils/respostas.js";
 

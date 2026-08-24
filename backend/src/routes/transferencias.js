@@ -4,7 +4,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 
 function dataISOValida(valor) {
   return typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor);

@@ -9,7 +9,7 @@
  * um lançamento para o mês/ano pedido. Não duplica (verifica por despesa_fixa_id)
  * e nunca gera lançamento pra um mês que ainda não começou.
  */
-import { centavosParaReais, reaisParaCentavos } from "./dinheiro.js";
+import { centavosParaReais, reaisParaCentavos } from "./dinheiro.ts";
 
 /**
  * Despesa fixa como vem do banco ou dos testes.

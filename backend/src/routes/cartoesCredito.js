@@ -1,6 +1,6 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { erroCliente, erroInterno } from "../utils/respostas.js";
 
 /**

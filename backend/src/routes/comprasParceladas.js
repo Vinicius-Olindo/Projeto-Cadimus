@@ -4,7 +4,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.js";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
+import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
 import { erroCliente, erroInterno } from "../utils/respostas.js";
 
