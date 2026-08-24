@@ -1,17 +1,52 @@
 // ==========================================
-// lancamentosRecorrentes.js (rota) - Lançamentos com frequência customizável
+// lancamentosRecorrentes.ts (rota) - Lançamentos com frequência customizável
 // ==========================================
+import type {
+  CadimusEnv,
+  FrequenciaRecorrencia,
+  IdEntrada,
+  LancamentoRecorrente,
+  MeioPagamento,
+  SqlParam,
+  TipoLancamento,
+  WorkerCtx,
+} from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
+import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { erroCliente, erroInterno } from "../utils/respostas.ts";
 
-/**
- * @param {Request} request
- * @param {import("../types.js").CadimusEnv} env
- * @param {import("../types.js").WorkerCtx} ctx
- */
-export async function processarLancamentosRecorrentes(request, env, ctx) {
+interface RecorrenciaPayload {
+  carteira_id?: IdEntrada;
+  descricao?: string;
+  valor?: ValorMonetarioEntrada;
+  valor_centavos?: ValorMonetarioEntrada;
+  tipo?: TipoLancamento | string;
+  categoria?: string;
+  meio_pagamento?: MeioPagamento | string;
+  frequencia?: FrequenciaRecorrencia | string;
+  dia_semana?: number;
+  dia_mes?: number;
+  data_inicio?: string;
+  data_fim?: string | null;
+  ativo?: boolean | number;
+}
+
+interface RecorrenciaCarteiraRow {
+  carteira_id: number;
+}
+
+const FREQUENCIAS_VALIDAS: FrequenciaRecorrencia[] = ["diaria", "semanal", "quinzenal", "mensal", "trimestral", "anual"];
+
+function isFrequenciaRecorrencia(valor: unknown): valor is FrequenciaRecorrencia {
+  return typeof valor === "string" && FREQUENCIAS_VALIDAS.includes(valor as FrequenciaRecorrencia);
+}
+
+function json<T>(dados: T, status = 200): Response {
+  return new Response(JSON.stringify(dados), { status });
+}
+
+export async function processarLancamentosRecorrentes(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
 
@@ -30,14 +65,14 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       const carteiraId = url.searchParams.get("carteira_id");
 
       if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
       if (carteirasPermitidas.length === 0) {
-        return new Response(JSON.stringify([]), { status: 200 });
+        return json([]);
       }
 
       let query = `SELECT * FROM lancamentos_recorrentes WHERE 1=1`;
-      let params = /** @type {import("../types.js").SqlParam[]} */ ([]);
+      const params: SqlParam[] = [];
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
@@ -51,8 +86,8 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
 
       const { results } = await env.DB.prepare(query)
         .bind(...params)
-        .all();
-      return new Response(JSON.stringify(results), { status: 200 });
+        .all<LancamentoRecorrente>();
+      return json(results);
     } catch (erro) {
       return erroInterno(erro, "recorrencias.listar", "Não foi possível carregar as recorrências agora.", "recorrencias_listar_falhou");
     }
@@ -63,15 +98,15 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json();
+      const dados = await request.json() as RecorrenciaPayload;
 
       if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       const descricao = (dados.descricao || "").trim();
       if (dados.valor === undefined && dados.valor_centavos === undefined) {
-        return new Response(JSON.stringify({ erro: "Informe um valor vÃ¡lido." }), { status: 400 });
+        return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
       }
       const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
       const valor = centavosParaReais(valorCentavos);
@@ -80,38 +115,40 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       const tipo = ehBonificacao ? "receita" : dados.tipo === "receita" ? "receita" : "despesa";
       const frequencia = dados.frequencia;
       const dataInicio = dados.data_inicio;
+      const diaSemana = typeof dados.dia_semana === "number" ? dados.dia_semana : Number(dados.dia_semana ?? 0);
+      const diaMes = typeof dados.dia_mes === "number" ? dados.dia_mes : Number(dados.dia_mes ?? 1);
 
       if (!descricao) {
-        return new Response(JSON.stringify({ erro: "Informe uma descrição." }), { status: 400 });
+        return erroCliente("Informe uma descrição.", 400, "descricao_obrigatoria");
       }
       if (valorCentavos <= 0) {
-        return new Response(JSON.stringify({ erro: "Informe um valor válido." }), { status: 400 });
+        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
       }
-      if (!["diaria", "semanal", "quinzenal", "mensal", "trimestral", "anual"].includes(frequencia)) {
-        return new Response(JSON.stringify({ erro: "Frequência inválida." }), { status: 400 });
+      if (!isFrequenciaRecorrencia(frequencia)) {
+        return erroCliente("Frequência inválida.", 400, "frequencia_invalida");
       }
       if (!dataInicio) {
-        return new Response(JSON.stringify({ erro: "Informe a data de início." }), { status: 400 });
+        return erroCliente("Informe a data de início.", 400, "data_inicio_obrigatoria");
       }
       if (!categoria) {
-        return new Response(JSON.stringify({ erro: "Escolha uma categoria." }), { status: 400 });
+        return erroCliente("Escolha uma categoria.", 400, "categoria_obrigatoria");
       }
       if (!dados.meio_pagamento) {
-        return new Response(JSON.stringify({ erro: "Escolha um meio de pagamento." }), { status: 400 });
+        return erroCliente("Escolha um meio de pagamento.", 400, "meio_pagamento_obrigatorio");
       }
 
-      if (frequencia === "semanal" && (dados.dia_semana < 0 || dados.dia_semana > 6)) {
-        return new Response(JSON.stringify({ erro: "Dia da semana inválido." }), { status: 400 });
+      if (frequencia === "semanal" && (diaSemana < 0 || diaSemana > 6)) {
+        return erroCliente("Dia da semana inválido.", 400, "dia_semana_invalido");
       }
-      if (["mensal", "trimestral", "anual"].includes(frequencia) && (dados.dia_mes < 1 || dados.dia_mes > 28)) {
-        return new Response(JSON.stringify({ erro: "Dia do mês inválido (1-28)." }), { status: 400 });
+      if (["mensal", "trimestral", "anual"].includes(frequencia) && (diaMes < 1 || diaMes > 28)) {
+        return erroCliente("Dia do mês inválido (1-28).", 400, "dia_mes_invalido");
       }
 
       const valoresBase = [
         dados.carteira_id, descricao, valor, tipo, categoria, dados.meio_pagamento,
         frequencia,
-        frequencia === "semanal" ? (dados.dia_semana || 0) : null,
-        ["mensal", "trimestral", "anual"].includes(frequencia) ? (dados.dia_mes || 1) : null,
+        frequencia === "semanal" ? diaSemana : null,
+        ["mensal", "trimestral", "anual"].includes(frequencia) ? diaMes : null,
         dataInicio,
         dados.data_fim || null,
         usuarioLogado.id,
@@ -127,8 +164,8 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
           .bind(
             dados.carteira_id, descricao, valor, valorCentavos, tipo, categoria, dados.meio_pagamento,
             frequencia,
-            frequencia === "semanal" ? (dados.dia_semana || 0) : null,
-            ["mensal", "trimestral", "anual"].includes(frequencia) ? (dados.dia_mes || 1) : null,
+            frequencia === "semanal" ? diaSemana : null,
+            ["mensal", "trimestral", "anual"].includes(frequencia) ? diaMes : null,
             dataInicio,
             dados.data_fim || null,
             usuarioLogado.id,
@@ -147,7 +184,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
           .run();
       }
 
-      return new Response(JSON.stringify({ id: resultado.meta?.last_row_id ?? null, mensagem: "Recorrência criada!" }), { status: 201 });
+      return json({ id: resultado.meta?.last_row_id ?? null, mensagem: "Recorrência criada!" }, 201);
     } catch (erro) {
       return erroInterno(erro, "recorrencias.criar", "Não foi possível criar esta recorrência agora.", "recorrencia_criar_falhou");
     }
@@ -160,25 +197,25 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
     try {
       const id = url.searchParams.get("id");
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM lancamentos_recorrentes WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM lancamentos_recorrentes WHERE id = ?`).bind(id).all<RecorrenciaCarteiraRow>();
       if (alvo.length === 0) {
-        return new Response(JSON.stringify({ erro: "Recorrência não encontrada." }), { status: 404 });
+        return erroCliente("Recorrência não encontrada.", 404, "recorrencia_nao_encontrada");
       }
       if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+        return erroCliente("Acesso negado.", 403, "acesso_negado");
       }
 
-      const dados = await request.json();
-      const campos = [];
-      const valores = [];
+      const dados = await request.json() as RecorrenciaPayload;
+      const campos: string[] = [];
+      const valores: SqlParam[] = [];
 
       if (dados.descricao !== undefined) { campos.push("descricao = ?"); valores.push(String(dados.descricao).trim()); }
       if (dados.valor !== undefined || dados.valor_centavos !== undefined) {
         const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
-        if (valorCentavos <= 0) return new Response(JSON.stringify({ erro: "Valor inválido." }), { status: 400 });
+        if (valorCentavos <= 0) return erroCliente("Valor inválido.", 400, "valor_invalido");
         campos.push("valor = ?"); valores.push(centavosParaReais(valorCentavos));
         campos.push("valor_centavos = ?"); valores.push(valorCentavos);
       }
@@ -195,7 +232,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       if (dados.ativo !== undefined) { campos.push("ativo = ?"); valores.push(dados.ativo ? 1 : 0); }
 
       if (campos.length === 0) {
-        return new Response(JSON.stringify({ erro: "Nada para atualizar." }), { status: 400 });
+        return erroCliente("Nada para atualizar.", 400, "sem_campos_para_atualizar");
       }
 
       valores.push(id);
@@ -203,7 +240,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
         .bind(...valores)
         .run();
 
-      return new Response(JSON.stringify({ mensagem: "Atualizado." }), { status: 200 });
+      return json({ mensagem: "Atualizado." });
     } catch (erro) {
       return erroInterno(erro, "recorrencias.atualizar", "Não foi possível atualizar esta recorrência agora.", "recorrencia_atualizar_falhou");
     }
@@ -216,21 +253,21 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
     try {
       const id = url.searchParams.get("id");
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM lancamentos_recorrentes WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM lancamentos_recorrentes WHERE id = ?`).bind(id).all<RecorrenciaCarteiraRow>();
       if (alvo.length === 0) {
-        return new Response(JSON.stringify({ erro: "Recorrência não encontrada." }), { status: 404 });
+        return erroCliente("Recorrência não encontrada.", 404, "recorrencia_nao_encontrada");
       }
       if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+        return erroCliente("Acesso negado.", 403, "acesso_negado");
       }
 
       await env.DB.prepare(`UPDATE lancamentos SET recorrencia_id = NULL WHERE recorrencia_id = ?`).bind(id).run();
       await env.DB.prepare(`DELETE FROM lancamentos_recorrentes WHERE id = ?`).bind(id).run();
 
-      return new Response(JSON.stringify({ mensagem: "Recorrência excluída." }), { status: 200 });
+      return json({ mensagem: "Recorrência excluída." });
     } catch (erro) {
       return erroInterno(erro, "recorrencias.excluir", "Não foi possível excluir esta recorrência agora.", "recorrencia_excluir_falhou");
     }
