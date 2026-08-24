@@ -2,6 +2,7 @@ import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
+import { isBandeiraCartao, normalizarId } from "../domain.ts";
 import type { BandeiraCartao, CadimusEnv, SqlParam, WorkerCtx } from "../types.js";
 
 interface CartaoCreditoPayload {
@@ -33,8 +34,13 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
   // GET /api/cartoes-credito — listar cartões das carteiras permitidas
   if (method === "GET") {
     const carteiraId = url.searchParams.get("carteira_id");
+    const carteiraIdNormalizada = normalizarId(carteiraId);
 
-    if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
+    if (carteiraId && !carteiraIdNormalizada) {
+      return erroCliente("Carteira inválida.", 400, "carteira_invalida");
+    }
+
+    if (carteiraIdNormalizada && !carteirasPermitidas.includes(carteiraIdNormalizada)) {
       return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
     }
     if (carteirasPermitidas.length === 0) {
@@ -94,9 +100,9 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
       WHERE c.ativo = 1`;
     const params: SqlParam[] = [];
 
-    if (carteiraId) {
+    if (carteiraIdNormalizada) {
       query += ` AND c.carteira_id = ?`;
-      params.push(Number(carteiraId));
+      params.push(carteiraIdNormalizada);
     } else {
       query += ` AND c.carteira_id IN (${carteirasPermitidas.map(() => "?").join(",")})`;
       params.push(...carteirasPermitidas);
@@ -120,10 +126,15 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
     const limiteNormalizado = centavosParaReais(limiteCentavos);
     const diaFechamento = Number(dia_fechamento);
     const diaVencimento = Number(dia_vencimento);
-    const carteiraIdNormalizada = Number(carteira_id);
+    const carteiraIdNormalizada = normalizarId(carteira_id);
+    const bandeiraNormalizada = bandeira ? String(bandeira).toLowerCase() : "outro";
 
     if (!nome || !diaFechamento || !diaVencimento || !carteiraIdNormalizada) {
       return erroCliente("Nome, dia de fechamento, dia de vencimento e carteira são obrigatórios.", 400, "cartao_campos_obrigatorios");
+    }
+
+    if (!isBandeiraCartao(bandeiraNormalizada)) {
+      return erroCliente("Bandeira de cartão inválida.", 400, "cartao_bandeira_invalida");
     }
 
     if (diaFechamento < 1 || diaFechamento > 31 || diaVencimento < 1 || diaVencimento > 31) {
@@ -140,7 +151,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
         nome,
-        bandeira || "outro",
+        bandeiraNormalizada,
         ultimos4 || null,
         diaFechamento,
         diaVencimento,
@@ -159,7 +170,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
 
   // PUT /api/cartoes-credito?id=X — editar cartão
   if (method === "PUT") {
-    const id = Number(url.searchParams.get("id"));
+    const id = normalizarId(url.searchParams.get("id"));
     if (!id) return erroCliente("ID obrigatório.", 400, "id_obrigatorio");
 
     let alvo: CartaoCreditoAlvoRow[];
@@ -181,8 +192,11 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
       if (chave === "limite" || chave === "limite_centavos") continue;
 
       if (["nome", "bandeira", "ultimos4", "dia_fechamento", "dia_vencimento"].includes(chave)) {
+        if (chave === "bandeira" && valor && !isBandeiraCartao(String(valor).toLowerCase())) {
+          return erroCliente("Bandeira de cartão inválida.", 400, "cartao_bandeira_invalida");
+        }
         campos.push(`${chave} = ?`);
-        params.push(valor);
+        params.push(chave === "bandeira" && valor ? String(valor).toLowerCase() : valor);
       }
     }
 
@@ -210,7 +224,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
 
   // DELETE /api/cartoes-credito?id=X — desativar cartão
   if (method === "DELETE") {
-    const id = Number(url.searchParams.get("id"));
+    const id = normalizarId(url.searchParams.get("id"));
     if (!id) return erroCliente("ID obrigatório.", 400, "id_obrigatorio");
 
     let alvo: CartaoCreditoAlvoRow[];

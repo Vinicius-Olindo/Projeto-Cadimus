@@ -6,6 +6,7 @@ import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
+import { normalizarId, normalizarMesReferencia } from "../domain.ts";
 
 interface OrcamentoPayload {
   categoria?: string;
@@ -52,12 +53,22 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
       const mes = url.searchParams.get("mes");
       const ano = url.searchParams.get("ano");
       const carteiraId = url.searchParams.get("carteira_id");
+      const mesNormalizado = normalizarMesReferencia(mes);
+      const carteiraIdNormalizada = normalizarId(carteiraId);
 
       if (!mes || !ano) {
         return erroCliente("Mês e ano são obrigatórios.", 400, "periodo_obrigatorio");
       }
 
-      if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
+      if (!mesNormalizado) {
+        return erroCliente("Mês inválido.", 400, "mes_invalido");
+      }
+
+      if (carteiraId && !carteiraIdNormalizada) {
+        return erroCliente("Carteira inválida.", 400, "carteira_invalida");
+      }
+
+      if (carteiraIdNormalizada && !carteirasPermitidas.includes(carteiraIdNormalizada)) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
@@ -79,13 +90,14 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
             AND strftime('%Y', data_compra) = ?
           GROUP BY carteira_id, LOWER(categoria)
         ) gasto ON gasto.carteira_id = o.carteira_id AND gasto.categoria_normalizada = LOWER(o.categoria)
-        WHERE o.mes = ? AND o.ano = ?
+        WHERE o.mes IN (?, ?) AND o.ano = ?
       `;
-      const params: SqlParam[] = [mes.padStart(2, "0"), ano, mes, ano];
+      const mesLegado = String(Number(mesNormalizado));
+      const params: SqlParam[] = [mesNormalizado, ano, mesNormalizado, mesLegado, ano];
 
-      if (carteiraId) {
+      if (carteiraIdNormalizada) {
         query += ` AND o.carteira_id = ?`;
-        params.push(carteiraId);
+        params.push(carteiraIdNormalizada);
       } else {
         if (carteirasPermitidas.length === 0) {
           return json([]);
@@ -130,6 +142,14 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
       if (!dados.categoria || (dados.valor === undefined && dados.valor_centavos === undefined) || !dados.mes || !dados.ano || !dados.carteira_id) {
         return erroCliente("Categoria, valor, mês, ano e carteira são obrigatórios.", 400, "orcamento_campos_obrigatorios");
       }
+      const mesNormalizado = normalizarMesReferencia(dados.mes);
+      const carteiraIdNormalizada = normalizarId(dados.carteira_id);
+      if (!mesNormalizado) {
+        return erroCliente("Mês inválido.", 400, "mes_invalido");
+      }
+      if (!carteiraIdNormalizada) {
+        return erroCliente("Carteira inválida.", 400, "carteira_invalida");
+      }
 
       const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
       const valor = centavosParaReais(valorCentavos);
@@ -138,7 +158,7 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
         return erroCliente("Valor não pode ser negativo.", 400, "valor_negativo");
       }
 
-      if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
+      if (!carteirasPermitidas.includes(carteiraIdNormalizada)) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
@@ -154,8 +174,8 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
           dados.categoria.toLowerCase(),
           valor,
           valorCentavos,
-          dados.carteira_id,
-          dados.mes,
+          carteiraIdNormalizada,
+          mesNormalizado,
           dados.ano,
           usuarioLogado.id
         )
@@ -172,7 +192,7 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
   // ==========================================
   if (metodo === "DELETE") {
     try {
-      const id = url.searchParams.get("id");
+      const id = normalizarId(url.searchParams.get("id"));
 
       if (!id) {
         return erroCliente("ID não fornecido.", 400, "id_obrigatorio");

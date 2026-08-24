@@ -1,6 +1,7 @@
 import type {
   BandeiraCartao,
   FrequenciaRecorrencia,
+  IdEntrada,
   MeioPagamento,
   PapelCarteira,
   PerfilUsuario,
@@ -70,6 +71,10 @@ export function isMeioPagamento(valor: unknown): valor is MeioPagamento {
   return pertenceA(MEIOS_PAGAMENTO, valor);
 }
 
+export function isBandeiraCartao(valor: unknown): valor is BandeiraCartao {
+  return pertenceA(BANDEIRAS_CARTAO, valor);
+}
+
 export function isFrequenciaRecorrencia(valor: unknown): valor is FrequenciaRecorrencia {
   return pertenceA(FREQUENCIAS_RECORRENCIA, valor);
 }
@@ -80,4 +85,15 @@ export function isStatusNotificacao(valor: unknown): valor is StatusNotificacao 
 
 export function isSeveridadeNotificacao(valor: unknown): valor is SeveridadeNotificacao {
   return pertenceA(SEVERIDADES_NOTIFICACAO, valor);
+}
+
+export function normalizarId(valor: IdEntrada | null | undefined): number | null {
+  const numero = Number(valor);
+  return Number.isInteger(numero) && numero > 0 ? numero : null;
+}
+
+export function normalizarMesReferencia(valor: number | string | null | undefined): string | null {
+  const numero = Number(valor);
+  if (!Number.isInteger(numero) || numero < 1 || numero > 12) return null;
+  return String(numero).padStart(2, "0");
 }

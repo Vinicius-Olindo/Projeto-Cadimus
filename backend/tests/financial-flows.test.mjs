@@ -646,6 +646,7 @@ test("criação de orçamento faz escrita dupla em reais e centavos", async () =
   assert.match(insertOrcamento.sql, /valor_centavos/);
   assert.equal(insertOrcamento.args[1], 1500);
   assert.equal(insertOrcamento.args[2], 150000);
+  assert.equal(insertOrcamento.args[4], "08");
 });
 
 test("membro de carteira compartilhada nao pode excluir a carteira", async () => {
