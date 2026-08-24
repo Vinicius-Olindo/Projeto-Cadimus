@@ -12,6 +12,7 @@
   },
   "include": [
     "src/utils/auditoria.js",
+    "src/utils/crypto.js",
     "src/utils/dinheiro.js",
     "src/utils/cartoesCredito.js",
     "src/utils/carteiras.js",
