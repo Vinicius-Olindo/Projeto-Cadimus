@@ -6613,17 +6613,26 @@ textarea::placeholder {
 /* ==========================================
    PLANEJAMENTO — ALERTAS
    ========================================== */
+#plano-card-alertas {
+  flex-direction: column;
+  align-items: stretch;
+  gap: 12px;
+}
+
+#plano-alertas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
 .plano-alerta-item {
   display: flex;
   align-items: flex-start;
   gap: 10px;
   padding: 10px;
   border-radius: 8px;
-  margin-bottom: 8px;
   font-size: 0.82rem;
 }
-
-.plano-alerta-item:last-child { margin-bottom: 0; }
 
 .plano-alerta-ok {
   background: color-mix(in srgb, var(--cor-receita) 8%, transparent);
