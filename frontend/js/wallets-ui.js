@@ -517,6 +517,53 @@ function configurarModalOrcamento() {
 // --- MODAL: CARTÃO DE CRÉDITO ---
 let cartoesCreditoCarregados = [];
 
+async function popularSelectCartoesCredito(select, carteiraId = document.getElementById("seletor-carteira")?.value, valorSelecionado = "") {
+  if (!select || !carteiraId || !window.CadimusCardsApi) return;
+
+  select.innerHTML = '<option value="">Nenhum cartão</option>';
+
+  try {
+    const resposta = await CadimusCardsApi.listar({ carteira_id: carteiraId });
+    if (tratarSessaoExpirada(resposta)) return;
+    if (!resposta.ok) return;
+
+    const cartoes = await resposta.json();
+    cartoes.forEach((cartao) => {
+      const opcao = document.createElement("option");
+      opcao.value = String(cartao.id);
+      opcao.textContent = `${cartao.nome}${cartao.ultimos4 ? ` •••• ${cartao.ultimos4}` : ""}`;
+      select.appendChild(opcao);
+    });
+    select.value = valorSelecionado ? String(valorSelecionado) : "";
+  } catch (erro) {
+    console.error("Erro ao carregar cartões:", erro);
+  }
+}
+
+function configurarCampoCartaoCredito({ campoId, selectId, meioId, tipoId }) {
+  const campo = document.getElementById(campoId);
+  const select = document.getElementById(selectId);
+  const meio = document.getElementById(meioId);
+  const tipo = tipoId ? document.getElementById(tipoId) : null;
+  if (!campo || !select || !meio) return;
+
+  const atualizar = async () => {
+    const usaCredito = String(meio.value || "").toLowerCase() === "credito";
+    const ehDespesa = !tipo || tipo.value !== "receita";
+    const mostrar = usaCredito && ehDespesa;
+    campo.style.display = mostrar ? "" : "none";
+    if (mostrar) await popularSelectCartoesCredito(select, undefined, select.value);
+    else select.value = "";
+  };
+
+  meio.addEventListener("change", atualizar);
+  tipo?.addEventListener("change", atualizar);
+  atualizar();
+}
+
+window.popularSelectCartoesCredito = popularSelectCartoesCredito;
+window.configurarCampoCartaoCredito = configurarCampoCartaoCredito;
+
 function configurarModalCartaoCredito() {
   const modal = document.getElementById("modal-cartao-credito");
   const btnFechar = document.getElementById("btn-fechar-modal-cartao");

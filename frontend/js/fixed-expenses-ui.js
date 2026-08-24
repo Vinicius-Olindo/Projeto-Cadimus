@@ -33,6 +33,7 @@ async function abrirModalDespesasFixas() {
   document.getElementById("titulo-modal-fixa").innerText = "Nova despesa fixa";
   document.getElementById("btn-salvar-fixa").innerText = "Salvar";
   await popularSelectCategorias(document.getElementById("fixa-categoria"));
+  await popularSelectCartoesCredito?.(document.getElementById("fixa-cartao-credito"), carteiraId);
   modal.style.display = "flex";
   trapFoco(modal);
 }
@@ -54,6 +55,9 @@ async function editarDespesaFixa(id) {
   document.getElementById("fixa-categoria").value = fixa.categoria;
   document.getElementById("fixa-meio-pagamento").value = fixa.meio_pagamento;
   document.getElementById("fixa-tipo").value = fixa.tipo;
+  await popularSelectCartoesCredito?.(document.getElementById("fixa-cartao-credito"), fixa.carteira_id, fixa.cartao_credito_id || "");
+  document.getElementById("fixa-cartao-credito").value = fixa.cartao_credito_id || "";
+  document.getElementById("fixa-meio-pagamento")?.dispatchEvent(new Event("change"));
 
   document.getElementById("titulo-modal-fixa").innerText = `Editando "${fixa.descricao}"`;
   document.getElementById("btn-salvar-fixa").innerText = "Salvar edição";
@@ -69,6 +73,13 @@ function configurarModalDespesasFixas() {
   const form = document.getElementById("form-despesa-fixa");
 
   if (!modal || !btnFechar || !form) return;
+
+  configurarCampoCartaoCredito?.({
+    campoId: "campo-cartao-fixa",
+    selectId: "fixa-cartao-credito",
+    meioId: "fixa-meio-pagamento",
+    tipoId: "fixa-tipo",
+  });
 
   btnAbrir?.addEventListener("click", abrirModalDespesasFixas);
   btnAbrirDoCard?.addEventListener("click", abrirModalDespesasFixas);
@@ -100,6 +111,7 @@ function configurarModalDespesasFixas() {
         categoria: document.getElementById("fixa-categoria").value,
         meio_pagamento: document.getElementById("fixa-meio-pagamento").value,
         tipo: document.getElementById("fixa-tipo").value,
+        cartao_credito_id: document.getElementById("fixa-cartao-credito")?.value || null,
       };
       if (!idEdicao) corpo.carteira_id = carteiraId; // carteira só é definida na criação, não muda na edição
 

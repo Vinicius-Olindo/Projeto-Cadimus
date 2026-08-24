@@ -155,6 +155,7 @@ async function abrirModalNovoLancamento() {
   }
 
   carregarCategorias();
+  await popularSelectCartoesCredito?.(document.getElementById("cartao-credito-lancamento"), carteiraAtual);
   document.getElementById("lancamento-editando-id").value = "";
   document.getElementById("titulo-modal-lancamento").innerText = "Novo lançamento";
   document.getElementById("btn-salvar-lancamento").innerText = "Salvar";
@@ -207,6 +208,9 @@ async function editarLancamento(id) {
   document.getElementById("meio-pagamento").value = lancamento.meio_pagamento;
   document.getElementById("status-pagamento").value = lancamento.status;
   document.getElementById("nota-lancamento").value = lancamento.nota || "";
+  await popularSelectCartoesCredito?.(document.getElementById("cartao-credito-lancamento"), lancamento.carteira_id, lancamento.cartao_credito_id || "");
+  document.getElementById("cartao-credito-lancamento").value = lancamento.cartao_credito_id || "";
+  document.getElementById("meio-pagamento")?.dispatchEvent(new Event("change"));
 
   document.getElementById("titulo-modal-lancamento").innerText = "Editar lançamento";
   document.getElementById("btn-salvar-lancamento").innerText = "Salvar edição";
@@ -227,6 +231,12 @@ function configurarModal() {
   if (!modal || !btnNovo || !btnFechar || !form) return;
 
   configurarAtalhosContextuaisLancamento();
+  configurarCampoCartaoCredito?.({
+    campoId: "campo-cartao-lancamento",
+    selectId: "cartao-credito-lancamento",
+    meioId: "meio-pagamento",
+    tipoId: "tipo-gasto",
+  });
 
   selectCategoria?.addEventListener("change", () => {
     const escolheuNova = selectCategoria.value === "__nova__";
@@ -298,6 +308,7 @@ function configurarModal() {
         status: document.getElementById("status-pagamento").value,
         carteira_id: carteiraId,
         nota: document.getElementById("nota-lancamento").value.trim(),
+        cartao_credito_id: document.getElementById("cartao-credito-lancamento")?.value || null,
       };
 
       // Verificar orçamento antes de salvar (apenas para despesas novas)

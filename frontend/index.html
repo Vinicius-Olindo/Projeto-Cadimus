@@ -1486,6 +1486,14 @@
             </div>
           </div>
 
+          <div class="campo campo-cartao-credito" id="campo-cartao-lancamento" style="display: none">
+            <label for="cartao-credito-lancamento">Cartão de crédito</label>
+            <select id="cartao-credito-lancamento">
+              <option value="">Nenhum cartão</option>
+            </select>
+            <span class="dica-campo">Selecione um cartão para abater do limite cadastrado.</span>
+          </div>
+
           <div class="campo">
             <label for="nota-lancamento">Nota <span class="campo-optional">(opcional)</span></label>
             <textarea id="nota-lancamento" rows="2" placeholder="Observações, detalhes, lembretes..."></textarea>
@@ -1806,6 +1814,14 @@
             </div>
           </div>
 
+          <div class="campo campo-cartao-credito" id="campo-cartao-fixa" style="display: none">
+            <label for="fixa-cartao-credito">Cartão de crédito</label>
+            <select id="fixa-cartao-credito">
+              <option value="">Nenhum cartão</option>
+            </select>
+            <span class="dica-campo">Use para despesas fixas pagas no cartão.</span>
+          </div>
+
           <button type="submit" id="btn-salvar-fixa">Salvar</button>
         </form>
 
@@ -1975,6 +1991,14 @@
               <option value="debito">Débito</option>
               <option value="credito">Crédito</option>
             </select>
+          </div>
+
+          <div class="campo campo-cartao-credito" id="campo-cartao-parcelada" style="display: none">
+            <label for="parcelada-cartao-credito">Cartão de crédito</label>
+            <select id="parcelada-cartao-credito">
+              <option value="">Nenhum cartão</option>
+            </select>
+            <span class="dica-campo">A compra parcelada usa o limite pelo valor total.</span>
           </div>
 
           <button type="submit" id="btn-salvar-parcelada">Salvar</button>
@@ -2400,9 +2424,9 @@
     <script src="js/components.js?v=100"></script>
     <script src="js/ui-core.js?v=100"></script>
     <script src="js/dashboard-layout-ui.js?v=103"></script>
-    <script src="js/wallets-ui.js?v=100"></script>
+    <script src="js/wallets-ui.js?v=101"></script>
     <script src="js/categories-ui.js?v=100"></script>
-    <script src="js/entries-modal-ui.js?v=109"></script>
+    <script src="js/entries-modal-ui.js?v=110"></script>
     <script src="js/entries-list-ui.js?v=108"></script>
     <script src="js/notifications-ui.js?v=100"></script>
     <script src="js/batch-note-ui.js?v=100"></script>
@@ -2427,8 +2451,8 @@
     <script src="js/planning-dashboard-ui.js?v=101"></script>
     <script src="js/planning-plans-ui.js?v=100"></script>
     <script src="js/planning-goals-ui.js?v=100"></script>
-    <script src="js/fixed-expenses-ui.js?v=103"></script>
-    <script src="js/installments-ui.js?v=103"></script>
+    <script src="js/fixed-expenses-ui.js?v=104"></script>
+    <script src="js/installments-ui.js?v=104"></script>
     <script src="js/budgets-ui.js?v=100"></script>
     <script src="js/goals-ui.js?v=101"></script>
     <script src="js/main.js?v=100" defer></script>

@@ -57,8 +57,8 @@ export async function gerarTodasParcelasDaCompra(env, compraId) {
 
     await env.DB.prepare(
       `INSERT INTO lancamentos
-       (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, compra_parcelada_id, numero_parcela)
-       VALUES (?, ?, ?, ?, 'despesa', ?, ?, 'pendente', ?, ?, ?, ?)`,
+       (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, compra_parcelada_id, numero_parcela, cartao_credito_id)
+       VALUES (?, ?, ?, ?, 'despesa', ?, ?, 'pendente', ?, ?, ?, ?, ?)`,
     )
       .bind(
         descricaoComParcela,
@@ -71,6 +71,7 @@ export async function gerarTodasParcelasDaCompra(env, compraId) {
         compra.criado_por,
         compra.id,
         numeroParcela,
+        compra.cartao_credito_id || null,
       )
       .run();
   }
@@ -113,8 +114,8 @@ export async function gerarLancamentosParceladosDoMes(env, carteiraIds, ano, mes
 
     await env.DB.prepare(
       `INSERT INTO lancamentos
-       (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, compra_parcelada_id, numero_parcela)
-       VALUES (?, ?, ?, ?, 'despesa', ?, ?, 'pendente', ?, ?, ?, ?)`,
+       (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, compra_parcelada_id, numero_parcela, cartao_credito_id)
+       VALUES (?, ?, ?, ?, 'despesa', ?, ?, 'pendente', ?, ?, ?, ?, ?)`,
     )
       .bind(
         descricaoComParcela,
@@ -127,6 +128,7 @@ export async function gerarLancamentosParceladosDoMes(env, carteiraIds, ano, mes
         compra.criado_por,
         compra.id,
         numeroParcela,
+        compra.cartao_credito_id || null,
       )
       .run();
   }

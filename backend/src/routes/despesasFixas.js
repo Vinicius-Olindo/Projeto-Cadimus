@@ -4,6 +4,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
+import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
 
 export async function processarDespesasFixas(request, env, ctx) {
   const metodo = request.method;
@@ -87,12 +88,20 @@ export async function processarDespesasFixas(request, env, ctx) {
       if (!dados.meio_pagamento) {
         return new Response(JSON.stringify({ erro: "Escolha um meio de pagamento." }), { status: 400 });
       }
+      let cartaoCreditoId = null;
+      if (deveVincularCartaoCredito({ ...dados, tipo }) && dados.cartao_credito_id) {
+        const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, dados.carteira_id);
+        if (cartaoValido === false) {
+          return new Response(JSON.stringify({ erro: "Cartão de crédito inválido para esta carteira." }), { status: 400 });
+        }
+        cartaoCreditoId = cartaoValido;
+      }
 
       const resultado = await env.DB.prepare(
-        `INSERT INTO despesas_fixas (carteira_id, descricao, valor, valor_centavos, tipo, categoria, meio_pagamento, dia_vencimento, criado_por)
-         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        `INSERT INTO despesas_fixas (carteira_id, descricao, valor, valor_centavos, tipo, categoria, meio_pagamento, dia_vencimento, criado_por, cartao_credito_id)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-        .bind(dados.carteira_id, descricao, valor, valorCentavos, tipo, dados.categoria, dados.meio_pagamento, diaVencimento, usuarioLogado.id)
+        .bind(dados.carteira_id, descricao, valor, valorCentavos, tipo, dados.categoria, dados.meio_pagamento, diaVencimento, usuarioLogado.id, cartaoCreditoId)
         .run();
 
       return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Despesa fixa cadastrada!" }), { status: 201 });
@@ -112,7 +121,7 @@ export async function processarDespesasFixas(request, env, ctx) {
         return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM despesas_fixas WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, tipo, meio_pagamento FROM despesas_fixas WHERE id = ?`).bind(id).all();
       if (alvo.length === 0) {
         return new Response(JSON.stringify({ erro: "Despesa fixa não encontrada." }), { status: 404 });
       }
@@ -163,6 +172,23 @@ export async function processarDespesasFixas(request, env, ctx) {
         campos.push("ativo = ?");
         valores.push(dados.ativo ? 1 : 0);
       }
+      if (dados.cartao_credito_id !== undefined || dados.meio_pagamento !== undefined || dados.tipo !== undefined) {
+        const dadosCartao = {
+          tipo: dados.tipo ?? alvo[0].tipo,
+          meio_pagamento: dados.meio_pagamento ?? alvo[0].meio_pagamento,
+          cartao_credito_id: dados.cartao_credito_id,
+        };
+        let cartaoCreditoId = null;
+        if (deveVincularCartaoCredito(dadosCartao) && dados.cartao_credito_id) {
+          const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, alvo[0].carteira_id);
+          if (cartaoValido === false) {
+            return new Response(JSON.stringify({ erro: "Cartão de crédito inválido para esta carteira." }), { status: 400 });
+          }
+          cartaoCreditoId = cartaoValido;
+        }
+        campos.push("cartao_credito_id = ?");
+        valores.push(cartaoCreditoId);
+      }
 
       if (campos.length === 0) {
         return new Response(JSON.stringify({ erro: "Nada para atualizar." }), { status: 400 });
@@ -172,6 +198,13 @@ export async function processarDespesasFixas(request, env, ctx) {
       await env.DB.prepare(`UPDATE despesas_fixas SET ${campos.join(", ")} WHERE id = ?`)
         .bind(...valores)
         .run();
+
+      if (campos.some((campo) => campo.startsWith("cartao_credito_id")) || dados.meio_pagamento !== undefined || dados.tipo !== undefined) {
+        const { results: atualizada } = await env.DB.prepare(`SELECT cartao_credito_id FROM despesas_fixas WHERE id = ?`).bind(id).all();
+        await env.DB.prepare(`UPDATE lancamentos SET cartao_credito_id = ? WHERE despesa_fixa_id = ?`)
+          .bind(atualizada[0]?.cartao_credito_id || null, id)
+          .run();
+      }
 
       return new Response(JSON.stringify({ mensagem: "Atualizado com sucesso." }), { status: 200 });
     } catch (erro) {

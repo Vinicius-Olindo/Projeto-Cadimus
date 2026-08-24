@@ -27,10 +27,40 @@ export async function processarCartoesCredito(request, env, ctx) {
     let query = `SELECT c.*,
       (SELECT COUNT(*) FROM compras_parceladas cp
        WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as parcelas_ativas,
-      (SELECT COALESCE(SUM(COALESCE(cp.valor_parcela_centavos, ROUND(cp.valor_parcela * 100))), 0) / 100.0 FROM compras_parceladas cp
-       WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as gasto_atual,
-      (SELECT COALESCE(SUM(COALESCE(cp.valor_parcela_centavos, ROUND(cp.valor_parcela * 100))), 0) FROM compras_parceladas cp
-       WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as gasto_atual_centavos
+      (
+        COALESCE((SELECT SUM(COALESCE(cp.valor_total_centavos, ROUND(COALESCE(cp.valor_total, cp.valor_parcela * cp.total_parcelas) * 100)))
+          FROM compras_parceladas cp
+          WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1), 0)
+        +
+        COALESCE((SELECT SUM(COALESCE(df.valor_centavos, ROUND(df.valor * 100)))
+          FROM despesas_fixas df
+          WHERE df.cartao_credito_id = c.id AND df.ativo = 1 AND df.tipo = 'despesa'), 0)
+        +
+        COALESCE((SELECT SUM(COALESCE(l.valor_centavos, ROUND(l.valor * 100)))
+          FROM lancamentos l
+          WHERE l.cartao_credito_id = c.id
+            AND l.tipo = 'despesa'
+            AND l.compra_parcelada_id IS NULL
+            AND l.despesa_fixa_id IS NULL
+            AND strftime('%Y-%m', l.data_compra) = strftime('%Y-%m', 'now')), 0)
+      ) / 100.0 as gasto_atual,
+      (
+        COALESCE((SELECT SUM(COALESCE(cp.valor_total_centavos, ROUND(COALESCE(cp.valor_total, cp.valor_parcela * cp.total_parcelas) * 100)))
+          FROM compras_parceladas cp
+          WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1), 0)
+        +
+        COALESCE((SELECT SUM(COALESCE(df.valor_centavos, ROUND(df.valor * 100)))
+          FROM despesas_fixas df
+          WHERE df.cartao_credito_id = c.id AND df.ativo = 1 AND df.tipo = 'despesa'), 0)
+        +
+        COALESCE((SELECT SUM(COALESCE(l.valor_centavos, ROUND(l.valor * 100)))
+          FROM lancamentos l
+          WHERE l.cartao_credito_id = c.id
+            AND l.tipo = 'despesa'
+            AND l.compra_parcelada_id IS NULL
+            AND l.despesa_fixa_id IS NULL
+            AND strftime('%Y-%m', l.data_compra) = strftime('%Y-%m', 'now')), 0)
+      ) as gasto_atual_centavos
       FROM cartoes_credito c
       WHERE c.ativo = 1`;
     const params = [];

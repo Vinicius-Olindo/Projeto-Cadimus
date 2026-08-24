@@ -20,7 +20,8 @@ async function abrirModalComprasParceladas() {
     return;
   }
 
-  popularSelectCategorias(document.getElementById("parcelada-categoria"));
+  await popularSelectCategorias(document.getElementById("parcelada-categoria"));
+  await popularSelectCartoesCredito?.(document.getElementById("parcelada-cartao-credito"), carteiraId);
 
   // Sugere o mês atual como padrão pra 1ª parcela
   const campoMesInicio = document.getElementById("parcelada-mes-inicio");
@@ -44,6 +45,12 @@ function configurarModalComprasParceladas() {
   const preview = document.getElementById("parcelada-preview");
 
   if (!modal || !btnFechar || !form) return;
+
+  configurarCampoCartaoCredito?.({
+    campoId: "campo-cartao-parcelada",
+    selectId: "parcelada-cartao-credito",
+    meioId: "parcelada-meio-pagamento",
+  });
 
   btnAbrirTopo?.addEventListener("click", abrirModalComprasParceladas);
   btnAbrirDoCard?.addEventListener("click", abrirModalComprasParceladas);
@@ -128,6 +135,7 @@ function configurarModalComprasParceladas() {
         mes_inicio: mesInicio,
         categoria: document.getElementById("parcelada-categoria").value,
         meio_pagamento: document.getElementById("parcelada-meio-pagamento").value,
+        cartao_credito_id: document.getElementById("parcelada-cartao-credito")?.value || null,
       };
 
       const resposta = await CadimusScheduledApi.criarParcelada(corpo);

@@ -8,6 +8,7 @@ import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
+import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
 
 function dataISOValida(valor) {
   return typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor);
@@ -191,11 +192,19 @@ export async function processarLancamentos(request, env, ctx) {
 
       const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
       const valor = centavosParaReais(valorCentavos);
+      let cartaoCreditoId = null;
+      if (deveVincularCartaoCredito(dados) && dados.cartao_credito_id) {
+        const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, dados.carteira_id);
+        if (cartaoValido === false) {
+          return new Response(JSON.stringify({ erro: "Cartão de crédito inválido para esta carteira." }), { status: 400 });
+        }
+        cartaoCreditoId = cartaoValido;
+      }
 
       const query = `
                 INSERT INTO lancamentos 
-                (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, nota)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, nota, cartao_credito_id)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
       const insertResult = await env.DB.prepare(query)
         .bind(
@@ -210,6 +219,7 @@ export async function processarLancamentos(request, env, ctx) {
           dados.carteira_id,
           usuarioLogado.id, // criado_por vem da sessão, nunca do corpo enviado pelo cliente
           dados.nota || "",
+          cartaoCreditoId,
         )
         .run();
 
@@ -242,7 +252,7 @@ export async function processarLancamentos(request, env, ctx) {
         return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, criado_por FROM lancamentos WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, criado_por, tipo, meio_pagamento FROM lancamentos WHERE id = ?`).bind(id).all();
       if (alvo.length === 0) {
         return new Response(JSON.stringify({ erro: "Lançamento não encontrado." }), { status: 404 });
       }
@@ -251,7 +261,7 @@ export async function processarLancamentos(request, env, ctx) {
       }
 
       const dados = await request.json();
-      const camposPermitidos = ["descricao", "valor", "valor_centavos", "data_compra", "tipo", "categoria", "meio_pagamento", "status", "nota"];
+      const camposPermitidos = ["descricao", "valor", "valor_centavos", "data_compra", "tipo", "categoria", "meio_pagamento", "status", "nota", "cartao_credito_id"];
       const camposEnviados = Object.keys(dados).filter((campo) => camposPermitidos.includes(campo));
 
       // Marcar pago/pendente é livre pra quem acessa a carteira. Editar os detalhes
@@ -274,8 +284,26 @@ export async function processarLancamentos(request, env, ctx) {
         valores.push(valorCentavos);
       }
 
+      if (dados.cartao_credito_id !== undefined || dados.meio_pagamento !== undefined || dados.tipo !== undefined) {
+        const dadosCartao = {
+          tipo: dados.tipo ?? alvo[0].tipo,
+          meio_pagamento: dados.meio_pagamento ?? alvo[0].meio_pagamento,
+          cartao_credito_id: dados.cartao_credito_id,
+        };
+        let cartaoCreditoId = null;
+        if (deveVincularCartaoCredito(dadosCartao) && dados.cartao_credito_id) {
+          const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, alvo[0].carteira_id);
+          if (cartaoValido === false) {
+            return new Response(JSON.stringify({ erro: "Cartão de crédito inválido para esta carteira." }), { status: 400 });
+          }
+          cartaoCreditoId = cartaoValido;
+        }
+        campos.push("cartao_credito_id = ?");
+        valores.push(cartaoCreditoId);
+      }
+
       for (const campo of camposEnviados) {
-        if (campo === "valor" || campo === "valor_centavos") continue;
+        if (campo === "valor" || campo === "valor_centavos" || campo === "cartao_credito_id") continue;
 
         if (campo === "status" && !["pago", "pendente"].includes(dados.status)) {
           return new Response(JSON.stringify({ erro: "Status inválido." }), { status: 400 });

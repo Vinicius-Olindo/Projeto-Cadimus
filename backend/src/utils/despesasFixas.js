@@ -42,10 +42,10 @@ export async function gerarLancamentosFixosDoMes(env, carteiraIds, ano, mes) {
     const valor = centavosParaReais(valorCentavos);
 
     await env.DB.prepare(
-      `INSERT INTO lancamentos (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, despesa_fixa_id)
-       VALUES (?, ?, ?, ?, ?, ?, ?, 'pendente', ?, ?, ?)`,
+      `INSERT INTO lancamentos (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, despesa_fixa_id, cartao_credito_id)
+       VALUES (?, ?, ?, ?, ?, ?, ?, 'pendente', ?, ?, ?, ?)`,
     )
-      .bind(fixa.descricao, valor, valorCentavos, dataCompra, fixa.tipo, fixa.categoria, fixa.meio_pagamento, fixa.carteira_id, fixa.criado_por, fixa.id)
+      .bind(fixa.descricao, valor, valorCentavos, dataCompra, fixa.tipo, fixa.categoria, fixa.meio_pagamento, fixa.carteira_id, fixa.criado_por, fixa.id, fixa.cartao_credito_id || null)
       .run();
   }
 }
