@@ -74,15 +74,14 @@ function criarLinhaLancamento(lancamento) {
        <button class="btn-excluir" data-action="apagar" data-id="${lancamento.id}" title="Apagar registro">${ICONE_LIXEIRA}</button>`
     : "";
 
-  // Nota truncada quando o lançamento tem observação
+  // Nota do lançamento: a lista mostra um chip curto e o clique abre a nota completa.
   const temNota = lancamento.nota && lancamento.nota.trim().length > 0;
   const notaCompleta = temNota ? lancamento.nota.trim() : "";
-  const truncada = notaCompleta.length > 90;
-  const notaTruncada = truncada ? notaCompleta.slice(0, 90).trim() + "..." : notaCompleta;
+  const notaResumo = notaCompleta.length > 42 ? `${notaCompleta.slice(0, 42).trim()}…` : notaCompleta;
   const notaHtml = temNota
-    ? `<button type="button" class="item-nota-texto item-nota-clique" data-nota="${escaparHtml(notaCompleta)}" data-descricao="${escaparHtml(lancamento.descricao)}" title="Clique para ver a nota completa">
-        <span class="item-nota-label">Nota</span>
-        <span class="item-nota-preview">${escaparHtml(notaTruncada)}</span>
+    ? `<button type="button" class="item-nota-texto item-nota-clique" data-nota="${escaparHtml(notaCompleta)}" data-descricao="${escaparHtml(lancamento.descricao)}" title="${escaparHtml(notaCompleta)}">
+        <span class="item-nota-label">Ver nota</span>
+        <span class="item-nota-preview">${escaparHtml(notaResumo)}</span>
       </button>`
     : "";
 
