@@ -51,7 +51,7 @@ export interface Carteira {
   id: Id;
   nome: string;
   tipo: TipoCarteira;
-  criado_por?: number | null;
+  criado_por?: Id | null;
   papel?: PapelCarteira;
   ordem?: number | null;
 }
@@ -73,11 +73,13 @@ export interface Lancamento {
   status: StatusLancamento;
   carteira_id: Id;
   criado_por: Id;
-  despesa_fixa_id?: number | null;
-  compra_parcelada_id?: number | null;
-  recorrencia_id?: number | null;
-  cartao_credito_id?: number | null;
+  despesa_fixa_id?: Id | null;
+  compra_parcelada_id?: Id | null;
+  recorrencia_id?: Id | null;
+  cartao_credito_id?: Id | null;
+  numero_parcela?: number | null;
   nota?: string | null;
+  criado_em?: string;
 }
 
 export type BandeiraCartao = "visa" | "mastercard" | "elo" | "amex" | "hipercard" | "outro";
@@ -94,6 +96,41 @@ export interface CartaoCredito {
   carteira_id: Id;
   criado_por?: Id | null;
   ativo?: AtivoBanco;
+}
+
+export interface DespesaFixa {
+  id: Id;
+  descricao: string;
+  valor?: number;
+  valor_centavos?: number | null;
+  tipo: TipoLancamento;
+  categoria: CategoriaFinanceira;
+  meio_pagamento: MeioPagamento;
+  dia_vencimento: number;
+  carteira_id: Id;
+  criado_por: Id;
+  criado_em?: string;
+  ativo?: AtivoBanco;
+  cartao_credito_id?: Id | null;
+}
+
+export interface CompraParcelada {
+  id: Id;
+  descricao: string;
+  total_parcelas: number;
+  valor_total?: number;
+  valor_total_centavos?: number | null;
+  valor_parcela?: number;
+  valor_parcela_centavos?: number | null;
+  dia_vencimento: number;
+  mes_inicio: number;
+  ano_inicio: number;
+  categoria: CategoriaFinanceira;
+  meio_pagamento: MeioPagamento;
+  carteira_id: Id;
+  criado_por: Id;
+  ativo?: AtivoBanco;
+  cartao_credito_id?: Id | null;
 }
 
 export type FrequenciaRecorrencia = "diaria" | "semanal" | "quinzenal" | "mensal" | "trimestral" | "anual";
@@ -114,6 +151,7 @@ export interface LancamentoRecorrente {
   data_fim?: string | null;
   criado_por: Id;
   ativo?: AtivoBanco;
+  criado_em?: string;
 }
 
 export type StatusNotificacao = "nao_lida" | "lida" | "arquivada";
@@ -140,3 +178,5 @@ export interface RespostaErro {
   codigo?: string;
   detalhes?: unknown;
 }
+
+export type RespostaErroApi = RespostaErro;

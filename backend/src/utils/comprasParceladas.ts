@@ -2,29 +2,8 @@
 // comprasParceladas.ts (utils) - Geração das parcelas
 // ==========================================
 
-import type { CadimusEnv, IdEntrada, MeioPagamento } from "../types.js";
+import type { CadimusEnv, CompraParcelada, IdEntrada } from "../types.js";
 import { centavosParaReais, reaisParaCentavos } from "./dinheiro.ts";
-
-/**
- * Compra parcelada como vem do banco ou dos testes.
- */
-export interface CompraParcelada {
-  id: number;
-  descricao: string;
-  total_parcelas: number;
-  valor_total?: number;
-  valor_total_centavos?: number | null;
-  valor_parcela?: number;
-  valor_parcela_centavos?: number | null;
-  dia_vencimento: number;
-  mes_inicio: number;
-  ano_inicio: number;
-  categoria: string;
-  meio_pagamento: MeioPagamento | string;
-  carteira_id: number;
-  criado_por: number;
-  cartao_credito_id?: number | null;
-}
 
 /**
  * Calcula a parcela em centavos preservando exatamente o total.

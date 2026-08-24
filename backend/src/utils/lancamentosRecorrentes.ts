@@ -2,28 +2,8 @@
 // lancamentosRecorrentes.ts (utils) - Geração automática de lançamentos recorrentes
 // ==========================================
 
-import type { CadimusEnv, FrequenciaRecorrencia, IdEntrada, MeioPagamento, TipoLancamento } from "../types.js";
+import type { CadimusEnv, IdEntrada, LancamentoRecorrente } from "../types.js";
 import { reaisParaCentavos, centavosParaReais } from "./dinheiro.ts";
-
-/**
- * Recorrência como vem do banco ou dos testes.
- */
-interface LancamentoRecorrenteRow {
-  id: number;
-  descricao: string;
-  valor: number;
-  valor_centavos?: number | null;
-  tipo: TipoLancamento | string;
-  categoria: string;
-  meio_pagamento: MeioPagamento | string;
-  frequencia: FrequenciaRecorrencia | string;
-  dia_semana?: number | null;
-  dia_mes?: number | null;
-  data_inicio: string;
-  data_fim?: string | null;
-  carteira_id: number;
-  criado_por: number;
-}
 
 function dataIso(ano: number, mes: number, dia: number): string {
   return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
@@ -39,7 +19,7 @@ function somarDias(dataStr: string, dias: number): string {
   return data.toISOString().slice(0, 10);
 }
 
-function ajustarInicioSemanal(rec: LancamentoRecorrenteRow): string {
+function ajustarInicioSemanal(rec: LancamentoRecorrente): string {
   const diaSemana = Number(rec.dia_semana);
   if (!Number.isInteger(diaSemana) || diaSemana < 0 || diaSemana > 6) return rec.data_inicio;
 
@@ -55,7 +35,7 @@ function diferencaMeses(inicio: string, anoAlvo: number, mesAlvo: number): numbe
   return (anoAlvo - anoInicio) * 12 + (mesAlvo - mesInicio);
 }
 
-function ocorrenciaMensal(rec: LancamentoRecorrenteRow, ano: number, mes: number, intervaloMeses: number): string[] {
+function ocorrenciaMensal(rec: LancamentoRecorrente, ano: number, mes: number, intervaloMeses: number): string[] {
   const diff = diferencaMeses(rec.data_inicio, ano, mes);
   if (diff < 0 || diff % intervaloMeses !== 0) return [];
 
@@ -70,7 +50,7 @@ function ocorrenciaMensal(rec: LancamentoRecorrenteRow, ano: number, mes: number
 }
 
 function ocorrenciasPorIntervaloDeDias(
-  rec: LancamentoRecorrenteRow,
+  rec: LancamentoRecorrente,
   ano: number,
   mes: number,
   intervaloDias: number,
@@ -91,7 +71,7 @@ function ocorrenciasPorIntervaloDeDias(
   return ocorrencias;
 }
 
-function obterOcorrenciasDoMes(rec: LancamentoRecorrenteRow, ano: number, mes: number): string[] {
+function obterOcorrenciasDoMes(rec: LancamentoRecorrente, ano: number, mes: number): string[] {
   if (rec.data_inicio > dataIso(ano, mes, ultimoDiaDoMes(ano, mes))) return [];
   if (rec.data_fim && rec.data_fim < dataIso(ano, mes, 1)) return [];
 
@@ -126,7 +106,7 @@ export async function gerarLancamentosRecorrentesDoMes(env: CadimusEnv, carteira
     `SELECT * FROM lancamentos_recorrentes WHERE ativo = 1 AND carteira_id IN (${carteiraIds.map(() => "?").join(",")})`,
   )
     .bind(...carteiraIds)
-    .all<LancamentoRecorrenteRow>();
+    .all<LancamentoRecorrente>();
 
   if (recorrentes.length === 0) return;
 

@@ -2,32 +2,13 @@
 // despesasFixas.ts (utils) - Geração automática de lançamentos recorrentes
 // ==========================================
 
-import type { CadimusEnv, IdEntrada, MeioPagamento, TipoLancamento } from "../types.js";
+import type { CadimusEnv, DespesaFixa, IdEntrada } from "../types.js";
 import { centavosParaReais, reaisParaCentavos } from "./dinheiro.ts";
 
 /**
  * Para cada despesa fixa ativa nas carteiras informadas, garante que exista
  * um lançamento para o mês/ano pedido. Não duplica (verifica por despesa_fixa_id)
  * e nunca gera lançamento pra um mês que ainda não começou.
- */
-interface DespesaFixa {
-  id: number;
-  descricao: string;
-  valor: number;
-  valor_centavos?: number | null;
-  tipo: TipoLancamento | string;
-  categoria: string;
-  meio_pagamento: MeioPagamento | string;
-  dia_vencimento: number;
-  carteira_id: number;
-  criado_por: number;
-  criado_em: string;
-  cartao_credito_id?: number | null;
-}
-
-/**
- * Garante os lançamentos mensais das despesas fixas ativas para as carteiras
- * informadas, sem duplicar lançamentos já existentes.
  */
 export async function gerarLancamentosFixosDoMes(env: CadimusEnv, carteiraIds: IdEntrada[], ano: IdEntrada, mes: IdEntrada): Promise<void> {
   const anoNum = Number(ano);
@@ -46,7 +27,7 @@ export async function gerarLancamentosFixosDoMes(env: CadimusEnv, carteiraIds: I
 
   for (const despesaFixa of fixas) {
     // Nunca gera retroativo: se a regra foi criada em agosto, não pode aparecer em julho
-    const mesCriacao = String(despesaFixa.criado_em).slice(0, 7);
+    const mesCriacao = String(despesaFixa.criado_em || "").slice(0, 7);
     if (chaveMes < mesCriacao) continue;
 
     const { results: existente } = await env.DB.prepare(`SELECT id FROM lancamentos WHERE despesa_fixa_id = ? AND strftime('%Y-%m', data_compra) = ?`)

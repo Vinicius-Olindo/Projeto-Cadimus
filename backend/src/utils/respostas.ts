@@ -2,7 +2,7 @@
 // respostas.ts - Respostas JSON padronizadas para rotas
 // ==========================================
 
-import type { RespostaErro } from "../types.js";
+import type { RespostaErroApi } from "../types.js";
 
 export function json(dados: unknown, status = 200): Response {
   return new Response(JSON.stringify(dados), {
@@ -12,7 +12,7 @@ export function json(dados: unknown, status = 200): Response {
 }
 
 export function erroCliente(mensagem: string, status = 400, codigo = "erro_validacao"): Response {
-  return json({ erro: mensagem, codigo } satisfies RespostaErro, status);
+  return json({ erro: mensagem, codigo } satisfies RespostaErroApi, status);
 }
 
 /**
@@ -21,5 +21,5 @@ export function erroCliente(mensagem: string, status = 400, codigo = "erro_valid
  */
 export function erroInterno(erro: unknown, contexto: string, mensagem: string, codigo = "erro_interno"): Response {
   console.error(`[${contexto}]`, erro);
-  return json({ erro: mensagem, codigo } satisfies RespostaErro, 500);
+  return json({ erro: mensagem, codigo } satisfies RespostaErroApi, 500);
 }
