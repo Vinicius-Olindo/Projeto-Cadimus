@@ -127,6 +127,7 @@ async function carregarLancamentos() {
       carregarTendencia();
       carregarComparativo6Meses();
       document.getElementById("card-poupanca").style.display = "none";
+      document.getElementById("card-guarda").style.display = "none";
       return;
     }
 
@@ -204,7 +205,14 @@ async function carregarLancamentos() {
     carregarTendencia();
     carregarComparativo6Meses();
     calcularTaxaPoupanca(totalReceitas, totalDespesas);
-    calcularCapacidadeGuarda();
+    calcularCapacidadeGuarda({
+      saldoCalculado,
+      totalPendente,
+      totalReceitas,
+      totalDespesas,
+      totalTransferenciasEntrada,
+      totalTransferenciasSaida,
+    });
     calcularScoreSaude(totalReceitas, totalDespesas, totaisPorCategoria);
     carregarCartoesCredito();
   } catch (erro) {

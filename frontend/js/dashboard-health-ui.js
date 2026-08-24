@@ -36,44 +36,45 @@ function calcularTaxaPoupanca(totalReceitas, totalDespesas) {
 }
 
 // --- CAPACIDADE DE GUARDA ---
-function calcularCapacidadeGuarda() {
+function calcularCapacidadeGuarda(resumoPeriodo = {}) {
   const card = document.getElementById("card-guarda");
   const valorEl = document.getElementById("valor-guarda");
   const descEl = document.getElementById("guarda-desc");
   if (!card || !valorEl || !descEl) return;
 
-  const usuario = obterUsuarioLogado();
-  const salario = usuario.salario || 0;
+  const {
+    saldoCalculado = 0,
+    totalPendente = 0,
+    totalReceitas = 0,
+    totalDespesas = 0,
+    totalTransferenciasEntrada = 0,
+    totalTransferenciasSaida = 0,
+  } = resumoPeriodo;
 
-  if (salario <= 0) {
+  const temMovimentoNoPeriodo = [
+    totalReceitas,
+    totalDespesas,
+    totalPendente,
+    totalTransferenciasEntrada,
+    totalTransferenciasSaida,
+  ].some((valor) => Math.abs(Number(valor) || 0) > 0);
+
+  if (!temMovimentoNoPeriodo) {
     card.style.display = "none";
     return;
   }
 
-  let totalFixas = 0;
-  let totalParcelas = 0;
-
-  if (typeof despesasFixasCarregadas !== "undefined") {
-    despesasFixasCarregadas.forEach((f) => {
-      if (f.ativo) totalFixas += valorMonetario(f);
-    });
-  }
-
-  if (typeof comprasParceladasCarregadas !== "undefined") {
-    comprasParceladasCarregadas.forEach((c) => {
-      if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela");
-    });
-  }
-
-  const guards = salario - totalFixas - totalParcelas;
-  const guardaMensal = Math.max(0, guards);
+  const capacidade = saldoCalculado - totalPendente;
+  const guardaMensal = Math.max(0, capacidade);
 
   card.style.display = "flex";
   valorEl.textContent = formatadorBRL.format(guardaMensal);
-  valorEl.style.color = guards >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)";
+  valorEl.style.color = capacidade >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)";
 
-  if (guards <= 0) {
-    descEl.textContent = "Suas fixas e parcelas consomem todo o salário.";
+  if (capacidade < 0) {
+    descEl.textContent = `Faltam ${formatadorBRL.format(Math.abs(capacidade))} para equilibrar o período.`;
+  } else if (capacidade === 0) {
+    descEl.textContent = "Sem sobra prevista neste período.";
   } else {
     const guardaSemanal = Math.round(guardaMensal / 4);
     descEl.textContent = `Dá pra guardar ~${formatadorBRL.format(guardaSemanal)}/semana.`;
