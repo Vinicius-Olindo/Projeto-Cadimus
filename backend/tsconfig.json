@@ -14,6 +14,7 @@
     "src/utils/auditoria.js",
     "src/utils/crypto.js",
     "src/utils/dinheiro.js",
+    "src/utils/email.js",
     "src/utils/cartoesCredito.js",
     "src/utils/carteiras.js",
     "src/utils/comprasParceladas.js",

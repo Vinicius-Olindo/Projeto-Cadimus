@@ -13,6 +13,36 @@
 //      pra montar o link que vai dentro do e-mail
 // ==========================================
 
+// @ts-check
+
+/**
+ * Ambiente mínimo usado para envio de e-mail.
+ * @typedef {object} EnvEmail
+ * @property {string} [RESEND_API_KEY]
+ * @property {string} [EMAIL_REMETENTE]
+ */
+
+/**
+ * Payload transacional enviado pela aplicação.
+ * @typedef {object} EmailTransacional
+ * @property {string} para
+ * @property {string} assunto
+ * @property {string} html
+ */
+
+/**
+ * Resultado padronizado do envio.
+ * @typedef {{ ok: true } | { ok: false, motivo: "email_nao_configurado" | "falha_no_envio" }} ResultadoEnvioEmail
+ */
+
+/**
+ * Envia e-mail transacional via Resend sem derrubar o fluxo principal quando
+ * a chave ainda não foi configurada ou o provedor falha.
+ *
+ * @param {EnvEmail} env
+ * @param {EmailTransacional} email
+ * @returns {Promise<ResultadoEnvioEmail>}
+ */
 export async function enviarEmail(env, { para, assunto, html }) {
   if (!env.RESEND_API_KEY) {
     // Sem chave configurada ainda: não derruba a aplicação, só avisa no log
@@ -45,6 +75,10 @@ export async function enviarEmail(env, { para, assunto, html }) {
   return { ok: true };
 }
 
+/**
+ * @param {string} link
+ * @returns {string}
+ */
 export function templateRecuperacaoSenha(link) {
   return `
     <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
