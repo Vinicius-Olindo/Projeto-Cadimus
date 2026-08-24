@@ -9,7 +9,7 @@ import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrente
 import { registrarAuditoria } from "../utils/auditoria.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
-import { erroCliente, erroInterno } from "../utils/respostas.ts";
+import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 /** @param {unknown} valor */
 function dataISOValida(valor) {
@@ -77,11 +77,11 @@ export async function processarLancamentos(request, env, ctx) {
       const status = url.searchParams.get("status");
 
       if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       if (carteirasPermitidas.length === 0) {
-        return new Response(JSON.stringify([]), { status: 200 });
+        return json([]);
       }
 
       const despesaFixaId = url.searchParams.get("despesa_fixa_id");
@@ -172,7 +172,7 @@ export async function processarLancamentos(request, env, ctx) {
       const { results } = await env.DB.prepare(query)
         .bind(...params)
         .all();
-      return new Response(JSON.stringify(results), { status: 200 });
+      return json(results);
     } catch (erro) {
       return erroInterno(erro, "lancamentos.listar", "Não foi possível carregar os lançamentos agora.", "lancamentos_listar_falhou");
     }
@@ -186,7 +186,7 @@ export async function processarLancamentos(request, env, ctx) {
       const dados = await request.json();
 
       if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       // Valida que a categoria existe na tabela de categorias.
@@ -198,7 +198,7 @@ export async function processarLancamentos(request, env, ctx) {
           `SELECT id FROM categorias WHERE LOWER(nome) = LOWER(?)`
         ).bind(dados.categoria).all();
         if (catValida.length === 0) {
-          return new Response(JSON.stringify({ erro: "Categoria inválida. Escolha uma categoria existente ou cadastre uma nova antes de salvar." }), { status: 400 });
+          return erroCliente("Categoria inválida. Escolha uma categoria existente ou cadastre uma nova antes de salvar.", 400, "categoria_invalida");
         }
       }
 
@@ -208,7 +208,7 @@ export async function processarLancamentos(request, env, ctx) {
       if (deveVincularCartaoCredito(dados) && dados.cartao_credito_id) {
         const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, dados.carteira_id);
         if (cartaoValido === false) {
-          return new Response(JSON.stringify({ erro: "Cartão de crédito inválido para esta carteira." }), { status: 400 });
+          return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
         }
         cartaoCreditoId = cartaoValido;
       }
@@ -248,7 +248,7 @@ export async function processarLancamentos(request, env, ctx) {
         },
       });
 
-      return new Response(JSON.stringify({ mensagem: "Salvo com sucesso!" }), { status: 201 });
+      return json({ mensagem: "Salvo com sucesso!" }, 201);
     } catch (erro) {
       return erroInterno(erro, "lancamentos.criar", "Não foi possível salvar este lançamento agora.", "lancamento_salvar_falhou");
     }
@@ -261,15 +261,15 @@ export async function processarLancamentos(request, env, ctx) {
     try {
       const id = url.searchParams.get("id");
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
       const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, criado_por, tipo, meio_pagamento FROM lancamentos WHERE id = ?`).bind(id).all();
       if (alvo.length === 0) {
-        return new Response(JSON.stringify({ erro: "Lançamento não encontrado." }), { status: 404 });
+        return erroCliente("Lançamento não encontrado.", 404, "lancamento_nao_encontrado");
       }
       if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       const dados = await request.json();
@@ -282,7 +282,7 @@ export async function processarLancamentos(request, env, ctx) {
       const podeEditarDetalhes = alvo[0].criado_por === usuarioLogado.id || usuarioLogado.perfil === "superadmin";
 
       if (!apenasAlternandoStatus && !podeEditarDetalhes) {
-        return new Response(JSON.stringify({ erro: "Só quem lançou (ou um administrador) pode editar os detalhes deste registro." }), { status: 403 });
+        return erroCliente("Só quem lançou (ou um administrador) pode editar os detalhes deste registro.", 403, "lancamento_edicao_negada");
       }
 
       const campos = [];
@@ -306,7 +306,7 @@ export async function processarLancamentos(request, env, ctx) {
         if (deveVincularCartaoCredito(dadosCartao) && dados.cartao_credito_id) {
           const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, alvo[0].carteira_id);
           if (cartaoValido === false) {
-            return new Response(JSON.stringify({ erro: "Cartão de crédito inválido para esta carteira." }), { status: 400 });
+            return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
           }
           cartaoCreditoId = cartaoValido;
         }
@@ -318,17 +318,17 @@ export async function processarLancamentos(request, env, ctx) {
         if (campo === "valor" || campo === "valor_centavos" || campo === "cartao_credito_id") continue;
 
         if (campo === "status" && !["pago", "pendente"].includes(dados.status)) {
-          return new Response(JSON.stringify({ erro: "Status inválido." }), { status: 400 });
+          return erroCliente("Status inválido.", 400, "status_invalido");
         }
         if (campo === "tipo" && !["despesa", "receita"].includes(dados.tipo)) {
-          return new Response(JSON.stringify({ erro: "Tipo inválido." }), { status: 400 });
+          return erroCliente("Tipo inválido.", 400, "tipo_invalido");
         }
         if (campo === "categoria") {
           const { results: catValida } = await env.DB.prepare(
             `SELECT id FROM categorias WHERE LOWER(nome) = LOWER(?)`
           ).bind(dados.categoria).all();
           if (catValida.length === 0) {
-            return new Response(JSON.stringify({ erro: "Categoria inválida. Escolha uma categoria existente ou cadastre uma nova antes de salvar." }), { status: 400 });
+            return erroCliente("Categoria inválida. Escolha uma categoria existente ou cadastre uma nova antes de salvar.", 400, "categoria_invalida");
           }
         }
 
@@ -337,7 +337,7 @@ export async function processarLancamentos(request, env, ctx) {
       }
 
       if (campos.length === 0) {
-        return new Response(JSON.stringify({ erro: "Nada para atualizar." }), { status: 400 });
+        return erroCliente("Nada para atualizar.", 400, "sem_campos_para_atualizar");
       }
 
       valores.push(id);
@@ -356,7 +356,7 @@ export async function processarLancamentos(request, env, ctx) {
         },
       });
 
-      return new Response(JSON.stringify({ mensagem: "Atualizado com sucesso." }), { status: 200 });
+      return json({ mensagem: "Atualizado com sucesso." });
     } catch (erro) {
       return erroInterno(erro, "lancamentos.atualizar", "Não foi possível atualizar este lançamento agora.", "lancamento_atualizar_falhou");
     }
@@ -370,19 +370,19 @@ export async function processarLancamentos(request, env, ctx) {
       const idParaApagar = url.searchParams.get("id");
 
       if (!idParaApagar) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
       const { results } = await env.DB.prepare(`SELECT carteira_id, criado_por FROM lancamentos WHERE id = ?`).bind(idParaApagar).all();
 
       if (results.length === 0) {
-        return new Response(JSON.stringify({ erro: "Lançamento não encontrado." }), { status: 404 });
+        return erroCliente("Lançamento não encontrado.", 404, "lancamento_nao_encontrado");
       }
       if (!carteirasPermitidas.includes(results[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
       if (results[0].criado_por !== usuarioLogado.id && usuarioLogado.perfil !== "superadmin") {
-        return new Response(JSON.stringify({ erro: "Só quem lançou (ou um administrador) pode excluir este registro." }), { status: 403 });
+        return erroCliente("Só quem lançou (ou um administrador) pode excluir este registro.", 403, "lancamento_exclusao_negada");
       }
 
       await env.DB.prepare(`DELETE FROM lancamentos WHERE id = ?`).bind(idParaApagar).run();
@@ -395,7 +395,7 @@ export async function processarLancamentos(request, env, ctx) {
         carteiraId: results[0].carteira_id,
       });
 
-      return new Response(JSON.stringify({ mensagem: "Lançamento apagado." }), { status: 200 });
+      return json({ mensagem: "Lançamento apagado." });
     } catch (erro) {
       return erroInterno(erro, "lancamentos.excluir", "Não foi possível apagar este lançamento agora.", "lancamento_excluir_falhou");
     }
@@ -410,15 +410,15 @@ export async function processarLancamentos(request, env, ctx) {
       const { ids, status, categoria } = dados;
 
       if (!ids || !Array.isArray(ids) || ids.length === 0) {
-        return new Response(JSON.stringify({ erro: "Nenhum ID fornecido." }), { status: 400 });
+        return erroCliente("Nenhum ID fornecido.", 400, "ids_obrigatorios");
       }
 
       if (ids.length > 50) {
-        return new Response(JSON.stringify({ erro: "Máximo de 50 lançamentos por vez." }), { status: 400 });
+        return erroCliente("Máximo de 50 lançamentos por vez.", 400, "lote_limite_excedido");
       }
 
       if (status && !["pago", "pendente"].includes(status)) {
-        return new Response(JSON.stringify({ erro: "Status inválido." }), { status: 400 });
+        return erroCliente("Status inválido.", 400, "status_invalido");
       }
 
       if (categoria) {
@@ -426,7 +426,7 @@ export async function processarLancamentos(request, env, ctx) {
           `SELECT id FROM categorias WHERE LOWER(nome) = LOWER(?)`
         ).bind(categoria).all();
         if (catValida.length === 0) {
-          return new Response(JSON.stringify({ erro: "Categoria inválida." }), { status: 400 });
+          return erroCliente("Categoria inválida.", 400, "categoria_invalida");
         }
       }
 
@@ -440,12 +440,12 @@ export async function processarLancamentos(request, env, ctx) {
         (a) => a.criado_por !== usuarioLogado.id && usuarioLogado.perfil !== "superadmin"
       );
       if (semPermissao.length > 0) {
-        return new Response(JSON.stringify({ erro: "Sem permissão para editar alguns lançamentos." }), { status: 403 });
+        return erroCliente("Sem permissão para editar alguns lançamentos.", 403, "lote_edicao_negada");
       }
 
       const foraDaCarteira = /** @type {any[]} */ (alvos).filter((a) => !carteirasPermitidas.includes(a.carteira_id));
       if (foraDaCarteira.length > 0) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a alguns lançamentos." }), { status: 403 });
+        return erroCliente("Acesso negado a alguns lançamentos.", 403, "lote_acesso_negado");
       }
 
       let atualizados = 0;
@@ -483,7 +483,7 @@ export async function processarLancamentos(request, env, ctx) {
         });
       }
 
-      return new Response(JSON.stringify({ mensagem: `${atualizados} lançamento(s) atualizado(s).` }), { status: 200 });
+      return json({ mensagem: `${atualizados} lançamento(s) atualizado(s).` });
     } catch (erro) {
       return erroInterno(erro, "lancamentos.lote", "Não foi possível atualizar os lançamentos selecionados agora.", "lancamentos_lote_falhou");
     }

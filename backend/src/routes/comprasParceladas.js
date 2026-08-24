@@ -6,7 +6,7 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
-import { erroCliente, erroInterno } from "../utils/respostas.ts";
+import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 /**
  * @param {Request} request
@@ -32,10 +32,10 @@ export async function processarComprasParceladas(request, env, ctx) {
       const carteiraId = url.searchParams.get("carteira_id");
 
       if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
       if (carteirasPermitidas.length === 0) {
-        return new Response(JSON.stringify([]), { status: 200 });
+        return json([]);
       }
 
       let query = `SELECT * FROM compras_parceladas WHERE 1=1`;
@@ -54,7 +54,7 @@ export async function processarComprasParceladas(request, env, ctx) {
       const { results } = await env.DB.prepare(query)
         .bind(...params)
         .all();
-      return new Response(JSON.stringify(results), { status: 200 });
+      return json(results);
     } catch (erro) {
       return erroInterno(erro, "comprasParceladas.listar", "Não foi possível carregar as compras parceladas agora.", "parceladas_listar_falhou");
     }
@@ -68,7 +68,7 @@ export async function processarComprasParceladas(request, env, ctx) {
       const dados = await request.json();
 
       if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       const descricao = (dados.descricao || "").trim();
@@ -82,7 +82,7 @@ export async function processarComprasParceladas(request, env, ctx) {
         dados.valor_parcela === undefined &&
         dados.valor_parcela_centavos === undefined
       ) {
-        return new Response(JSON.stringify({ erro: "Informe o valor total da compra." }), { status: 400 });
+        return erroCliente("Informe o valor total da compra.", 400, "valor_total_obrigatorio");
       }
 
       const valorTotalCentavos = dados.valor_total !== undefined || dados.valor_total_centavos !== undefined
@@ -95,37 +95,37 @@ export async function processarComprasParceladas(request, env, ctx) {
       const valorParcela = centavosParaReais(valorParcelaCentavos);
 
       if (!descricao) {
-        return new Response(JSON.stringify({ erro: "Informe uma descrição." }), { status: 400 });
+        return erroCliente("Informe uma descrição.", 400, "descricao_obrigatoria");
       }
       if (valorTotalCentavos <= 0) {
-        return new Response(JSON.stringify({ erro: "Informe o valor total da compra." }), { status: 400 });
+        return erroCliente("Informe o valor total da compra.", 400, "valor_total_invalido");
       }
       if (valorParcelaCentavos <= 0) {
-        return new Response(JSON.stringify({ erro: "Valor de parcela inválido." }), { status: 400 });
+        return erroCliente("Valor de parcela inválido.", 400, "valor_parcela_invalido");
       }
       if (!Number.isInteger(diaVencimento) || diaVencimento < 1 || diaVencimento > 28) {
-        return new Response(JSON.stringify({ erro: "Escolha um dia de vencimento entre 1 e 28." }), { status: 400 });
+        return erroCliente("Escolha um dia de vencimento entre 1 e 28.", 400, "dia_vencimento_invalido");
       }
       if (!Number.isInteger(totalParcelas) || totalParcelas < 2) {
-        return new Response(JSON.stringify({ erro: "Uma compra parcelada precisa de pelo menos 2 parcelas (pra 1x, lance como despesa comum)." }), { status: 400 });
+        return erroCliente("Uma compra parcelada precisa de pelo menos 2 parcelas (pra 1x, lance como despesa comum).", 400, "total_parcelas_invalido");
       }
       if (totalParcelas > 60) {
-        return new Response(JSON.stringify({ erro: "Máximo de 60 parcelas." }), { status: 400 });
+        return erroCliente("Máximo de 60 parcelas.", 400, "total_parcelas_limite");
       }
       if (!Number.isInteger(anoInicio) || !Number.isInteger(mesInicio) || mesInicio < 1 || mesInicio > 12) {
-        return new Response(JSON.stringify({ erro: "Informe o mês da primeira parcela." }), { status: 400 });
+        return erroCliente("Informe o mês da primeira parcela.", 400, "periodo_inicio_invalido");
       }
       if (!dados.categoria) {
-        return new Response(JSON.stringify({ erro: "Escolha uma categoria." }), { status: 400 });
+        return erroCliente("Escolha uma categoria.", 400, "categoria_obrigatoria");
       }
       if (!dados.meio_pagamento) {
-        return new Response(JSON.stringify({ erro: "Escolha um meio de pagamento." }), { status: 400 });
+        return erroCliente("Escolha um meio de pagamento.", 400, "meio_pagamento_obrigatorio");
       }
       let cartaoCreditoId = null;
       if (String(dados.meio_pagamento).toLowerCase() === "credito" && dados.cartao_credito_id) {
         const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, dados.carteira_id);
         if (cartaoValido === false) {
-          return new Response(JSON.stringify({ erro: "Cartão de crédito inválido para esta carteira." }), { status: 400 });
+          return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
         }
         cartaoCreditoId = cartaoValido;
         const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all();
@@ -149,7 +149,7 @@ export async function processarComprasParceladas(request, env, ctx) {
       // despesa fixa, aqui já sabemos exatamente quando tudo termina desde o cadastro
       await gerarTodasParcelasDaCompra(env, compraParceladaId);
 
-      return new Response(JSON.stringify({ id: compraParceladaId, mensagem: "Compra parcelada cadastrada!" }), { status: 201 });
+      return json({ id: compraParceladaId, mensagem: "Compra parcelada cadastrada!" }, 201);
     } catch (erro) {
       return erroInterno(erro, "comprasParceladas.criar", "Não foi possível cadastrar a compra parcelada agora.", "parcelada_criar_falhou");
     }
@@ -162,15 +162,15 @@ export async function processarComprasParceladas(request, env, ctx) {
     try {
       const id = url.searchParams.get("id");
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
       const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, meio_pagamento FROM compras_parceladas WHERE id = ?`).bind(id).all();
       if (alvo.length === 0) {
-        return new Response(JSON.stringify({ erro: "Compra parcelada não encontrada." }), { status: 404 });
+        return erroCliente("Compra parcelada não encontrada.", 404, "parcelada_nao_encontrada");
       }
       if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       const dados = await request.json();
@@ -185,7 +185,7 @@ export async function processarComprasParceladas(request, env, ctx) {
         const valorParcelaCentavos = normalizarCentavos(dados.valor_parcela, dados.valor_parcela_centavos);
         const valor = centavosParaReais(valorParcelaCentavos);
         if (valorParcelaCentavos <= 0) {
-          return new Response(JSON.stringify({ erro: "Informe o valor da parcela." }), { status: 400 });
+          return erroCliente("Informe o valor da parcela.", 400, "valor_parcela_invalido");
         }
         campos.push("valor_parcela = ?");
         valores.push(valor);
@@ -195,7 +195,7 @@ export async function processarComprasParceladas(request, env, ctx) {
       if (dados.valor_total !== undefined || dados.valor_total_centavos !== undefined) {
         const valorTotalCentavos = normalizarCentavos(dados.valor_total, dados.valor_total_centavos);
         if (valorTotalCentavos <= 0) {
-          return new Response(JSON.stringify({ erro: "Informe o valor total da compra." }), { status: 400 });
+          return erroCliente("Informe o valor total da compra.", 400, "valor_total_invalido");
         }
         campos.push("valor_total = ?");
         valores.push(centavosParaReais(valorTotalCentavos));
@@ -213,7 +213,7 @@ export async function processarComprasParceladas(request, env, ctx) {
       if (dados.dia_vencimento !== undefined) {
         const dia = parseInt(dados.dia_vencimento, 10);
         if (!Number.isInteger(dia) || dia < 1 || dia > 28) {
-          return new Response(JSON.stringify({ erro: "Escolha um dia de vencimento entre 1 e 28." }), { status: 400 });
+          return erroCliente("Escolha um dia de vencimento entre 1 e 28.", 400, "dia_vencimento_invalido");
         }
         campos.push("dia_vencimento = ?");
         valores.push(dia);
@@ -228,7 +228,7 @@ export async function processarComprasParceladas(request, env, ctx) {
         if (String(meioPagamento).toLowerCase() === "credito" && dados.cartao_credito_id) {
           const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, alvo[0].carteira_id);
           if (cartaoValido === false) {
-            return new Response(JSON.stringify({ erro: "Cartão de crédito inválido para esta carteira." }), { status: 400 });
+            return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
           }
           cartaoCreditoId = cartaoValido;
           const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all();
@@ -245,7 +245,7 @@ export async function processarComprasParceladas(request, env, ctx) {
       }
 
       if (campos.length === 0) {
-        return new Response(JSON.stringify({ erro: "Nada para atualizar." }), { status: 400 });
+        return erroCliente("Nada para atualizar.", 400, "sem_campos_para_atualizar");
       }
 
       valores.push(id);
@@ -260,7 +260,7 @@ export async function processarComprasParceladas(request, env, ctx) {
           .run();
       }
 
-      return new Response(JSON.stringify({ mensagem: "Atualizado com sucesso." }), { status: 200 });
+      return json({ mensagem: "Atualizado com sucesso." });
     } catch (erro) {
       return erroInterno(erro, "comprasParceladas.atualizar", "Não foi possível atualizar esta compra parcelada agora.", "parcelada_atualizar_falhou");
     }
@@ -273,15 +273,15 @@ export async function processarComprasParceladas(request, env, ctx) {
     try {
       const id = url.searchParams.get("id");
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
       const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM compras_parceladas WHERE id = ?`).bind(id).all();
       if (alvo.length === 0) {
-        return new Response(JSON.stringify({ erro: "Compra parcelada não encontrada." }), { status: 404 });
+        return erroCliente("Compra parcelada não encontrada.", 404, "parcelada_nao_encontrada");
       }
       if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       // Desvincula as parcelas já geradas antes de excluir a regra (evita violar a chave estrangeira)
@@ -289,7 +289,7 @@ export async function processarComprasParceladas(request, env, ctx) {
 
       await env.DB.prepare(`DELETE FROM compras_parceladas WHERE id = ?`).bind(id).run();
 
-      return new Response(JSON.stringify({ mensagem: "Compra parcelada excluída." }), { status: 200 });
+      return json({ mensagem: "Compra parcelada excluída." });
     } catch (erro) {
       return erroInterno(erro, "comprasParceladas.excluir", "Não foi possível excluir esta compra parcelada agora.", "parcelada_excluir_falhou");
     }
