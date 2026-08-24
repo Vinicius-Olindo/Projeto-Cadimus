@@ -2309,12 +2309,47 @@ button:active {
   border-bottom: none;
 }
 
+.grupo-data-header-principal {
+  margin-top: 8px;
+  padding: 12px 10px 6px;
+}
+
+.grupo-data-identidade {
+  display: flex;
+  align-items: baseline;
+  gap: 8px;
+  min-width: 0;
+}
+
 .grupo-data-texto {
   font-size: 0.75rem;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--cor-texto-suave);
+}
+
+.grupo-data-subtitulo {
+  font-size: 0.68rem;
+  color: var(--cor-texto-suave);
+  opacity: 0.78;
+}
+
+.grupo-data-subheader {
+  margin: 4px 6px 2px 44px;
+  padding: 6px 8px 4px;
+  border-left: 2px solid color-mix(in srgb, var(--cor-marca) 32%, transparent);
+}
+
+.grupo-data-subheader .grupo-data-texto {
+  font-size: 0.68rem;
+  letter-spacing: 0.35px;
+  color: color-mix(in srgb, var(--cor-texto) 78%, var(--cor-texto-suave));
+}
+
+.grupo-data-subheader .grupo-data-qtd {
+  font-size: 0.64rem;
+  padding: 1px 7px;
 }
 
 .grupo-data-direita {
