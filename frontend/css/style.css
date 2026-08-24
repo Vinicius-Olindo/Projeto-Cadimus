@@ -5262,6 +5262,90 @@ textarea::placeholder {
   gap: 1rem;
 }
 
+.plano-overview {
+  width: min(100% - 48px, 1120px);
+  margin: 14px auto 0;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 9%, transparent), transparent 48%),
+    var(--cor-fundo-card);
+  box-shadow: var(--sombra-card);
+}
+
+.plano-overview-texto {
+  min-width: 0;
+}
+
+.plano-eyebrow {
+  display: inline-flex;
+  margin-bottom: 6px;
+  color: var(--cor-marca);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.plano-overview h3 {
+  margin: 0;
+  color: var(--cor-texto);
+  font-size: 1.1rem;
+}
+
+.plano-overview p {
+  max-width: 620px;
+  margin: 6px 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.plano-overview-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(112px, 1fr));
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.plano-overview-kpis div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-superficie) 74%, transparent);
+}
+
+.plano-overview-kpis span {
+  display: block;
+  color: var(--cor-texto-suave);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plano-overview-kpis strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.plano-overview-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
 .plano-card-salario {
   display: flex;
   flex-direction: column;
@@ -5459,21 +5543,27 @@ textarea::placeholder {
 .plano-tabs {
   display: flex;
   gap: 0;
-  padding: 0 1.5rem;
+  width: min(100% - 48px, 1120px);
+  margin: 14px auto 0;
+  padding: 4px;
   background: var(--cor-fundo);
-  border-bottom: 1px solid var(--cor-pauta-forte);
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 999px;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .plano-tab {
-  padding: 0.75rem 1.25rem;
+  padding: 0.65rem 1rem;
   font-size: 0.85rem;
   font-weight: 500;
   color: var(--cor-texto-suave);
   background: none;
   border: none;
-  border-bottom: 2px solid transparent;
+  border-radius: 999px;
   cursor: pointer;
   transition: all 0.2s;
+  white-space: nowrap;
 }
 
 .plano-tab:hover {
@@ -5481,8 +5571,8 @@ textarea::placeholder {
 }
 
 .plano-tab.ativo {
-  color: var(--cor-marca);
-  border-bottom-color: var(--cor-marca);
+  color: var(--cor-superficie-alta);
+  background: var(--cor-marca);
 }
 
 .plano-painel {
@@ -7290,6 +7380,48 @@ textarea::placeholder {
   padding: 24px clamp(24px, 4vw, 48px) 40px;
   min-width: 0;
 }
+.settings-overview {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 20px;
+}
+.settings-overview-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 7%, transparent), transparent 60%),
+    var(--cor-fundo);
+  color: var(--cor-texto);
+  text-align: left;
+  cursor: pointer;
+  transition: border-color 0.18s, transform 0.18s, background 0.18s;
+  font-family: inherit;
+}
+.settings-overview-card:hover {
+  transform: translateY(-1px);
+  border-color: var(--cor-marca);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 12%, transparent), transparent 62%),
+    var(--cor-fundo-card);
+}
+.settings-overview-card span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--cor-texto-suave);
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+}
+.settings-overview-card strong {
+  display: block;
+  color: var(--cor-texto);
+  font-size: 0.9rem;
+  line-height: 1.25;
+}
 .settings-painel-header { margin-bottom: 20px; }
 .settings-painel-header h3 {
   font-size: 1.15rem;
@@ -7379,6 +7511,13 @@ textarea::placeholder {
   border: 1px solid var(--cor-pauta-fraca);
   border-radius: 14px;
   background: color-mix(in srgb, var(--cor-superficie) 72%, transparent);
+}
+.settings-wallet-card,
+.settings-card-credit,
+.settings-budget-card {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 5%, transparent), transparent 55%),
+    color-mix(in srgb, var(--cor-superficie) 76%, transparent);
 }
 #lista-categorias .settings-mini-card,
 #lista-recorrentes-admin .settings-mini-card,
@@ -7559,6 +7698,18 @@ textarea::placeholder {
 .settings-card-perigo h4 { color: var(--cor-despesa); }
 
 @media (max-width: 980px) {
+  .plano-overview {
+    grid-template-columns: 1fr;
+  }
+
+  .plano-overview-acoes {
+    justify-content: flex-start;
+  }
+
+  .settings-overview {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
   #lista-usuarios .linha-usuario {
     grid-template-columns: 44px minmax(0, 1fr);
   }
@@ -7571,6 +7722,19 @@ textarea::placeholder {
 }
 
 @media (max-width: 700px) {
+  .plano-overview,
+  .plano-tabs {
+    width: calc(100% - 28px);
+  }
+
+  .plano-overview-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .plano-overview-acoes .btn-secundario {
+    flex: 1 1 120px;
+  }
+
   .settings-layout { flex-direction: column; height: auto; }
   .settings-sidebar {
     width: 100%;
@@ -7594,6 +7758,7 @@ textarea::placeholder {
   }
   .settings-nav-item.ativo::before { display: none; }
   .settings-conteudo { padding: 16px 14px 32px; }
+  .settings-overview { grid-template-columns: 1fr; }
   .settings-campo-grid { grid-template-columns: 1fr; }
   .bonificacoes-resumo { grid-template-columns: 1fr; }
   .linha-usuario-detalhes-grid { grid-template-columns: 1fr; }

@@ -37,6 +37,14 @@ function configurarPlano() {
 }
 
 function configurarTabsPlano() {
+  document.querySelectorAll("[data-plano-atalho]").forEach((atalho) => {
+    atalho.addEventListener("click", () => {
+      const painelId = atalho.dataset.planoAtalho;
+      const tab = document.querySelector(`.plano-tab[data-painel="${painelId}"]`);
+      if (tab) tab.click();
+    });
+  });
+
   document.querySelectorAll(".plano-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
       document.querySelectorAll(".plano-tab").forEach((t) => t.classList.remove("ativo"));
@@ -204,6 +212,7 @@ function renderizarPlano() {
   }
 
   renderizarKPIsPlano(salario);
+  atualizarResumoPlanejamento(salario);
   renderizarIndicadoresPlano(salario);
   renderizarAlertasPlano(salario);
   renderizarOrcamentosPlano();

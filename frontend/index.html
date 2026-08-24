@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=100" />
-    <link rel="stylesheet" href="css/style.css?v=111" />
+    <link rel="stylesheet" href="css/style.css?v=112" />
   </head>
   <body>
     <main class="app-container">
@@ -517,6 +517,33 @@
             </div>
           </div>
         </header>
+
+        <div class="plano-overview" aria-label="Resumo do planejamento">
+          <div class="plano-overview-texto">
+            <span class="plano-eyebrow">Mapa do mês</span>
+            <h3>Planeje antes de gastar</h3>
+            <p>Use este espaço para enxergar salário, compromissos, metas e simulações sem misturar com os lançamentos do dia a dia.</p>
+          </div>
+          <div class="plano-overview-kpis">
+            <div>
+              <span>Saúde do plano</span>
+              <strong id="plano-resumo-saude">—</strong>
+            </div>
+            <div>
+              <span>Comprometido</span>
+              <strong id="plano-resumo-comprometido">0%</strong>
+            </div>
+            <div>
+              <span>Próximo passo</span>
+              <strong id="plano-resumo-acao">Definir salário</strong>
+            </div>
+          </div>
+          <div class="plano-overview-acoes">
+            <button type="button" class="btn-secundario" data-plano-atalho="plano-orcamento">Rever orçamento</button>
+            <button type="button" class="btn-secundario" data-plano-atalho="plano-metas">Ver metas</button>
+            <button type="button" class="btn-secundario" data-plano-atalho="plano-simular">Simular</button>
+          </div>
+        </div>
 
         <!-- TABS -->
         <div class="plano-tabs">
@@ -1017,6 +1044,24 @@
 
           <!-- CONTEÚDO -->
           <div class="settings-conteudo">
+            <div class="settings-overview" aria-label="Atalhos de configurações">
+              <button type="button" class="settings-overview-card" data-settings-atalho="sp-perfil">
+                <span>Perfil</span>
+                <strong>Dados e salário</strong>
+              </button>
+              <button type="button" class="settings-overview-card" data-settings-atalho="sp-categorias">
+                <span>Organização</span>
+                <strong>Categorias e metas</strong>
+              </button>
+              <button type="button" class="settings-overview-card" data-settings-atalho="sp-recorrentes">
+                <span>Automação</span>
+                <strong>Recorrências</strong>
+              </button>
+              <button type="button" class="settings-overview-card" data-settings-atalho="sp-tema">
+                <span>Aparência</span>
+                <strong>Tema e privacidade</strong>
+              </button>
+            </div>
 
             <!-- PERFIL -->
             <div id="sp-perfil" class="settings-painel">
@@ -2370,7 +2415,7 @@
     <script src="js/dashboard-pdf-ui.js?v=100"></script>
     <script src="js/entries-actions-ui.js?v=100"></script>
     <script src="js/admin-shell-ui.js?v=100"></script>
-    <script src="js/admin-settings-ui.js?v=101"></script>
+    <script src="js/admin-settings-ui.js?v=102"></script>
     <script src="js/profile-image-ui.js?v=100"></script>
     <script src="js/admin-users-ui.js?v=100"></script>
     <script src="js/admin-categories-ui.js?v=101"></script>
@@ -2378,8 +2423,8 @@
     <script src="js/reports-charts-ui.js?v=100"></script>
     <script src="js/reports-tables-ui.js?v=100"></script>
     <script src="js/reports-export-ui.js?v=100"></script>
-    <script src="js/planning-shell-ui.js?v=100"></script>
-    <script src="js/planning-dashboard-ui.js?v=100"></script>
+    <script src="js/planning-shell-ui.js?v=101"></script>
+    <script src="js/planning-dashboard-ui.js?v=101"></script>
     <script src="js/planning-plans-ui.js?v=100"></script>
     <script src="js/planning-goals-ui.js?v=100"></script>
     <script src="js/fixed-expenses-ui.js?v=103"></script>

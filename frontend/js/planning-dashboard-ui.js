@@ -125,6 +125,60 @@ function renderizarKPIsPlano(salario) {
   }
 }
 
+function atualizarResumoPlanejamento(salario) {
+  const saudeEl = document.getElementById("plano-resumo-saude");
+  const comprometidoEl = document.getElementById("plano-resumo-comprometido");
+  const acaoEl = document.getElementById("plano-resumo-acao");
+  if (!saudeEl || !comprometidoEl || !acaoEl) return;
+
+  let totalFixas = 0;
+  let totalParcelas = 0;
+  let totalPlanosAtivos = 0;
+
+  if (typeof despesasFixasCarregadas !== "undefined") {
+    despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
+  }
+  if (typeof comprasParceladasCarregadas !== "undefined") {
+    comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
+  }
+  if (typeof planosCarregados !== "undefined") {
+    planosCarregados.forEach((p) => {
+      if (p.status === "ativo" && p.parcela_mensal) totalPlanosAtivos += valorMonetario(p, "parcela_mensal");
+    });
+  }
+
+  const comprometido = totalFixas + totalParcelas + totalPlanosAtivos;
+  const percentual = salario > 0 ? Math.round((comprometido / salario) * 100) : 0;
+  const sobra = salario - comprometido;
+
+  comprometidoEl.textContent = salario > 0 ? `${percentual}%` : "—";
+
+  if (salario <= 0) {
+    saudeEl.textContent = "Pendente";
+    saudeEl.style.color = "var(--cor-pendente)";
+    acaoEl.textContent = "Definir salário";
+    return;
+  }
+
+  if (sobra < 0 || percentual >= 90) {
+    saudeEl.textContent = "Atenção";
+    saudeEl.style.color = "var(--cor-despesa)";
+    acaoEl.textContent = "Reduzir compromissos";
+  } else if (percentual >= 70) {
+    saudeEl.textContent = "No limite";
+    saudeEl.style.color = "var(--cor-pendente)";
+    acaoEl.textContent = "Rever orçamento";
+  } else if (totalPlanosAtivos === 0) {
+    saudeEl.textContent = "Saudável";
+    saudeEl.style.color = "var(--cor-receita)";
+    acaoEl.textContent = "Criar meta";
+  } else {
+    saudeEl.textContent = "Equilibrado";
+    saudeEl.style.color = "var(--cor-receita)";
+    acaoEl.textContent = "Acompanhar metas";
+  }
+}
+
 // --- INDICADORES FINANCEIROS ---
 function renderizarIndicadoresPlano(salario) {
   const container = document.getElementById("plano-indicadores");

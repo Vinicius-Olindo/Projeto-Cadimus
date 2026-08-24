@@ -4,6 +4,11 @@
 function configurarSubAbasAdmin() {
   const navItems = document.querySelectorAll(".settings-nav-item");
 
+  function abrirPainelSettings(painelId) {
+    const item = document.querySelector(`.settings-nav-item[data-settings-painel="${painelId}"]`);
+    if (item) item.click();
+  }
+
   function carregarPainelSettings(painelId) {
     if (painelId === "sp-categorias") carregarListaCategorias();
     if (painelId === "sp-usuarios") carregarUsuarios();
@@ -15,6 +20,10 @@ function configurarSubAbasAdmin() {
     if (painelId === "sp-metas") carregarSettingsMetas();
     if (painelId === "sp-orcamentos") carregarSettingsOrcamentos();
   }
+
+  document.querySelectorAll("[data-settings-atalho]").forEach((atalho) => {
+    atalho.addEventListener("click", () => abrirPainelSettings(atalho.dataset.settingsAtalho));
+  });
 
   navItems.forEach((item) => {
     item.addEventListener("click", () => {
@@ -121,14 +130,20 @@ async function carregarSettingsContas() {
     if (!resposta.ok) return;
     const carteiras = await resposta.json();
     if (carteiras.length === 0) {
-      container.innerHTML = '<span class="dica-campo">Nenhuma carteira encontrada.</span>';
+      container.innerHTML = '<div class="estado-vazio-admin"><div class="icone-vazio">👛</div><p>Nenhuma carteira encontrada.<br>Crie uma carteira pessoal ou compartilhada para separar seus saldos.</p></div>';
       return;
     }
     container.innerHTML = carteiras.map(c => `
-      <div class="linha-item linha-usuario" style="border-bottom:1px solid var(--cor-pauta-fraca)">
-        <div class="fixa-conteudo">
-          <span class="item-descricao">${escaparHtml(c.nome)}</span>
-          <span class="item-categoria">${c.tipo === "compartilhada" ? "Compartilhada" : "Pessoal"}</span>
+      <div class="settings-mini-card settings-wallet-card">
+        <div class="settings-mini-card-topo">
+          <div class="settings-categoria-nome">
+            <span class="settings-categoria-icone">□</span>
+            <div>
+              <span class="settings-mini-card-label">Carteira ${c.tipo === "compartilhada" ? "compartilhada" : "pessoal"}</span>
+              <strong>${escaparHtml(c.nome)}</strong>
+            </div>
+          </div>
+          <span class="item-status ${c.tipo === "compartilhada" ? "status-pendente" : "status-pago"}">${c.tipo === "compartilhada" ? "Compartilhada" : "Pessoal"}</span>
         </div>
       </div>
     `).join("");
@@ -156,14 +171,24 @@ async function carregarSettingsCartoes() {
     if (!resposta.ok) return;
     const cartoes = await resposta.json();
     if (cartoes.length === 0) {
-      container.innerHTML = '<span class="dica-campo">Nenhum cartão cadastrado.</span>';
+      container.innerHTML = '<div class="estado-vazio-admin"><div class="icone-vazio">💳</div><p>Nenhum cartão cadastrado.<br>Cadastre cartões para acompanhar limite, fechamento e vencimento.</p></div>';
       return;
     }
     container.innerHTML = cartoes.map(c => `
-      <div class="linha-item linha-usuario" style="border-bottom:1px solid var(--cor-pauta-fraca)">
-        <div class="fixa-conteudo">
-          <span class="item-descricao">${escaparHtml(c.nome)}</span>
-          <span class="item-categoria">Fecha dia ${c.dia_fechamento || "—"} · Vence dia ${c.dia_vencimento || "—"}</span>
+      <div class="settings-mini-card settings-card-credit">
+        <div class="settings-mini-card-topo">
+          <div class="settings-categoria-nome">
+            <span class="settings-categoria-icone">▣</span>
+            <div>
+              <span class="settings-mini-card-label">Cartão de crédito</span>
+              <strong>${escaparHtml(c.nome)}</strong>
+            </div>
+          </div>
+          <span class="item-status status-pago">Ativo</span>
+        </div>
+        <div class="settings-mini-card-meta">
+          <span>Fecha dia <strong>${c.dia_fechamento || "—"}</strong></span>
+          <span>Vence dia <strong>${c.dia_vencimento || "—"}</strong></span>
         </div>
       </div>
     `).join("");
@@ -244,17 +269,27 @@ async function carregarSettingsOrcamentos() {
     if (!resposta.ok) return;
     const orcamentos = await resposta.json();
     if (orcamentos.length === 0) {
-      container.innerHTML = '<span class="dica-campo">Nenhum orçamento para este mês.</span>';
+      container.innerHTML = '<div class="estado-vazio-admin"><div class="icone-vazio">◔</div><p>Nenhum orçamento para este mês.<br>Defina limites por categoria para comparar planejado e realizado.</p></div>';
       return;
     }
     container.innerHTML = orcamentos.map(o => {
       const pct = o.limite > 0 ? Math.min(100, Math.round((o.gasto / o.limite) * 100)) : 0;
       const cor = pct >= 90 ? "var(--cor-despesa)" : pct >= 70 ? "var(--cor-pendente)" : "var(--cor-receita)";
       return `
-        <div class="linha-item linha-usuario" style="border-bottom:1px solid var(--cor-pauta-fraca)">
-          <div class="fixa-conteudo">
-            <span class="item-descricao">${escaparHtml(o.categoria)}</span>
-            <span class="item-categoria">${formatadorBRL.format(o.gasto)} / ${formatadorBRL.format(o.limite)} (${pct}%)</span>
+        <div class="settings-mini-card settings-budget-card">
+          <div class="settings-mini-card-topo">
+            <div>
+              <span class="settings-mini-card-label">Orçamento mensal</span>
+              <strong>${escaparHtml(o.categoria)}</strong>
+            </div>
+            <span class="item-status ${pct >= 90 ? "status-atrasado" : pct >= 70 ? "status-pendente" : "status-pago"}">${pct}%</span>
+          </div>
+          <div class="settings-progress">
+            <span style="width: ${pct}%; background: ${cor}"></span>
+          </div>
+          <div class="settings-mini-card-meta">
+            <span>Gasto <strong>${formatadorBRL.format(o.gasto)}</strong></span>
+            <span>Limite <strong>${formatadorBRL.format(o.limite)}</strong></span>
           </div>
         </div>
       `;
