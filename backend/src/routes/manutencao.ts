@@ -1,12 +1,21 @@
 // ==========================================
-// manutencao.js - Ações de manutenção do sistema (restrito a superadmin)
+// manutencao.ts - Ações de manutenção do sistema (restrito a superadmin)
 // ==========================================
+import type { CadimusEnv, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 
 const CATEGORIAS_PADRAO = ["Mercado", "Transporte", "Moradia", "Contas", "Saúde", "Lazer", "Educação", "Salário", "Outros"];
 const FRASE_CONFIRMACAO = "APAGAR TUDO";
 
-export async function processarLimpezaDados(request, env, ctx) {
+interface EnvManutencao extends CadimusEnv {
+  PERMITE_ZERAR_DADOS_GLOBAIS?: string;
+}
+
+interface ConfirmacaoLimpeza {
+  confirmacao?: string;
+}
+
+export async function processarLimpezaDados(request: Request, env: EnvManutencao, ctx: WorkerCtx): Promise<Response> {
   if (request.method !== "POST") {
     return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
   }
@@ -23,7 +32,7 @@ export async function processarLimpezaDados(request, env, ctx) {
   }
 
   try {
-    const dados = await request.json().catch(() => ({}));
+    const dados = (await request.json().catch(() => ({}))) as ConfirmacaoLimpeza;
 
     // Exige digitar a frase exata — é uma ação irreversível que afeta TODO o sistema,
     // não só uma carteira, então o clique sozinho num botão não é confirmação suficiente.

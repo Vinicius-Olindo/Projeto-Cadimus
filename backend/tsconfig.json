@@ -29,6 +29,7 @@
     "src/routes/despesasFixas.js",
     "src/routes/lancamentos.js",
     "src/routes/lancamentosRecorrentes.js",
+    "src/routes/manutencao.ts",
     "src/routes/notificacoes.js",
     "src/routes/orcamentos.js"
   ]
