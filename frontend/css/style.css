@@ -3144,6 +3144,15 @@ select:focus {
   outline: none;
 }
 
+input.campo-bloqueado-cartao {
+  color: var(--cor-texto-suave);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 7%, transparent), transparent 62%),
+    var(--cor-fundo-foco);
+  border-color: color-mix(in srgb, var(--cor-marca) 28%, transparent);
+  cursor: not-allowed;
+}
+
 label {
   display: block;
   font-size: 0.7rem;

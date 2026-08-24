@@ -10,6 +10,26 @@
 // ==========================================
 let comprasParceladasCarregadas = [];
 
+function sincronizarVencimentoParceladaComCartao() {
+  const campoDia = document.getElementById("parcelada-dia");
+  const selectCartao = document.getElementById("parcelada-cartao-credito");
+  if (!campoDia || !selectCartao) return;
+
+  const opcaoSelecionada = selectCartao.selectedOptions?.[0];
+  const diaVencimento = opcaoSelecionada?.dataset?.diaVencimento || "";
+
+  if (selectCartao.value && diaVencimento) {
+    campoDia.value = diaVencimento;
+    campoDia.readOnly = true;
+    campoDia.classList.add("campo-bloqueado-cartao");
+    campoDia.title = "Vencimento definido pelo cartão selecionado.";
+  } else {
+    campoDia.readOnly = false;
+    campoDia.classList.remove("campo-bloqueado-cartao");
+    campoDia.title = "";
+  }
+}
+
 async function abrirModalComprasParceladas() {
   const modal = document.getElementById("modal-compra-parcelada");
   const carteiraId = document.getElementById("seletor-carteira").value;
@@ -22,6 +42,7 @@ async function abrirModalComprasParceladas() {
 
   await popularSelectCategorias(document.getElementById("parcelada-categoria"));
   await popularSelectCartoesCredito?.(document.getElementById("parcelada-cartao-credito"), carteiraId);
+  sincronizarVencimentoParceladaComCartao();
 
   // Sugere o mês atual como padrão pra 1ª parcela
   const campoMesInicio = document.getElementById("parcelada-mes-inicio");
@@ -51,6 +72,9 @@ function configurarModalComprasParceladas() {
     selectId: "parcelada-cartao-credito",
     meioId: "parcelada-meio-pagamento",
   });
+
+  document.getElementById("parcelada-cartao-credito")?.addEventListener("change", sincronizarVencimentoParceladaComCartao);
+  document.getElementById("parcelada-meio-pagamento")?.addEventListener("change", sincronizarVencimentoParceladaComCartao);
 
   btnAbrirTopo?.addEventListener("click", abrirModalComprasParceladas);
   btnAbrirDoCard?.addEventListener("click", abrirModalComprasParceladas);

@@ -532,6 +532,8 @@ async function popularSelectCartoesCredito(select, carteiraId = document.getElem
       const opcao = document.createElement("option");
       opcao.value = String(cartao.id);
       opcao.textContent = `${cartao.nome}${cartao.ultimos4 ? ` •••• ${cartao.ultimos4}` : ""}`;
+      opcao.dataset.diaFechamento = cartao.dia_fechamento || "";
+      opcao.dataset.diaVencimento = cartao.dia_vencimento || "";
       select.appendChild(opcao);
     });
     select.value = valorSelecionado ? String(valorSelecionado) : "";

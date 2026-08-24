@@ -66,7 +66,7 @@ export async function processarComprasParceladas(request, env, ctx) {
       }
 
       const descricao = (dados.descricao || "").trim();
-      const diaVencimento = parseInt(dados.dia_vencimento, 10);
+      let diaVencimento = parseInt(dados.dia_vencimento, 10);
       const totalParcelas = parseInt(dados.total_parcelas, 10);
       const anoInicio = parseInt(dados.ano_inicio, 10);
       const mesInicio = parseInt(dados.mes_inicio, 10);
@@ -122,6 +122,8 @@ export async function processarComprasParceladas(request, env, ctx) {
           return new Response(JSON.stringify({ erro: "Cartão de crédito inválido para esta carteira." }), { status: 400 });
         }
         cartaoCreditoId = cartaoValido;
+        const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all();
+        diaVencimento = Math.min(Math.max(Number(cartao[0]?.dia_vencimento || diaVencimento), 1), 28);
       }
 
       const resultado = await env.DB.prepare(
@@ -219,6 +221,14 @@ export async function processarComprasParceladas(request, env, ctx) {
             return new Response(JSON.stringify({ erro: "Cartão de crédito inválido para esta carteira." }), { status: 400 });
           }
           cartaoCreditoId = cartaoValido;
+          const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all();
+          const diaCartao = Math.min(Math.max(Number(cartao[0]?.dia_vencimento || 1), 1), 28);
+          const indiceDia = campos.indexOf("dia_vencimento = ?");
+          if (indiceDia >= 0) valores[indiceDia] = diaCartao;
+          else {
+            campos.push("dia_vencimento = ?");
+            valores.push(diaCartao);
+          }
         }
         campos.push("cartao_credito_id = ?");
         valores.push(cartaoCreditoId);
