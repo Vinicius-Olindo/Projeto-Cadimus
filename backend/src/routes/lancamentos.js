@@ -4,7 +4,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { gerarLancamentosFixosDoMes } from "../utils/despesasFixas.ts";
-import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.js";
+import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.ts";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.js";
 import { registrarAuditoria } from "../utils/auditoria.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";

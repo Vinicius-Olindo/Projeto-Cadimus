@@ -1,46 +1,36 @@
 // ==========================================
-// comprasParceladas.js (utils) - Geração das parcelas
+// comprasParceladas.ts (utils) - Geração das parcelas
 // ==========================================
 
-// @ts-check
-
+import type { CadimusEnv, IdEntrada, MeioPagamento } from "../types.js";
 import { centavosParaReais, reaisParaCentavos } from "./dinheiro.ts";
 
 /**
  * Compra parcelada como vem do banco ou dos testes.
- * @typedef {object} CompraParcelada
- * @property {number} id
- * @property {string} descricao
- * @property {number} total_parcelas
- * @property {number} [valor_total]
- * @property {number} [valor_total_centavos]
- * @property {number} [valor_parcela]
- * @property {number} [valor_parcela_centavos]
- * @property {number} dia_vencimento
- * @property {number} mes_inicio
- * @property {number} ano_inicio
- * @property {string} categoria
- * @property {string} meio_pagamento
- * @property {number} carteira_id
- * @property {number} criado_por
- * @property {number | null} [cartao_credito_id]
  */
-
-/**
- * Ambiente mínimo esperado pelo utilitário.
- * @typedef {object} EnvComDB
- * @property {{ prepare: (query: string) => { bind: (...values: unknown[]) => { all: () => Promise<{ results: unknown[] }>, run: () => Promise<unknown> } } }} DB
- */
+export interface CompraParcelada {
+  id: number;
+  descricao: string;
+  total_parcelas: number;
+  valor_total?: number;
+  valor_total_centavos?: number | null;
+  valor_parcela?: number;
+  valor_parcela_centavos?: number | null;
+  dia_vencimento: number;
+  mes_inicio: number;
+  ano_inicio: number;
+  categoria: string;
+  meio_pagamento: MeioPagamento | string;
+  carteira_id: number;
+  criado_por: number;
+  cartao_credito_id?: number | null;
+}
 
 /**
  * Calcula a parcela em centavos preservando exatamente o total.
  * Se houver sobra de centavos, ela fica na última parcela.
- *
- * @param {CompraParcelada} compra
- * @param {number} numeroParcela
- * @returns {number}
  */
-export function calcularValorParcelaCentavos(compra, numeroParcela) {
+export function calcularValorParcelaCentavos(compra: CompraParcelada, numeroParcela: number): number {
   const totalParcelas = Number(compra.total_parcelas);
   const valorTotalCentavos = Number.isInteger(compra.valor_total_centavos)
     ? compra.valor_total_centavos
@@ -65,28 +55,13 @@ export function calcularValorParcelaCentavos(compra, numeroParcela) {
 }
 
 /**
- * @param {CompraParcelada} compra
- * @param {number} numeroParcela
- * @returns {number}
- */
-function calcularValorParcela(compra, numeroParcela) {
-  return centavosParaReais(calcularValorParcelaCentavos(compra, numeroParcela));
-}
-
-/**
  * Gera de uma vez todas as parcelas de uma compra parcelada recém-criada.
  * Idempotente: não duplica parcelas se elas já existirem.
- *
- * @param {EnvComDB} env
- * @param {number | string} compraId
- * @returns {Promise<void>}
  */
-export async function gerarTodasParcelasDaCompra(env, compraId) {
-  const { results } = await env.DB.prepare(`SELECT * FROM compras_parceladas WHERE id = ?`).bind(compraId).all();
+export async function gerarTodasParcelasDaCompra(env: CadimusEnv, compraId: IdEntrada): Promise<void> {
+  const { results } = await env.DB.prepare(`SELECT * FROM compras_parceladas WHERE id = ?`).bind(compraId).all<CompraParcelada>();
   if (results.length === 0) return;
 
-  /** @type {CompraParcelada} */
-  // @ts-expect-error Resultado do D1 é dinâmico e validado pelo uso dos campos abaixo.
   const compra = results[0];
   const diaSeguro = Math.min(Math.max(compra.dia_vencimento, 1), 28);
 
@@ -133,14 +108,8 @@ export async function gerarTodasParcelasDaCompra(env, compraId) {
 /**
  * Rede de segurança: garante que as parcelas do mês pedido existam, caso a
  * criação original tenha falhado ou seja de um registro antigo.
- *
- * @param {EnvComDB} env
- * @param {Array<number | string>} carteiraIds
- * @param {number | string} ano
- * @param {number | string} mes
- * @returns {Promise<void>}
  */
-export async function gerarLancamentosParceladosDoMes(env, carteiraIds, ano, mes) {
+export async function gerarLancamentosParceladosDoMes(env: CadimusEnv, carteiraIds: IdEntrada[], ano: IdEntrada, mes: IdEntrada): Promise<void> {
   const anoNum = Number(ano);
   const mesNum = Number(mes);
   if (!anoNum || !mesNum || !carteiraIds || carteiraIds.length === 0) return;
@@ -149,16 +118,13 @@ export async function gerarLancamentosParceladosDoMes(env, carteiraIds, ano, mes
     `SELECT * FROM compras_parceladas WHERE ativo = 1 AND carteira_id IN (${carteiraIds.map(() => "?").join(",")})`,
   )
     .bind(...carteiraIds)
-    .all();
+    .all<CompraParcelada>();
 
   if (compras.length === 0) return;
 
   const chaveMes = `${anoNum}-${String(mesNum).padStart(2, "0")}`;
 
-  for (const compra of compras) {
-    /** @type {CompraParcelada} */
-    // @ts-expect-error Resultado do D1 é dinâmico e validado pelo uso dos campos abaixo.
-    const compraParcelada = compra;
+  for (const compraParcelada of compras) {
     const numeroParcela = (anoNum - compraParcelada.ano_inicio) * 12 + (mesNum - compraParcelada.mes_inicio) + 1;
 
     if (numeroParcela < 1 || numeroParcela > compraParcelada.total_parcelas) continue;

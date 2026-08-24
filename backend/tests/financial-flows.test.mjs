@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { calcularValorParcelaCentavos, gerarTodasParcelasDaCompra } from "../src/utils/comprasParceladas.js";
+import { calcularValorParcelaCentavos, gerarTodasParcelasDaCompra } from "../src/utils/comprasParceladas.ts";
 import { gerarLancamentosFixosDoMes } from "../src/utils/despesasFixas.ts";
 import { gerarLancamentosRecorrentesDoMes } from "../src/utils/lancamentosRecorrentes.js";
 import { processarLancamentos } from "../src/routes/lancamentos.js";

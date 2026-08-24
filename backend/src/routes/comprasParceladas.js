@@ -3,7 +3,7 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
-import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.js";
+import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
 import { erroCliente, erroInterno } from "../utils/respostas.ts";
