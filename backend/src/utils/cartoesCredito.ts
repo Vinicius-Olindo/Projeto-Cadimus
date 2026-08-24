@@ -1,16 +1,16 @@
-import type { CadimusEnv } from "../types.js";
+import type { CadimusEnv, IdEntrada, MeioPagamento, TipoLancamento } from "../types.js";
 
 /**
  * Entrada aceita para IDs de cartão vindos de forms, JSON ou banco.
  */
-export type CartaoCreditoIdEntrada = number | string | null | undefined;
+export type CartaoCreditoIdEntrada = IdEntrada | null | undefined;
 
 /**
  * Payload mínimo usado para decidir vínculo com cartão.
  */
 export interface DadosPagamento {
-  tipo?: string;
-  meio_pagamento?: string;
+  tipo?: TipoLancamento | string;
+  meio_pagamento?: MeioPagamento | string;
 }
 
 /**

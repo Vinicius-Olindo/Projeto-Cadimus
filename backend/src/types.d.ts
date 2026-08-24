@@ -1,4 +1,8 @@
+export type Id = number;
+export type IdEntrada = number | string;
+export type CampoOpcional<T> = T | null | undefined;
 export type SqlParam = string | number | boolean | null | undefined;
+export type AtivoBanco = 0 | 1 | boolean;
 
 export interface D1Result<T = any> {
   results: T[];
@@ -32,38 +36,43 @@ export interface WorkerCtx {
   waitUntil?: (promise: Promise<unknown>) => void;
 }
 
-export type PerfilUsuario = "superadmin" | "comum" | string;
+export type PerfilUsuario = "superadmin" | "comum";
 
 export interface UsuarioSessao {
-  id: number;
+  id: Id;
   nome_usuario: string;
   perfil: PerfilUsuario;
 }
 
+export type TipoCarteira = "pessoal" | "compartilhada" | "individual";
+export type PapelCarteira = "admin" | "membro";
+
 export interface Carteira {
-  id: number;
+  id: Id;
   nome: string;
-  tipo: "pessoal" | "compartilhada" | string;
+  tipo: TipoCarteira;
   criado_por?: number | null;
-  papel?: "admin" | "membro" | string;
+  papel?: PapelCarteira;
   ordem?: number | null;
 }
 
 export type TipoLancamento = "receita" | "despesa";
 export type StatusLancamento = "pago" | "pendente";
+export type MeioPagamento = "dinheiro" | "pix" | "debito" | "credito" | "cartao_credito" | "transferencia" | "outro";
+export type CategoriaFinanceira = string;
 
 export interface Lancamento {
-  id: number;
+  id: Id;
   descricao: string;
   valor?: number;
   valor_centavos?: number | null;
   data_compra: string;
   tipo: TipoLancamento;
-  categoria: string;
-  meio_pagamento: string;
+  categoria: CategoriaFinanceira;
+  meio_pagamento: MeioPagamento;
   status: StatusLancamento;
-  carteira_id: number;
-  criado_por: number;
+  carteira_id: Id;
+  criado_por: Id;
   despesa_fixa_id?: number | null;
   compra_parcelada_id?: number | null;
   recorrencia_id?: number | null;
@@ -71,38 +80,59 @@ export interface Lancamento {
   nota?: string | null;
 }
 
+export type BandeiraCartao = "visa" | "mastercard" | "elo" | "amex" | "hipercard" | "outro";
+
 export interface CartaoCredito {
-  id: number;
+  id: Id;
   nome: string;
-  bandeira?: string | null;
+  bandeira?: BandeiraCartao | null;
   ultimos4?: string | null;
   dia_fechamento: number;
   dia_vencimento: number;
   limite?: number;
   limite_centavos?: number | null;
-  carteira_id: number;
-  criado_por?: number | null;
-  ativo?: number | boolean;
+  carteira_id: Id;
+  criado_por?: Id | null;
+  ativo?: AtivoBanco;
 }
 
 export type FrequenciaRecorrencia = "diaria" | "semanal" | "quinzenal" | "mensal" | "trimestral" | "anual";
 
 export interface LancamentoRecorrente {
-  id: number;
-  carteira_id: number;
+  id: Id;
+  carteira_id: Id;
   descricao: string;
   valor?: number;
   valor_centavos?: number | null;
   tipo: TipoLancamento;
-  categoria: string;
-  meio_pagamento: string;
+  categoria: CategoriaFinanceira;
+  meio_pagamento: MeioPagamento;
   frequencia: FrequenciaRecorrencia;
   dia_semana?: number | null;
   dia_mes?: number | null;
   data_inicio: string;
   data_fim?: string | null;
-  criado_por: number;
-  ativo?: number | boolean;
+  criado_por: Id;
+  ativo?: AtivoBanco;
+}
+
+export type StatusNotificacao = "nao_lida" | "lida" | "arquivada";
+export type SeveridadeNotificacao = "info" | "sucesso" | "aviso" | "perigo";
+
+export interface Notificacao {
+  id: Id;
+  usuario_id: Id;
+  carteira_id?: Id | null;
+  tipo: string;
+  titulo: string;
+  mensagem: string;
+  status: StatusNotificacao;
+  severidade: SeveridadeNotificacao;
+  entidade?: string | null;
+  entidade_id?: Id | null;
+  chave_unica?: string | null;
+  url_acao?: string | null;
+  data_evento?: string | null;
 }
 
 export interface RespostaErro {

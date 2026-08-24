@@ -13,6 +13,7 @@
   },
   "include": [
     "src/types.d.ts",
+    "src/domain.ts",
     "src/utils/auditoria.js",
     "src/utils/crypto.js",
     "src/utils/dinheiro.ts",
