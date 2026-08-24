@@ -77,12 +77,13 @@ function criarLinhaLancamento(lancamento) {
   // Nota truncada quando o lançamento tem observação
   const temNota = lancamento.nota && lancamento.nota.trim().length > 0;
   const notaCompleta = temNota ? lancamento.nota.trim() : "";
-  const truncada = notaCompleta.length > 35;
-  const notaTruncada = truncada ? notaCompleta.slice(0, 35) + "..." : notaCompleta;
+  const truncada = notaCompleta.length > 90;
+  const notaTruncada = truncada ? notaCompleta.slice(0, 90).trim() + "..." : notaCompleta;
   const notaHtml = temNota
-    ? truncada
-      ? `<span class="item-nota-texto item-nota-clique" data-nota="${escaparHtml(notaCompleta)}" data-descricao="${escaparHtml(lancamento.descricao)}">${escaparHtml(notaTruncada)}</span>`
-      : `<span class="item-nota-texto">${escaparHtml(notaTruncada)}</span>`
+    ? `<button type="button" class="item-nota-texto item-nota-clique" data-nota="${escaparHtml(notaCompleta)}" data-descricao="${escaparHtml(lancamento.descricao)}" title="Clique para ver a nota completa">
+        <span class="item-nota-label">Nota</span>
+        <span class="item-nota-preview">${escaparHtml(notaTruncada)}</span>
+      </button>`
     : "";
 
   // Estrutura da linha: etiqueta de data compacta + corpo do lançamento —
@@ -103,8 +104,8 @@ function criarLinhaLancamento(lancamento) {
                   <span class="item-categoria">${escaparHtml(lancamento.categoria)}</span>
                   <span class="item-meta-separador">•</span>
                   <span class="item-tipo ${classeTipo}">${tipoTexto}</span>
-                  ${notaHtml}
                 </div>
+                ${notaHtml}
             </div>
             <div class="item-valores">
               <div class="item-chips">
