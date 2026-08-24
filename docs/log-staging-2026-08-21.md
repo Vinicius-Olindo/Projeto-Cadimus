@@ -1,6 +1,6 @@
 # Log de staging — 2026-08-21
 
-Branch: `staging`  
+Branch: `staging`
 Ambiente: `https://staging.cadimus.pages.dev`
 
 ## Resumo

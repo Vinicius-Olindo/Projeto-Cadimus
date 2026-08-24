@@ -55,4 +55,3 @@ Como SQLite/D1 nao remove colunas de forma simples em todos os cenarios, o corte
 5. validar contagens, somas em centavos e fluxos principais.
 
 Enquanto esses criterios nao forem cumpridos, os campos `REAL` continuam no banco, mas tratados como legado.
-

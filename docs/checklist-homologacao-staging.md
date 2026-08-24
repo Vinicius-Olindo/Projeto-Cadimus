@@ -1,6 +1,6 @@
 # Checklist de homologação da staging
 
-Criado em: 2026-08-14  
+Criado em: 2026-08-14
 Última revisão: 2026-08-21
 
 Use este roteiro antes de promover qualquer mudanca da `staging` para a `main`.

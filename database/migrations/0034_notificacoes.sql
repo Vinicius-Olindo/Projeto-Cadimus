@@ -31,4 +31,3 @@ CREATE INDEX IF NOT EXISTS idx_notificacoes_usuario_status
 
 CREATE INDEX IF NOT EXISTS idx_notificacoes_usuario_carteira
   ON notificacoes(usuario_id, carteira_id, criado_em DESC);
-
