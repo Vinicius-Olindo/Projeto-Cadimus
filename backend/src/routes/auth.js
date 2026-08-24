@@ -2,7 +2,7 @@
 // auth.js - Lógica de Login e Autenticação
 // ==========================================
 import { verificarSenha, hashSenha } from "../utils/crypto.js";
-import { criarSessao, encerrarSessao } from "../utils/sessao.js";
+import { criarSessao, encerrarSessao } from "../utils/sessao.ts";
 import { enviarEmail, templateRecuperacaoSenha } from "../utils/email.js";
 
 const LIMITE_TENTATIVAS = 5; // por usuário, dentro dos últimos 15 minutos (ver datetime('now', '-15 minutes') abaixo)

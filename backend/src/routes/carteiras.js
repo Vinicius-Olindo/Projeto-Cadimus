@@ -1,7 +1,7 @@
 // ==========================================
 // carteiras.js - Listagem e criação de carteiras (contas)
 // ==========================================
-import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { registrarAuditoria } from "../utils/auditoria.js";
 
 // Filtra e confirma no banco quais ids recebidos são de usuários que existem

@@ -2,7 +2,7 @@
 // manutencao.ts - Ações de manutenção do sistema (restrito a superadmin)
 // ==========================================
 import type { CadimusEnv, WorkerCtx } from "../types.js";
-import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 
 const CATEGORIAS_PADRAO = ["Mercado", "Transporte", "Moradia", "Contas", "Saúde", "Lazer", "Educação", "Salário", "Outros"];
 const FRASE_CONFIRMACAO = "APAGAR TUDO";

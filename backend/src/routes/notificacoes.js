@@ -1,4 +1,4 @@
-import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { erroCliente, erroInterno, json as responderJson } from "../utils/respostas.ts";
 

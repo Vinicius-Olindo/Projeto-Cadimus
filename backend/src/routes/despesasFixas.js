@@ -1,7 +1,7 @@
 // ==========================================
 // despesasFixas.js (rota) - Gestão das despesas/receitas fixas
 // ==========================================
-import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";

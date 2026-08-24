@@ -2,7 +2,7 @@
 // convites.js - Sistema de Convites para Cadastro
 // ==========================================
 import { hashSenha } from "../utils/crypto.js";
-import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 
 const DURACAO_CONVITE_MS = 3 * 60 * 60 * 1000; // 3 horas
 const REGEX_EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;

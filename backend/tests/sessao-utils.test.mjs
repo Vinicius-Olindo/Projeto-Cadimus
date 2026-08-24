@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { encerrarSessao, obterUsuarioDaSessao } from "../src/utils/sessao.js";
+import { encerrarSessao, obterUsuarioDaSessao } from "../src/utils/sessao.ts";
 
 class FakeD1Sessao {
   constructor(sessao = null) {

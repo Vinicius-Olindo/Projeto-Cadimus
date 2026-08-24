@@ -1,28 +1,23 @@
 // ==========================================
-// sessao.js - Criação e validação de sessões de login
+// sessao.ts - Criação e validação de sessões de login
 // ==========================================
 
-// @ts-check
+import type { CadimusEnv, IdEntrada, UsuarioSessao, WorkerCtx } from "../types.js";
+import { isPerfilUsuario } from "../domain.ts";
 
 const DURACAO_SESSAO_MS = 30 * 60 * 1000; // 30 minutos de inatividade
 
 /**
- * @typedef {import("../types.js").CadimusEnv} EnvComDB
- * @typedef {import("../types.js").WorkerCtx} WorkerCtx
- * @typedef {import("../types.js").UsuarioSessao} UsuarioSessao
- */
-
-/**
  * Linha mínima retornada pela consulta de sessão.
- * @typedef {UsuarioSessao & { expira_em: string }} SessaoUsuarioRow
  */
+interface SessaoUsuarioRow {
+  id: number;
+  nome_usuario: string;
+  perfil: unknown;
+  expira_em: string;
+}
 
-/**
- * @param {EnvComDB} env
- * @param {number | string} usuarioId
- * @returns {Promise<string>}
- */
-export async function criarSessao(env, usuarioId) {
+export async function criarSessao(env: CadimusEnv, usuarioId: IdEntrada): Promise<string> {
   const token = crypto.randomUUID();
   const expiraEm = new Date(Date.now() + DURACAO_SESSAO_MS).toISOString();
 
@@ -36,20 +31,12 @@ export async function criarSessao(env, usuarioId) {
  * Chamado em background (ctx.waitUntil) a cada requisição autenticada —
  * não bloqueia a resposta, mas vai limpando a tabela ao longo do tempo
  * sem precisar de um job agendado separado.
- *
- * @param {EnvComDB} env
- * @returns {Promise<void>}
  */
-export async function limparSessoesExpiradas(env) {
+export async function limparSessoesExpiradas(env: CadimusEnv): Promise<void> {
   await env.DB.prepare(`DELETE FROM sessoes WHERE expira_em < ?`).bind(new Date().toISOString()).run();
 }
 
-/**
- * @param {EnvComDB} env
- * @param {string} token
- * @returns {Promise<void>}
- */
-export async function renovarSessao(env, token) {
+export async function renovarSessao(env: CadimusEnv, token: string): Promise<void> {
   const expiraEm = new Date(Date.now() + DURACAO_SESSAO_MS).toISOString();
   await env.DB.prepare(`UPDATE sessoes SET expira_em = ? WHERE token = ?`).bind(expiraEm, token).run();
 }
@@ -57,13 +44,8 @@ export async function renovarSessao(env, token) {
 /**
  * Lê o header Authorization: Bearer <token>, valida contra o banco
  * e retorna o usuário logado (ou null se não autenticado/expirado).
- *
- * @param {Request} request
- * @param {EnvComDB} env
- * @param {WorkerCtx} [ctx]
- * @returns {Promise<UsuarioSessao | null>}
  */
-export async function obterUsuarioDaSessao(request, env, ctx) {
+export async function obterUsuarioDaSessao(request: Request, env: CadimusEnv, ctx?: WorkerCtx): Promise<UsuarioSessao | null> {
   const cabecalho = request.headers.get("Authorization") || "";
   const token = cabecalho.startsWith("Bearer ") ? cabecalho.slice(7).trim() : null;
   if (!token) return null;
@@ -74,10 +56,9 @@ export async function obterUsuarioDaSessao(request, env, ctx) {
     JOIN usuarios u ON u.id = s.usuario_id
     WHERE s.token = ?
   `;
-  const { results } = await env.DB.prepare(query).bind(token).all();
+  const { results } = await env.DB.prepare(query).bind(token).all<SessaoUsuarioRow>();
   if (results.length === 0) return null;
 
-  /** @type {SessaoUsuarioRow} */
   const sessao = results[0];
   if (new Date(sessao.expira_em) < new Date()) {
     // Sessão expirada: remove e nega acesso
@@ -96,15 +77,14 @@ export async function obterUsuarioDaSessao(request, env, ctx) {
     await renovarSessao(env, token);
   }
 
-  return { id: sessao.id, nome_usuario: sessao.nome_usuario, perfil: sessao.perfil };
+  return {
+    id: sessao.id,
+    nome_usuario: sessao.nome_usuario,
+    perfil: isPerfilUsuario(sessao.perfil) ? sessao.perfil : "comum",
+  };
 }
 
-/**
- * @param {Request} request
- * @param {EnvComDB} env
- * @returns {Promise<void>}
- */
-export async function encerrarSessao(request, env) {
+export async function encerrarSessao(request: Request, env: CadimusEnv): Promise<void> {
   const cabecalho = request.headers.get("Authorization") || "";
   const token = cabecalho.startsWith("Bearer ") ? cabecalho.slice(7).trim() : null;
   if (!token) return;

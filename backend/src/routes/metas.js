@@ -1,7 +1,7 @@
 // ==========================================
 // metas.js - Metas (orçamento) por categoria + depósitos
 // ==========================================
-import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";

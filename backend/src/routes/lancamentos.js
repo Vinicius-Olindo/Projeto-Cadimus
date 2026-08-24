@@ -1,7 +1,7 @@
 // ==========================================
 // lancamentos.js - Lógica de Despesas e Receitas
 // ==========================================
-import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { gerarLancamentosFixosDoMes } from "../utils/despesasFixas.js";
 import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.js";

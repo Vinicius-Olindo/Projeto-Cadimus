@@ -2,7 +2,7 @@
 // categorias.ts - Lista de categorias reutilizáveis
 // ==========================================
 import type { CadimusEnv, WorkerCtx } from "../types.js";
-import { obterUsuarioDaSessao } from "../utils/sessao.js";
+import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 interface CategoriaPayload {
