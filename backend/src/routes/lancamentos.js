@@ -3,7 +3,7 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
-import { gerarLancamentosFixosDoMes } from "../utils/despesasFixas.js";
+import { gerarLancamentosFixosDoMes } from "../utils/despesasFixas.ts";
 import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.js";
 import { registrarAuditoria } from "../utils/auditoria.ts";

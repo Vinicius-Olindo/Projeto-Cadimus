@@ -1,50 +1,35 @@
 // ==========================================
-// despesasFixas.js (utils) - Geração automática de lançamentos recorrentes
+// despesasFixas.ts (utils) - Geração automática de lançamentos recorrentes
 // ==========================================
 
-// @ts-check
+import type { CadimusEnv, IdEntrada, MeioPagamento, TipoLancamento } from "../types.js";
+import { centavosParaReais, reaisParaCentavos } from "./dinheiro.ts";
 
 /**
  * Para cada despesa fixa ativa nas carteiras informadas, garante que exista
  * um lançamento para o mês/ano pedido. Não duplica (verifica por despesa_fixa_id)
  * e nunca gera lançamento pra um mês que ainda não começou.
  */
-import { centavosParaReais, reaisParaCentavos } from "./dinheiro.ts";
-
-/**
- * Despesa fixa como vem do banco ou dos testes.
- * @typedef {object} DespesaFixa
- * @property {number} id
- * @property {string} descricao
- * @property {number} valor
- * @property {number} [valor_centavos]
- * @property {"receita" | "despesa" | string} tipo
- * @property {string} categoria
- * @property {string} meio_pagamento
- * @property {number} dia_vencimento
- * @property {number} carteira_id
- * @property {number} criado_por
- * @property {string} criado_em
- * @property {number | null} [cartao_credito_id]
- */
-
-/**
- * Ambiente mínimo esperado pelo utilitário.
- * @typedef {object} EnvComDB
- * @property {{ prepare: (query: string) => { bind: (...values: unknown[]) => { all: () => Promise<{ results: unknown[] }>, run: () => Promise<unknown> } } }} DB
- */
+interface DespesaFixa {
+  id: number;
+  descricao: string;
+  valor: number;
+  valor_centavos?: number | null;
+  tipo: TipoLancamento | string;
+  categoria: string;
+  meio_pagamento: MeioPagamento | string;
+  dia_vencimento: number;
+  carteira_id: number;
+  criado_por: number;
+  criado_em: string;
+  cartao_credito_id?: number | null;
+}
 
 /**
  * Garante os lançamentos mensais das despesas fixas ativas para as carteiras
  * informadas, sem duplicar lançamentos já existentes.
- *
- * @param {EnvComDB} env
- * @param {Array<number | string>} carteiraIds
- * @param {number | string} ano
- * @param {number | string} mes
- * @returns {Promise<void>}
  */
-export async function gerarLancamentosFixosDoMes(env, carteiraIds, ano, mes) {
+export async function gerarLancamentosFixosDoMes(env: CadimusEnv, carteiraIds: IdEntrada[], ano: IdEntrada, mes: IdEntrada): Promise<void> {
   const anoNum = Number(ano);
   const mesNum = Number(mes);
   if (!anoNum || !mesNum || !carteiraIds || carteiraIds.length === 0) return;
@@ -53,17 +38,13 @@ export async function gerarLancamentosFixosDoMes(env, carteiraIds, ano, mes) {
     `SELECT * FROM despesas_fixas WHERE ativo = 1 AND carteira_id IN (${carteiraIds.map(() => "?").join(",")})`,
   )
     .bind(...carteiraIds)
-    .all();
+    .all<DespesaFixa>();
 
   if (fixas.length === 0) return;
 
   const chaveMes = `${anoNum}-${String(mesNum).padStart(2, "0")}`;
 
-  for (const fixa of fixas) {
-    /** @type {DespesaFixa} */
-    // @ts-expect-error Resultado do D1 é dinâmico e validado pelo uso dos campos abaixo.
-    const despesaFixa = fixa;
-
+  for (const despesaFixa of fixas) {
     // Nunca gera retroativo: se a regra foi criada em agosto, não pode aparecer em julho
     const mesCriacao = String(despesaFixa.criado_em).slice(0, 7);
     if (chaveMes < mesCriacao) continue;

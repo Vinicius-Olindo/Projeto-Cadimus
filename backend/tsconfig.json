@@ -21,7 +21,7 @@
     "src/utils/cartoesCredito.ts",
     "src/utils/carteiras.ts",
     "src/utils/comprasParceladas.js",
-    "src/utils/despesasFixas.js",
+    "src/utils/despesasFixas.ts",
     "src/utils/lancamentosRecorrentes.js",
     "src/utils/respostas.ts",
     "src/utils/sessao.ts",
