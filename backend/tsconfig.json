@@ -14,7 +14,7 @@
   "include": [
     "src/types.d.ts",
     "src/domain.ts",
-    "src/utils/auditoria.js",
+    "src/utils/auditoria.ts",
     "src/utils/crypto.ts",
     "src/utils/dinheiro.ts",
     "src/utils/email.ts",

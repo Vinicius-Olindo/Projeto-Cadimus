@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { registrarAuditoria } from "../src/utils/auditoria.js";
+import { registrarAuditoria } from "../src/utils/auditoria.ts";
 
 class FakeD1Auditoria {
   constructor() {

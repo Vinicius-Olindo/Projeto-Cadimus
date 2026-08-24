@@ -3,7 +3,7 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
-import { registrarAuditoria } from "../utils/auditoria.js";
+import { registrarAuditoria } from "../utils/auditoria.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 
 export async function processarMetas(request, env, ctx) {
