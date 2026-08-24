@@ -10,10 +10,17 @@ import { registrarAuditoria } from "../utils/auditoria.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
 
+/** @param {unknown} valor */
 function dataISOValida(valor) {
   return typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor);
 }
 
+/**
+ * @param {{ DB: any }} env
+ * @param {number[]} carteirasAlvo
+ * @param {string} dataInicio
+ * @param {string} dataFim
+ */
 async function gerarLancamentosDoPeriodo(env, carteirasAlvo, dataInicio, dataFim) {
   if (!dataISOValida(dataInicio) || !dataISOValida(dataFim)) return;
 
@@ -36,6 +43,11 @@ async function gerarLancamentosDoPeriodo(env, carteirasAlvo, dataInicio, dataFim
   }
 }
 
+/**
+ * @param {Request} request
+ * @param {{ DB: any }} env
+ * @param {any} ctx
+ */
 export async function processarLancamentos(request, env, ctx) {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -92,7 +104,7 @@ export async function processarLancamentos(request, env, ctx) {
         JOIN usuarios u ON u.id = l.criado_por
         WHERE 1=1
       `;
-      let params = [];
+      let params = /** @type {Array<string|number>} */ ([]);
 
       if (carteiraId) {
         query += ` AND l.carteira_id = ?`;
@@ -425,14 +437,14 @@ export async function processarLancamentos(request, env, ctx) {
         `SELECT id, criado_por, carteira_id FROM lancamentos WHERE id IN (${placeholders})`
       ).bind(...ids).all();
 
-      const semPermissao = alvos.filter(
+      const semPermissao = /** @type {any[]} */ (alvos).filter(
         (a) => a.criado_por !== usuarioLogado.id && usuarioLogado.perfil !== "superadmin"
       );
       if (semPermissao.length > 0) {
         return new Response(JSON.stringify({ erro: "Sem permissão para editar alguns lançamentos." }), { status: 403 });
       }
 
-      const foraDaCarteira = alvos.filter((a) => !carteirasPermitidas.includes(a.carteira_id));
+      const foraDaCarteira = /** @type {any[]} */ (alvos).filter((a) => !carteirasPermitidas.includes(a.carteira_id));
       if (foraDaCarteira.length > 0) {
         return new Response(JSON.stringify({ erro: "Acesso negado a alguns lançamentos." }), { status: 403 });
       }

@@ -6,6 +6,11 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
 
+/**
+ * @param {Request} request
+ * @param {{ DB: any }} env
+ * @param {any} ctx
+ */
 export async function processarDespesasFixas(request, env, ctx) {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -32,7 +37,7 @@ export async function processarDespesasFixas(request, env, ctx) {
       }
 
       let query = `SELECT * FROM despesas_fixas WHERE 1=1`;
-      let params = [];
+      let params = /** @type {Array<string|number>} */ ([]);
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;

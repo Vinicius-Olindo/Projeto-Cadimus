@@ -5,6 +5,11 @@ import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
+/**
+ * @param {Request} request
+ * @param {{ DB: any }} env
+ * @param {any} ctx
+ */
 export async function processarLancamentosRecorrentes(request, env, ctx) {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -31,7 +36,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       }
 
       let query = `SELECT * FROM lancamentos_recorrentes WHERE 1=1`;
-      let params = [];
+      let params = /** @type {Array<string|number>} */ ([]);
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
@@ -130,7 +135,8 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
           )
           .run();
       } catch (erroInsert) {
-        if (!/valor_centavos/i.test(String(erroInsert?.message || erroInsert))) throw erroInsert;
+        const detalheErroInsert = erroInsert instanceof Error ? erroInsert.message : String(erroInsert);
+        if (!/valor_centavos/i.test(detalheErroInsert)) throw erroInsert;
 
         resultado = await env.DB.prepare(
           `INSERT INTO lancamentos_recorrentes
@@ -144,7 +150,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Recorrência criada!" }), { status: 201 });
     } catch (erro) {
       console.error("Erro:", erro);
-      const detalhe = String(erro?.message || erro || "");
+      const detalhe = erro instanceof Error ? erro.message : String(erro || "");
       const mensagem = detalhe ? `Erro ao criar recorrência: ${detalhe}` : "Erro ao criar recorrência.";
       return new Response(JSON.stringify({ erro: mensagem }), { status: 500 });
     }

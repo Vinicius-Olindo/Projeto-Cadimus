@@ -7,6 +7,11 @@ import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
 
+/**
+ * @param {Request} request
+ * @param {{ DB: any }} env
+ * @param {any} ctx
+ */
 export async function processarComprasParceladas(request, env, ctx) {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -33,7 +38,7 @@ export async function processarComprasParceladas(request, env, ctx) {
       }
 
       let query = `SELECT * FROM compras_parceladas WHERE 1=1`;
-      let params = [];
+      let params = /** @type {Array<string|number>} */ ([]);
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;

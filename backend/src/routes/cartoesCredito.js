@@ -2,6 +2,11 @@ import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
+/**
+ * @param {Request} request
+ * @param {{ DB: any }} env
+ * @param {any} ctx
+ */
 export async function processarCartoesCredito(request, env, ctx) {
   const url = new URL(request.url);
   const method = request.method;

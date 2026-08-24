@@ -4,14 +4,20 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 const STATUS_VALIDOS = new Set(["nao_lida", "lida", "arquivada"]);
 const SEVERIDADES_VALIDAS = new Set(["info", "sucesso", "aviso", "perigo"]);
 
+/** @param {unknown} dados @param {number} [status] */
 function json(dados, status = 200) {
   return new Response(JSON.stringify(dados), { status });
 }
 
+/** @param {unknown} valor @param {number} limite */
 function limparTexto(valor, limite) {
   return String(valor || "").trim().slice(0, limite);
 }
 
+/**
+ * @param {any} item
+ * @param {number} usuarioId
+ */
 function normalizarNotificacao(item, usuarioId) {
   const tipo = limparTexto(item.tipo, 60) || "sistema";
   const titulo = limparTexto(item.titulo || item.descricao, 140);
@@ -40,12 +46,21 @@ function normalizarNotificacao(item, usuarioId) {
   };
 }
 
+/**
+ * @param {{ DB: any }} env
+ * @param {number} usuarioId
+ * @param {number|string|null|undefined} carteiraId
+ */
 async function usuarioPodeUsarCarteira(env, usuarioId, carteiraId) {
   if (!carteiraId) return true;
   const carteiras = await obterCarteirasDoUsuario(env, usuarioId);
   return carteiras.includes(Number(carteiraId));
 }
 
+/**
+ * @param {{ DB: any }} env
+ * @param {any} notificacao
+ */
 async function salvarNotificacao(env, notificacao) {
   await env.DB.prepare(
     `INSERT INTO notificacoes
@@ -80,22 +95,27 @@ async function salvarNotificacao(env, notificacao) {
     .run();
 }
 
+/** @param {Date} data */
 function inicioDoDia(data) {
   return new Date(data.getFullYear(), data.getMonth(), data.getDate());
 }
 
+/** @param {Date} data */
 function formatarDataChave(data) {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}`;
 }
 
+/** @param {Date} data */
 function formatarDataIso(data) {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
 }
 
+/** @param {Date} dataEvento @param {Date} dataReferencia */
 function diferencaDias(dataEvento, dataReferencia) {
-  return Math.round((inicioDoDia(dataEvento) - inicioDoDia(dataReferencia)) / 86400000);
+  return Math.round((inicioDoDia(dataEvento).getTime() - inicioDoDia(dataReferencia).getTime()) / 86400000);
 }
 
+/** @param {Date} dataEvento @param {Date} dataReferencia @param {number} [janelaDias] */
 function avisoPorData(dataEvento, dataReferencia, janelaDias = 3) {
   const diff = diferencaDias(dataEvento, dataReferencia);
   if (diff === 0) return { texto: "Vence hoje", severidade: "aviso", urgencia: 1 };
@@ -104,19 +124,28 @@ function avisoPorData(dataEvento, dataReferencia, janelaDias = 3) {
   return null;
 }
 
+/** @param {Date} dataReferencia @param {number|string} dia */
 function dataDoMesPorDia(dataReferencia, dia) {
   const diaSeguro = Math.min(Math.max(Number(dia) || 1, 1), 28);
   return new Date(dataReferencia.getFullYear(), dataReferencia.getMonth(), diaSeguro);
 }
 
+/** @param {number|string|null|undefined} centavos */
 function reaisDeCentavos(centavos) {
   return (Number(centavos) || 0) / 100;
 }
 
+/** @param {number|string|null|undefined} valor */
 function moeda(valor) {
   return reaisDeCentavos(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
+/**
+ * @param {{ DB: any }} env
+ * @param {number} usuarioId
+ * @param {number[]} carteirasPermitidas
+ * @param {Date} [dataReferencia]
+ */
 async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas, dataReferencia = new Date()) {
   if (!carteirasPermitidas.length) return 0;
 
@@ -251,6 +280,11 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
   return notificacoes.length;
 }
 
+/**
+ * @param {Request} request
+ * @param {{ DB: any }} env
+ * @param {any} ctx
+ */
 export async function processarNotificacoes(request, env, ctx) {
   const usuario = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuario) return json({ erro: "Nao autenticado." }, 401);
@@ -268,7 +302,7 @@ export async function processarNotificacoes(request, env, ctx) {
     }
 
     let query = `SELECT * FROM notificacoes WHERE usuario_id = ?`;
-    const params = [usuario.id];
+    const params = /** @type {Array<string|number>} */ ([usuario.id]);
 
     if (status !== "todas") {
       if (!STATUS_VALIDOS.has(status)) return json({ erro: "Status invalido." }, 400);

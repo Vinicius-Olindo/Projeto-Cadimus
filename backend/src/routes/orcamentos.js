@@ -5,6 +5,11 @@ import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
+/**
+ * @param {Request} request
+ * @param {{ DB: any }} env
+ * @param {any} ctx
+ */
 export async function processarOrcamentos(request, env, ctx) {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -55,7 +60,7 @@ export async function processarOrcamentos(request, env, ctx) {
         ) gasto ON gasto.carteira_id = o.carteira_id AND gasto.categoria_normalizada = LOWER(o.categoria)
         WHERE o.mes = ? AND o.ano = ?
       `;
-      const params = [mes.padStart(2, "0"), ano, mes, ano];
+      const params = /** @type {Array<string|number>} */ ([mes.padStart(2, "0"), ano, mes, ano]);
 
       if (carteiraId) {
         query += ` AND o.carteira_id = ?`;
@@ -74,7 +79,7 @@ export async function processarOrcamentos(request, env, ctx) {
       const { results } = await env.DB.prepare(query).bind(...params).all();
 
       // Calcular progresso para cada orçamento
-      const orcamentosComProgresso = results.map((o) => {
+      const orcamentosComProgresso = /** @type {any[]} */ (results).map((o) => {
         const valorCentavos = o.valor_centavos ?? Math.round(o.valor * 100);
         const totalGastoCentavos = o.total_gasto_centavos ?? Math.round(o.total_gasto * 100);
         const progresso = valorCentavos > 0 ? (totalGastoCentavos / valorCentavos) * 100 : 0;
