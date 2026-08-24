@@ -51,6 +51,15 @@ function pertenceA<T extends string>(valores: readonly T[], valor: unknown): val
   return typeof valor === "string" && valores.includes(valor as T);
 }
 
+function normalizarTexto(valor: unknown): string | null {
+  return typeof valor === "string" ? valor.trim().toLowerCase() : null;
+}
+
+function normalizarDominio<T extends string>(valores: readonly T[], valor: unknown): T | null {
+  const normalizado = normalizarTexto(valor);
+  return valores.find((item) => item === normalizado) ?? null;
+}
+
 export function isPerfilUsuario(valor: unknown): valor is PerfilUsuario {
   return pertenceA(PERFIS_USUARIO, valor);
 }
@@ -60,15 +69,15 @@ export function isTipoCarteira(valor: unknown): valor is TipoCarteira {
 }
 
 export function isTipoLancamento(valor: unknown): valor is TipoLancamento {
-  return pertenceA(TIPOS_LANCAMENTO, valor);
+  return normalizarTipoLancamento(valor) !== null;
 }
 
 export function isStatusLancamento(valor: unknown): valor is StatusLancamento {
-  return pertenceA(STATUS_LANCAMENTO, valor);
+  return normalizarStatusLancamento(valor) !== null;
 }
 
 export function isMeioPagamento(valor: unknown): valor is MeioPagamento {
-  return pertenceA(MEIOS_PAGAMENTO, valor);
+  return normalizarMeioPagamento(valor) !== null;
 }
 
 export function isBandeiraCartao(valor: unknown): valor is BandeiraCartao {
@@ -76,7 +85,7 @@ export function isBandeiraCartao(valor: unknown): valor is BandeiraCartao {
 }
 
 export function isFrequenciaRecorrencia(valor: unknown): valor is FrequenciaRecorrencia {
-  return pertenceA(FREQUENCIAS_RECORRENCIA, valor);
+  return normalizarFrequenciaRecorrencia(valor) !== null;
 }
 
 export function isStatusNotificacao(valor: unknown): valor is StatusNotificacao {
@@ -90,6 +99,22 @@ export function isSeveridadeNotificacao(valor: unknown): valor is SeveridadeNoti
 export function normalizarId(valor: IdEntrada | null | undefined): number | null {
   const numero = Number(valor);
   return Number.isInteger(numero) && numero > 0 ? numero : null;
+}
+
+export function normalizarTipoLancamento(valor: unknown): TipoLancamento | null {
+  return normalizarDominio(TIPOS_LANCAMENTO, valor);
+}
+
+export function normalizarStatusLancamento(valor: unknown): StatusLancamento | null {
+  return normalizarDominio(STATUS_LANCAMENTO, valor);
+}
+
+export function normalizarMeioPagamento(valor: unknown): MeioPagamento | null {
+  return normalizarDominio(MEIOS_PAGAMENTO, valor);
+}
+
+export function normalizarFrequenciaRecorrencia(valor: unknown): FrequenciaRecorrencia | null {
+  return normalizarDominio(FREQUENCIAS_RECORRENCIA, valor);
 }
 
 export function normalizarMesReferencia(valor: number | string | null | undefined): string | null {

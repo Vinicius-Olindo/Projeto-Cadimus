@@ -11,6 +11,12 @@ import type {
   TipoLancamento,
   WorkerCtx,
 } from "../types.js";
+import {
+  isTipoLancamento,
+  normalizarFrequenciaRecorrencia,
+  normalizarId,
+  normalizarMeioPagamento,
+} from "../domain.ts";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
@@ -36,12 +42,6 @@ interface RecorrenciaCarteiraRow {
   carteira_id: number;
 }
 
-const FREQUENCIAS_VALIDAS: FrequenciaRecorrencia[] = ["diaria", "semanal", "quinzenal", "mensal", "trimestral", "anual"];
-
-function isFrequenciaRecorrencia(valor: unknown): valor is FrequenciaRecorrencia {
-  return typeof valor === "string" && FREQUENCIAS_VALIDAS.includes(valor as FrequenciaRecorrencia);
-}
-
 function json<T>(dados: T, status = 200): Response {
   return new Response(JSON.stringify(dados), { status });
 }
@@ -63,8 +63,9 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
   if (metodo === "GET") {
     try {
       const carteiraId = url.searchParams.get("carteira_id");
+      const carteiraIdNormalizada = carteiraId ? normalizarId(carteiraId) : null;
 
-      if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
+      if (carteiraId && (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada))) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
       if (carteirasPermitidas.length === 0) {
@@ -76,7 +77,7 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
-        params.push(carteiraId);
+        params.push(carteiraIdNormalizada);
       } else {
         query += ` AND carteira_id IN (${carteirasPermitidas.map(() => "?").join(",")})`;
         params.push(...carteirasPermitidas);
@@ -99,8 +100,9 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
   if (metodo === "POST") {
     try {
       const dados = await request.json() as RecorrenciaPayload;
+      const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
-      if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
+      if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
@@ -112,8 +114,11 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
       const valor = centavosParaReais(valorCentavos);
       const categoria = String(dados.categoria || "").trim();
       const ehBonificacao = categoria.toLowerCase() === "bonificação";
+      if (!ehBonificacao && dados.tipo !== undefined && !isTipoLancamento(dados.tipo)) {
+        return erroCliente("Tipo inválido.", 400, "tipo_invalido");
+      }
       const tipo = ehBonificacao ? "receita" : dados.tipo === "receita" ? "receita" : "despesa";
-      const frequencia = dados.frequencia;
+      const frequencia = normalizarFrequenciaRecorrencia(dados.frequencia);
       const dataInicio = dados.data_inicio;
       const diaSemana = typeof dados.dia_semana === "number" ? dados.dia_semana : Number(dados.dia_semana ?? 0);
       const diaMes = typeof dados.dia_mes === "number" ? dados.dia_mes : Number(dados.dia_mes ?? 1);
@@ -124,7 +129,7 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
       if (valorCentavos <= 0) {
         return erroCliente("Informe um valor válido.", 400, "valor_invalido");
       }
-      if (!isFrequenciaRecorrencia(frequencia)) {
+      if (!frequencia) {
         return erroCliente("Frequência inválida.", 400, "frequencia_invalida");
       }
       if (!dataInicio) {
@@ -136,6 +141,10 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
       if (!dados.meio_pagamento) {
         return erroCliente("Escolha um meio de pagamento.", 400, "meio_pagamento_obrigatorio");
       }
+      const meioPagamento = normalizarMeioPagamento(dados.meio_pagamento);
+      if (!meioPagamento) {
+        return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
+      }
 
       if (frequencia === "semanal" && (diaSemana < 0 || diaSemana > 6)) {
         return erroCliente("Dia da semana inválido.", 400, "dia_semana_invalido");
@@ -145,7 +154,7 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
       }
 
       const valoresBase = [
-        dados.carteira_id, descricao, valor, tipo, categoria, dados.meio_pagamento,
+        carteiraIdNormalizada, descricao, valor, tipo, categoria, meioPagamento,
         frequencia,
         frequencia === "semanal" ? diaSemana : null,
         ["mensal", "trimestral", "anual"].includes(frequencia) ? diaMes : null,
@@ -162,7 +171,7 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
            VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         )
           .bind(
-            dados.carteira_id, descricao, valor, valorCentavos, tipo, categoria, dados.meio_pagamento,
+            carteiraIdNormalizada, descricao, valor, valorCentavos, tipo, categoria, meioPagamento,
             frequencia,
             frequencia === "semanal" ? diaSemana : null,
             ["mensal", "trimestral", "anual"].includes(frequencia) ? diaMes : null,
@@ -221,10 +230,30 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
       }
       const categoriaAtualizada = dados.categoria !== undefined ? String(dados.categoria).trim() : null;
       const ehBonificacao = categoriaAtualizada?.toLowerCase() === "bonificação";
-      if (dados.tipo !== undefined || ehBonificacao) { campos.push("tipo = ?"); valores.push(ehBonificacao ? "receita" : dados.tipo === "receita" ? "receita" : "despesa"); }
+      if (dados.tipo !== undefined || ehBonificacao) {
+        if (!ehBonificacao && dados.tipo !== undefined && !isTipoLancamento(dados.tipo)) {
+          return erroCliente("Tipo inválido.", 400, "tipo_invalido");
+        }
+        campos.push("tipo = ?");
+        valores.push(ehBonificacao ? "receita" : dados.tipo === "receita" ? "receita" : "despesa");
+      }
       if (dados.categoria !== undefined) { campos.push("categoria = ?"); valores.push(categoriaAtualizada); }
-      if (dados.meio_pagamento !== undefined) { campos.push("meio_pagamento = ?"); valores.push(dados.meio_pagamento); }
-      if (dados.frequencia !== undefined) { campos.push("frequencia = ?"); valores.push(dados.frequencia); }
+      if (dados.meio_pagamento !== undefined) {
+        const meioPagamento = normalizarMeioPagamento(dados.meio_pagamento);
+        if (!meioPagamento) {
+          return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
+        }
+        campos.push("meio_pagamento = ?");
+        valores.push(meioPagamento);
+      }
+      if (dados.frequencia !== undefined) {
+        const frequencia = normalizarFrequenciaRecorrencia(dados.frequencia);
+        if (!frequencia) {
+          return erroCliente("Frequência inválida.", 400, "frequencia_invalida");
+        }
+        campos.push("frequencia = ?");
+        valores.push(frequencia);
+      }
       if (dados.dia_semana !== undefined) { campos.push("dia_semana = ?"); valores.push(dados.dia_semana); }
       if (dados.dia_mes !== undefined) { campos.push("dia_mes = ?"); valores.push(dados.dia_mes); }
       if (dados.data_inicio !== undefined) { campos.push("data_inicio = ?"); valores.push(dados.data_inicio); }

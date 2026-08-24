@@ -3,6 +3,7 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
+import { normalizarId, normalizarMeioPagamento } from "../domain.ts";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
@@ -30,8 +31,9 @@ export async function processarComprasParceladas(request, env, ctx) {
   if (metodo === "GET") {
     try {
       const carteiraId = url.searchParams.get("carteira_id");
+      const carteiraIdNormalizada = carteiraId ? normalizarId(carteiraId) : null;
 
-      if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
+      if (carteiraId && (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada))) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
       if (carteirasPermitidas.length === 0) {
@@ -43,7 +45,7 @@ export async function processarComprasParceladas(request, env, ctx) {
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
-        params.push(carteiraId);
+        params.push(carteiraIdNormalizada);
       } else {
         query += ` AND carteira_id IN (${carteirasPermitidas.map(() => "?").join(",")})`;
         params.push(...carteirasPermitidas);
@@ -66,8 +68,9 @@ export async function processarComprasParceladas(request, env, ctx) {
   if (metodo === "POST") {
     try {
       const dados = await request.json();
+      const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
-      if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
+      if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
@@ -121,9 +124,13 @@ export async function processarComprasParceladas(request, env, ctx) {
       if (!dados.meio_pagamento) {
         return erroCliente("Escolha um meio de pagamento.", 400, "meio_pagamento_obrigatorio");
       }
+      const meioPagamento = normalizarMeioPagamento(dados.meio_pagamento);
+      if (!meioPagamento) {
+        return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
+      }
       let cartaoCreditoId = null;
-      if (String(dados.meio_pagamento).toLowerCase() === "credito" && dados.cartao_credito_id) {
-        const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, dados.carteira_id);
+      if (meioPagamento === "credito" && dados.cartao_credito_id) {
+        const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, carteiraIdNormalizada);
         if (cartaoValido === false) {
           return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
         }
@@ -137,7 +144,7 @@ export async function processarComprasParceladas(request, env, ctx) {
          (carteira_id, descricao, valor_total, valor_total_centavos, valor_parcela, valor_parcela_centavos, categoria, meio_pagamento, dia_vencimento, total_parcelas, ano_inicio, mes_inicio, criado_por, cartao_credito_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-        .bind(dados.carteira_id, descricao, valorTotal, valorTotalCentavos, valorParcela, valorParcelaCentavos, dados.categoria, dados.meio_pagamento, diaVencimento, totalParcelas, anoInicio, mesInicio, usuarioLogado.id, cartaoCreditoId)
+        .bind(carteiraIdNormalizada, descricao, valorTotal, valorTotalCentavos, valorParcela, valorParcelaCentavos, dados.categoria, meioPagamento, diaVencimento, totalParcelas, anoInicio, mesInicio, usuarioLogado.id, cartaoCreditoId)
         .run();
 
       const compraParceladaId = Number(resultado.meta?.last_row_id);
@@ -207,8 +214,12 @@ export async function processarComprasParceladas(request, env, ctx) {
         valores.push(dados.categoria);
       }
       if (dados.meio_pagamento !== undefined) {
+        const meioPagamento = normalizarMeioPagamento(dados.meio_pagamento);
+        if (!meioPagamento) {
+          return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
+        }
         campos.push("meio_pagamento = ?");
-        valores.push(dados.meio_pagamento);
+        valores.push(meioPagamento);
       }
       if (dados.dia_vencimento !== undefined) {
         const dia = parseInt(dados.dia_vencimento, 10);

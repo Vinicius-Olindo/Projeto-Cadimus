@@ -3,6 +3,7 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
+import { isTipoLancamento, normalizarId, normalizarMeioPagamento } from "../domain.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
@@ -29,8 +30,9 @@ export async function processarDespesasFixas(request, env, ctx) {
   if (metodo === "GET") {
     try {
       const carteiraId = url.searchParams.get("carteira_id");
+      const carteiraIdNormalizada = carteiraId ? normalizarId(carteiraId) : null;
 
-      if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
+      if (carteiraId && (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada))) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
       if (carteirasPermitidas.length === 0) {
@@ -42,7 +44,7 @@ export async function processarDespesasFixas(request, env, ctx) {
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
-        params.push(carteiraId);
+        params.push(carteiraIdNormalizada);
       } else {
         query += ` AND carteira_id IN (${carteirasPermitidas.map(() => "?").join(",")})`;
         params.push(...carteirasPermitidas);
@@ -65,8 +67,9 @@ export async function processarDespesasFixas(request, env, ctx) {
   if (metodo === "POST") {
     try {
       const dados = await request.json();
+      const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
-      if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
+      if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
@@ -94,9 +97,13 @@ export async function processarDespesasFixas(request, env, ctx) {
       if (!dados.meio_pagamento) {
         return erroCliente("Escolha um meio de pagamento.", 400, "meio_pagamento_obrigatorio");
       }
+      const meioPagamento = normalizarMeioPagamento(dados.meio_pagamento);
+      if (!meioPagamento) {
+        return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
+      }
       let cartaoCreditoId = null;
-      if (deveVincularCartaoCredito({ ...dados, tipo }) && dados.cartao_credito_id) {
-        const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, dados.carteira_id);
+      if (deveVincularCartaoCredito({ ...dados, tipo, meio_pagamento: meioPagamento }) && dados.cartao_credito_id) {
+        const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, carteiraIdNormalizada);
         if (cartaoValido === false) {
           return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
         }
@@ -107,7 +114,7 @@ export async function processarDespesasFixas(request, env, ctx) {
         `INSERT INTO despesas_fixas (carteira_id, descricao, valor, valor_centavos, tipo, categoria, meio_pagamento, dia_vencimento, criado_por, cartao_credito_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-        .bind(dados.carteira_id, descricao, valor, valorCentavos, tipo, dados.categoria, dados.meio_pagamento, diaVencimento, usuarioLogado.id, cartaoCreditoId)
+        .bind(carteiraIdNormalizada, descricao, valor, valorCentavos, tipo, dados.categoria, meioPagamento, diaVencimento, usuarioLogado.id, cartaoCreditoId)
         .run();
 
       return json({ id: resultado.meta?.last_row_id ?? null, mensagem: "Despesa fixa cadastrada!" }, 201);
@@ -154,16 +161,23 @@ export async function processarDespesasFixas(request, env, ctx) {
         valores.push(valorCentavos);
       }
       if (dados.tipo !== undefined) {
+        if (!isTipoLancamento(dados.tipo)) {
+          return erroCliente("Tipo inválido.", 400, "tipo_invalido");
+        }
         campos.push("tipo = ?");
-        valores.push(dados.tipo === "receita" ? "receita" : "despesa");
+        valores.push(dados.tipo);
       }
       if (dados.categoria !== undefined) {
         campos.push("categoria = ?");
         valores.push(dados.categoria);
       }
       if (dados.meio_pagamento !== undefined) {
+        const meioPagamento = normalizarMeioPagamento(dados.meio_pagamento);
+        if (!meioPagamento) {
+          return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
+        }
         campos.push("meio_pagamento = ?");
-        valores.push(dados.meio_pagamento);
+        valores.push(meioPagamento);
       }
       if (dados.dia_vencimento !== undefined) {
         const dia = parseInt(dados.dia_vencimento, 10);

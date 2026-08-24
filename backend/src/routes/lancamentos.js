@@ -3,6 +3,14 @@
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
+import {
+  isStatusLancamento,
+  isTipoLancamento,
+  normalizarId,
+  normalizarMeioPagamento,
+  normalizarStatusLancamento,
+  normalizarTipoLancamento,
+} from "../domain.ts";
 import { gerarLancamentosFixosDoMes } from "../utils/despesasFixas.ts";
 import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.ts";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.ts";
@@ -75,13 +83,20 @@ export async function processarLancamentos(request, env, ctx) {
       const categoria = url.searchParams.get("categoria");
       const tipo = url.searchParams.get("tipo");
       const status = url.searchParams.get("status");
+      const carteiraIdNormalizada = carteiraId ? normalizarId(carteiraId) : null;
 
-      if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
+      if (carteiraId && (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada))) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       if (carteirasPermitidas.length === 0) {
         return json([]);
+      }
+      if (tipo && !isTipoLancamento(tipo)) {
+        return erroCliente("Tipo inválido.", 400, "tipo_invalido");
+      }
+      if (status && !isStatusLancamento(status)) {
+        return erroCliente("Status inválido.", 400, "status_invalido");
       }
 
       const despesaFixaId = url.searchParams.get("despesa_fixa_id");
@@ -90,12 +105,12 @@ export async function processarLancamentos(request, env, ctx) {
 
       // Antes de listar, garante que as despesas fixas ativas e as parcelas do mês já foram geradas
       if (mes && ano && !despesaFixaId && !compraParceladaId && !recorrenciaId) {
-        const carteirasAlvo = carteiraId ? [Number(carteiraId)] : carteirasPermitidas;
+        const carteirasAlvo = carteiraIdNormalizada ? [carteiraIdNormalizada] : carteirasPermitidas;
         await gerarLancamentosFixosDoMes(env, carteirasAlvo, ano, mes);
         await gerarLancamentosParceladosDoMes(env, carteirasAlvo, ano, mes);
         await gerarLancamentosRecorrentesDoMes(env, carteirasAlvo, ano, mes);
       } else if (dataInicio && dataFim && !despesaFixaId && !compraParceladaId && !recorrenciaId) {
-        const carteirasAlvo = carteiraId ? [Number(carteiraId)] : carteirasPermitidas;
+        const carteirasAlvo = carteiraIdNormalizada ? [carteiraIdNormalizada] : carteirasPermitidas;
         await gerarLancamentosDoPeriodo(env, carteirasAlvo, dataInicio, dataFim);
       }
 
@@ -184,9 +199,22 @@ export async function processarLancamentos(request, env, ctx) {
   if (metodo === "POST") {
     try {
       const dados = await request.json();
+      const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
-      if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
+      if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
+      }
+      const tipoNormalizado = normalizarTipoLancamento(dados.tipo);
+      const statusNormalizado = normalizarStatusLancamento(dados.status);
+      const meioPagamentoNormalizado = normalizarMeioPagamento(dados.meio_pagamento);
+      if (!tipoNormalizado) {
+        return erroCliente("Tipo inválido.", 400, "tipo_invalido");
+      }
+      if (!statusNormalizado) {
+        return erroCliente("Status inválido.", 400, "status_invalido");
+      }
+      if (!meioPagamentoNormalizado) {
+        return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
       }
 
       // Valida que a categoria existe na tabela de categorias.
@@ -205,8 +233,8 @@ export async function processarLancamentos(request, env, ctx) {
       const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
       const valor = centavosParaReais(valorCentavos);
       let cartaoCreditoId = null;
-      if (deveVincularCartaoCredito(dados) && dados.cartao_credito_id) {
-        const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, dados.carteira_id);
+      if (deveVincularCartaoCredito({ ...dados, tipo: tipoNormalizado, meio_pagamento: meioPagamentoNormalizado }) && dados.cartao_credito_id) {
+        const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, carteiraIdNormalizada);
         if (cartaoValido === false) {
           return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
         }
@@ -224,11 +252,11 @@ export async function processarLancamentos(request, env, ctx) {
           valor,
           valorCentavos,
           dados.data_compra,
-          dados.tipo,
+          tipoNormalizado,
           dados.categoria,
-          dados.meio_pagamento,
-          dados.status,
-          dados.carteira_id,
+          meioPagamentoNormalizado,
+          statusNormalizado,
+          carteiraIdNormalizada,
           usuarioLogado.id, // criado_por vem da sessão, nunca do corpo enviado pelo cliente
           dados.nota || "",
           cartaoCreditoId,
@@ -240,10 +268,10 @@ export async function processarLancamentos(request, env, ctx) {
         acao: "lancamento.criado",
         entidade: "lancamento",
         entidadeId: insertResult.meta?.last_row_id || null,
-        carteiraId: Number(dados.carteira_id),
+        carteiraId: carteiraIdNormalizada,
         metadata: {
-          tipo: dados.tipo || null,
-          status: dados.status || null,
+          tipo: tipoNormalizado,
+          status: statusNormalizado,
           categoria: dados.categoria || null,
         },
       });
@@ -317,11 +345,14 @@ export async function processarLancamentos(request, env, ctx) {
       for (const campo of camposEnviados) {
         if (campo === "valor" || campo === "valor_centavos" || campo === "cartao_credito_id") continue;
 
-        if (campo === "status" && !["pago", "pendente"].includes(dados.status)) {
+        if (campo === "status" && !isStatusLancamento(dados.status)) {
           return erroCliente("Status inválido.", 400, "status_invalido");
         }
-        if (campo === "tipo" && !["despesa", "receita"].includes(dados.tipo)) {
+        if (campo === "tipo" && !isTipoLancamento(dados.tipo)) {
           return erroCliente("Tipo inválido.", 400, "tipo_invalido");
+        }
+        if (campo === "meio_pagamento" && !normalizarMeioPagamento(dados.meio_pagamento)) {
+          return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
         }
         if (campo === "categoria") {
           const { results: catValida } = await env.DB.prepare(
@@ -333,7 +364,10 @@ export async function processarLancamentos(request, env, ctx) {
         }
 
         campos.push(`${campo} = ?`);
-        valores.push(dados[campo]);
+        if (campo === "tipo") valores.push(normalizarTipoLancamento(dados[campo]));
+        else if (campo === "status") valores.push(normalizarStatusLancamento(dados[campo]));
+        else if (campo === "meio_pagamento") valores.push(normalizarMeioPagamento(dados[campo]));
+        else valores.push(dados[campo]);
       }
 
       if (campos.length === 0) {
@@ -417,7 +451,7 @@ export async function processarLancamentos(request, env, ctx) {
         return erroCliente("Máximo de 50 lançamentos por vez.", 400, "lote_limite_excedido");
       }
 
-      if (status && !["pago", "pendente"].includes(status)) {
+      if (status && !isStatusLancamento(status)) {
         return erroCliente("Status inválido.", 400, "status_invalido");
       }
 

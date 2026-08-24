@@ -13,7 +13,10 @@ import {
   isTipoLancamento,
   MEIOS_PAGAMENTO,
   normalizarId,
+  normalizarMeioPagamento,
   normalizarMesReferencia,
+  normalizarStatusLancamento,
+  normalizarTipoLancamento,
   STATUS_NOTIFICACAO,
 } from "../src/domain.ts";
 
@@ -57,6 +60,13 @@ test("normalizadores de domínio convertem entradas comuns de rota", () => {
   assert.equal(normalizarId(10), 10);
   assert.equal(normalizarId("0"), null);
   assert.equal(normalizarId("abc"), null);
+
+  assert.equal(normalizarTipoLancamento("Receita"), "receita");
+  assert.equal(normalizarTipoLancamento("entrada"), null);
+  assert.equal(normalizarStatusLancamento("Pago"), "pago");
+  assert.equal(normalizarStatusLancamento("atrasado"), null);
+  assert.equal(normalizarMeioPagamento("Pix"), "pix");
+  assert.equal(normalizarMeioPagamento("boleto"), null);
 
   assert.equal(normalizarMesReferencia("8"), "08");
   assert.equal(normalizarMesReferencia("12"), "12");
