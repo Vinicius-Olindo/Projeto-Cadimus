@@ -1,17 +1,37 @@
 // ==========================================
-// orcamentos.js - Orçamentos Mensais por Categoria
+// orcamentos.ts - Orçamentos Mensais por Categoria
 // ==========================================
+import type { CadimusEnv, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
-import { erroCliente, erroInterno } from "../utils/respostas.ts";
+import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
-/**
- * @param {Request} request
- * @param {import("../types.js").CadimusEnv} env
- * @param {import("../types.js").WorkerCtx} ctx
- */
-export async function processarOrcamentos(request, env, ctx) {
+interface OrcamentoPayload {
+  categoria?: string;
+  valor?: number | string | null;
+  valor_centavos?: number | string | null;
+  mes?: number | string;
+  ano?: number | string;
+  carteira_id?: number | string;
+}
+
+interface OrcamentoComGastoRow {
+  id: number;
+  categoria: string;
+  valor: number;
+  valor_centavos?: number | null;
+  total_gasto: number;
+  total_gasto_centavos?: number | null;
+  [key: string]: unknown;
+}
+
+interface OrcamentoAlvoRow {
+  carteira_id: number;
+  criado_por: number;
+}
+
+export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
 
@@ -34,11 +54,11 @@ export async function processarOrcamentos(request, env, ctx) {
       const carteiraId = url.searchParams.get("carteira_id");
 
       if (!mes || !ano) {
-        return new Response(JSON.stringify({ erro: "Mês e ano são obrigatórios." }), { status: 400 });
+        return erroCliente("Mês e ano são obrigatórios.", 400, "periodo_obrigatorio");
       }
 
       if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       let query = `
@@ -61,14 +81,14 @@ export async function processarOrcamentos(request, env, ctx) {
         ) gasto ON gasto.carteira_id = o.carteira_id AND gasto.categoria_normalizada = LOWER(o.categoria)
         WHERE o.mes = ? AND o.ano = ?
       `;
-      const params = /** @type {import("../types.js").SqlParam[]} */ ([mes.padStart(2, "0"), ano, mes, ano]);
+      const params: SqlParam[] = [mes.padStart(2, "0"), ano, mes, ano];
 
       if (carteiraId) {
         query += ` AND o.carteira_id = ?`;
         params.push(carteiraId);
       } else {
         if (carteirasPermitidas.length === 0) {
-          return new Response(JSON.stringify([]), { status: 200 });
+          return json([]);
         }
         const placeholders = carteirasPermitidas.map(() => "?").join(",");
         query += ` AND o.carteira_id IN (${placeholders})`;
@@ -77,10 +97,10 @@ export async function processarOrcamentos(request, env, ctx) {
 
       query += ` ORDER BY o.categoria ASC`;
 
-      const { results } = await env.DB.prepare(query).bind(...params).all();
+      const { results } = await env.DB.prepare(query).bind(...params).all<OrcamentoComGastoRow>();
 
       // Calcular progresso para cada orçamento
-      const orcamentosComProgresso = /** @type {any[]} */ (results).map((o) => {
+      const orcamentosComProgresso = results.map((o) => {
         const valorCentavos = o.valor_centavos ?? Math.round(o.valor * 100);
         const totalGastoCentavos = o.total_gasto_centavos ?? Math.round(o.total_gasto * 100);
         const progresso = valorCentavos > 0 ? (totalGastoCentavos / valorCentavos) * 100 : 0;
@@ -94,7 +114,7 @@ export async function processarOrcamentos(request, env, ctx) {
         };
       });
 
-      return new Response(JSON.stringify(orcamentosComProgresso), { status: 200 });
+      return json(orcamentosComProgresso);
     } catch (erro) {
       return erroInterno(erro, "orcamentos.listar", "Não foi possível carregar os orçamentos agora.", "orcamentos_listar_falhou");
     }
@@ -105,21 +125,21 @@ export async function processarOrcamentos(request, env, ctx) {
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json();
+      const dados = (await request.json()) as OrcamentoPayload;
 
       if (!dados.categoria || (dados.valor === undefined && dados.valor_centavos === undefined) || !dados.mes || !dados.ano || !dados.carteira_id) {
-        return new Response(JSON.stringify({ erro: "Categoria, valor, mês, ano e carteira são obrigatórios." }), { status: 400 });
+        return erroCliente("Categoria, valor, mês, ano e carteira são obrigatórios.", 400, "orcamento_campos_obrigatorios");
       }
 
       const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
       const valor = centavosParaReais(valorCentavos);
 
       if (valorCentavos < 0) {
-        return new Response(JSON.stringify({ erro: "Valor não pode ser negativo." }), { status: 400 });
+        return erroCliente("Valor não pode ser negativo.", 400, "valor_negativo");
       }
 
       if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       // Upsert: insere ou atualiza se já existe ( UNIQUE constraint )
@@ -141,7 +161,7 @@ export async function processarOrcamentos(request, env, ctx) {
         )
         .run();
 
-      return new Response(JSON.stringify({ mensagem: "Orçamento salvo com sucesso!" }), { status: 201 });
+      return json({ mensagem: "Orçamento salvo com sucesso!" }, 201);
     } catch (erro) {
       return erroInterno(erro, "orcamentos.salvar", "Não foi possível salvar este orçamento agora.", "orcamento_salvar_falhou");
     }
@@ -155,30 +175,30 @@ export async function processarOrcamentos(request, env, ctx) {
       const id = url.searchParams.get("id");
 
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
       // Verificar se o orçamento existe e o usuário tem acesso
       const { results: alvo } = await env.DB.prepare(
         `SELECT carteira_id, criado_por FROM orcamentos WHERE id = ?`
-      ).bind(id).all();
+      ).bind(id).all<OrcamentoAlvoRow>();
 
       if (alvo.length === 0) {
-        return new Response(JSON.stringify({ erro: "Orçamento não encontrado." }), { status: 404 });
+        return erroCliente("Orçamento não encontrado.", 404, "orcamento_nao_encontrado");
       }
 
       if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       // Só quem criou ou superadmin pode apagar
       if (alvo[0].criado_por !== usuarioLogado.id && usuarioLogado.perfil !== "superadmin") {
-        return new Response(JSON.stringify({ erro: "Só quem criou (ou um administrador) pode excluir este orçamento." }), { status: 403 });
+        return erroCliente("Só quem criou (ou um administrador) pode excluir este orçamento.", 403, "orcamento_excluir_negado");
       }
 
       await env.DB.prepare(`DELETE FROM orcamentos WHERE id = ?`).bind(id).run();
 
-      return new Response(JSON.stringify({ mensagem: "Orçamento apagado." }), { status: 200 });
+      return json({ mensagem: "Orçamento apagado." });
     } catch (erro) {
       return erroInterno(erro, "orcamentos.excluir", "Não foi possível apagar este orçamento agora.", "orcamento_excluir_falhou");
     }

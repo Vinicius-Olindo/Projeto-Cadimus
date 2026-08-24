@@ -33,6 +33,6 @@
     "src/routes/lancamentosRecorrentes.js",
     "src/routes/manutencao.ts",
     "src/routes/notificacoes.js",
-    "src/routes/orcamentos.js"
+    "src/routes/orcamentos.ts"
   ]
 }

@@ -13,7 +13,7 @@ import { processarComprasParceladas } from "./routes/comprasParceladas.js";
 import { processarLancamentosRecorrentes } from "./routes/lancamentosRecorrentes.js";
 import { processarConvites } from "./routes/convites.js";
 import { processarTransferencias } from "./routes/transferencias.js";
-import { processarOrcamentos } from "./routes/orcamentos.js";
+import { processarOrcamentos } from "./routes/orcamentos.ts";
 import { processarLimpezaDados } from "./routes/manutencao.ts";
 import { processarCartoesCredito } from "./routes/cartoesCredito.ts";
 import { processarNotificacoes } from "./routes/notificacoes.js";

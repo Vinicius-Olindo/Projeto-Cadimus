@@ -5,7 +5,7 @@ import { calcularValorParcelaCentavos, gerarTodasParcelasDaCompra } from "../src
 import { gerarLancamentosFixosDoMes } from "../src/utils/despesasFixas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../src/utils/lancamentosRecorrentes.js";
 import { processarLancamentos } from "../src/routes/lancamentos.js";
-import { processarOrcamentos } from "../src/routes/orcamentos.js";
+import { processarOrcamentos } from "../src/routes/orcamentos.ts";
 import { processarTransferencias } from "../src/routes/transferencias.js";
 import { processarCarteiras } from "../src/routes/carteiras.js";
 import { processarPlanos, processarPlanoDepositos } from "../src/routes/planos.js";
