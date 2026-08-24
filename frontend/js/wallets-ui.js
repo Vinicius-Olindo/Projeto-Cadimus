@@ -711,7 +711,7 @@ async function carregarCartoesCredito() {
           </div>
         </div>
         ` : ""}
-        ${cartao.parcelas_ativas > 0 ? `<div class="cartao-item-parcelas">${cartao.parcelas_ativas} parcela(s) ativa(s)</div>` : ""}
+        ${cartao.parcelas_ativas > 0 ? `<div class="cartao-item-parcelas">${cartao.parcelas_ativas} parcela(s) em aberto</div>` : ""}
       `;
       container.appendChild(div);
     });

@@ -25,12 +25,20 @@ export async function processarCartoesCredito(request, env, ctx) {
     }
 
     let query = `SELECT c.*,
-      (SELECT COUNT(*) FROM compras_parceladas cp
-       WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1) as parcelas_ativas,
+      (SELECT COUNT(*) FROM lancamentos lp
+       INNER JOIN compras_parceladas cp ON cp.id = lp.compra_parcelada_id
+       WHERE cp.cartao_credito_id = c.id
+         AND cp.ativo = 1
+         AND lp.tipo = 'despesa'
+         AND lp.status != 'pago') as parcelas_ativas,
       (
-        COALESCE((SELECT SUM(COALESCE(cp.valor_total_centavos, ROUND(COALESCE(cp.valor_total, cp.valor_parcela * cp.total_parcelas) * 100)))
-          FROM compras_parceladas cp
-          WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1), 0)
+        COALESCE((SELECT SUM(COALESCE(lp.valor_centavos, ROUND(lp.valor * 100)))
+          FROM lancamentos lp
+          INNER JOIN compras_parceladas cp ON cp.id = lp.compra_parcelada_id
+          WHERE cp.cartao_credito_id = c.id
+            AND cp.ativo = 1
+            AND lp.tipo = 'despesa'
+            AND lp.status != 'pago'), 0)
         +
         COALESCE((SELECT SUM(COALESCE(df.valor_centavos, ROUND(df.valor * 100)))
           FROM despesas_fixas df
@@ -45,9 +53,13 @@ export async function processarCartoesCredito(request, env, ctx) {
             AND strftime('%Y-%m', l.data_compra) = strftime('%Y-%m', 'now')), 0)
       ) / 100.0 as gasto_atual,
       (
-        COALESCE((SELECT SUM(COALESCE(cp.valor_total_centavos, ROUND(COALESCE(cp.valor_total, cp.valor_parcela * cp.total_parcelas) * 100)))
-          FROM compras_parceladas cp
-          WHERE cp.cartao_credito_id = c.id AND cp.ativo = 1), 0)
+        COALESCE((SELECT SUM(COALESCE(lp.valor_centavos, ROUND(lp.valor * 100)))
+          FROM lancamentos lp
+          INNER JOIN compras_parceladas cp ON cp.id = lp.compra_parcelada_id
+          WHERE cp.cartao_credito_id = c.id
+            AND cp.ativo = 1
+            AND lp.tipo = 'despesa'
+            AND lp.status != 'pago'), 0)
         +
         COALESCE((SELECT SUM(COALESCE(df.valor_centavos, ROUND(df.valor * 100)))
           FROM despesas_fixas df
