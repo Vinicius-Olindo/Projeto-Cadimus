@@ -9,7 +9,7 @@ import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrente
 import { registrarAuditoria } from "../utils/auditoria.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
-import { erroCliente, erroInterno } from "../utils/respostas.js";
+import { erroCliente, erroInterno } from "../utils/respostas.ts";
 
 /** @param {unknown} valor */
 function dataISOValida(valor) {

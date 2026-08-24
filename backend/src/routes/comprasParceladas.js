@@ -6,7 +6,7 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
-import { erroCliente, erroInterno } from "../utils/respostas.js";
+import { erroCliente, erroInterno } from "../utils/respostas.ts";
 
 /**
  * @param {Request} request

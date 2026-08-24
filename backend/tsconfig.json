@@ -23,7 +23,7 @@
     "src/utils/comprasParceladas.js",
     "src/utils/despesasFixas.js",
     "src/utils/lancamentosRecorrentes.js",
-    "src/utils/respostas.js",
+    "src/utils/respostas.ts",
     "src/utils/sessao.js",
     "src/routes/cartoesCredito.ts",
     "src/routes/comprasParceladas.js",
