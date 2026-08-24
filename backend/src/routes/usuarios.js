@@ -1,7 +1,7 @@
 // ==========================================
 // usuarios.js - Gestão de Contas e Perfis (somente superadmin)
 // ==========================================
-import { hashSenha } from "../utils/crypto.js";
+import { hashSenha } from "../utils/crypto.ts";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 
 // Regra simples de formato (não valida se o e-mail existe de verdade — isso

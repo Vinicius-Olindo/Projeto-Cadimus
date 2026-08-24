@@ -1,7 +1,7 @@
 // ==========================================
 // auth.js - Lógica de Login e Autenticação
 // ==========================================
-import { verificarSenha, hashSenha } from "../utils/crypto.js";
+import { verificarSenha, hashSenha } from "../utils/crypto.ts";
 import { criarSessao, encerrarSessao } from "../utils/sessao.ts";
 import { enviarEmail, templateRecuperacaoSenha } from "../utils/email.ts";
 

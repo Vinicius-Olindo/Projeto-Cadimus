@@ -15,7 +15,7 @@
     "src/types.d.ts",
     "src/domain.ts",
     "src/utils/auditoria.js",
-    "src/utils/crypto.js",
+    "src/utils/crypto.ts",
     "src/utils/dinheiro.ts",
     "src/utils/email.ts",
     "src/utils/cartoesCredito.ts",

@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { hashSenha, verificarSenha } from "../src/utils/crypto.js";
+import { hashSenha, verificarSenha } from "../src/utils/crypto.ts";
 
 test("hashSenha gera hash PBKDF2 verificável", async () => {
   const hash = await hashSenha("senha-segura-123");

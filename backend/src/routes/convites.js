@@ -1,7 +1,7 @@
 // ==========================================
 // convites.js - Sistema de Convites para Cadastro
 // ==========================================
-import { hashSenha } from "../utils/crypto.js";
+import { hashSenha } from "../utils/crypto.ts";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 
 const DURACAO_CONVITE_MS = 3 * 60 * 60 * 1000; // 3 horas
