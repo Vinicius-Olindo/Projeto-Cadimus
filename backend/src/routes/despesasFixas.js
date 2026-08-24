@@ -5,6 +5,7 @@ import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
+import { erroCliente, erroInterno } from "../utils/respostas.js";
 
 /**
  * @param {Request} request
@@ -17,7 +18,7 @@ export async function processarDespesasFixas(request, env, ctx) {
 
   const usuarioLogado = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuarioLogado) {
-    return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
+    return erroCliente("Não autenticado.", 401, "nao_autenticado");
   }
 
   const carteirasPermitidas = await obterCarteirasDoUsuario(env, usuarioLogado.id);
@@ -54,7 +55,7 @@ export async function processarDespesasFixas(request, env, ctx) {
         .all();
       return new Response(JSON.stringify(results), { status: 200 });
     } catch (erro) {
-      return new Response(JSON.stringify({ erro: "Erro ao buscar despesas fixas." }), { status: 500 });
+      return erroInterno(erro, "despesasFixas.listar", "Não foi possível carregar as despesas fixas agora.", "fixas_listar_falhou");
     }
   }
 
@@ -111,8 +112,7 @@ export async function processarDespesasFixas(request, env, ctx) {
 
       return new Response(JSON.stringify({ id: resultado.meta?.last_row_id ?? null, mensagem: "Despesa fixa cadastrada!" }), { status: 201 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao cadastrar despesa fixa." }), { status: 500 });
+      return erroInterno(erro, "despesasFixas.criar", "Não foi possível cadastrar esta despesa fixa agora.", "fixa_criar_falhou");
     }
   }
 
@@ -213,8 +213,7 @@ export async function processarDespesasFixas(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Atualizado com sucesso." }), { status: 200 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao atualizar." }), { status: 500 });
+      return erroInterno(erro, "despesasFixas.atualizar", "Não foi possível atualizar esta despesa fixa agora.", "fixa_atualizar_falhou");
     }
   }
 
@@ -244,9 +243,9 @@ export async function processarDespesasFixas(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Despesa fixa excluída." }), { status: 200 });
     } catch (erro) {
-      return new Response(JSON.stringify({ erro: "Erro ao excluir." }), { status: 500 });
+      return erroInterno(erro, "despesasFixas.excluir", "Não foi possível excluir esta despesa fixa agora.", "fixa_excluir_falhou");
     }
   }
 
-  return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
+  return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
 }

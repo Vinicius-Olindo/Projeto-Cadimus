@@ -9,6 +9,7 @@ import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrente
 import { registrarAuditoria } from "../utils/auditoria.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
+import { erroCliente, erroInterno } from "../utils/respostas.js";
 
 /** @param {unknown} valor */
 function dataISOValida(valor) {
@@ -55,7 +56,7 @@ export async function processarLancamentos(request, env, ctx) {
   // Toda operação em lançamentos exige login
   const usuarioLogado = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuarioLogado) {
-    return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
+    return erroCliente("Não autenticado.", 401, "nao_autenticado");
   }
 
   // Só pode ler/gravar/apagar nas carteiras às quais tem acesso (usuarios_carteiras)
@@ -122,7 +123,7 @@ export async function processarLancamentos(request, env, ctx) {
 
       if (dataInicio) {
         if (!dataISOValida(dataInicio)) {
-          return new Response(JSON.stringify({ erro: "data_inicio invÃ¡lida." }), { status: 400 });
+          return erroCliente("data_inicio inválida.", 400, "data_inicio_invalida");
         }
         query += ` AND l.data_compra >= ?`;
         params.push(dataInicio);
@@ -130,7 +131,7 @@ export async function processarLancamentos(request, env, ctx) {
 
       if (dataFim) {
         if (!dataISOValida(dataFim)) {
-          return new Response(JSON.stringify({ erro: "data_fim invÃ¡lida." }), { status: 400 });
+          return erroCliente("data_fim inválida.", 400, "data_fim_invalida");
         }
         query += ` AND l.data_compra <= ?`;
         params.push(dataFim);
@@ -173,8 +174,7 @@ export async function processarLancamentos(request, env, ctx) {
         .all();
       return new Response(JSON.stringify(results), { status: 200 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao buscar dados." }), { status: 500 });
+      return erroInterno(erro, "lancamentos.listar", "Não foi possível carregar os lançamentos agora.", "lancamentos_listar_falhou");
     }
   }
 
@@ -250,7 +250,7 @@ export async function processarLancamentos(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Salvo com sucesso!" }), { status: 201 });
     } catch (erro) {
-      return new Response(JSON.stringify({ erro: "Erro ao salvar." }), { status: 500 });
+      return erroInterno(erro, "lancamentos.criar", "Não foi possível salvar este lançamento agora.", "lancamento_salvar_falhou");
     }
   }
 
@@ -358,8 +358,7 @@ export async function processarLancamentos(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Atualizado com sucesso." }), { status: 200 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao atualizar." }), { status: 500 });
+      return erroInterno(erro, "lancamentos.atualizar", "Não foi possível atualizar este lançamento agora.", "lancamento_atualizar_falhou");
     }
   }
 
@@ -398,7 +397,7 @@ export async function processarLancamentos(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Lançamento apagado." }), { status: 200 });
     } catch (erro) {
-      return new Response(JSON.stringify({ erro: "Erro ao apagar." }), { status: 500 });
+      return erroInterno(erro, "lancamentos.excluir", "Não foi possível apagar este lançamento agora.", "lancamento_excluir_falhou");
     }
   }
 
@@ -486,9 +485,9 @@ export async function processarLancamentos(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: `${atualizados} lançamento(s) atualizado(s).` }), { status: 200 });
     } catch (erro) {
-      return new Response(JSON.stringify({ erro: "Erro ao atualizar em lote." }), { status: 500 });
+      return erroInterno(erro, "lancamentos.lote", "Não foi possível atualizar os lançamentos selecionados agora.", "lancamentos_lote_falhou");
     }
   }
 
-  return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
+  return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
 }

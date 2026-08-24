@@ -4,6 +4,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
+import { erroCliente, erroInterno } from "../utils/respostas.js";
 
 /**
  * @param {Request} request
@@ -17,7 +18,7 @@ export async function processarOrcamentos(request, env, ctx) {
   // Toda operação exige login
   const usuarioLogado = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuarioLogado) {
-    return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
+    return erroCliente("Não autenticado.", 401, "nao_autenticado");
   }
 
   // Só pode operar nas carteiras às quais tem acesso
@@ -95,8 +96,7 @@ export async function processarOrcamentos(request, env, ctx) {
 
       return new Response(JSON.stringify(orcamentosComProgresso), { status: 200 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao buscar orçamentos." }), { status: 500 });
+      return erroInterno(erro, "orcamentos.listar", "Não foi possível carregar os orçamentos agora.", "orcamentos_listar_falhou");
     }
   }
 
@@ -143,8 +143,7 @@ export async function processarOrcamentos(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Orçamento salvo com sucesso!" }), { status: 201 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao salvar orçamento." }), { status: 500 });
+      return erroInterno(erro, "orcamentos.salvar", "Não foi possível salvar este orçamento agora.", "orcamento_salvar_falhou");
     }
   }
 
@@ -181,10 +180,9 @@ export async function processarOrcamentos(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Orçamento apagado." }), { status: 200 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao apagar orçamento." }), { status: 500 });
+      return erroInterno(erro, "orcamentos.excluir", "Não foi possível apagar este orçamento agora.", "orcamento_excluir_falhou");
     }
   }
 
-  return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
+  return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
 }

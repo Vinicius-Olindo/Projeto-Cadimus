@@ -6,6 +6,7 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
+import { erroCliente, erroInterno } from "../utils/respostas.js";
 
 /**
  * @param {Request} request
@@ -18,7 +19,7 @@ export async function processarComprasParceladas(request, env, ctx) {
 
   const usuarioLogado = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuarioLogado) {
-    return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
+    return erroCliente("Não autenticado.", 401, "nao_autenticado");
   }
 
   const carteirasPermitidas = await obterCarteirasDoUsuario(env, usuarioLogado.id);
@@ -55,7 +56,7 @@ export async function processarComprasParceladas(request, env, ctx) {
         .all();
       return new Response(JSON.stringify(results), { status: 200 });
     } catch (erro) {
-      return new Response(JSON.stringify({ erro: "Erro ao buscar compras parceladas." }), { status: 500 });
+      return erroInterno(erro, "comprasParceladas.listar", "Não foi possível carregar as compras parceladas agora.", "parceladas_listar_falhou");
     }
   }
 
@@ -141,7 +142,7 @@ export async function processarComprasParceladas(request, env, ctx) {
 
       const compraParceladaId = Number(resultado.meta?.last_row_id);
       if (!Number.isInteger(compraParceladaId) || compraParceladaId <= 0) {
-        return new Response(JSON.stringify({ erro: "Compra cadastrada, mas não foi possível identificar o registro criado." }), { status: 500 });
+        return erroInterno(new Error("last_row_id ausente ao criar compra parcelada"), "comprasParceladas.criar", "Compra cadastrada, mas não foi possível gerar as parcelas agora.", "parcelada_id_ausente");
       }
 
       // Gera todas as N parcelas de uma vez (inclusive as de meses futuros) — diferente da
@@ -150,8 +151,7 @@ export async function processarComprasParceladas(request, env, ctx) {
 
       return new Response(JSON.stringify({ id: compraParceladaId, mensagem: "Compra parcelada cadastrada!" }), { status: 201 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao cadastrar compra parcelada." }), { status: 500 });
+      return erroInterno(erro, "comprasParceladas.criar", "Não foi possível cadastrar a compra parcelada agora.", "parcelada_criar_falhou");
     }
   }
 
@@ -262,8 +262,7 @@ export async function processarComprasParceladas(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Atualizado com sucesso." }), { status: 200 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao atualizar." }), { status: 500 });
+      return erroInterno(erro, "comprasParceladas.atualizar", "Não foi possível atualizar esta compra parcelada agora.", "parcelada_atualizar_falhou");
     }
   }
 
@@ -292,9 +291,9 @@ export async function processarComprasParceladas(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Compra parcelada excluída." }), { status: 200 });
     } catch (erro) {
-      return new Response(JSON.stringify({ erro: "Erro ao excluir." }), { status: 500 });
+      return erroInterno(erro, "comprasParceladas.excluir", "Não foi possível excluir esta compra parcelada agora.", "parcelada_excluir_falhou");
     }
   }
 
-  return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
+  return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
 }

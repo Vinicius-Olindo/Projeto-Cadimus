@@ -4,6 +4,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
+import { erroCliente, erroInterno } from "../utils/respostas.js";
 
 /**
  * @param {Request} request
@@ -16,7 +17,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
 
   const usuarioLogado = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuarioLogado) {
-    return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
+    return erroCliente("Não autenticado.", 401, "nao_autenticado");
   }
 
   const carteirasPermitidas = await obterCarteirasDoUsuario(env, usuarioLogado.id);
@@ -53,8 +54,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
         .all();
       return new Response(JSON.stringify(results), { status: 200 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao buscar recorrências." }), { status: 500 });
+      return erroInterno(erro, "recorrencias.listar", "Não foi possível carregar as recorrências agora.", "recorrencias_listar_falhou");
     }
   }
 
@@ -149,10 +149,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
 
       return new Response(JSON.stringify({ id: resultado.meta?.last_row_id ?? null, mensagem: "Recorrência criada!" }), { status: 201 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      const detalhe = erro instanceof Error ? erro.message : String(erro || "");
-      const mensagem = detalhe ? `Erro ao criar recorrência: ${detalhe}` : "Erro ao criar recorrência.";
-      return new Response(JSON.stringify({ erro: mensagem }), { status: 500 });
+      return erroInterno(erro, "recorrencias.criar", "Não foi possível criar esta recorrência agora.", "recorrencia_criar_falhou");
     }
   }
 
@@ -208,8 +205,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Atualizado." }), { status: 200 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao atualizar." }), { status: 500 });
+      return erroInterno(erro, "recorrencias.atualizar", "Não foi possível atualizar esta recorrência agora.", "recorrencia_atualizar_falhou");
     }
   }
 
@@ -236,10 +232,9 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
 
       return new Response(JSON.stringify({ mensagem: "Recorrência excluída." }), { status: 200 });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao excluir." }), { status: 500 });
+      return erroInterno(erro, "recorrencias.excluir", "Não foi possível excluir esta recorrência agora.", "recorrencia_excluir_falhou");
     }
   }
 
-  return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
+  return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
 }

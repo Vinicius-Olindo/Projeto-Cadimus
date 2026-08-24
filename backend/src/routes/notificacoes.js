@@ -1,12 +1,13 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { erroCliente, erroInterno, json as responderJson } from "../utils/respostas.js";
 
 const STATUS_VALIDOS = new Set(["nao_lida", "lida", "arquivada"]);
 const SEVERIDADES_VALIDAS = new Set(["info", "sucesso", "aviso", "perigo"]);
 
 /** @param {unknown} dados @param {number} [status] */
 function json(dados, status = 200) {
-  return new Response(JSON.stringify(dados), { status });
+  return responderJson(dados, status);
 }
 
 /** @param {unknown} valor @param {number} limite */
@@ -287,7 +288,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
  */
 export async function processarNotificacoes(request, env, ctx) {
   const usuario = await obterUsuarioDaSessao(request, env, ctx);
-  if (!usuario) return json({ erro: "Nao autenticado." }, 401);
+  if (!usuario) return erroCliente("Não autenticado.", 401, "nao_autenticado");
 
   const url = new URL(request.url);
   const metodo = request.method;
@@ -305,7 +306,7 @@ export async function processarNotificacoes(request, env, ctx) {
     const params = /** @type {import("../types.js").SqlParam[]} */ ([usuario.id]);
 
     if (status !== "todas") {
-      if (!STATUS_VALIDOS.has(status)) return json({ erro: "Status invalido." }, 400);
+      if (!STATUS_VALIDOS.has(status)) return erroCliente("Status inválido.", 400, "status_invalido");
       query += ` AND status = ?`;
       params.push(status);
     }
@@ -318,18 +319,22 @@ export async function processarNotificacoes(request, env, ctx) {
     query += ` ORDER BY criado_em DESC, id DESC LIMIT ?`;
     params.push(limite);
 
-    const { results } = await env.DB.prepare(query).bind(...params).all();
-    const { results: resumo } = await env.DB.prepare(
-      `SELECT
-         SUM(CASE WHEN status = 'nao_lida' THEN 1 ELSE 0 END) AS nao_lidas,
-         COUNT(*) AS total
-       FROM notificacoes
-       WHERE usuario_id = ?`,
-    )
-      .bind(usuario.id)
-      .all();
+    try {
+      const { results } = await env.DB.prepare(query).bind(...params).all();
+      const { results: resumo } = await env.DB.prepare(
+        `SELECT
+           SUM(CASE WHEN status = 'nao_lida' THEN 1 ELSE 0 END) AS nao_lidas,
+           COUNT(*) AS total
+         FROM notificacoes
+         WHERE usuario_id = ?`,
+      )
+        .bind(usuario.id)
+        .all();
 
-    return json({ notificacoes: results, resumo: resumo[0] || { nao_lidas: 0, total: 0 } });
+      return json({ notificacoes: results, resumo: resumo[0] || { nao_lidas: 0, total: 0 } });
+    } catch (erro) {
+      return erroInterno(erro, "notificacoes.listar", "Não foi possível carregar as notificações agora.", "notificacoes_listar_falhou");
+    }
   }
 
   if (metodo === "POST" && url.pathname.endsWith("/gerar")) {
@@ -341,8 +346,12 @@ export async function processarNotificacoes(request, env, ctx) {
     } catch {
       // Corpo opcional.
     }
-    const geradas = await gerarNotificacoesAutomaticas(env, usuario.id, carteirasPermitidas, dataReferencia);
-    return json({ geradas });
+    try {
+      const geradas = await gerarNotificacoesAutomaticas(env, usuario.id, carteirasPermitidas, dataReferencia);
+      return json({ geradas });
+    } catch (erro) {
+      return erroInterno(erro, "notificacoes.gerar", "Não foi possível atualizar as notificações agora.", "notificacoes_gerar_falhou");
+    }
   }
 
   if (metodo === "POST" && url.pathname.endsWith("/sincronizar")) {
@@ -354,7 +363,11 @@ export async function processarNotificacoes(request, env, ctx) {
     for (const item of limite) {
       const notif = normalizarNotificacao(item, usuario.id);
       if (!(await usuarioPodeUsarCarteira(env, usuario.id, notif.carteira_id))) continue;
-      await salvarNotificacao(env, notif);
+      try {
+        await salvarNotificacao(env, notif);
+      } catch (erro) {
+        return erroInterno(erro, "notificacoes.sincronizar", "Não foi possível sincronizar as notificações agora.", "notificacoes_sincronizar_falhou");
+      }
       salvas++;
     }
 
@@ -362,47 +375,59 @@ export async function processarNotificacoes(request, env, ctx) {
   }
 
   if (metodo === "PATCH" && url.pathname.endsWith("/lidas")) {
-    await env.DB.prepare(
-      `UPDATE notificacoes
-       SET status = 'lida', lida_em = COALESCE(lida_em, CURRENT_TIMESTAMP), atualizado_em = CURRENT_TIMESTAMP
-       WHERE usuario_id = ? AND status = 'nao_lida'`,
-    )
-      .bind(usuario.id)
-      .run();
+    try {
+      await env.DB.prepare(
+        `UPDATE notificacoes
+         SET status = 'lida', lida_em = COALESCE(lida_em, CURRENT_TIMESTAMP), atualizado_em = CURRENT_TIMESTAMP
+         WHERE usuario_id = ? AND status = 'nao_lida'`,
+      )
+        .bind(usuario.id)
+        .run();
+    } catch (erro) {
+      return erroInterno(erro, "notificacoes.marcarTodasLidas", "Não foi possível marcar as notificações como lidas agora.", "notificacoes_lidas_falhou");
+    }
     return json({ ok: true });
   }
 
   if (metodo === "PATCH") {
     const id = Number(url.searchParams.get("id"));
-    if (!id) return json({ erro: "ID obrigatorio." }, 400);
+    if (!id) return erroCliente("ID obrigatório.", 400, "id_obrigatorio");
     const dados = await request.json();
     const status = STATUS_VALIDOS.has(dados.status) ? dados.status : "lida";
 
-    await env.DB.prepare(
-      `UPDATE notificacoes
-       SET status = ?,
-           lida_em = CASE WHEN ? = 'lida' THEN COALESCE(lida_em, CURRENT_TIMESTAMP) ELSE lida_em END,
-           arquivada_em = CASE WHEN ? = 'arquivada' THEN COALESCE(arquivada_em, CURRENT_TIMESTAMP) ELSE arquivada_em END,
-           atualizado_em = CURRENT_TIMESTAMP
-       WHERE id = ? AND usuario_id = ?`,
-    )
-      .bind(status, status, status, id, usuario.id)
-      .run();
+    try {
+      await env.DB.prepare(
+        `UPDATE notificacoes
+         SET status = ?,
+             lida_em = CASE WHEN ? = 'lida' THEN COALESCE(lida_em, CURRENT_TIMESTAMP) ELSE lida_em END,
+             arquivada_em = CASE WHEN ? = 'arquivada' THEN COALESCE(arquivada_em, CURRENT_TIMESTAMP) ELSE arquivada_em END,
+             atualizado_em = CURRENT_TIMESTAMP
+         WHERE id = ? AND usuario_id = ?`,
+      )
+        .bind(status, status, status, id, usuario.id)
+        .run();
+    } catch (erro) {
+      return erroInterno(erro, "notificacoes.atualizar", "Não foi possível atualizar esta notificação agora.", "notificacao_atualizar_falhou");
+    }
     return json({ ok: true });
   }
 
   if (metodo === "DELETE") {
     const id = Number(url.searchParams.get("id"));
-    if (!id) return json({ erro: "ID obrigatorio." }, 400);
-    await env.DB.prepare(
-      `UPDATE notificacoes
-       SET status = 'arquivada', arquivada_em = COALESCE(arquivada_em, CURRENT_TIMESTAMP), atualizado_em = CURRENT_TIMESTAMP
-       WHERE id = ? AND usuario_id = ?`,
-    )
-      .bind(id, usuario.id)
-      .run();
+    if (!id) return erroCliente("ID obrigatório.", 400, "id_obrigatorio");
+    try {
+      await env.DB.prepare(
+        `UPDATE notificacoes
+         SET status = 'arquivada', arquivada_em = COALESCE(arquivada_em, CURRENT_TIMESTAMP), atualizado_em = CURRENT_TIMESTAMP
+         WHERE id = ? AND usuario_id = ?`,
+      )
+        .bind(id, usuario.id)
+        .run();
+    } catch (erro) {
+      return erroInterno(erro, "notificacoes.arquivar", "Não foi possível arquivar esta notificação agora.", "notificacao_arquivar_falhou");
+    }
     return json({ ok: true });
   }
 
-  return json({ erro: "Metodo nao permitido." }, 405);
+  return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
 }
