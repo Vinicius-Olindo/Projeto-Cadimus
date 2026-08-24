@@ -7402,11 +7402,22 @@ textarea::placeholder {
   padding: 24px clamp(24px, 4vw, 48px) 40px;
   min-width: 0;
 }
+.settings-overview-bloco {
+  margin-bottom: 20px;
+}
+.settings-overview-titulo {
+  display: block;
+  margin: 0 0 8px;
+  color: var(--cor-texto-suave);
+  font-size: 0.66rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
 .settings-overview {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  margin-bottom: 20px;
 }
 .settings-overview-card {
   min-width: 0;
