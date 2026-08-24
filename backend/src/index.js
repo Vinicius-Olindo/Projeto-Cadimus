@@ -4,7 +4,7 @@
 import { processarLogin } from "./routes/auth.js";
 import { processarLancamentos } from "./routes/lancamentos.js";
 import { processarUsuarios } from "./routes/usuarios.js";
-import { processarCategorias } from "./routes/categorias.js";
+import { processarCategorias } from "./routes/categorias.ts";
 import { processarCarteiras } from "./routes/carteiras.js";
 import { processarDespesasFixas } from "./routes/despesasFixas.js";
 import { processarMetas, processarMetaDepositos } from "./routes/metas.js";

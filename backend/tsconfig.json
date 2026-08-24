@@ -26,6 +26,7 @@
     "src/utils/respostas.ts",
     "src/utils/sessao.js",
     "src/routes/cartoesCredito.ts",
+    "src/routes/categorias.ts",
     "src/routes/comprasParceladas.js",
     "src/routes/despesasFixas.js",
     "src/routes/lancamentos.js",

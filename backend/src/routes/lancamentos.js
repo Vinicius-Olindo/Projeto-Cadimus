@@ -191,7 +191,7 @@ export async function processarLancamentos(request, env, ctx) {
 
       // Valida que a categoria existe na tabela de categorias.
       // Não usamos FK no banco porque a categoria é texto livre nos lançamentos
-      // históricos (permite renomear retroativamente via categorias.js), mas
+      // históricos (permite renomear retroativamente via categorias.ts), mas
       // garantimos aqui que só entram valores reconhecidos pelo sistema.
       if (dados.categoria) {
         const { results: catValida } = await env.DB.prepare(
