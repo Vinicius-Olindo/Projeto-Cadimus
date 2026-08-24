@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { obterCarteirasDoUsuario } from "../src/utils/carteiras.js";
+import { obterCarteirasDoUsuario } from "../src/utils/carteiras.ts";
 
 test("obterCarteirasDoUsuario retorna ids de carteiras como números inteiros", async () => {
   const env = {

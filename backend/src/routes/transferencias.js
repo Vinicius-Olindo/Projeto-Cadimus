@@ -2,7 +2,7 @@
 // transferencias.js - Transferências entre Carteiras
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
-import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { registrarAuditoria } from "../utils/auditoria.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 

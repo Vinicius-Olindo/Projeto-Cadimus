@@ -3,7 +3,7 @@
 // ==========================================
 import type { CadimusEnv, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
-import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 import { normalizarId, normalizarMesReferencia } from "../domain.ts";

@@ -1,5 +1,5 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
-import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { erroCliente, erroInterno, json as responderJson } from "../utils/respostas.ts";
 
 const STATUS_VALIDOS = new Set(["nao_lida", "lida", "arquivada"]);

@@ -19,7 +19,7 @@
     "src/utils/dinheiro.ts",
     "src/utils/email.js",
     "src/utils/cartoesCredito.ts",
-    "src/utils/carteiras.js",
+    "src/utils/carteiras.ts",
     "src/utils/comprasParceladas.js",
     "src/utils/despesasFixas.js",
     "src/utils/lancamentosRecorrentes.js",

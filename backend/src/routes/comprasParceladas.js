@@ -2,7 +2,7 @@
 // comprasParceladas.js (rota) - Gestão das compras parceladas
 // ==========================================
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
-import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
+import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
