@@ -15,7 +15,7 @@ import { processarConvites } from "./routes/convites.js";
 import { processarTransferencias } from "./routes/transferencias.js";
 import { processarOrcamentos } from "./routes/orcamentos.js";
 import { processarLimpezaDados } from "./routes/manutencao.ts";
-import { processarCartoesCredito } from "./routes/cartoesCredito.js";
+import { processarCartoesCredito } from "./routes/cartoesCredito.ts";
 import { processarNotificacoes } from "./routes/notificacoes.js";
 
 // ==========================================

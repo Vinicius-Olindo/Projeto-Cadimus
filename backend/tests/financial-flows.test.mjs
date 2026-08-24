@@ -10,7 +10,7 @@ import { processarTransferencias } from "../src/routes/transferencias.js";
 import { processarCarteiras } from "../src/routes/carteiras.js";
 import { processarPlanos, processarPlanoDepositos } from "../src/routes/planos.js";
 import { processarMetas, processarMetaDepositos } from "../src/routes/metas.js";
-import { processarCartoesCredito } from "../src/routes/cartoesCredito.js";
+import { processarCartoesCredito } from "../src/routes/cartoesCredito.ts";
 import { processarLancamentosRecorrentes } from "../src/routes/lancamentosRecorrentes.js";
 import worker from "../src/index.js";
 

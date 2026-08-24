@@ -1,14 +1,25 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.js";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
-import { erroCliente, erroInterno } from "../utils/respostas.js";
+import { erroCliente, erroInterno, json } from "../utils/respostas.js";
+import type { BandeiraCartao, CadimusEnv, SqlParam, WorkerCtx } from "../types.js";
 
-/**
- * @param {Request} request
- * @param {import("../types.js").CadimusEnv} env
- * @param {import("../types.js").WorkerCtx} ctx
- */
-export async function processarCartoesCredito(request, env, ctx) {
+interface CartaoCreditoPayload {
+  nome?: string;
+  bandeira?: BandeiraCartao | string | null;
+  ultimos4?: string | null;
+  dia_fechamento?: number | string;
+  dia_vencimento?: number | string;
+  limite?: number | string | null;
+  limite_centavos?: number | string | null;
+  carteira_id?: number | string;
+}
+
+interface CartaoCreditoAlvoRow {
+  carteira_id: number;
+}
+
+export async function processarCartoesCredito(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const url = new URL(request.url);
   const method = request.method;
   const usuario = await obterUsuarioDaSessao(request, env, ctx);
@@ -24,10 +35,10 @@ export async function processarCartoesCredito(request, env, ctx) {
     const carteiraId = url.searchParams.get("carteira_id");
 
     if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
-      return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+      return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
     }
     if (carteirasPermitidas.length === 0) {
-      return new Response(JSON.stringify([]), { status: 200 });
+      return json([]);
     }
 
     let query = `SELECT c.*,
@@ -81,7 +92,7 @@ export async function processarCartoesCredito(request, env, ctx) {
       ) as gasto_atual_centavos
       FROM cartoes_credito c
       WHERE c.ativo = 1`;
-    const params = [];
+    const params: SqlParam[] = [];
 
     if (carteiraId) {
       query += ` AND c.carteira_id = ?`;
@@ -95,7 +106,7 @@ export async function processarCartoesCredito(request, env, ctx) {
 
     try {
       const { results } = await env.DB.prepare(query).bind(...params).all();
-      return new Response(JSON.stringify(results), { status: 200 });
+      return json(results);
     } catch (erro) {
       return erroInterno(erro, "cartoesCredito.listar", "Não foi possível carregar os cartões agora.", "cartoes_listar_falhou");
     }
@@ -103,21 +114,24 @@ export async function processarCartoesCredito(request, env, ctx) {
 
   // POST /api/cartoes-credito — criar cartão
   if (method === "POST") {
-    const body = await request.json();
+    const body = (await request.json()) as CartaoCreditoPayload;
     const { nome, bandeira, ultimos4, dia_fechamento, dia_vencimento, limite, carteira_id } = body;
     const limiteCentavos = normalizarCentavos(limite || 0, body.limite_centavos);
     const limiteNormalizado = centavosParaReais(limiteCentavos);
+    const diaFechamento = Number(dia_fechamento);
+    const diaVencimento = Number(dia_vencimento);
+    const carteiraIdNormalizada = Number(carteira_id);
 
-    if (!nome || !dia_fechamento || !dia_vencimento || !carteira_id) {
-      return new Response(JSON.stringify({ erro: "Nome, dia de fechamento, dia de vencimento e carteira são obrigatórios." }), { status: 400 });
+    if (!nome || !diaFechamento || !diaVencimento || !carteiraIdNormalizada) {
+      return erroCliente("Nome, dia de fechamento, dia de vencimento e carteira são obrigatórios.", 400, "cartao_campos_obrigatorios");
     }
 
-    if (dia_fechamento < 1 || dia_fechamento > 31 || dia_vencimento < 1 || dia_vencimento > 31) {
-      return new Response(JSON.stringify({ erro: "Dias devem estar entre 1 e 31." }), { status: 400 });
+    if (diaFechamento < 1 || diaFechamento > 31 || diaVencimento < 1 || diaVencimento > 31) {
+      return erroCliente("Dias devem estar entre 1 e 31.", 400, "cartao_dias_invalidos");
     }
 
-    if (!carteirasPermitidas.includes(Number(carteira_id))) {
-      return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+    if (!carteirasPermitidas.includes(carteiraIdNormalizada)) {
+      return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
     }
 
     try {
@@ -128,15 +142,15 @@ export async function processarCartoesCredito(request, env, ctx) {
         nome,
         bandeira || "outro",
         ultimos4 || null,
-        dia_fechamento,
-        dia_vencimento,
+        diaFechamento,
+        diaVencimento,
         limiteNormalizado,
         limiteCentavos,
-        carteira_id,
+        carteiraIdNormalizada,
         usuario.id
       ).run();
 
-      if (success) return new Response(JSON.stringify({ ok: true }), { status: 201 });
+      if (success) return json({ ok: true }, 201);
       return erroInterno(new Error("D1 retornou success=false ao criar cartão"), "cartoesCredito.criar", "Não foi possível criar este cartão agora.", "cartao_criar_falhou");
     } catch (erro) {
       return erroInterno(erro, "cartoesCredito.criar", "Não foi possível criar este cartão agora.", "cartao_criar_falhou");
@@ -146,22 +160,22 @@ export async function processarCartoesCredito(request, env, ctx) {
   // PUT /api/cartoes-credito?id=X — editar cartão
   if (method === "PUT") {
     const id = Number(url.searchParams.get("id"));
-    if (!id) return new Response(JSON.stringify({ erro: "ID obrigatório." }), { status: 400 });
+    if (!id) return erroCliente("ID obrigatório.", 400, "id_obrigatorio");
 
-    let alvo;
+    let alvo: CartaoCreditoAlvoRow[];
     try {
-      ({ results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM cartoes_credito WHERE id = ? AND ativo = 1`).bind(id).all());
+      ({ results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM cartoes_credito WHERE id = ? AND ativo = 1`).bind(id).all<CartaoCreditoAlvoRow>());
     } catch (erro) {
       return erroInterno(erro, "cartoesCredito.buscarParaEditar", "Não foi possível carregar este cartão agora.", "cartao_buscar_falhou");
     }
-    if (alvo.length === 0) return new Response(JSON.stringify({ erro: "Cartão não encontrado." }), { status: 404 });
+    if (alvo.length === 0) return erroCliente("Cartão não encontrado.", 404, "cartao_nao_encontrado");
     if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
-      return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+      return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
     }
 
-    const body = await request.json();
-    const campos = [];
-    const params = [];
+    const body = (await request.json()) as Partial<CartaoCreditoPayload>;
+    const campos: string[] = [];
+    const params: SqlParam[] = [];
 
     for (const [chave, valor] of Object.entries(body)) {
       if (chave === "limite" || chave === "limite_centavos") continue;
@@ -180,7 +194,7 @@ export async function processarCartoesCredito(request, env, ctx) {
       params.push(limiteCentavos);
     }
 
-    if (campos.length === 0) return new Response(JSON.stringify({ erro: "Nenhum campo para atualizar." }), { status: 400 });
+    if (campos.length === 0) return erroCliente("Nenhum campo para atualizar.", 400, "cartao_sem_campos");
 
     params.push(id);
     try {
@@ -191,23 +205,23 @@ export async function processarCartoesCredito(request, env, ctx) {
       return erroInterno(erro, "cartoesCredito.atualizar", "Não foi possível atualizar este cartão agora.", "cartao_atualizar_falhou");
     }
 
-    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    return json({ ok: true });
   }
 
   // DELETE /api/cartoes-credito?id=X — desativar cartão
   if (method === "DELETE") {
     const id = Number(url.searchParams.get("id"));
-    if (!id) return new Response(JSON.stringify({ erro: "ID obrigatório." }), { status: 400 });
+    if (!id) return erroCliente("ID obrigatório.", 400, "id_obrigatorio");
 
-    let alvo;
+    let alvo: CartaoCreditoAlvoRow[];
     try {
-      ({ results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM cartoes_credito WHERE id = ? AND ativo = 1`).bind(id).all());
+      ({ results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM cartoes_credito WHERE id = ? AND ativo = 1`).bind(id).all<CartaoCreditoAlvoRow>());
     } catch (erro) {
       return erroInterno(erro, "cartoesCredito.buscarParaExcluir", "Não foi possível carregar este cartão agora.", "cartao_buscar_falhou");
     }
-    if (alvo.length === 0) return new Response(JSON.stringify({ erro: "Cartão não encontrado." }), { status: 404 });
+    if (alvo.length === 0) return erroCliente("Cartão não encontrado.", 404, "cartao_nao_encontrado");
     if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
-      return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+      return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
     }
 
     try {
@@ -218,7 +232,7 @@ export async function processarCartoesCredito(request, env, ctx) {
       return erroInterno(erro, "cartoesCredito.excluir", "Não foi possível excluir este cartão agora.", "cartao_excluir_falhou");
     }
 
-    return new Response(JSON.stringify({ ok: true }), { status: 200 });
+    return json({ ok: true });
   }
 
   return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
