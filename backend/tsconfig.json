@@ -13,6 +13,7 @@
   "include": [
     "src/utils/dinheiro.js",
     "src/utils/cartoesCredito.js",
+    "src/utils/carteiras.js",
     "src/utils/comprasParceladas.js",
     "src/utils/despesasFixas.js",
     "src/utils/lancamentosRecorrentes.js"
