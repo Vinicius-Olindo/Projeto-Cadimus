@@ -1,5 +1,5 @@
 // ==========================================
-// email.js - Envio de e-mails transacionais (via Resend)
+// email.ts - Envio de e-mails transacionais (via Resend)
 //
 // Escolhi a Resend porque a API é só um POST simples (dá pra chamar com
 // fetch, sem precisar de biblioteca) e ela tem um plano gratuito que cobre
@@ -13,37 +13,29 @@
 //      pra montar o link que vai dentro do e-mail
 // ==========================================
 
-// @ts-check
+import type { CadimusEnv } from "../types.js";
 
-/**
- * Ambiente mínimo usado para envio de e-mail.
- * @typedef {object} EnvEmail
- * @property {string} [RESEND_API_KEY]
- * @property {string} [EMAIL_REMETENTE]
- */
+type MotivoFalhaEmail = "email_nao_configurado" | "falha_no_envio";
 
 /**
  * Payload transacional enviado pela aplicação.
- * @typedef {object} EmailTransacional
- * @property {string} para
- * @property {string} assunto
- * @property {string} html
  */
+export interface EmailTransacional {
+  para: string;
+  assunto: string;
+  html: string;
+}
 
 /**
  * Resultado padronizado do envio.
- * @typedef {{ ok: true } | { ok: false, motivo: "email_nao_configurado" | "falha_no_envio" }} ResultadoEnvioEmail
  */
+export type ResultadoEnvioEmail = { ok: true } | { ok: false; motivo: MotivoFalhaEmail };
 
 /**
  * Envia e-mail transacional via Resend sem derrubar o fluxo principal quando
  * a chave ainda não foi configurada ou o provedor falha.
- *
- * @param {EnvEmail} env
- * @param {EmailTransacional} email
- * @returns {Promise<ResultadoEnvioEmail>}
  */
-export async function enviarEmail(env, { para, assunto, html }) {
+export async function enviarEmail(env: Pick<CadimusEnv, "RESEND_API_KEY" | "EMAIL_REMETENTE">, { para, assunto, html }: EmailTransacional): Promise<ResultadoEnvioEmail> {
   if (!env.RESEND_API_KEY) {
     // Sem chave configurada ainda: não derruba a aplicação, só avisa no log
     // do Worker (visível em `wrangler tail`). Isso permite testar o resto do
@@ -75,11 +67,7 @@ export async function enviarEmail(env, { para, assunto, html }) {
   return { ok: true };
 }
 
-/**
- * @param {string} link
- * @returns {string}
- */
-export function templateRecuperacaoSenha(link) {
+export function templateRecuperacaoSenha(link: string): string {
   return `
     <div style="font-family: sans-serif; max-width: 480px; margin: 0 auto;">
       <h2>Recuperação de senha — Cadimus</h2>

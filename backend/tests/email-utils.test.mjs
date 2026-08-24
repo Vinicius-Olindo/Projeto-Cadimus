@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { enviarEmail, templateRecuperacaoSenha } from "../src/utils/email.js";
+import { enviarEmail, templateRecuperacaoSenha } from "../src/utils/email.ts";
 
 test("enviarEmail não chama provedor quando RESEND_API_KEY não está configurada", async () => {
   const fetchOriginal = globalThis.fetch;

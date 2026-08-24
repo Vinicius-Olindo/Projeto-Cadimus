@@ -3,7 +3,7 @@
 // ==========================================
 import { verificarSenha, hashSenha } from "../utils/crypto.js";
 import { criarSessao, encerrarSessao } from "../utils/sessao.ts";
-import { enviarEmail, templateRecuperacaoSenha } from "../utils/email.js";
+import { enviarEmail, templateRecuperacaoSenha } from "../utils/email.ts";
 
 const LIMITE_TENTATIVAS = 5; // por usuário, dentro dos últimos 15 minutos (ver datetime('now', '-15 minutes') abaixo)
 const DURACAO_TOKEN_RECUPERACAO_MS = 30 * 60 * 1000; // 30 minutos
