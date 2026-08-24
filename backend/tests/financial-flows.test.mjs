@@ -203,6 +203,55 @@ test("despesas fixas geradas usam centavos como fonte do valor", async () => {
   assert.deepEqual(lancamentos, [{ valor: 99.99, valor_centavos: 9999 }]);
 });
 
+test("despesas fixas geradas preservam vínculo com cartão de crédito", async () => {
+  const lancamentos = [];
+  const db = new FakeD1([
+    {
+      type: "all",
+      match: "SELECT * FROM despesas_fixas WHERE ativo = 1",
+      reply: () => [{
+        id: 4,
+        descricao: "Assinatura",
+        valor: 29.9,
+        valor_centavos: 2990,
+        tipo: "despesa",
+        categoria: "Serviços",
+        meio_pagamento: "Credito",
+        dia_vencimento: 31,
+        carteira_id: 10,
+        criado_por: 1,
+        criado_em: "2026-08-01T00:00:00.000Z",
+        cartao_credito_id: 55,
+      }],
+    },
+    {
+      type: "all",
+      match: "SELECT id FROM lancamentos WHERE despesa_fixa_id = ?",
+      reply: () => [],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ args }) => {
+        lancamentos.push({
+          data_compra: args[3],
+          despesa_fixa_id: args[9],
+          cartao_credito_id: args[10],
+        });
+        return { meta: { last_row_id: lancamentos.length } };
+      },
+    },
+  ]);
+
+  await gerarLancamentosFixosDoMes({ DB: db }, [10], "2026", "08");
+
+  assert.deepEqual(lancamentos, [{
+    data_compra: "2026-08-28",
+    despesa_fixa_id: 4,
+    cartao_credito_id: 55,
+  }]);
+});
+
 test("recorrências semanais geram ocorrências do mês sem duplicar", async () => {
   const lancamentos = [];
   const db = new FakeD1([
