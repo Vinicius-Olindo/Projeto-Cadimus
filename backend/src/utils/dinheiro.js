@@ -2,9 +2,30 @@
 // dinheiro.js - Normalização monetária em centavos inteiros
 // ==========================================
 
+// @ts-check
+
+/**
+ * Valor aceito em campos monetários antes da normalização.
+ * @typedef {number | string | null | undefined} ValorMonetarioEntrada
+ */
+
+/**
+ * Opções usadas nas conversões monetárias.
+ * @typedef {object} OpcoesDinheiro
+ * @property {boolean} [permitirNegativo=false] Permite valores negativos quando a regra de negócio exigir.
+ */
+
 const REGEX_BR = /^-?\d{1,3}(\.\d{3})*(,\d{1,2})?$/;
 const REGEX_DECIMAL = /^-?\d+([.,]\d{1,2})?$/;
 
+/**
+ * Converte reais para centavos inteiros, aceitando número, decimal simples
+ * ou formato brasileiro com moeda/milhar.
+ *
+ * @param {ValorMonetarioEntrada} valor
+ * @param {OpcoesDinheiro} [opcoes]
+ * @returns {number}
+ */
 export function reaisParaCentavos(valor, opcoes = {}) {
   const { permitirNegativo = false } = opcoes;
 
@@ -51,6 +72,12 @@ export function reaisParaCentavos(valor, opcoes = {}) {
   return Math.round(numero * 100);
 }
 
+/**
+ * Converte centavos inteiros para reais.
+ *
+ * @param {number} centavos
+ * @returns {number}
+ */
 export function centavosParaReais(centavos) {
   if (!Number.isInteger(centavos)) {
     throw new TypeError("Centavos devem ser um número inteiro.");
@@ -59,6 +86,14 @@ export function centavosParaReais(centavos) {
   return centavos / 100;
 }
 
+/**
+ * Normaliza preferindo o campo canônico em centavos quando ele foi enviado.
+ *
+ * @param {ValorMonetarioEntrada} valor
+ * @param {ValorMonetarioEntrada} valorCentavos
+ * @param {OpcoesDinheiro} [opcoes]
+ * @returns {number}
+ */
 export function normalizarCentavos(valor, valorCentavos, opcoes = {}) {
   const { permitirNegativo = false } = opcoes;
 
@@ -76,6 +111,12 @@ export function normalizarCentavos(valor, valorCentavos, opcoes = {}) {
   return reaisParaCentavos(valor, { permitirNegativo });
 }
 
+/**
+ * Soma valores já normalizados em centavos inteiros.
+ *
+ * @param {number[]} valores
+ * @returns {number}
+ */
 export function somarCentavos(valores) {
   if (!Array.isArray(valores)) {
     throw new TypeError("Lista de centavos inválida.");

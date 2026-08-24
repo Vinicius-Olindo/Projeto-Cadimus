@@ -168,6 +168,7 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - **Cloudflare Workers** (edge computing)
 - **Cloudflare D1** (SQLite serverless)
 - Roteamento manual com padrão de rotas otimizadas (GROUP BY + IN)
+- TypeScript em adoção incremental via `npm run typecheck`, começando pelos utilitários financeiros críticos sem alterar o runtime JS atual
 
 ### Segurança
 - Hash de senhas com **PBKDF2** (100.000 iterações)
@@ -275,6 +276,13 @@ npm run dev
 ```
 
 O backend estará disponível em `http://localhost:8787`.
+
+Para validar a camada inicial de TypeScript/check estático do backend:
+
+```bash
+cd backend
+npm run typecheck
+```
 
 ### Frontend
 
