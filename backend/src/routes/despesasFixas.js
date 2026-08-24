@@ -8,8 +8,8 @@ import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../ut
 
 /**
  * @param {Request} request
- * @param {{ DB: any }} env
- * @param {any} ctx
+ * @param {import("../types.js").CadimusEnv} env
+ * @param {import("../types.js").WorkerCtx} ctx
  */
 export async function processarDespesasFixas(request, env, ctx) {
   const metodo = request.method;
@@ -37,7 +37,7 @@ export async function processarDespesasFixas(request, env, ctx) {
       }
 
       let query = `SELECT * FROM despesas_fixas WHERE 1=1`;
-      let params = /** @type {Array<string|number>} */ ([]);
+      let params = /** @type {import("../types.js").SqlParam[]} */ ([]);
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
@@ -109,7 +109,7 @@ export async function processarDespesasFixas(request, env, ctx) {
         .bind(dados.carteira_id, descricao, valor, valorCentavos, tipo, dados.categoria, dados.meio_pagamento, diaVencimento, usuarioLogado.id, cartaoCreditoId)
         .run();
 
-      return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Despesa fixa cadastrada!" }), { status: 201 });
+      return new Response(JSON.stringify({ id: resultado.meta?.last_row_id ?? null, mensagem: "Despesa fixa cadastrada!" }), { status: 201 });
     } catch (erro) {
       console.error("Erro:", erro);
       return new Response(JSON.stringify({ erro: "Erro ao cadastrar despesa fixa." }), { status: 500 });

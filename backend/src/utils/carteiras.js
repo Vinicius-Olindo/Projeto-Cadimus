@@ -5,15 +5,13 @@
 // @ts-check
 
 /**
- * Linha mínima retornada pela tabela usuarios_carteiras.
- * @typedef {object} UsuarioCarteiraRow
- * @property {number | string} carteira_id
+ * @typedef {import("../types.js").CadimusEnv} EnvComDB
  */
 
 /**
- * Ambiente mínimo esperado pelo utilitário.
- * @typedef {object} EnvComDB
- * @property {{ prepare: (query: string) => { bind: (...values: unknown[]) => { all: () => Promise<{ results: unknown[] }> } } }} DB
+ * Linha mínima retornada pela tabela usuarios_carteiras.
+ * @typedef {object} UsuarioCarteiraRow
+ * @property {number | string} carteira_id
  */
 
 /**
@@ -29,7 +27,6 @@ export async function obterCarteirasDoUsuario(env, usuarioId) {
   return results
     .map((row) => {
       /** @type {UsuarioCarteiraRow} */
-      // @ts-expect-error Resultado do D1 é dinâmico e validado pelo uso do campo abaixo.
       const registro = row;
       return Number(registro.carteira_id);
     })

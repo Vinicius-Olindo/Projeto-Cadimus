@@ -7,8 +7,8 @@ import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 /**
  * @param {Request} request
- * @param {{ DB: any }} env
- * @param {any} ctx
+ * @param {import("../types.js").CadimusEnv} env
+ * @param {import("../types.js").WorkerCtx} ctx
  */
 export async function processarLancamentosRecorrentes(request, env, ctx) {
   const metodo = request.method;
@@ -36,7 +36,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
       }
 
       let query = `SELECT * FROM lancamentos_recorrentes WHERE 1=1`;
-      let params = /** @type {Array<string|number>} */ ([]);
+      let params = /** @type {import("../types.js").SqlParam[]} */ ([]);
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
@@ -147,7 +147,7 @@ export async function processarLancamentosRecorrentes(request, env, ctx) {
           .run();
       }
 
-      return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Recorrência criada!" }), { status: 201 });
+      return new Response(JSON.stringify({ id: resultado.meta?.last_row_id ?? null, mensagem: "Recorrência criada!" }), { status: 201 });
     } catch (erro) {
       console.error("Erro:", erro);
       const detalhe = erro instanceof Error ? erro.message : String(erro || "");

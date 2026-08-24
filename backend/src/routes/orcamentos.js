@@ -7,8 +7,8 @@ import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 /**
  * @param {Request} request
- * @param {{ DB: any }} env
- * @param {any} ctx
+ * @param {import("../types.js").CadimusEnv} env
+ * @param {import("../types.js").WorkerCtx} ctx
  */
 export async function processarOrcamentos(request, env, ctx) {
   const metodo = request.method;
@@ -60,7 +60,7 @@ export async function processarOrcamentos(request, env, ctx) {
         ) gasto ON gasto.carteira_id = o.carteira_id AND gasto.categoria_normalizada = LOWER(o.categoria)
         WHERE o.mes = ? AND o.ano = ?
       `;
-      const params = /** @type {Array<string|number>} */ ([mes.padStart(2, "0"), ano, mes, ano]);
+      const params = /** @type {import("../types.js").SqlParam[]} */ ([mes.padStart(2, "0"), ano, mes, ano]);
 
       if (carteiraId) {
         query += ` AND o.carteira_id = ?`;

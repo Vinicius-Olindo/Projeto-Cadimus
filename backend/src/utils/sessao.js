@@ -7,28 +7,14 @@
 const DURACAO_SESSAO_MS = 30 * 60 * 1000; // 30 minutos de inatividade
 
 /**
- * Usuário autenticado retornado pelas rotas.
- * @typedef {object} UsuarioSessao
- * @property {number} id
- * @property {string} nome_usuario
- * @property {string} perfil
+ * @typedef {import("../types.js").CadimusEnv} EnvComDB
+ * @typedef {import("../types.js").WorkerCtx} WorkerCtx
+ * @typedef {import("../types.js").UsuarioSessao} UsuarioSessao
  */
 
 /**
  * Linha mínima retornada pela consulta de sessão.
  * @typedef {UsuarioSessao & { expira_em: string }} SessaoUsuarioRow
- */
-
-/**
- * Ambiente mínimo esperado pelo utilitário.
- * @typedef {object} EnvComDB
- * @property {{ prepare: (query: string) => { bind: (...values: unknown[]) => { all: () => Promise<{ results: unknown[] }>, run: () => Promise<unknown> } } }} DB
- */
-
-/**
- * Contexto mínimo do Worker usado para trabalho em background.
- * @typedef {object} WorkerCtx
- * @property {(promise: Promise<unknown>) => void} [waitUntil]
  */
 
 /**
@@ -92,7 +78,6 @@ export async function obterUsuarioDaSessao(request, env, ctx) {
   if (results.length === 0) return null;
 
   /** @type {SessaoUsuarioRow} */
-  // @ts-expect-error Resultado do D1 é dinâmico e validado pelo uso dos campos abaixo.
   const sessao = results[0];
   if (new Date(sessao.expira_em) < new Date()) {
     // Sessão expirada: remove e nega acesso

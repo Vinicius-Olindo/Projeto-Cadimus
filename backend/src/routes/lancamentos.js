@@ -16,7 +16,7 @@ function dataISOValida(valor) {
 }
 
 /**
- * @param {{ DB: any }} env
+ * @param {import("../types.js").CadimusEnv} env
  * @param {number[]} carteirasAlvo
  * @param {string} dataInicio
  * @param {string} dataFim
@@ -45,8 +45,8 @@ async function gerarLancamentosDoPeriodo(env, carteirasAlvo, dataInicio, dataFim
 
 /**
  * @param {Request} request
- * @param {{ DB: any }} env
- * @param {any} ctx
+ * @param {import("../types.js").CadimusEnv} env
+ * @param {import("../types.js").WorkerCtx} ctx
  */
 export async function processarLancamentos(request, env, ctx) {
   const metodo = request.method;
@@ -104,7 +104,7 @@ export async function processarLancamentos(request, env, ctx) {
         JOIN usuarios u ON u.id = l.criado_por
         WHERE 1=1
       `;
-      let params = /** @type {Array<string|number>} */ ([]);
+      let params = /** @type {import("../types.js").SqlParam[]} */ ([]);
 
       if (carteiraId) {
         query += ` AND l.carteira_id = ?`;

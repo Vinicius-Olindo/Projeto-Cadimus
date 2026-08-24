@@ -4,8 +4,8 @@ import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.js";
 
 /**
  * @param {Request} request
- * @param {{ DB: any }} env
- * @param {any} ctx
+ * @param {import("../types.js").CadimusEnv} env
+ * @param {import("../types.js").WorkerCtx} ctx
  */
 export async function processarCartoesCredito(request, env, ctx) {
   const url = new URL(request.url);

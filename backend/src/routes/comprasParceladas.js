@@ -9,8 +9,8 @@ import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
 
 /**
  * @param {Request} request
- * @param {{ DB: any }} env
- * @param {any} ctx
+ * @param {import("../types.js").CadimusEnv} env
+ * @param {import("../types.js").WorkerCtx} ctx
  */
 export async function processarComprasParceladas(request, env, ctx) {
   const metodo = request.method;
@@ -38,7 +38,7 @@ export async function processarComprasParceladas(request, env, ctx) {
       }
 
       let query = `SELECT * FROM compras_parceladas WHERE 1=1`;
-      let params = /** @type {Array<string|number>} */ ([]);
+      let params = /** @type {import("../types.js").SqlParam[]} */ ([]);
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
@@ -139,11 +139,16 @@ export async function processarComprasParceladas(request, env, ctx) {
         .bind(dados.carteira_id, descricao, valorTotal, valorTotalCentavos, valorParcela, valorParcelaCentavos, dados.categoria, dados.meio_pagamento, diaVencimento, totalParcelas, anoInicio, mesInicio, usuarioLogado.id, cartaoCreditoId)
         .run();
 
+      const compraParceladaId = Number(resultado.meta?.last_row_id);
+      if (!Number.isInteger(compraParceladaId) || compraParceladaId <= 0) {
+        return new Response(JSON.stringify({ erro: "Compra cadastrada, mas não foi possível identificar o registro criado." }), { status: 500 });
+      }
+
       // Gera todas as N parcelas de uma vez (inclusive as de meses futuros) — diferente da
       // despesa fixa, aqui já sabemos exatamente quando tudo termina desde o cadastro
-      await gerarTodasParcelasDaCompra(env, resultado.meta.last_row_id);
+      await gerarTodasParcelasDaCompra(env, compraParceladaId);
 
-      return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Compra parcelada cadastrada!" }), { status: 201 });
+      return new Response(JSON.stringify({ id: compraParceladaId, mensagem: "Compra parcelada cadastrada!" }), { status: 201 });
     } catch (erro) {
       console.error("Erro:", erro);
       return new Response(JSON.stringify({ erro: "Erro ao cadastrar compra parcelada." }), { status: 500 });

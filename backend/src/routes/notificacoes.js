@@ -47,7 +47,7 @@ function normalizarNotificacao(item, usuarioId) {
 }
 
 /**
- * @param {{ DB: any }} env
+ * @param {import("../types.js").CadimusEnv} env
  * @param {number} usuarioId
  * @param {number|string|null|undefined} carteiraId
  */
@@ -58,7 +58,7 @@ async function usuarioPodeUsarCarteira(env, usuarioId, carteiraId) {
 }
 
 /**
- * @param {{ DB: any }} env
+ * @param {import("../types.js").CadimusEnv} env
  * @param {any} notificacao
  */
 async function salvarNotificacao(env, notificacao) {
@@ -141,7 +141,7 @@ function moeda(valor) {
 }
 
 /**
- * @param {{ DB: any }} env
+ * @param {import("../types.js").CadimusEnv} env
  * @param {number} usuarioId
  * @param {number[]} carteirasPermitidas
  * @param {Date} [dataReferencia]
@@ -282,8 +282,8 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
 
 /**
  * @param {Request} request
- * @param {{ DB: any }} env
- * @param {any} ctx
+ * @param {import("../types.js").CadimusEnv} env
+ * @param {import("../types.js").WorkerCtx} ctx
  */
 export async function processarNotificacoes(request, env, ctx) {
   const usuario = await obterUsuarioDaSessao(request, env, ctx);
@@ -302,7 +302,7 @@ export async function processarNotificacoes(request, env, ctx) {
     }
 
     let query = `SELECT * FROM notificacoes WHERE usuario_id = ?`;
-    const params = /** @type {Array<string|number>} */ ([usuario.id]);
+    const params = /** @type {import("../types.js").SqlParam[]} */ ([usuario.id]);
 
     if (status !== "todas") {
       if (!STATUS_VALIDOS.has(status)) return json({ erro: "Status invalido." }, 400);
