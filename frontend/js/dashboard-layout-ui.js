@@ -38,6 +38,12 @@ let dashboardLayoutAplicandoOrdem = false;
 let dashboardLayoutReaplicacaoPendente = false;
 let dashboardLayoutConfigurado = false;
 
+function layoutDashboardEstaEditando() {
+  return dashboardLayoutEditando;
+}
+
+window.layoutDashboardEstaEditando = layoutDashboardEstaEditando;
+
 function obterChaveLayoutDashboard() {
   const usuario = typeof obterUsuarioLogado === "function" ? obterUsuarioLogado() : null;
   const usuarioId = usuario?.id || "anonimo";
@@ -287,6 +293,7 @@ function atualizarEstadoModoLayoutDashboard() {
   if (areas.length === 0 || !botao) return;
   const label = botao.querySelector(".btn-topo-label");
 
+  document.body.classList.toggle("dashboard-layout-modo-ativo", dashboardLayoutEditando);
   areas.forEach((area) => area.container.classList.toggle("dashboard-layout-editando", dashboardLayoutEditando));
   botao.classList.toggle("ativo", dashboardLayoutEditando);
   botao.setAttribute("aria-pressed", String(dashboardLayoutEditando));
@@ -307,6 +314,28 @@ function atualizarEstadoModoLayoutDashboard() {
     card.setAttribute("aria-grabbed", String(dashboardLayoutEditando && card.classList.contains("arrastando")));
   });
   atualizarControlesCardsLayoutDashboard();
+}
+
+function bloquearCriacaoDuranteLayout(evento) {
+  if (!dashboardLayoutEditando) return;
+
+  const seletorBloqueado = [
+    "#btn-novo-gasto",
+    "#btn-nova-despesa-fixa",
+    "#btn-nova-compra-parcelada",
+    "#btn-nova-bonificacao",
+    "#btn-despesas-fixas",
+    "#btn-compras-parceladas",
+    "#btn-bonificacoes",
+    "[data-atalho-lancamento]",
+  ].join(",");
+
+  if (!evento.target.closest(seletorBloqueado)) return;
+
+  evento.preventDefault();
+  evento.stopPropagation();
+  evento.stopImmediatePropagation();
+  mostrarToast("Finalize ou cancele a edição de layout antes de criar lançamentos.", "aviso");
 }
 
 function alternarModoLayoutDashboard() {
@@ -399,6 +428,7 @@ function configurarDashboardLayout() {
 
   aplicarLayoutDashboardSalvo();
   configurarEventosLayoutDashboard();
+  document.addEventListener("click", bloquearCriacaoDuranteLayout, true);
 
   areas.forEach((area) => {
     const observer = new MutationObserver(agendarReaplicacaoLayoutDashboard);

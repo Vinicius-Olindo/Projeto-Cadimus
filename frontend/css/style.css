@@ -1130,6 +1130,7 @@ button:active {
 .dashboard-card-editavel {
   position: relative;
   cursor: grab;
+  margin-top: 18px;
   outline: 1px dashed color-mix(in srgb, var(--cor-marca) 38%, transparent);
   outline-offset: 4px;
   box-shadow: 0 8px 22px color-mix(in srgb, var(--cor-marca) 8%, transparent);
@@ -1138,11 +1139,11 @@ button:active {
 .dashboard-card-editavel::before {
   content: "⋮⋮";
   position: absolute;
-  top: 10px;
-  right: 10px;
+  top: -18px;
+  right: 82px;
   z-index: 2;
   width: 28px;
-  height: 24px;
+  height: 26px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -1159,8 +1160,8 @@ button:active {
 
 .dashboard-layout-card-acoes {
   position: absolute;
-  top: 10px;
-  right: 46px;
+  top: -18px;
+  right: 10px;
   z-index: 3;
   display: inline-flex;
   align-items: center;
@@ -1170,6 +1171,18 @@ button:active {
   background: color-mix(in srgb, var(--cor-fundo-card) 86%, transparent);
   border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--cor-texto) 7%, transparent);
+}
+
+.dashboard-layout-modo-ativo #btn-novo-gasto,
+.dashboard-layout-modo-ativo #btn-nova-despesa-fixa,
+.dashboard-layout-modo-ativo #btn-nova-compra-parcelada,
+.dashboard-layout-modo-ativo #btn-nova-bonificacao,
+.dashboard-layout-modo-ativo #btn-despesas-fixas,
+.dashboard-layout-modo-ativo #btn-compras-parceladas,
+.dashboard-layout-modo-ativo #btn-bonificacoes {
+  opacity: 0.42;
+  pointer-events: none;
+  filter: grayscale(0.35);
 }
 
 .dashboard-layout-card-acoes button {
