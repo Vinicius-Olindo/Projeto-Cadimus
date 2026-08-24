@@ -2,8 +2,40 @@
 // sessao.js - Criação e validação de sessões de login
 // ==========================================
 
+// @ts-check
+
 const DURACAO_SESSAO_MS = 30 * 60 * 1000; // 30 minutos de inatividade
 
+/**
+ * Usuário autenticado retornado pelas rotas.
+ * @typedef {object} UsuarioSessao
+ * @property {number} id
+ * @property {string} nome_usuario
+ * @property {string} perfil
+ */
+
+/**
+ * Linha mínima retornada pela consulta de sessão.
+ * @typedef {UsuarioSessao & { expira_em: string }} SessaoUsuarioRow
+ */
+
+/**
+ * Ambiente mínimo esperado pelo utilitário.
+ * @typedef {object} EnvComDB
+ * @property {{ prepare: (query: string) => { bind: (...values: unknown[]) => { all: () => Promise<{ results: unknown[] }>, run: () => Promise<unknown> } } }} DB
+ */
+
+/**
+ * Contexto mínimo do Worker usado para trabalho em background.
+ * @typedef {object} WorkerCtx
+ * @property {(promise: Promise<unknown>) => void} [waitUntil]
+ */
+
+/**
+ * @param {EnvComDB} env
+ * @param {number | string} usuarioId
+ * @returns {Promise<string>}
+ */
 export async function criarSessao(env, usuarioId) {
   const token = crypto.randomUUID();
   const expiraEm = new Date(Date.now() + DURACAO_SESSAO_MS).toISOString();
@@ -18,11 +50,19 @@ export async function criarSessao(env, usuarioId) {
  * Chamado em background (ctx.waitUntil) a cada requisição autenticada —
  * não bloqueia a resposta, mas vai limpando a tabela ao longo do tempo
  * sem precisar de um job agendado separado.
+ *
+ * @param {EnvComDB} env
+ * @returns {Promise<void>}
  */
 export async function limparSessoesExpiradas(env) {
   await env.DB.prepare(`DELETE FROM sessoes WHERE expira_em < ?`).bind(new Date().toISOString()).run();
 }
 
+/**
+ * @param {EnvComDB} env
+ * @param {string} token
+ * @returns {Promise<void>}
+ */
 export async function renovarSessao(env, token) {
   const expiraEm = new Date(Date.now() + DURACAO_SESSAO_MS).toISOString();
   await env.DB.prepare(`UPDATE sessoes SET expira_em = ? WHERE token = ?`).bind(expiraEm, token).run();
@@ -31,6 +71,11 @@ export async function renovarSessao(env, token) {
 /**
  * Lê o header Authorization: Bearer <token>, valida contra o banco
  * e retorna o usuário logado (ou null se não autenticado/expirado).
+ *
+ * @param {Request} request
+ * @param {EnvComDB} env
+ * @param {WorkerCtx} [ctx]
+ * @returns {Promise<UsuarioSessao | null>}
  */
 export async function obterUsuarioDaSessao(request, env, ctx) {
   const cabecalho = request.headers.get("Authorization") || "";
@@ -46,6 +91,8 @@ export async function obterUsuarioDaSessao(request, env, ctx) {
   const { results } = await env.DB.prepare(query).bind(token).all();
   if (results.length === 0) return null;
 
+  /** @type {SessaoUsuarioRow} */
+  // @ts-expect-error Resultado do D1 é dinâmico e validado pelo uso dos campos abaixo.
   const sessao = results[0];
   if (new Date(sessao.expira_em) < new Date()) {
     // Sessão expirada: remove e nega acesso
@@ -67,6 +114,11 @@ export async function obterUsuarioDaSessao(request, env, ctx) {
   return { id: sessao.id, nome_usuario: sessao.nome_usuario, perfil: sessao.perfil };
 }
 
+/**
+ * @param {Request} request
+ * @param {EnvComDB} env
+ * @returns {Promise<void>}
+ */
 export async function encerrarSessao(request, env) {
   const cabecalho = request.headers.get("Authorization") || "";
   const token = cabecalho.startsWith("Bearer ") ? cabecalho.slice(7).trim() : null;
