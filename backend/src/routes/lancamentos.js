@@ -53,6 +53,33 @@ async function gerarLancamentosDoPeriodo(env, carteirasAlvo, dataInicio, dataFim
 }
 
 /**
+ * @param {import("../types.js").CadimusEnv} env
+ * @param {number} carteiraId
+ */
+async function carteiraEhCompartilhada(env, carteiraId) {
+  const { results } = await env.DB.prepare(`SELECT tipo FROM carteiras WHERE id = ?`).bind(carteiraId).all();
+  return results[0]?.tipo === "compartilhada";
+}
+
+/**
+ * @param {import("../types.js").CadimusEnv} env
+ * @param {Array<number|string>} carteiraIds
+ * @returns {Promise<Set<number>>}
+ */
+async function obterCarteirasCompartilhadas(env, carteiraIds) {
+  const idsUnicos = [...new Set(carteiraIds.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0))];
+  if (idsUnicos.length === 0) return new Set();
+
+  const { results } = await env.DB.prepare(
+    `SELECT id FROM carteiras WHERE tipo = 'compartilhada' AND id IN (${idsUnicos.map(() => "?").join(",")})`,
+  )
+    .bind(...idsUnicos)
+    .all();
+
+  return new Set(/** @type {{ id: number|string }[]} */ (results).map((carteira) => Number(carteira.id)));
+}
+
+/**
  * @param {Request} request
  * @param {import("../types.js").CadimusEnv} env
  * @param {import("../types.js").WorkerCtx} ctx
@@ -305,9 +332,11 @@ export async function processarLancamentos(request, env, ctx) {
       const camposEnviados = Object.keys(dados).filter((campo) => camposPermitidos.includes(campo));
 
       // Marcar pago/pendente é livre pra quem acessa a carteira. Editar os detalhes
-      // (valor, descrição, categoria, etc.) é restrito a quem criou o lançamento ou a um admin.
+      // em carteira pessoal é restrito ao criador/admin; em carteira compartilhada,
+      // qualquer membro da carteira pode ajustar o registro compartilhado.
       const apenasAlternandoStatus = camposEnviados.length > 0 && camposEnviados.every((campo) => campo === "status");
-      const podeEditarDetalhes = alvo[0].criado_por === usuarioLogado.id || usuarioLogado.perfil === "superadmin";
+      const carteiraCompartilhada = await carteiraEhCompartilhada(env, alvo[0].carteira_id);
+      const podeEditarDetalhes = carteiraCompartilhada || alvo[0].criado_por === usuarioLogado.id || usuarioLogado.perfil === "superadmin";
 
       if (!apenasAlternandoStatus && !podeEditarDetalhes) {
         return erroCliente("Só quem lançou (ou um administrador) pode editar os detalhes deste registro.", 403, "lancamento_edicao_negada");
@@ -415,7 +444,8 @@ export async function processarLancamentos(request, env, ctx) {
       if (!carteirasPermitidas.includes(results[0].carteira_id)) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
-      if (results[0].criado_por !== usuarioLogado.id && usuarioLogado.perfil !== "superadmin") {
+      const carteiraCompartilhada = await carteiraEhCompartilhada(env, results[0].carteira_id);
+      if (!carteiraCompartilhada && results[0].criado_por !== usuarioLogado.id && usuarioLogado.perfil !== "superadmin") {
         return erroCliente("Só quem lançou (ou um administrador) pode excluir este registro.", 403, "lancamento_exclusao_negada");
       }
 
@@ -464,14 +494,16 @@ export async function processarLancamentos(request, env, ctx) {
         }
       }
 
-      // Verifica permissão: só quem criou ou admin pode editar
+      // Verifica permissão: em carteira pessoal, só quem criou/admin edita detalhes;
+      // em compartilhada, qualquer membro com acesso pode atuar no registro.
       const placeholders = ids.map(() => "?").join(",");
       const { results: alvos } = await env.DB.prepare(
         `SELECT id, criado_por, carteira_id FROM lancamentos WHERE id IN (${placeholders})`
       ).bind(...ids).all();
 
+      const carteirasCompartilhadas = await obterCarteirasCompartilhadas(env, alvos.map((a) => a.carteira_id));
       const semPermissao = /** @type {any[]} */ (alvos).filter(
-        (a) => a.criado_por !== usuarioLogado.id && usuarioLogado.perfil !== "superadmin"
+        (a) => !carteirasCompartilhadas.has(Number(a.carteira_id)) && a.criado_por !== usuarioLogado.id && usuarioLogado.perfil !== "superadmin"
       );
       if (semPermissao.length > 0) {
         return erroCliente("Sem permissão para editar alguns lançamentos.", 403, "lote_edicao_negada");

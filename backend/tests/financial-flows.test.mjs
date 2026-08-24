@@ -576,6 +576,64 @@ test("criação de lançamento faz escrita dupla em reais e centavos", async () 
   assert.equal(auditLogs.length, 1);
 });
 
+test("membro de carteira compartilhada pode excluir lançamento criado por outro usuário", async () => {
+  let deletouLancamento = false;
+  const auditLogs = [];
+  const db = new FakeD1([
+    {
+      type: "all",
+      match: "FROM sessoes s",
+      reply: () => [{ id: 1, nome_usuario: "tester", perfil: "comum", expira_em: "2999-01-01T00:00:00.000Z" }],
+    },
+    {
+      type: "run",
+      match: "DELETE FROM sessoes WHERE expira_em",
+      reply: () => ({ meta: {} }),
+    },
+    {
+      type: "all",
+      match: "SELECT carteira_id FROM usuarios_carteiras WHERE usuario_id = ?",
+      reply: () => [{ carteira_id: 10 }],
+    },
+    {
+      type: "all",
+      match: "SELECT carteira_id, criado_por FROM lancamentos WHERE id = ?",
+      reply: () => [{ carteira_id: 10, criado_por: 2 }],
+    },
+    {
+      type: "all",
+      match: "SELECT tipo FROM carteiras WHERE id = ?",
+      reply: () => [{ tipo: "compartilhada" }],
+    },
+    {
+      type: "run",
+      match: "DELETE FROM lancamentos WHERE id = ?",
+      reply: () => {
+        deletouLancamento = true;
+        return { meta: { changes: 1 } };
+      },
+    },
+    {
+      type: "run",
+      match: "INSERT INTO audit_logs",
+      reply: ({ args }) => {
+        auditLogs.push(args);
+        return { meta: { last_row_id: auditLogs.length } };
+      },
+    },
+  ]);
+
+  const res = await processarLancamentos(
+    request("DELETE", "https://cadimus.test/api/lancamentos?id=77"),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 200);
+  assert.equal(deletouLancamento, true);
+  assert.equal(auditLogs.length, 1);
+});
+
 test("criação de transferência faz escrita dupla em reais e centavos", async () => {
   let insertTransferencia;
   const db = new FakeD1(handlersAutenticados([

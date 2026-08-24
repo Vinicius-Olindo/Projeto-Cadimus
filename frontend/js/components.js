@@ -65,10 +65,13 @@ function criarLinhaLancamento(lancamento) {
   `;
   const tipoTexto = lancamento.tipo === "receita" ? "Receita" : "Despesa";
 
-  // Só quem criou o lançamento (ou um admin) pode editar/excluir — o backend também garante isso,
-  // aqui é só pra não mostrar botões que vão falhar ao clicar
+  // Só quem criou o lançamento (ou um admin) pode editar/excluir em carteira pessoal.
+  // Em carteira compartilhada, qualquer membro com acesso à carteira pode gerenciar
+  // os lançamentos dela; o backend confirma a mesma regra.
   const usuarioLogado = obterUsuarioLogado();
-  const podeGerenciar = lancamento.criado_por === usuarioLogado.id || usuarioLogado.perfil === "superadmin";
+  const carteiraSelecionada = typeof obterCarteiraSelecionada === "function" ? obterCarteiraSelecionada() : null;
+  const carteiraCompartilhada = carteiraSelecionada && String(carteiraSelecionada.id) === String(lancamento.carteira_id) && carteiraSelecionada.tipo === "compartilhada";
+  const podeGerenciar = carteiraCompartilhada || lancamento.criado_por === usuarioLogado.id || usuarioLogado.perfil === "superadmin";
   const botoesGerenciar = podeGerenciar
     ? `<button class="btn-editar" data-action="editar" data-id="${lancamento.id}" title="Editar registro">${ICONE_LAPIS}</button>
        <button class="btn-excluir" data-action="apagar" data-id="${lancamento.id}" title="Apagar registro">${ICONE_LIXEIRA}</button>`
