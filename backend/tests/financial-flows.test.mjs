@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { gerarTodasParcelasDaCompra } from "../src/utils/comprasParceladas.js";
+import { calcularValorParcelaCentavos, gerarTodasParcelasDaCompra } from "../src/utils/comprasParceladas.js";
 import { gerarLancamentosFixosDoMes } from "../src/utils/despesasFixas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../src/utils/lancamentosRecorrentes.js";
 import { processarLancamentos } from "../src/routes/lancamentos.js";
@@ -140,6 +140,27 @@ test("compras parceladas distribuem centavos e preservam o total", async () => {
   assert.deepEqual(lancamentos.map((l) => l.valor_centavos), [33333, 33333, 33334]);
   assert.equal(lancamentos.reduce((soma, item) => soma + Math.round(item.valor * 100), 0), 100000);
   assert.deepEqual(lancamentos.map((l) => l.data_compra), ["2026-11-10", "2026-12-10", "2027-01-10"]);
+});
+
+test("calcularValorParcelaCentavos joga sobra de centavos na última parcela", () => {
+  const compra = {
+    id: 1,
+    descricao: "Teste",
+    valor_total_centavos: 100000,
+    total_parcelas: 3,
+    dia_vencimento: 10,
+    mes_inicio: 8,
+    ano_inicio: 2026,
+    categoria: "Teste",
+    meio_pagamento: "Credito",
+    carteira_id: 10,
+    criado_por: 1,
+  };
+
+  assert.deepEqual(
+    [1, 2, 3].map((numeroParcela) => calcularValorParcelaCentavos(compra, numeroParcela)),
+    [33333, 33333, 33334],
+  );
 });
 
 test("despesas fixas geradas usam centavos como fonte do valor", async () => {

@@ -12,6 +12,7 @@
   },
   "include": [
     "src/utils/dinheiro.js",
-    "src/utils/cartoesCredito.js"
+    "src/utils/cartoesCredito.js",
+    "src/utils/comprasParceladas.js"
   ]
 }
