@@ -340,6 +340,55 @@ test("recorrências diárias geram bonificações de receita no mês", async () 
   assert.ok(lancamentos.every((l) => l.tipo === "receita" && l.categoria === "Bonificação"));
 });
 
+test("recorrências mensais respeitam data de início, fim e dia do mês seguro", async () => {
+  const lancamentos = [];
+  const db = new FakeD1([
+    {
+      type: "all",
+      match: "SELECT * FROM lancamentos_recorrentes WHERE ativo = 1",
+      reply: () => [{
+        id: 9,
+        descricao: "Academia",
+        valor: 120,
+        valor_centavos: 12000,
+        tipo: "despesa",
+        categoria: "Saúde",
+        meio_pagamento: "Pix",
+        frequencia: "mensal",
+        dia_semana: null,
+        dia_mes: 31,
+        data_inicio: "2026-08-15",
+        data_fim: "2026-09-30",
+        carteira_id: 10,
+        criado_por: 1,
+      }],
+    },
+    {
+      type: "all",
+      match: "SELECT id FROM lancamentos WHERE recorrencia_id = ? AND data_compra = ?",
+      reply: () => [],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ args }) => {
+        lancamentos.push({ data_compra: args[3], valor_centavos: args[2], recorrencia_id: args[9] });
+        return { meta: { last_row_id: lancamentos.length } };
+      },
+    },
+  ]);
+
+  await gerarLancamentosRecorrentesDoMes({ DB: db }, [10], "2026", "07");
+  await gerarLancamentosRecorrentesDoMes({ DB: db }, [10], "2026", "08");
+  await gerarLancamentosRecorrentesDoMes({ DB: db }, [10], "2026", "10");
+
+  assert.deepEqual(lancamentos, [{
+    data_compra: "2026-08-28",
+    valor_centavos: 12000,
+    recorrencia_id: 9,
+  }]);
+});
+
 test("cadastro de bonificação recorrente força receita na rota", async () => {
   let insertArgs;
   const db = new FakeD1(handlersAutenticados([
