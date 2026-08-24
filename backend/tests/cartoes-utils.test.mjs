@@ -5,7 +5,7 @@ import {
   deveVincularCartaoCredito,
   normalizarCartaoCreditoId,
   validarCartaoCreditoDaCarteira,
-} from "../src/utils/cartoesCredito.js";
+} from "../src/utils/cartoesCredito.ts";
 
 test("normalizarCartaoCreditoId aceita apenas inteiro positivo", () => {
   assert.equal(normalizarCartaoCreditoId(1), 1);

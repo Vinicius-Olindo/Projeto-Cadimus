@@ -8,7 +8,7 @@ import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.js";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.js";
 import { registrarAuditoria } from "../utils/auditoria.js";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
-import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.js";
+import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
 import { erroCliente, erroInterno } from "../utils/respostas.js";
 
 /** @param {unknown} valor */
