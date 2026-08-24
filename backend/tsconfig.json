@@ -22,7 +22,7 @@
     "src/utils/carteiras.ts",
     "src/utils/comprasParceladas.ts",
     "src/utils/despesasFixas.ts",
-    "src/utils/lancamentosRecorrentes.js",
+    "src/utils/lancamentosRecorrentes.ts",
     "src/utils/respostas.ts",
     "src/utils/sessao.ts",
     "src/routes/cartoesCredito.ts",

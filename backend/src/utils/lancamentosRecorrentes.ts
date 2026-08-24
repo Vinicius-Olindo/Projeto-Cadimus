@@ -1,71 +1,45 @@
 // ==========================================
-// lancamentosRecorrentes.js (utils) - Geração automática de lançamentos recorrentes
+// lancamentosRecorrentes.ts (utils) - Geração automática de lançamentos recorrentes
 // ==========================================
 
-// @ts-check
-
+import type { CadimusEnv, FrequenciaRecorrencia, IdEntrada, MeioPagamento, TipoLancamento } from "../types.js";
 import { reaisParaCentavos, centavosParaReais } from "./dinheiro.ts";
 
 /**
  * Recorrência como vem do banco ou dos testes.
- * @typedef {object} LancamentoRecorrente
- * @property {number} id
- * @property {string} descricao
- * @property {number} valor
- * @property {number} [valor_centavos]
- * @property {"receita" | "despesa" | string} tipo
- * @property {string} categoria
- * @property {string} meio_pagamento
- * @property {"diaria" | "semanal" | "quinzenal" | "mensal" | "trimestral" | "anual" | string} frequencia
- * @property {number | null} [dia_semana]
- * @property {number | null} [dia_mes]
- * @property {string} data_inicio
- * @property {string | null} [data_fim]
- * @property {number} carteira_id
- * @property {number} criado_por
  */
+interface LancamentoRecorrenteRow {
+  id: number;
+  descricao: string;
+  valor: number;
+  valor_centavos?: number | null;
+  tipo: TipoLancamento | string;
+  categoria: string;
+  meio_pagamento: MeioPagamento | string;
+  frequencia: FrequenciaRecorrencia | string;
+  dia_semana?: number | null;
+  dia_mes?: number | null;
+  data_inicio: string;
+  data_fim?: string | null;
+  carteira_id: number;
+  criado_por: number;
+}
 
-/**
- * Ambiente mínimo esperado pelo utilitário.
- * @typedef {object} EnvComDB
- * @property {{ prepare: (query: string) => { bind: (...values: unknown[]) => { all: () => Promise<{ results: unknown[] }>, run: () => Promise<unknown> } } }} DB
- */
-
-/**
- * @param {number} ano
- * @param {number} mes
- * @param {number} dia
- * @returns {string}
- */
-function dataIso(ano, mes, dia) {
+function dataIso(ano: number, mes: number, dia: number): string {
   return `${ano}-${String(mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
 }
 
-/**
- * @param {number} ano
- * @param {number} mes
- * @returns {number}
- */
-function ultimoDiaDoMes(ano, mes) {
+function ultimoDiaDoMes(ano: number, mes: number): number {
   return new Date(ano, mes, 0).getDate();
 }
 
-/**
- * @param {string} dataStr
- * @param {number} dias
- * @returns {string}
- */
-function somarDias(dataStr, dias) {
+function somarDias(dataStr: string, dias: number): string {
   const data = new Date(`${dataStr}T12:00:00`);
   data.setDate(data.getDate() + dias);
   return data.toISOString().slice(0, 10);
 }
 
-/**
- * @param {LancamentoRecorrente} rec
- * @returns {string}
- */
-function ajustarInicioSemanal(rec) {
+function ajustarInicioSemanal(rec: LancamentoRecorrenteRow): string {
   const diaSemana = Number(rec.dia_semana);
   if (!Number.isInteger(diaSemana) || diaSemana < 0 || diaSemana > 6) return rec.data_inicio;
 
@@ -75,26 +49,13 @@ function ajustarInicioSemanal(rec) {
   return data.toISOString().slice(0, 10);
 }
 
-/**
- * @param {string} inicio
- * @param {number} anoAlvo
- * @param {number} mesAlvo
- * @returns {number}
- */
-function diferencaMeses(inicio, anoAlvo, mesAlvo) {
+function diferencaMeses(inicio: string, anoAlvo: number, mesAlvo: number): number {
   const anoInicio = Number(inicio.slice(0, 4));
   const mesInicio = Number(inicio.slice(5, 7));
   return (anoAlvo - anoInicio) * 12 + (mesAlvo - mesInicio);
 }
 
-/**
- * @param {LancamentoRecorrente} rec
- * @param {number} ano
- * @param {number} mes
- * @param {number} intervaloMeses
- * @returns {string[]}
- */
-function ocorrenciaMensal(rec, ano, mes, intervaloMeses) {
+function ocorrenciaMensal(rec: LancamentoRecorrenteRow, ano: number, mes: number, intervaloMeses: number): string[] {
   const diff = diferencaMeses(rec.data_inicio, ano, mes);
   if (diff < 0 || diff % intervaloMeses !== 0) return [];
 
@@ -108,19 +69,16 @@ function ocorrenciaMensal(rec, ano, mes, intervaloMeses) {
   return [data];
 }
 
-/**
- * @param {LancamentoRecorrente} rec
- * @param {number} ano
- * @param {number} mes
- * @param {number} intervaloDias
- * @param {string} [dataInicial]
- * @returns {string[]}
- */
-function ocorrenciasPorIntervaloDeDias(rec, ano, mes, intervaloDias, dataInicial = rec.data_inicio) {
+function ocorrenciasPorIntervaloDeDias(
+  rec: LancamentoRecorrenteRow,
+  ano: number,
+  mes: number,
+  intervaloDias: number,
+  dataInicial = rec.data_inicio,
+): string[] {
   const inicioMes = dataIso(ano, mes, 1);
   const fimMes = dataIso(ano, mes, ultimoDiaDoMes(ano, mes));
-  /** @type {string[]} */
-  const ocorrencias = [];
+  const ocorrencias: string[] = [];
 
   let data = dataInicial;
   while (data <= fimMes) {
@@ -133,13 +91,7 @@ function ocorrenciasPorIntervaloDeDias(rec, ano, mes, intervaloDias, dataInicial
   return ocorrencias;
 }
 
-/**
- * @param {LancamentoRecorrente} rec
- * @param {number} ano
- * @param {number} mes
- * @returns {string[]}
- */
-function obterOcorrenciasDoMes(rec, ano, mes) {
+function obterOcorrenciasDoMes(rec: LancamentoRecorrenteRow, ano: number, mes: number): string[] {
   if (rec.data_inicio > dataIso(ano, mes, ultimoDiaDoMes(ano, mes))) return [];
   if (rec.data_fim && rec.data_fim < dataIso(ano, mes, 1)) return [];
 
@@ -164,14 +116,8 @@ function obterOcorrenciasDoMes(rec, ano, mes) {
 /**
  * Para cada recorrência ativa, garante que todos os lançamentos esperados do
  * mês consultado existam. A idempotência é por recorrência + data exata.
- *
- * @param {EnvComDB} env
- * @param {Array<number | string>} carteiraIds
- * @param {number | string} ano
- * @param {number | string} mes
- * @returns {Promise<void>}
  */
-export async function gerarLancamentosRecorrentesDoMes(env, carteiraIds, ano, mes) {
+export async function gerarLancamentosRecorrentesDoMes(env: CadimusEnv, carteiraIds: IdEntrada[], ano: IdEntrada, mes: IdEntrada): Promise<void> {
   const anoNum = Number(ano);
   const mesNum = Number(mes);
   if (!anoNum || !mesNum || !carteiraIds || carteiraIds.length === 0) return;
@@ -180,14 +126,11 @@ export async function gerarLancamentosRecorrentesDoMes(env, carteiraIds, ano, me
     `SELECT * FROM lancamentos_recorrentes WHERE ativo = 1 AND carteira_id IN (${carteiraIds.map(() => "?").join(",")})`,
   )
     .bind(...carteiraIds)
-    .all();
+    .all<LancamentoRecorrenteRow>();
 
   if (recorrentes.length === 0) return;
 
-  for (const rec of recorrentes) {
-    /** @type {LancamentoRecorrente} */
-    // @ts-expect-error Resultado do D1 é dinâmico e validado pelo uso dos campos abaixo.
-    const recorrente = rec;
+  for (const recorrente of recorrentes) {
     const ocorrencias = obterOcorrenciasDoMes(recorrente, anoNum, mesNum);
     if (ocorrencias.length === 0) continue;
 
