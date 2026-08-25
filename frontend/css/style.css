@@ -22,6 +22,7 @@ body {
   background-color: var(--cor-fundo);
   color: var(--cor-texto);
   min-height: 100vh;
+  min-height: 100dvh;
   font-family: var(--fonte-corpo);
   font-size: 15px;
   line-height: 1.5;
@@ -50,6 +51,7 @@ button {
    LAYOUT GERAL
    ========================================== */
 .app-container {
+  --app-padding-vertical: 48px;
   padding: 28px clamp(16px, 2vw, 32px) 20px;
   flex: 1;
 }
@@ -3003,8 +3005,10 @@ button.item-status:active {
 /* ==========================================
    LOGIN — capa do caderno
    ========================================== */
-#login-section {
-  height: 100vh;
+#login-section,
+#redefinir-senha-section {
+  min-height: calc(100vh - var(--app-padding-vertical));
+  min-height: calc(100dvh - var(--app-padding-vertical));
   display: flex;
   justify-content: center;
   align-items: center;
@@ -3115,6 +3119,31 @@ button.item-status:active {
 .login-links-separador {
   margin: 0 8px;
   opacity: 0.5;
+}
+
+@media (max-height: 640px) {
+  #login-section,
+  #redefinir-senha-section {
+    align-items: flex-start;
+    padding-block: 8px;
+  }
+
+  .login-box {
+    padding: 32px 30px 28px;
+  }
+
+  .login-logo-wrapper img {
+    height: 58px;
+    border-radius: 14px;
+  }
+
+  .login-logo-wrapper .login-logo-texto {
+    font-size: 1.9rem;
+  }
+
+  .login-box .subtitulo {
+    margin-bottom: 20px;
+  }
 }
 
 .campo-senha-toggle {
@@ -4800,6 +4829,7 @@ textarea::placeholder {
 /* Mobile: <=480px */
 @media (max-width: 480px) {
   .app-container {
+    --app-padding-vertical: 68px;
     padding: 20px 14px 48px;
   }
 
