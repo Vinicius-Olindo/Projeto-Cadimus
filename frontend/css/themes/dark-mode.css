@@ -1,0 +1,102 @@
+/* ==========================================
+   DARK MODE — ajustes específicos
+   ========================================== */
+.dark-mode .historico-fixa-lista::-webkit-scrollbar-thumb {
+  background: var(--cor-pauta);
+}
+
+.dark-mode .historico-fixa-linha:hover {
+  background: color-mix(in srgb, var(--cor-marca) 8%, transparent);
+}
+
+.dark-mode .fixa-btn-toggle {
+  background: var(--cor-superficie);
+}
+
+.dark-mode .fixa-btn {
+  background: var(--cor-superficie);
+  border-color: var(--cor-pauta);
+}
+
+.dark-mode .fixa-btn:hover {
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+  border-color: var(--cor-marca);
+}
+
+.dark-mode .fixa-btn-excluir {
+  background: color-mix(in srgb, var(--cor-despesa) 10%, transparent);
+  border-color: color-mix(in srgb, var(--cor-despesa) 35%, transparent);
+}
+
+.dark-mode .fixa-btn-excluir:hover {
+  background: color-mix(in srgb, var(--cor-despesa) 18%, transparent);
+  border-color: var(--cor-despesa);
+}
+
+.dark-mode .modal-content {
+  border: 1px solid var(--cor-pauta);
+  background: var(--cor-superficie);
+}
+
+.dark-mode input,
+.dark-mode select {
+  background: var(--cor-superficie);
+  border-color: var(--cor-pauta);
+  color: var(--cor-texto);
+}
+
+.dark-mode input:focus,
+.dark-mode select:focus {
+  border-color: var(--cor-marca);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--cor-marca) 18%, transparent);
+}
+
+.dark-mode #btn-confirmacao-cancelar {
+  background: var(--cor-superficie);
+  border-color: var(--cor-pauta) !important;
+  color: var(--cor-texto);
+}
+
+.dark-mode .settings-sidebar {
+  background: var(--cor-fundo);
+  border-right-color: var(--cor-pauta);
+}
+
+.dark-mode .settings-nav-item:hover {
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+}
+
+.dark-mode .settings-nav-item.ativo {
+  background: color-mix(in srgb, var(--cor-marca) 14%, transparent);
+}
+
+.dark-mode .settings-search {
+  background: var(--cor-superficie);
+  border-color: var(--cor-pauta);
+}
+
+.dark-mode .modal-content button[type="submit"] {
+  background: var(--cor-marca);
+}
+
+.dark-mode .historico-fixa-status.status-pago {
+  background: color-mix(in srgb, var(--cor-receita) 18%, transparent);
+  border-color: color-mix(in srgb, var(--cor-receita) 30%, transparent);
+}
+
+.dark-mode .historico-fixa-status.status-pendente {
+  background: color-mix(in srgb, var(--cor-pendente) 18%, transparent);
+  border-color: color-mix(in srgb, var(--cor-pendente) 30%, transparent);
+}
+
+.dark-mode .historico-fixa-status.status-atrasado {
+  background: color-mix(in srgb, var(--cor-despesa) 18%, transparent);
+  border-color: color-mix(in srgb, var(--cor-despesa) 30%, transparent);
+}
+
+@media (max-width: 600px) {
+  .footer-linha1 { flex-direction: column; gap: 4px; }
+  .footer-linha2 { font-size: 0.7rem; gap: 4px; }
+  .footer-linha3 { font-size: 0.7rem; }
+}
+

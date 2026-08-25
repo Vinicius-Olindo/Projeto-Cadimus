@@ -1,0 +1,302 @@
+/* ==========================================
+   ORÇAMENTOS MENSAIS
+   ========================================== */
+.orcamento-item {
+  padding: 12px 0;
+  border-bottom: var(--borda) solid var(--cor-pauta);
+  position: relative;
+}
+
+.orcamento-item:last-child {
+  border-bottom: none;
+}
+
+.orcamento-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 6px;
+}
+
+.orcamento-categoria {
+  font-weight: 600;
+  font-size: 0.85rem;
+  color: var(--cor-texto);
+}
+
+.orcamento-status {
+  font-size: 0.75rem;
+  font-weight: 700;
+  padding: 2px 8px;
+  border-radius: var(--raio-sm);
+}
+
+.orcamento-status.status-ok {
+  background: color-mix(in srgb, var(--cor-receita) 15%, transparent);
+  color: var(--cor-receita);
+}
+
+.orcamento-status.status-alerta {
+  background: color-mix(in srgb, var(--cor-pendente) 15%, transparent);
+  color: var(--cor-pendente);
+}
+
+.orcamento-status.status-estourado {
+  background: color-mix(in srgb, var(--cor-despesa) 15%, transparent);
+  color: var(--cor-despesa);
+}
+
+.orcamento-barra-fundo {
+  height: 8px;
+  background: var(--cor-fundo-alt);
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+}
+
+.orcamento-barra-progresso {
+  height: 100%;
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+.orcamento-valores {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  font-size: 0.75rem;
+}
+
+.orcamento-gasto {
+  color: var(--cor-texto-suave);
+}
+
+.orcamento-saldo {
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.orcamento-btn-excluir {
+  position: absolute;
+  top: 12px;
+  right: 0;
+  background: none;
+  border: none;
+  color: var(--cor-texto-suave);
+  cursor: pointer;
+  padding: 4px;
+  border-radius: var(--raio-sm);
+  transition: all 0.15s;
+  opacity: 0;
+}
+
+.orcamento-item:hover .orcamento-btn-excluir {
+  opacity: 1;
+}
+
+.orcamento-btn-excluir:hover {
+  color: var(--cor-despesa);
+  background: color-mix(in srgb, var(--cor-despesa) 10%, transparent);
+}
+
+/* Avatar na listagem de usuários */
+.avatar-lista {
+  flex: 0 0 auto;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  object-fit: cover;
+  align-self: center;
+}
+
+.avatar-lista.avatar-vazio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
+  font-weight: 700;
+  font-size: 0.9rem;
+}
+
+/* Campo de upload de foto no formulário de usuário */
+.campo-foto-perfil {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  flex-basis: 100%;
+  margin-bottom: 4px;
+}
+
+.avatar-preview {
+  width: 56px;
+  height: 56px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex: 0 0 auto;
+}
+
+.avatar-preview.avatar-vazio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-pauta-forte);
+  color: var(--cor-texto-suave);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.campo-foto-acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.botao-arquivo {
+  font-size: 0.8rem;
+  font-weight: 600;
+  padding: 7px 14px;
+  border-radius: 999px;
+  border: var(--borda) solid var(--cor-pauta-forte);
+  background: var(--cor-superficie);
+  cursor: pointer;
+}
+
+.botao-arquivo:hover {
+  border-color: var(--cor-marca);
+}
+
+#btn-remover-foto {
+  background: transparent;
+  color: var(--cor-despesa);
+  border: none;
+  font-size: 0.78rem;
+  padding: 0;
+}
+
+.btn-editar-usuario {
+  background: transparent;
+  color: var(--cor-texto-suave);
+  border: var(--borda) solid var(--cor-pauta-forte);
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  white-space: nowrap;
+  line-height: 1;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-editar-usuario:hover {
+  color: var(--cor-marca-forte);
+  border-color: var(--cor-marca);
+}
+
+/* Botão toggle ativo/inativo */
+.btn-toggle-ativo {
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  border: var(--borda) solid;
+  cursor: pointer;
+  transition: all 0.15s;
+  white-space: nowrap;
+  line-height: 1;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-toggle-ativo.ativo {
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
+  color: var(--cor-receita);
+  border-color: color-mix(in srgb, var(--cor-receita) 40%, transparent);
+}
+
+.btn-toggle-ativo.ativo:hover {
+  background: color-mix(in srgb, var(--cor-receita) 20%, transparent);
+}
+
+.btn-toggle-ativo.inativo {
+  background: transparent;
+  color: var(--cor-texto-suave);
+  border-color: var(--cor-pauta-forte);
+}
+
+.btn-toggle-ativo.inativo:hover {
+  background: var(--cor-superficie);
+  color: var(--cor-receita);
+  border-color: var(--cor-receita);
+}
+
+.btn-toggle-ativo:disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+}
+
+/* Usuário inativo: opacidade reduzida no card inteiro */
+.linha-inativa {
+  opacity: 0.55;
+}
+
+.linha-inativa:hover {
+  opacity: 0.85;
+}
+
+/* Botão de exclusão de contas — propositalmente destacado, é uma ação irreversível */
+.btn-excluir-conta {
+  background: transparent;
+  color: var(--cor-despesa);
+  border: var(--borda) solid color-mix(in srgb, var(--cor-despesa) 40%, transparent);
+  padding: 5px 10px;
+  font-size: 0.72rem;
+  font-weight: 700;
+  box-shadow: none;
+  white-space: nowrap;
+  line-height: 1;
+  height: 28px;
+  display: inline-flex;
+  align-items: center;
+}
+
+.btn-excluir-conta:hover {
+  background: color-mix(in srgb, var(--cor-despesa) 10%, transparent);
+  border-color: var(--cor-despesa);
+}
+
+.btn-excluir-conta:disabled {
+  background: transparent;
+  color: var(--cor-pauta-forte);
+  border-color: var(--cor-pauta-forte);
+  box-shadow: none;
+  cursor: not-allowed;
+  transform: none;
+}
+
+/* Aviso de vencimento próximo nas despesas fixas */
+.linha-vencimento-proximo {
+  border-left: 3px solid var(--cor-pendente);
+  background: color-mix(in srgb, var(--cor-pendente) 7%, transparent);
+}
+
+.linha-vencimento-atrasado {
+  border-left: 3px solid var(--cor-despesa);
+  background: color-mix(in srgb, var(--cor-despesa) 8%, transparent);
+}
+
+.aviso-vencimento {
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 3px 9px;
+  border-radius: 999px;
+  white-space: nowrap;
+  background: color-mix(in srgb, var(--cor-pendente) 20%, transparent);
+  color: var(--cor-pendente);
+}
+
+.aviso-vencimento-atrasado {
+  background: color-mix(in srgb, var(--cor-despesa) 18%, transparent);
+  color: var(--cor-despesa);
+}
+

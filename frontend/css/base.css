@@ -1,0 +1,238 @@
+/* ==========================================
+   CADIMUS — Estilo
+   Mesma paleta papel/tinta de sempre, a serviço de um painel de controle —
+   não mais um caderno. A superfície agora é lisa; o contraste entre canvas
+   e cartão é o que dá estrutura, não linhas de pauta.
+   ========================================== */
+
+*,
+*::before,
+*::after {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+}
+
+html {
+  -webkit-text-size-adjust: 100%;
+  overflow-x: hidden;
+}
+
+body {
+  background-color: var(--cor-fundo);
+  color: var(--cor-texto);
+  min-height: 100vh;
+  min-height: 100dvh;
+  font-family: var(--fonte-corpo);
+  font-size: 15px;
+  line-height: 1.5;
+  display: flex;
+  flex-direction: column;
+  transition:
+    background-color 0.25s ease,
+    color 0.25s ease;
+}
+
+::selection {
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
+}
+
+:focus-visible {
+  outline: 2px solid var(--cor-marca);
+  outline-offset: 2px;
+}
+
+button {
+  font-family: inherit;
+}
+
+/* ==========================================
+   LAYOUT GERAL
+   ========================================== */
+.app-container {
+  --app-padding-vertical: 48px;
+  padding: 28px clamp(16px, 2vw, 32px) 20px;
+  flex: 1;
+}
+
+/* Dashboard é o painel de controle de verdade — precisa de espaço pra duas colunas */
+#dashboard-section {
+  width: 100%;
+  max-width: 1360px;
+  margin: 0 auto;
+}
+
+#admin-section {
+  max-width: 1180px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+/* ==========================================
+   TOP BAR — cabeçalho principal
+   ========================================== */
+.top-bar {
+  padding: 0 0 12px;
+  margin-bottom: 20px;
+  border-bottom: 1px solid var(--cor-pauta-fraca);
+}
+
+.top-bar-linha1 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 10px;
+  gap: 8px;
+}
+
+.top-bar-linha2 {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+.header-logo-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+  padding: 2px 0;
+}
+
+.header-logo-wrapper img {
+  width: 38px;
+  height: 38px;
+  box-sizing: border-box;
+  object-fit: cover;
+  border-radius: 50%;
+  background: var(--cor-superficie-alta);
+  padding: 4px;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--cor-receita) 42%, var(--cor-pauta-forte)),
+    0 5px 12px var(--cor-sombra);
+}
+
+.header-logo-wrapper span {
+  font-family: var(--fonte-corpo);
+  font-style: normal;
+  font-weight: 500;
+  font-size: 1.42rem;
+  color: var(--cor-texto);
+  letter-spacing: -0.055em;
+  line-height: 1;
+}
+
+.acoes-topo,
+.user-controls {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: wrap;
+  position: relative;
+}
+
+.acoes-topo {
+  justify-content: flex-end;
+  min-width: 0;
+}
+
+.acoes-topo-grupo {
+  display: inline-flex;
+  align-items: center;
+  gap: 2px;
+  padding: 3px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 82%, transparent);
+  box-shadow: 0 1px 2px color-mix(in srgb, var(--cor-sombra) 42%, transparent);
+}
+
+.acoes-topo-grupo .acoes-topo-divider {
+  display: none;
+}
+
+.acoes-topo-grupo-financeiro {
+  background: color-mix(in srgb, var(--cor-marca) 8%, var(--cor-fundo-card));
+}
+
+.acoes-topo-grupo-operacao {
+  background: color-mix(in srgb, var(--cor-fundo-card) 88%, transparent);
+}
+
+.acoes-topo-grupo-layout {
+  background: color-mix(in srgb, var(--cor-marca) 6%, var(--cor-fundo-card));
+}
+
+.avatar-topo {
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  object-fit: cover;
+  flex-shrink: 0;
+  background-size: cover;
+  background-position: center;
+}
+
+.avatar-topo.avatar-vazio {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
+  font-weight: 700;
+  font-size: 0.85rem;
+}
+
+#filtro-mes {
+  flex-shrink: 0;
+}
+
+.seletor-mes {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--cor-fundo-card);
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 999px;
+  padding: 3px 6px;
+  flex-shrink: 0;
+}
+
+.seletor-mes button {
+  background: transparent;
+  color: var(--cor-texto-suave);
+  border: none;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.1rem;
+  line-height: 1;
+}
+
+.seletor-mes button:hover {
+  background: color-mix(in srgb, var(--cor-marca) 16%, transparent);
+  color: var(--cor-marca-forte);
+  transform: none;
+}
+
+#rotulo-mes {
+  font-family: var(--fonte-mono);
+  font-size: 0.76rem;
+  min-width: 104px;
+  text-align: center;
+  color: var(--cor-texto);
+  cursor: pointer;
+  user-select: none;
+}
+
+#rotulo-mes:hover {
+  color: var(--cor-marca-forte);
+}
+

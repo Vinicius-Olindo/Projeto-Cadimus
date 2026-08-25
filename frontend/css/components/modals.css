@@ -1,0 +1,496 @@
+/* ==========================================
+   MODAL — ficha de lançamento
+   ========================================== */
+.modal-overlay {
+  background: var(--cor-overlay);
+  position: fixed;
+  inset: 0;
+  z-index: 9999;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  padding: 20px;
+  backdrop-filter: blur(2px);
+}
+
+.modal-content {
+  background: var(--cor-fundo-card);
+  padding: 28px;
+  border-radius: var(--raio-lg);
+  width: 100%;
+  max-width: 420px;
+  max-height: 90vh;
+  overflow-y: auto;
+  box-shadow: 0 30px 60px -24px var(--cor-sombra);
+  animation: entrar-ficha 0.2s ease;
+}
+
+@keyframes entrar-ficha {
+  from {
+    opacity: 0;
+    transform: translateY(8px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.modal-content h3 {
+  font-family: var(--fonte-display);
+  font-style: italic;
+  font-size: 1.6rem;
+  font-weight: 400;
+  margin-bottom: 18px;
+}
+
+#modal-lancamento .modal-content {
+  max-width: 460px;
+}
+
+.lancamento-modal-subtitulo {
+  margin: -8px 0 14px;
+}
+
+.lancamento-tipo-rapido {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.lancamento-tipo-rapido[hidden] {
+  display: none;
+}
+
+.lancamento-tipo-contextual {
+  margin-top: -4px;
+  margin-bottom: 18px;
+}
+
+.lancamento-tipo-rapido button {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 10px;
+  min-height: 78px;
+  padding: 13px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 72%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 68%, transparent);
+  color: var(--cor-texto);
+  text-align: left;
+  cursor: pointer;
+  transition: background 0.15s, border-color 0.15s, box-shadow 0.15s, transform 0.15s;
+}
+
+.lancamento-tipo-rapido button:hover {
+  border-color: color-mix(in srgb, var(--cor-marca) 34%, var(--cor-pauta-forte));
+  background: color-mix(in srgb, var(--cor-marca) 7%, var(--cor-superficie-alta));
+  transform: translateY(-1px);
+}
+
+.lancamento-tipo-rapido button.ativo {
+  border-color: color-mix(in srgb, var(--cor-marca) 70%, var(--cor-pauta-forte));
+  background: color-mix(in srgb, var(--cor-marca) 12%, var(--cor-superficie-alta));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cor-marca) 18%, transparent);
+}
+
+.lancamento-atalho-icone {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+  color: var(--cor-marca-forte);
+  font-family: var(--fonte-mono);
+  font-size: 0.95rem;
+  font-weight: 800;
+}
+
+.lancamento-atalho-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  min-width: 0;
+}
+
+.lancamento-atalho-texto strong {
+  font-weight: 700;
+  font-size: 0.82rem;
+  line-height: 1.1;
+}
+
+.lancamento-atalho-texto small {
+  color: var(--cor-texto-suave);
+  font-size: 0.68rem;
+  line-height: 1.25;
+}
+
+.lancamento-atalho-parcelada .lancamento-atalho-icone {
+  background: color-mix(in srgb, var(--cor-pendente) 12%, transparent);
+  color: var(--cor-pendente);
+}
+
+.lancamento-atalho-fixa .lancamento-atalho-icone {
+  background: color-mix(in srgb, var(--cor-despesa) 10%, transparent);
+  color: var(--cor-despesa);
+}
+
+.lancamento-atalho-bonificacao .lancamento-atalho-icone {
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
+  color: var(--cor-receita);
+}
+
+.modal-compacto {
+  max-width: 360px;
+  text-align: center;
+}
+
+.modal-aviso-texto {
+  font-size: 0.92rem;
+  line-height: 1.6;
+  margin-bottom: 24px;
+  color: var(--cor-texto);
+}
+
+.modal-compacto #btn-aviso-ok {
+  width: 100%;
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
+  padding: 11px 16px;
+  border-radius: var(--raio-md);
+  font-weight: 600;
+  border: none;
+}
+
+.modal-compacto #btn-aviso-ok:hover {
+  background: var(--cor-marca-forte);
+}
+
+.modal-confirmacao-acoes {
+  display: flex;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.modal-confirmacao-acoes button {
+  flex: 1;
+  padding: 11px 16px;
+  border-radius: var(--raio-md);
+  font-weight: 600;
+  font-size: 0.88rem;
+  border: none;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+#btn-confirmacao-cancelar {
+  background: var(--cor-fundo-card);
+  color: var(--cor-texto);
+  border: 1px solid var(--cor-pauta-fraca) !important;
+}
+
+#btn-confirmacao-cancelar:hover {
+  background: var(--cor-pauta);
+  border-color: var(--cor-pauta-forte) !important;
+}
+
+#btn-confirmacao-confirmar {
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
+}
+
+#btn-confirmacao-confirmar:hover {
+  background: var(--cor-marca-forte);
+  transform: translateY(-1px);
+}
+
+#btn-confirmacao-confirmar.confirmacao-perigo {
+  background: var(--cor-despesa);
+  color: var(--cor-superficie-alta);
+}
+
+#btn-confirmacao-confirmar.confirmacao-perigo:hover {
+  background: color-mix(in srgb, var(--cor-despesa) 85%, var(--cor-texto));
+  transform: translateY(-1px);
+}
+
+#btn-confirmacao-cancelar {
+  background: transparent;
+  color: var(--cor-texto-suave);
+  border: var(--borda) solid var(--cor-pauta-forte);
+}
+
+.modal-subtitulo {
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+  margin-top: -12px;
+  margin-bottom: 18px;
+}
+
+/* Modal histórico de pagamentos */
+.modal-historico {
+  max-width: 500px;
+}
+
+.historico-fixa-lista {
+  max-height: 320px;
+  overflow-y: auto;
+  margin-bottom: 16px;
+  scrollbar-width: thin;
+  scrollbar-color: var(--cor-pauta-fraca) transparent;
+}
+
+.historico-fixa-lista::-webkit-scrollbar {
+  width: 6px;
+}
+
+.historico-fixa-lista::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.historico-fixa-lista::-webkit-scrollbar-thumb {
+  background: var(--cor-pauta-fraca);
+  border-radius: 3px;
+}
+
+.historico-fixa-lista::-webkit-scrollbar-thumb:hover {
+  background: var(--cor-texto-suave);
+}
+
+.historico-fixa-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  border-radius: 8px;
+  margin-bottom: 2px;
+  transition: background 0.12s;
+}
+
+.historico-fixa-linha:hover {
+  background: color-mix(in srgb, var(--cor-marca) 5%, transparent);
+}
+
+.historico-fixa-linha:last-child {
+  border-bottom: none;
+}
+
+.historico-fixa-data {
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+  font-family: var(--fonte-mono);
+  min-width: 72px;
+}
+
+.historico-fixa-valor {
+  font-family: var(--fonte-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  flex: 1;
+  text-align: center;
+}
+
+.historico-fixa-status {
+  font-size: 0.68rem;
+  padding: 3px 10px;
+  border-radius: 999px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+}
+
+.historico-fixa-status.status-pago {
+  background: color-mix(in srgb, var(--cor-receita) 14%, transparent);
+  color: var(--cor-receita);
+  border: 1px solid color-mix(in srgb, var(--cor-receita) 25%, transparent);
+}
+
+.historico-fixa-status.status-pendente {
+  background: color-mix(in srgb, var(--cor-pendente) 14%, transparent);
+  color: var(--cor-pendente);
+  border: 1px solid color-mix(in srgb, var(--cor-pendente) 25%, transparent);
+}
+
+.historico-fixa-status.status-atrasado {
+  background: color-mix(in srgb, var(--cor-despesa) 14%, transparent);
+  color: var(--cor-despesa);
+  border: 1px solid color-mix(in srgb, var(--cor-despesa) 25%, transparent);
+}
+
+.historico-fixa-vazio {
+  text-align: center;
+  color: var(--cor-texto-suave);
+  font-size: 0.82rem;
+  padding: 24px 0;
+}
+
+/* Modal de depósito em meta */
+.modal-meta-deposito {
+  max-width: 420px;
+}
+
+.meta-deposito-resumo {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 12px 14px;
+  background: var(--cor-fundo-alt);
+  border-radius: var(--raio-md);
+  margin-bottom: 14px;
+}
+
+.meta-deposito-resumo-label {
+  font-size: 0.78rem;
+  color: var(--cor-texto-suave);
+}
+
+.meta-deposito-resumo-valor {
+  font-family: var(--fonte-mono);
+  font-size: 1.1rem;
+  font-weight: 700;
+}
+
+.meta-deposito-progresso {
+  height: 10px;
+  border-radius: 999px;
+  background: var(--cor-pauta-forte);
+  overflow: hidden;
+  margin-bottom: 14px;
+}
+
+.meta-deposito-progresso-barra {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--cor-receita);
+  transition: width 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.meta-deposito-progresso-barra.barra-estourou {
+  background: var(--cor-despesa);
+}
+
+.meta-deposito-info {
+  font-size: 0.72rem;
+  color: var(--cor-texto-suave);
+  text-align: center;
+  margin-bottom: 14px;
+}
+
+.btn-meta-depositar {
+  width: 100%;
+  padding: 10px;
+  border-radius: var(--raio-md);
+  font-size: 0.82rem;
+  font-weight: 600;
+  margin-bottom: 14px;
+}
+
+.historico-deposito-linha {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--cor-pauta-forte);
+}
+
+.historico-deposito-linha:last-child {
+  border-bottom: none;
+}
+
+.historico-deposito-data {
+  font-size: 0.78rem;
+  color: var(--cor-texto-suave);
+}
+
+.historico-deposito-desc {
+  font-size: 0.78rem;
+  color: var(--cor-texto);
+  flex: 1;
+  margin: 0 10px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.historico-deposito-valor {
+  font-family: var(--fonte-mono);
+  font-size: 0.82rem;
+  font-weight: 600;
+  color: var(--cor-receita);
+  white-space: nowrap;
+}
+
+.historico-deposito-excluir {
+  background: none;
+  border: none;
+  color: var(--cor-despesa);
+  cursor: pointer;
+  padding: 2px 4px;
+  font-size: 0.72rem;
+  opacity: 0.6;
+  transition: opacity 0.15s;
+}
+
+.historico-deposito-excluir:hover {
+  opacity: 1;
+}
+
+.barra-meta-clicavel {
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.barra-meta-clicavel:hover {
+  transform: scale(1.01);
+}
+
+.parcelada-preview {
+  font-family: var(--fonte-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-marca-forte);
+  margin-top: -6px;
+  text-align: right;
+}
+
+#lista-despesas-fixas {
+  margin: 18px 0;
+  max-height: 240px;
+  overflow-y: auto;
+}
+
+.modal-content form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.modal-content .linha-form-dupla {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 12px;
+}
+
+.modal-content button[type="submit"] {
+  margin-top: 8px;
+  padding: 12px 16px;
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
+  border: none;
+  border-radius: var(--raio-md);
+  font-weight: 600;
+  font-size: 0.9rem;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.modal-content button[type="submit"]:hover {
+  background: var(--cor-marca-forte);
+  transform: translateY(-1px);
+}
+

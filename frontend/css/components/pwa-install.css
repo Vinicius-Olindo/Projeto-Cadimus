@@ -1,0 +1,52 @@
+/* ==========================================
+   PWA INSTALL BANNER
+   ========================================== */
+
+.pwa-install-banner {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: var(--cor-fundo-card);
+  border-top: 1px solid var(--cor-pauta-forte);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  z-index: 9999;
+  box-shadow: 0 -2px 10px color-mix(in srgb, var(--cor-sombra) 62%, transparent);
+}
+
+.pwa-install-texto {
+  font-size: 0.85rem;
+  color: var(--cor-texto, #333);
+}
+
+.pwa-install-acoes {
+  display: flex;
+  gap: 8px;
+  flex-shrink: 0;
+}
+
+.pwa-install-btn {
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
+  border: none;
+  border-radius: 6px;
+  padding: 6px 16px;
+  font-size: 0.8rem;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.pwa-install-dismiss {
+  background: none;
+  border: 1px solid var(--cor-borda, #ccc);
+  border-radius: 6px;
+  padding: 6px 12px;
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave, #666);
+  cursor: pointer;
+}
+

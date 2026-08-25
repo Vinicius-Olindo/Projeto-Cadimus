@@ -1,0 +1,176 @@
+/* ==========================================
+   ABAS DE CARTEIRA (Casa / Pessoal)
+   ========================================== */
+.carteira-tabs {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 4px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 88%, var(--cor-superficie));
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 999px;
+  overflow-x: auto;
+  max-width: 100%;
+  scrollbar-width: none;
+}
+
+.carteira-tabs::-webkit-scrollbar {
+  display: none;
+}
+
+.tab-carteira {
+  background: color-mix(in srgb, var(--cor-superficie-alta) 72%, transparent);
+  color: color-mix(in srgb, var(--cor-texto) 78%, var(--cor-texto-suave));
+  border: 1px solid transparent;
+  padding: 6px 11px;
+  border-radius: 999px;
+  font-size: 0.78rem;
+  font-weight: 600;
+  white-space: nowrap;
+  flex-shrink: 0;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  transition: background 0.12s, border-color 0.12s, color 0.12s, box-shadow 0.12s;
+}
+
+.tab-carteira-icone {
+  opacity: 0.6;
+  flex-shrink: 0;
+  transition: opacity 0.12s;
+}
+
+.tab-carteira-nome {
+  line-height: 1;
+}
+
+.tab-carteira.ativo {
+  background: var(--cor-texto);
+  border-color: var(--cor-texto);
+  color: var(--cor-superficie-alta);
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--cor-texto) 14%, transparent);
+}
+
+.tab-carteira.ativo .tab-carteira-icone {
+  opacity: 0.75;
+  stroke: var(--cor-superficie-alta);
+}
+
+/* Carteira compartilhada usa o mesmo padrão de cor; o tipo é indicado pelo ícone. */
+.tab-carteira.tab-compartilhada:not(.ativo) {
+  color: color-mix(in srgb, var(--cor-texto) 78%, var(--cor-texto-suave));
+}
+
+.tab-carteira.tab-compartilhada.ativo {
+  background: var(--cor-texto);
+  border-color: var(--cor-texto);
+  color: var(--cor-superficie-alta);
+}
+
+.tab-carteira.tab-compartilhada.ativo .tab-carteira-icone {
+  stroke: var(--cor-superficie-alta);
+  opacity: 0.9;
+}
+
+.tab-carteira:not(.ativo):hover {
+  color: var(--cor-texto);
+  border-color: color-mix(in srgb, var(--cor-texto) 10%, transparent);
+  background: color-mix(in srgb, var(--cor-superficie-alta) 92%, var(--cor-marca) 8%);
+}
+
+.tab-carteira:not(.ativo):hover .tab-carteira-icone {
+  opacity: 1;
+}
+
+/* Separador entre carteiras e o botão + */
+.tab-carteira-separador {
+  width: 1px;
+  height: 16px;
+  background: color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent);
+  flex-shrink: 0;
+  margin: 0 1px;
+}
+
+/* Botão + para nova carteira: ícone sem label, compacto */
+.tab-carteira-add {
+  background: color-mix(in srgb, var(--cor-marca) 8%, transparent);
+  border: 1px solid transparent;
+  color: var(--cor-marca);
+  padding: 6px 9px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  font-size: 0;
+}
+
+.tab-carteira-add:hover {
+  color: var(--cor-marca-forte);
+  border-color: color-mix(in srgb, var(--cor-marca) 16%, transparent);
+  background: color-mix(in srgb, var(--cor-marca) 14%, transparent);
+  transform: none;
+}
+
+.tab-carteira-wrapper {
+  display: inline-flex;
+  align-items: center;
+  gap: 3px;
+  flex-shrink: 0;
+  padding-right: 2px;
+  cursor: grab;
+  border-radius: 999px;
+  transition: opacity 0.12s, box-shadow 0.12s;
+}
+
+.tab-carteira-wrapper.arrastando {
+  opacity: 0.4;
+}
+
+.tab-carteira-wrapper.alvo-drop {
+  box-shadow: inset 2px 0 0 var(--cor-marca);
+}
+
+.btn-gerenciar-membros {
+  background: color-mix(in srgb, var(--cor-superficie-alta) 68%, transparent);
+  border: 1px solid transparent;
+  color: var(--cor-texto-suave);
+  font-size: 0.7rem;
+  padding: 4px;
+  border-radius: 999px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 21px;
+  height: 21px;
+}
+
+.btn-gerenciar-membros:hover {
+  color: var(--cor-texto);
+  border-color: color-mix(in srgb, var(--cor-texto) 10%, transparent);
+  background: color-mix(in srgb, var(--cor-superficie-alta) 92%, var(--cor-marca) 8%);
+}
+
+.opcao-membro-desabilitada {
+  opacity: 0.6;
+}
+
+/* Zona de perigo: excluir carteira, dentro da modal de configurações */
+.zona-perigo-carteira {
+  margin-top: 14px;
+  padding-top: 14px;
+  border-top: var(--borda) solid var(--cor-pauta-forte);
+}
+
+#btn-excluir-carteira {
+  width: 100%;
+  background: transparent;
+  border: var(--borda) solid var(--cor-despesa);
+  color: var(--cor-despesa);
+}
+
+#btn-excluir-carteira:hover {
+  background: color-mix(in srgb, var(--cor-despesa) 12%, transparent);
+}
+

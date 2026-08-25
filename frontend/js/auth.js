@@ -288,6 +288,7 @@ function alternarTelas(estaLogado) {
 
 document.addEventListener("DOMContentLoaded", () => {
   const fLogin = document.getElementById("login-form");
+  const loginSection = document.getElementById("login-section");
   const loginBox = document.getElementById("login-box");
   const campoUsuarioLogin = document.getElementById("usuario");
   const campoSenhaLogin = document.getElementById("senha");
@@ -303,6 +304,7 @@ document.addEventListener("DOMContentLoaded", () => {
   ];
   let indiceFluxoLogin = 0;
   let timerFluxoLogin = null;
+  const reduzirMovimentoLogin = window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches;
   const ICONE_TEMA_LUA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>';
   const ICONE_TEMA_SOL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
 
@@ -351,6 +353,40 @@ document.addEventListener("DOMContentLoaded", () => {
     timerFluxoLogin = null;
   }
 
+  function atualizarParallaxLogin(evento) {
+    if (!loginBox || reduzirMovimentoLogin) return;
+    const rect = loginBox.getBoundingClientRect();
+    const centroX = rect.left + rect.width / 2;
+    const centroY = rect.top + rect.height / 2;
+    const deslocamentoX = ((evento.clientX - centroX) / rect.width) * 14;
+    const deslocamentoY = ((evento.clientY - centroY) / rect.height) * 12;
+    loginBox.style.setProperty("--login-parallax-x", `${deslocamentoX.toFixed(2)}px`);
+    loginBox.style.setProperty("--login-parallax-y", `${deslocamentoY.toFixed(2)}px`);
+  }
+
+  function resetarParallaxLogin() {
+    if (!loginBox) return;
+    loginBox.style.setProperty("--login-parallax-x", "0px");
+    loginBox.style.setProperty("--login-parallax-y", "0px");
+  }
+
+  function atualizarParallaxFundoLogin(evento) {
+    if (!loginSection || reduzirMovimentoLogin) return;
+    const rect = loginSection.getBoundingClientRect();
+    const centroX = rect.left + rect.width / 2;
+    const centroY = rect.top + rect.height / 2;
+    const deslocamentoX = ((evento.clientX - centroX) / rect.width) * 28;
+    const deslocamentoY = ((evento.clientY - centroY) / rect.height) * 24;
+    loginSection.style.setProperty("--login-bg-parallax-x", `${deslocamentoX.toFixed(2)}px`);
+    loginSection.style.setProperty("--login-bg-parallax-y", `${deslocamentoY.toFixed(2)}px`);
+  }
+
+  function resetarParallaxFundoLogin() {
+    if (!loginSection) return;
+    loginSection.style.setProperty("--login-bg-parallax-x", "0px");
+    loginSection.style.setProperty("--login-bg-parallax-y", "0px");
+  }
+
   function atualizarSeletorTemaLogin() {
     if (!btnTemaLogin) return;
     const estaEscuro = document.body.classList.contains("dark-mode");
@@ -396,6 +432,10 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   iniciarFluxoLoginAnimado();
+  loginSection?.addEventListener("pointermove", atualizarParallaxFundoLogin);
+  loginSection?.addEventListener("pointerleave", resetarParallaxFundoLogin);
+  loginBox?.addEventListener("pointermove", atualizarParallaxLogin);
+  loginBox?.addEventListener("pointerleave", resetarParallaxLogin);
 
   campoUsuarioLogin?.addEventListener("focus", () => definirEstadoLogin("usuario"));
   campoUsuarioLogin?.addEventListener("input", () => definirEstadoLogin("usuario"));

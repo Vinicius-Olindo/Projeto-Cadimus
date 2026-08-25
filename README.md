@@ -202,7 +202,12 @@ Cadimus/
 │   ├── sw.js                   # Service Worker
 │   ├── css/
 │   │   ├── variables.css       # Design tokens
-│   │   └── style.css           # Estilos globais (~6000 linhas)
+│   │   ├── style.css           # Índice de módulos CSS
+│   │   ├── components/         # Botões, modais, gráficos, toast etc.
+│   │   ├── pages/              # Estilos por área/tela
+│   │   ├── layout/             # Estrutura compartilhada
+│   │   ├── themes/             # Ajustes de tema
+│   │   └── utilities/          # Utilitários visuais
 │   ├── js/
 │   │   ├── *-api.js            # Clientes de API por domínio
 │   │   ├── *-ui.js             # Módulos de interface por área

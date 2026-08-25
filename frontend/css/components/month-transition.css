@@ -1,0 +1,48 @@
+/* ==========================================
+   TRANSIÇÃO ENTRE MESES (efeito de virar a página)
+   ========================================== */
+@keyframes deslizar-frente {
+  from {
+    opacity: 0;
+    transform: translateX(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes deslizar-tras {
+  from {
+    opacity: 0;
+    transform: translateX(-16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes deslizar-agora {
+  from {
+    opacity: 0;
+    transform: scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+#conteudo-periodo.anim-frente {
+  animation: deslizar-frente 0.3s ease;
+}
+
+#conteudo-periodo.anim-tras {
+  animation: deslizar-tras 0.3s ease;
+}
+
+#conteudo-periodo.anim-agora {
+  animation: deslizar-agora 0.3s ease;
+}
+

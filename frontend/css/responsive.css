@@ -1,0 +1,237 @@
+/* ==========================================
+   RESPONSIVO
+   ========================================== */
+
+/* Tablet: 480px–900px */
+@media (min-width: 481px) and (max-width: 900px) {
+  .stat-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+
+  .btn-topo-label {
+    display: none;
+  }
+
+  .btn-topo-icone {
+    padding: 6px;
+  }
+
+  .acoes-topo {
+    gap: 6px;
+  }
+
+  .acoes-topo-grupo {
+    padding: 2px;
+  }
+}
+
+/* Mobile: <=480px */
+@media (max-width: 480px) {
+  .app-container {
+    --app-padding-vertical: 68px;
+    padding: 20px 14px 48px;
+  }
+
+  .lancamento-tipo-rapido {
+    grid-template-columns: 1fr;
+  }
+
+  .btn-topo-label {
+    display: none;
+  }
+
+  .btn-topo-icone {
+    padding: 6px;
+  }
+
+  .top-bar-linha1 {
+    align-items: flex-start;
+  }
+
+  .acoes-topo {
+    gap: 5px;
+    justify-content: flex-end;
+  }
+
+  .acoes-topo-grupo {
+    padding: 2px;
+  }
+
+  .painel-notificacoes-controles {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .notificacao-tabs {
+    width: 100%;
+  }
+
+  .notificacao-tab {
+    flex: 1;
+    text-align: center;
+  }
+
+  .notificacao-acao-secundaria {
+    align-self: flex-end;
+  }
+
+  .top-bar-linha2 {
+    flex-wrap: nowrap;
+  }
+
+  .carteira-tabs {
+    flex: 1;
+    min-width: 0;
+  }
+
+  .user-controls {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  #saldo-total {
+    font-size: 1.4rem;
+  }
+
+  .modal-content .linha-form-dupla {
+    grid-template-columns: 1fr;
+  }
+
+  .botoes-cabecalho {
+    flex-wrap: wrap;
+    justify-content: flex-end;
+  }
+
+  .btn-secundario {
+    padding: 8px 12px;
+    font-size: 0.78rem;
+  }
+
+  .linha-usuario {
+    flex-wrap: wrap;
+    align-items: center;
+  }
+
+  .linha-usuario .item-valores {
+    width: 100%;
+    justify-content: flex-end;
+    align-items: center;
+  }
+
+  .stat-grid {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 10px;
+  }
+
+  .stat-card {
+    padding: 14px 16px;
+  }
+
+  .stat-valor {
+    font-size: 1.05rem;
+  }
+
+  .stat-valor.valor-monetario-longo,
+  #saldo-total.valor-monetario-longo {
+    font-size: 0.92rem;
+  }
+
+  .stat-valor.valor-monetario-muito-longo,
+  #saldo-total.valor-monetario-muito-longo {
+    font-size: 0.82rem;
+  }
+
+  .linha-corpo {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .linha-item {
+    align-items: flex-start;
+    padding: 10px;
+  }
+
+  .data-chip {
+    width: 42px;
+    min-height: 48px;
+  }
+
+  .item-info-principal {
+    width: 100%;
+  }
+
+  .item-valores {
+    width: 100%;
+    max-width: 100%;
+    align-items: stretch;
+    justify-content: flex-start;
+    gap: 8px;
+  }
+
+  .item-chips {
+    justify-content: flex-start;
+    gap: 6px;
+    min-width: 0;
+    flex-wrap: wrap;
+  }
+
+  .carimbo-autor-chip {
+    max-width: min(150px, 46vw);
+  }
+
+  .item-valor-acoes {
+    margin-left: auto;
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .item-valor {
+    text-align: left;
+  }
+
+  .lancamentos-cabecalho {
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+
+  #btn-novo-gasto {
+    font-size: 0.78rem;
+    padding: 8px 16px;
+  }
+
+  /* Admin: formulário em coluna única no mobile */
+  #admin-section .card form {
+    grid-template-columns: 1fr;
+  }
+
+  .painel-admin .card {
+    padding: 18px;
+  }
+
+  /* Gráficos: labels menores */
+  .tendencia-mes {
+    font-size: 0.6rem;
+  }
+
+  .comparativo-mes {
+    font-size: 0.6rem;
+  }
+
+  /* Tabela de importação: scroll horizontal */
+  .importar-tabela-container {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .importar-tabela {
+    min-width: 480px;
+  }
+
+  /* Toast: menor no mobile */
+  .toast {
+    font-size: 0.8rem;
+    padding: 10px 16px;
+    bottom: 16px;
+  }
+}
+

@@ -26,13 +26,23 @@ O frontend está dividido por domínio:
 - `dashboard-layout-ui.js`: modo de edição e ordem dos cards analíticos do dashboard;
 - `main.js`: mapa central e pequenas exportações globais.
 
+## CSS
+
+O CSS usa `frontend/css/style.css` como índice de módulos via `@import`, mantendo a ordem de cascata do arquivo global original.
+
+- `variables.css`: tokens visuais e tema base;
+- `base.css`: reset, layout geral e topo;
+- `components/`: botões, modais, formulários, gráficos, toast, onboarding e peças reutilizáveis;
+- `pages/`: estilos específicos de dashboard, lançamentos, login, admin, planejamento, relatórios e configurações;
+- `layout/`, `themes/` e `utilities/`: rodapé, ajustes de tema e regras utilitárias.
+
 ## Cache de assets
 
 Quando qualquer arquivo carregado por `frontend/index.html` mudar, atualizar o parâmetro `?v=` correspondente para forçar a staging a buscar a versão nova.
 
 Referência atual:
 
-- CSS principal: `css/style.css?v=34`;
+- CSS principal: `css/style.css?v=123`;
 - scripts principais: `js/*.js?v=89`.
 
 ## Entradas monetárias

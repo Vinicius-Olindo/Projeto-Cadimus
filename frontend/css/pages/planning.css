@@ -1,0 +1,712 @@
+/* ==========================================
+   PLANEJAMENTO
+   ========================================== */
+#planejamento-section {
+  min-height: 100vh;
+  background: var(--cor-fundo);
+}
+
+.plano-container {
+  max-width: 700px;
+  margin: 0 auto;
+  padding: 1.5rem;
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+}
+
+.plano-overview {
+  width: min(100% - 48px, 1120px);
+  margin: 14px auto 0;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(240px, 1fr) auto;
+  gap: 16px;
+  align-items: center;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 18px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 9%, transparent), transparent 48%),
+    var(--cor-fundo-card);
+  box-shadow: var(--sombra-card);
+}
+
+.plano-overview-texto {
+  min-width: 0;
+}
+
+.plano-eyebrow {
+  display: inline-flex;
+  margin-bottom: 6px;
+  color: var(--cor-marca);
+  font-size: 0.65rem;
+  font-weight: 800;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.plano-overview h3 {
+  margin: 0;
+  color: var(--cor-texto);
+  font-size: 1.1rem;
+}
+
+.plano-overview p {
+  max-width: 620px;
+  margin: 6px 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.84rem;
+  line-height: 1.45;
+}
+
+.plano-overview-kpis {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(112px, 1fr));
+  gap: 8px;
+  grid-column: 1 / -1;
+}
+
+.plano-overview-kpis div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-superficie) 74%, transparent);
+}
+
+.plano-overview-kpis span {
+  display: block;
+  color: var(--cor-texto-suave);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plano-overview-kpis strong {
+  display: block;
+  margin-top: 6px;
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: 1rem;
+  overflow-wrap: anywhere;
+}
+
+.plano-overview-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  justify-content: flex-end;
+}
+
+.plano-card-salario {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.plano-subtitulo {
+  font-size: 1rem;
+  font-weight: 600;
+  color: var(--cor-texto);
+  margin: 0;
+}
+
+.plano-salario-linha {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 1rem;
+}
+
+.plano-salario-valor {
+  font-family: var(--fonte-mono);
+  font-size: 1.6rem;
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.plano-salario-acoes {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+.plano-card-guarda {
+  display: flex;
+  flex-direction: column;
+  gap: 0.75rem;
+}
+
+.plano-guarda-valor {
+  font-family: var(--fonte-mono);
+  font-size: 1.4rem;
+  font-weight: 700;
+  color: var(--cor-receita);
+}
+
+.plano-guarda-detalhe {
+  font-size: 0.85rem;
+  color: var(--cor-texto-suave);
+  margin-top: -0.25rem;
+}
+
+.plano-guarda-bars {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.25rem;
+}
+
+.plano-barra-item {
+  display: grid;
+  grid-template-columns: 60px 1fr 70px;
+  align-items: center;
+  gap: 0.6rem;
+}
+
+.plano-barra-rotulo {
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+}
+
+.plano-barra-trilho {
+  height: 8px;
+  border-radius: 999px;
+  background: var(--cor-pauta-forte);
+  overflow: hidden;
+}
+
+.plano-barra-preenchimento {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.barra-fixas { background: var(--cor-despesa); }
+.barra-parcelas { background: var(--cor-pendente); }
+.barra-sobra { background: var(--cor-receita); }
+
+.plano-barra-valor {
+  font-family: var(--fonte-mono);
+  font-size: 0.8rem;
+  color: var(--cor-texto);
+  text-align: right;
+}
+
+/* Metas */
+.plano-metas-cabecalho {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+#lista-metas-plano {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-top: 0.5rem;
+}
+
+.plano-vazio {
+  text-align: center;
+  padding: 2rem 1rem;
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+}
+
+.plano-meta-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding: 0.75rem;
+  border-radius: 10px;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-pauta-forte);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.plano-meta-item:hover {
+  border-color: var(--cor-marca);
+}
+
+.plano-meta-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.plano-meta-categoria {
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+.plano-meta-valor {
+  font-family: var(--fonte-mono);
+  font-size: 0.9rem;
+  color: var(--cor-texto-suave);
+}
+
+.plano-meta-barra {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--cor-pauta-forte);
+  overflow: hidden;
+}
+
+.plano-meta-preenchimento {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--cor-marca);
+  transition: width 0.6s ease;
+}
+
+.plano-meta-detalhes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--cor-texto-suave);
+}
+
+.plano-meta-badge-semana {
+  font-family: var(--fonte-mono);
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--cor-receita);
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+}
+
+.plano-meta-acoes {
+  display: flex;
+  gap: 0.5rem;
+}
+
+.plano-meta-acoes button {
+  font-size: 0.75rem;
+  padding: 0.2rem 0.5rem;
+}
+
+/* ==========================================
+   PLANEJAMENTO — ABAS
+   ========================================== */
+.plano-tabs {
+  display: flex;
+  gap: 0;
+  width: min(100% - 48px, 1120px);
+  margin: 14px auto 0;
+  padding: 4px;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 999px;
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.plano-tab {
+  padding: 0.65rem 1rem;
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--cor-texto-suave);
+  background: none;
+  border: none;
+  border-radius: 999px;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+
+.plano-tab:hover {
+  color: var(--cor-texto);
+}
+
+.plano-tab.ativo {
+  color: var(--cor-superficie-alta);
+  background: var(--cor-marca);
+}
+
+.plano-painel {
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* ==========================================
+   PLANEJAMENTO — PLANOS
+   ========================================== */
+.plano-card-item {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  padding: 1rem;
+  border-radius: 10px;
+  background: var(--cor-fundo);
+  border: 1px solid var(--cor-pauta-forte);
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.plano-card-item:hover {
+  border-color: var(--cor-marca);
+}
+
+.plano-card-topo {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.plano-card-icone {
+  width: 40px;
+  height: 40px;
+  border-radius: 10px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.3rem;
+  flex-shrink: 0;
+}
+
+.plano-card-info {
+  flex: 1;
+  min-width: 0;
+}
+
+.plano-card-nome {
+  font-weight: 600;
+  color: var(--cor-texto);
+  font-size: 0.95rem;
+}
+
+.plano-card-prioridade {
+  font-size: 0.7rem;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+}
+
+.prioridade-alta { background: color-mix(in srgb, var(--cor-despesa) 12%, transparent); color: var(--cor-despesa); }
+.prioridade-media { background: color-mix(in srgb, var(--cor-pendente) 12%, transparent); color: var(--cor-pendente); }
+.prioridade-baixa { background: color-mix(in srgb, var(--cor-receita) 10%, transparent); color: var(--cor-receita); }
+
+.plano-card-desc {
+  font-size: 0.8rem;
+  color: var(--cor-texto-suave);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.plano-card-barra {
+  height: 6px;
+  border-radius: 999px;
+  background: var(--cor-pauta-forte);
+  overflow: hidden;
+}
+
+.plano-card-barra-fill {
+  height: 100%;
+  border-radius: 999px;
+  transition: width 0.6s ease;
+}
+
+.plano-card-detalhes {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  font-size: 0.78rem;
+  color: var(--cor-texto-suave);
+}
+
+.plano-card-valores {
+  font-family: var(--fonte-mono);
+  font-size: 0.8rem;
+}
+
+.plano-card-badge {
+  font-family: var(--fonte-mono);
+  font-size: 0.72rem;
+  font-weight: 500;
+  color: var(--cor-receita);
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+}
+
+.plano-card-acoes {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.25rem;
+}
+
+.plano-card-acoes button {
+  font-size: 0.75rem;
+  padding: 0.3rem 0.6rem;
+}
+
+/* Status badges */
+.plano-status-badge {
+  font-size: 0.7rem;
+  font-weight: 500;
+  padding: 0.15rem 0.5rem;
+  border-radius: 999px;
+  text-transform: capitalize;
+}
+
+.status-ativo { background: color-mix(in srgb, var(--cor-receita) 12%, transparent); color: var(--cor-receita); }
+.status-concluido { background: color-mix(in srgb, var(--cor-marca) 12%, transparent); color: var(--cor-marca); }
+.status-cancelado { background: color-mix(in srgb, var(--cor-texto-suave) 12%, transparent); color: var(--cor-texto-suave); }
+
+/* ==========================================
+   MODAL PLANO — Ícone & Cor selectors
+   ========================================== */
+.plano-icone-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.plano-icone-btn {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  border: 2px solid var(--cor-pauta-forte);
+  background: var(--cor-fundo);
+  font-size: 1.1rem;
+  cursor: pointer;
+  transition: all 0.15s;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.plano-icone-btn:hover { border-color: var(--cor-marca); }
+.plano-icone-btn.selecionado { border-color: var(--cor-marca); background: color-mix(in srgb, var(--cor-marca) 10%, transparent); }
+
+.plano-cor-selector {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 0.4rem;
+}
+
+.plano-cor-btn {
+  width: 28px;
+  height: 28px;
+  border-radius: 50%;
+  border: 3px solid transparent;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.plano-cor-btn:hover { transform: scale(1.15); }
+.plano-cor-btn.selecionado { border-color: var(--cor-texto); box-shadow: 0 0 0 2px var(--cor-fundo); }
+
+/* ==========================================
+   MODAL DEPÓSITO PLANO
+   ========================================== */
+.modal-plano-deposito { max-width: 420px; }
+
+.plano-deposito-cabecalho {
+  display: flex;
+  align-items: center;
+  gap: 0.6rem;
+  margin-bottom: 0.75rem;
+}
+
+.plano-deposito-icone {
+  width: 36px;
+  height: 36px;
+  border-radius: 8px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 1.2rem;
+}
+
+.plano-deposito-nome {
+  font-weight: 600;
+  color: var(--cor-texto);
+}
+
+/* ==========================================
+   PLANEJAMENTO — DISTRIBUIÇÃO
+   ========================================== */
+.plano-dist-item {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.6rem 0;
+  border-bottom: 1px solid var(--cor-pauta-forte);
+}
+
+.plano-dist-item:last-child { border-bottom: none; }
+
+.plano-dist-icone {
+  font-size: 1.2rem;
+  width: 28px;
+  text-align: center;
+}
+
+.plano-dist-info {
+  flex: 1;
+}
+
+.plano-dist-nome {
+  font-size: 0.85rem;
+  font-weight: 500;
+  color: var(--cor-texto);
+}
+
+.plano-dist-detalhe {
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave);
+}
+
+.plano-dist-valor {
+  font-family: var(--fonte-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-despesa);
+}
+
+.plano-dist-restante {
+  font-family: var(--fonte-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  color: var(--cor-receita);
+}
+
+/* ==========================================
+   PLANEJAMENTO — TOGGLE COMPARTILHAR
+   ========================================== */
+.plano-toggle-label {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  cursor: pointer;
+}
+
+.plano-toggle {
+  position: relative;
+  width: 40px;
+  height: 22px;
+  flex-shrink: 0;
+}
+
+.plano-toggle input {
+  opacity: 0;
+  width: 0;
+  height: 0;
+}
+
+.plano-toggle-slider {
+  position: absolute;
+  inset: 0;
+  border-radius: 999px;
+  background: var(--cor-pauta-forte);
+  transition: background 0.2s;
+  cursor: pointer;
+}
+
+.plano-toggle-slider::before {
+  content: "";
+  position: absolute;
+  top: 3px;
+  left: 3px;
+  width: 16px;
+  height: 16px;
+  border-radius: 50%;
+  background: var(--cor-superficie-alta);
+  transition: transform 0.2s;
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--cor-sombra) 72%, transparent);
+}
+
+.plano-toggle input:checked + .plano-toggle-slider {
+  background: var(--cor-marca);
+}
+
+.plano-toggle input:checked + .plano-toggle-slider::before {
+  transform: translateX(18px);
+}
+
+/* ==========================================
+   PLANEJAMENTO — SUB-ABAS
+   ========================================== */
+.plano-sub-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 1px solid var(--cor-pauta-forte);
+  margin-bottom: 0.75rem;
+}
+
+.plano-sub-tab {
+  padding: 0.5rem 1rem;
+  font-size: 0.8rem;
+  font-weight: 500;
+  color: var(--cor-texto-suave);
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+
+.plano-sub-tab:hover {
+  color: var(--cor-texto);
+}
+
+.plano-sub-tab.ativo {
+  color: var(--cor-marca);
+  border-bottom-color: var(--cor-marca);
+}
+
+/* Badge compartilhado */
+.plano-badge-compartilhado {
+  font-size: 0.68rem;
+  font-weight: 500;
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+  color: var(--cor-marca);
+  margin-left: 0.4rem;
+}
+
+.plano-card-autor {
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave);
+  margin-top: -0.25rem;
+}
+
+/* ==========================================
+   REDUÇÃO DE MOVIMENTO
+   Respeita a preferência do sistema operacional.
+   Usuários com tontura, enxaqueca ou vestibular
+   não precisam de animações para entender a interface.
+   ========================================== */
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+
+  .stat-card:hover {
+    transform: none;
+  }
+
+  .grupo-data-toggle {
+    transition: none;
+  }
+
+  .toast {
+    animation: none;
+    opacity: 1;
+  }
+}
+

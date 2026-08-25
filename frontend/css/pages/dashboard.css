@@ -1,0 +1,1141 @@
+/* ==========================================
+   GRID DO PAINEL: resumo no topo + lançamentos (esquerda) + controle (direita)
+   ========================================== */
+#conteudo-periodo {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 20px;
+}
+
+.area-resumo {
+  order: 1;
+}
+
+.area-controle {
+  order: 2;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.dashboard-layout-editando {
+  padding: 10px;
+  border: 1px dashed color-mix(in srgb, var(--cor-marca) 50%, transparent);
+  border-radius: var(--raio-card);
+  background: color-mix(in srgb, var(--cor-marca) 6%, transparent);
+}
+
+.dashboard-layout-banner {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 14px;
+  color: var(--cor-texto);
+  background: color-mix(in srgb, var(--cor-marca) 12%, var(--cor-fundo-card));
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 28%, transparent);
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--cor-texto) 5%, transparent);
+}
+
+.dashboard-layout-banner[hidden] {
+  display: none;
+}
+
+.dashboard-layout-banner-icone {
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 50%;
+  background: var(--cor-marca);
+  color: var(--cor-fundo);
+  font-family: var(--fonte-mono);
+  font-weight: 800;
+}
+
+.dashboard-layout-banner-texto {
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.dashboard-layout-banner-texto strong {
+  font-size: 0.78rem;
+  letter-spacing: 0.02em;
+}
+
+.dashboard-layout-banner-texto small {
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
+.dashboard-card-editavel {
+  position: relative;
+  cursor: grab;
+  margin-top: 18px;
+  outline: 1px dashed color-mix(in srgb, var(--cor-marca) 38%, transparent);
+  outline-offset: 4px;
+  box-shadow: 0 8px 22px color-mix(in srgb, var(--cor-marca) 8%, transparent);
+}
+
+.dashboard-card-editavel::before {
+  content: "⋮⋮";
+  position: absolute;
+  top: -18px;
+  right: 82px;
+  z-index: 2;
+  width: 28px;
+  height: 26px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-marca) 14%, var(--cor-fundo-card));
+  color: var(--cor-marca-forte);
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 26%, transparent);
+  font-family: var(--fonte-mono);
+  font-size: 0.9rem;
+  font-weight: 800;
+  letter-spacing: -0.08em;
+  pointer-events: none;
+}
+
+.dashboard-layout-card-acoes {
+  position: absolute;
+  top: -18px;
+  right: 10px;
+  z-index: 3;
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  padding: 2px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 86%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent);
+  box-shadow: 0 4px 12px color-mix(in srgb, var(--cor-texto) 7%, transparent);
+}
+
+.dashboard-layout-modo-ativo #btn-novo-gasto,
+.dashboard-layout-modo-ativo #btn-nova-despesa-fixa,
+.dashboard-layout-modo-ativo #btn-nova-compra-parcelada,
+.dashboard-layout-modo-ativo #btn-nova-bonificacao,
+.dashboard-layout-modo-ativo #btn-despesas-fixas,
+.dashboard-layout-modo-ativo #btn-compras-parceladas,
+.dashboard-layout-modo-ativo #btn-bonificacoes {
+  opacity: 0.42;
+  pointer-events: none;
+  filter: grayscale(0.35);
+}
+
+.dashboard-layout-card-acoes button {
+  width: 24px;
+  height: 22px;
+  padding: 0;
+  border-radius: 999px;
+  border: none;
+  color: var(--cor-marca-forte);
+  background: transparent;
+  font-family: var(--fonte-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dashboard-layout-card-acoes button:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--cor-marca) 12%, transparent);
+  transform: none;
+}
+
+.dashboard-layout-card-acoes button:disabled {
+  opacity: 0.32;
+  cursor: not-allowed;
+}
+
+.dashboard-card-editavel.arrastando {
+  cursor: grabbing;
+  opacity: 0.62;
+  transform: scale(0.985);
+  box-shadow: 0 14px 28px color-mix(in srgb, var(--cor-texto) 12%, transparent);
+}
+
+#btn-editar-layout-dashboard.ativo {
+  background: var(--cor-marca);
+  color: var(--cor-fundo) !important;
+  box-shadow: 0 6px 14px color-mix(in srgb, var(--cor-marca) 22%, transparent);
+}
+
+#btn-editar-layout-dashboard.ativo svg {
+  opacity: 1;
+}
+
+.dark-mode #btn-editar-layout-dashboard.ativo {
+  color: var(--cor-fundo) !important;
+}
+
+#btn-resetar-layout-dashboard:hover {
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+  color: var(--cor-marca-forte) !important;
+}
+
+.btn-cancelar-layout-dashboard {
+  width: 28px;
+  height: 28px;
+}
+
+#btn-cancelar-layout-dashboard:hover {
+  background: color-mix(in srgb, var(--cor-despesa) 10%, transparent);
+  color: var(--cor-despesa) !important;
+}
+
+.btn-resetar-layout-dashboard {
+  width: 28px;
+  height: 28px;
+}
+
+.area-lancamentos {
+  order: 3;
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.card-lancamentos-bloco {
+  display: flex;
+  flex-direction: column;
+}
+
+@media (min-width: 900px) {
+  #conteudo-periodo {
+    grid-template-columns: minmax(0, 1fr) minmax(380px, 0.34fr);
+    align-items: start;
+  }
+
+  .area-resumo {
+    grid-column: 1 / -1;
+    order: unset;
+  }
+
+  .area-lancamentos {
+    grid-column: 1;
+    order: unset;
+  }
+
+  .area-controle {
+    grid-column: 2;
+    order: unset;
+    position: sticky;
+    top: 20px;
+  }
+}
+
+.lancamentos-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.lancamentos-cabecalho h3 {
+  font-family: var(--fonte-corpo);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--cor-texto);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#btn-novo-gasto {
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
+  padding: 10px 20px;
+  border-radius: var(--raio-md);
+  font-size: 0.82rem;
+  box-shadow: var(--sombra-cartao);
+}
+
+#btn-novo-gasto:hover {
+  background: var(--cor-marca-forte);
+}
+
+#btn-novo-gasto:active {
+  transform: scale(0.98);
+}
+
+.botoes-cabecalho {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-secundario {
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  border: var(--borda) solid var(--cor-pauta-forte);
+  padding: 10px 16px;
+  border-radius: var(--raio-md);
+  font-size: 0.82rem;
+  box-shadow: var(--sombra-cartao);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-secundario:hover {
+  background: var(--cor-pauta);
+  border-color: var(--cor-marca);
+}
+
+.btn-secundario:active {
+  transform: scale(0.98);
+}
+
+/* ==========================================
+   GRADE DE INDICADORES (KPIs) — o painel de controle propriamente dito
+   ========================================== */
+.card {
+  background: var(--cor-superficie);
+  border: var(--borda) solid var(--cor-pauta-forte);
+  padding: 20px;
+  border-radius: var(--raio-lg);
+  box-shadow: var(--sombra-cartao);
+}
+
+.stat-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 14px;
+}
+
+.stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  padding: 18px 20px;
+  position: relative;
+  overflow: hidden;
+  min-width: 0;
+  transition: transform 0.15s ease, box-shadow 0.15s ease;
+}
+
+.stat-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--sombra-cartao), 0 4px 16px color-mix(in srgb, var(--cor-sombra) 46%, transparent);
+}
+
+.stat-card-atalho {
+  cursor: pointer;
+}
+
+.stat-card-atalho:focus-visible {
+  outline: 3px solid color-mix(in srgb, var(--cor-marca) 38%, transparent);
+  outline-offset: 3px;
+}
+
+.stat-card-atalho:hover .stat-desc {
+  color: var(--cor-texto);
+}
+
+.stat-card-topo {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.stat-card-icone {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 32px;
+  height: 32px;
+  border-radius: 8px;
+  flex-shrink: 0;
+}
+
+.stat-card-receita .stat-card-icone {
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
+  color: var(--cor-receita);
+}
+
+.stat-card-despesa .stat-card-icone {
+  background: color-mix(in srgb, var(--cor-despesa) 12%, transparent);
+  color: var(--cor-despesa);
+}
+
+.stat-card-saldo .stat-card-icone {
+  background: color-mix(in srgb, var(--cor-marca) 12%, transparent);
+  color: var(--cor-marca);
+}
+
+.stat-card-receita {
+  border-top: 3px solid var(--cor-receita);
+}
+
+.stat-card-despesa {
+  border-top: 3px solid var(--cor-despesa);
+}
+
+.stat-card-saldo {
+  border-color: color-mix(in srgb, var(--cor-marca) 35%, var(--cor-pauta-forte));
+  border-top: 3px solid var(--cor-marca);
+}
+
+.stat-card-guarda {
+  border-top: 3px solid var(--cor-marca);
+}
+
+.stat-card-guarda .stat-card-icone {
+  background: color-mix(in srgb, var(--cor-marca) 12%, transparent);
+  color: var(--cor-marca);
+}
+
+.stat-card-poupanca {
+  border-top: 3px solid var(--cor-receita);
+}
+
+.stat-card-poupanca .stat-card-icone {
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
+  color: var(--cor-receita);
+}
+
+.stat-card-pendente {
+  border-top: 3px solid var(--cor-pendente);
+}
+
+.stat-card-pendente .stat-card-icone {
+  background: color-mix(in srgb, var(--cor-pendente) 12%, transparent);
+  color: var(--cor-pendente);
+}
+
+.stat-rotulo {
+  font-size: 0.68rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--cor-texto-suave);
+  font-weight: 600;
+  flex: 1;
+}
+
+.stat-valor {
+  display: block;
+  max-width: 100%;
+  font-family: var(--fonte-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: clamp(1.02rem, 1.45vw, 1.3rem);
+  font-weight: 600;
+  letter-spacing: -0.3px;
+  line-height: 1.18;
+  color: var(--cor-texto);
+  white-space: nowrap;
+  overflow-wrap: normal;
+  word-break: normal;
+}
+
+#saldo-total {
+  font-size: clamp(1.02rem, 1.45vw, 1.3rem);
+  color: var(--cor-texto);
+  transition: color 0.3s ease;
+}
+
+.stat-valor.valor-monetario-longo,
+#saldo-total.valor-monetario-longo {
+  font-size: clamp(0.9rem, 1.15vw, 1.05rem);
+  letter-spacing: -0.65px;
+}
+
+.stat-valor.valor-monetario-muito-longo,
+#saldo-total.valor-monetario-muito-longo {
+  font-size: clamp(0.78rem, 1vw, 0.92rem);
+  letter-spacing: -0.85px;
+}
+
+/* Card Comparativo por Período */
+.card-comparativo-periodo {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding: 22px;
+  overflow: hidden;
+}
+
+.comparativo-periodo-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.comparativo-periodo-titulo {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--cor-texto);
+}
+
+.comparativo-periodo-titulo::before {
+  content: "";
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  background: var(--cor-marca);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--cor-marca) 12%, transparent);
+}
+
+.comparativo-periodo-seletor {
+  display: flex;
+  gap: 2px;
+  background: color-mix(in srgb, var(--cor-pauta-fraca) 70%, transparent);
+  border-radius: var(--raio-botoes);
+  padding: 3px;
+  border: 1px solid var(--cor-pauta-fraca);
+}
+
+.periodo-btn {
+  padding: 5px 14px;
+  border: none;
+  border-radius: calc(var(--raio-botoes) - 2px);
+  background: transparent;
+  color: var(--cor-texto-suave);
+  font-size: 0.75rem;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.periodo-btn:hover {
+  color: var(--cor-texto);
+}
+
+.periodo-btn.ativo {
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  box-shadow: 0 1px 3px color-mix(in srgb, var(--cor-sombra) 52%, transparent);
+  font-weight: 600;
+}
+
+.comparativo-periodo-conteudo {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto minmax(0, 1fr) minmax(108px, 0.42fr);
+  align-items: stretch;
+  gap: 12px;
+}
+
+.periodo-coluna {
+  min-width: 130px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  background: color-mix(in srgb, var(--cor-superficie) 74%, transparent);
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 18px;
+  padding: 16px;
+  min-width: 0;
+}
+
+.periodo-rotulo {
+  font-size: 0.78rem;
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.periodo-metricas {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.periodo-metrica {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 12px;
+}
+
+.periodo-metrica-rotulo {
+  font-size: 0.75rem;
+  color: var(--cor-texto-suave);
+}
+
+.periodo-metrica-valor {
+  font-family: var(--fonte-mono);
+  font-size: 0.85rem;
+  font-weight: 600;
+  min-width: 0;
+  max-width: 100%;
+  overflow-wrap: anywhere;
+  text-align: right;
+  letter-spacing: -0.02em;
+}
+
+.periodo-metrica-destaque {
+  margin-top: 6px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cor-pauta-fraca);
+}
+
+.periodo-metrica-destaque .periodo-metrica-valor {
+  font-size: clamp(0.95rem, 1.25vw, 1.12rem);
+  font-weight: 700;
+  color: var(--cor-texto);
+}
+
+.periodo-seta {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: center;
+  color: var(--cor-texto-suave);
+  flex-shrink: 0;
+  opacity: 0.72;
+}
+
+.periodo-seta-linha {
+  display: none;
+}
+
+.periodo-seta svg {
+  width: 26px;
+  height: 26px;
+  padding: 8px;
+  border-radius: 999px;
+  background: var(--cor-pauta-forte);
+  color: var(--cor-texto-suave);
+}
+
+.periodo-variacao {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  min-width: 90px;
+  padding: 16px 12px;
+  background: linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 9%, transparent), color-mix(in srgb, var(--cor-pauta-fraca) 45%, transparent));
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 18px;
+  text-align: center;
+}
+
+.periodo-variacao-label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 0.8px;
+  color: var(--cor-texto-suave);
+  font-weight: 600;
+}
+
+.periodo-variacao-valor {
+  font-family: var(--fonte-mono);
+  font-size: clamp(1rem, 1.35vw, 1.25rem);
+  font-weight: 700;
+  line-height: 1.1;
+}
+
+.periodo-variacao-detalhe {
+  max-width: 120px;
+  color: var(--cor-texto-suave);
+  font-size: 0.68rem;
+  line-height: 1.3;
+}
+
+.periodo-variacao-valor.positivo {
+  color: var(--cor-receita);
+}
+
+.periodo-variacao-valor.negativo {
+  color: var(--cor-despesa);
+}
+
+.periodo-variacao-valor.neutro {
+  color: var(--cor-texto-suave);
+}
+
+@media (max-width: 980px) {
+  .comparativo-periodo-conteudo {
+    grid-template-columns: 1fr;
+  }
+
+  .periodo-seta {
+    transform: rotate(90deg);
+    min-height: 22px;
+  }
+
+  .periodo-variacao {
+    align-items: flex-start;
+    text-align: left;
+  }
+
+  .periodo-variacao-detalhe {
+    max-width: none;
+  }
+}
+
+/* Raio-x por categoria (e demais cards analíticos da coluna direita) */
+.resumo-categorias {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+/* Rótulo de seção — mesmo sistema visual dos rótulos de indicador acima,
+   não mais um título em itálico manuscrito */
+.resumo-categorias-titulo {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+  color: var(--cor-texto-suave);
+}
+
+.despesas-fixas-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 4px;
+}
+
+.btn-link-adicionar {
+  background: transparent;
+  color: var(--cor-marca-forte);
+  border: none;
+  padding: 4px 8px;
+  font-size: 0.76rem;
+  font-weight: 600;
+}
+
+.btn-link-adicionar:hover {
+  color: var(--cor-marca);
+  transform: none;
+  text-decoration: underline;
+}
+
+#lista-despesas-fixas-painel,
+#lista-compras-parceladas-painel {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
+.categoria-barra-linha {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 7px 0;
+  border-top: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 75%, transparent);
+}
+
+.categoria-barra-topo {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 10px;
+  font-size: 0.76rem;
+  color: var(--cor-texto-suave);
+}
+
+.categoria-barra-identidade {
+  display: inline-flex;
+  align-items: center;
+  min-width: 0;
+  gap: 7px;
+}
+
+.categoria-barra-cor {
+  width: 8px;
+  height: 8px;
+  border-radius: 999px;
+  flex-shrink: 0;
+}
+
+.categoria-barra-topo strong {
+  color: var(--cor-texto);
+  font-weight: 600;
+}
+
+.categoria-barra-valor {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  font-family: var(--fonte-mono);
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+  white-space: nowrap;
+}
+
+.categoria-barra-valor strong {
+  font-size: 0.78rem;
+  color: var(--cor-texto);
+}
+
+.categoria-barra-valor small {
+  font-size: 0.68rem;
+  color: var(--cor-texto-suave);
+}
+
+.badge-semana {
+  font-family: var(--fonte-mono);
+  font-size: 0.7rem;
+  font-weight: 500;
+  color: var(--cor-receita);
+  background: color-mix(in srgb, var(--cor-receita) 12%, transparent);
+  padding: 0.1rem 0.4rem;
+  border-radius: 999px;
+  margin-left: 0.5rem;
+  white-space: nowrap;
+}
+
+.categoria-barra-trilho {
+  height: 6px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-pauta-forte) 74%, transparent);
+  overflow: hidden;
+}
+
+.categoria-barra-preenchimento {
+  height: 100%;
+  border-radius: 999px;
+  background: var(--categoria-cor, var(--cor-marca));
+  width: 0%;
+  transition: width 0.7s cubic-bezier(0.22, 1, 0.36, 1);
+}
+
+.categoria-barra-preenchimento.barra-ok {
+  background: var(--cor-receita);
+}
+
+.categoria-barra-preenchimento.barra-atencao {
+  background: var(--cor-pendente);
+}
+
+.categoria-barra-preenchimento.barra-estourou {
+  background: var(--cor-despesa);
+}
+
+.categoria-barra-nome {
+  cursor: pointer;
+  border-bottom: 1px dotted var(--cor-pauta-forte);
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.categoria-barra-nome svg {
+  color: var(--cor-marca);
+  flex-shrink: 0;
+}
+
+.categoria-barra-nome:hover {
+  color: var(--cor-marca-forte);
+  border-bottom-color: var(--cor-marca);
+}
+
+.btn-remover-meta {
+  background: transparent;
+  color: var(--cor-despesa);
+  border: var(--borda) solid color-mix(in srgb, var(--cor-despesa) 40%, transparent);
+}
+
+.btn-remover-meta:hover {
+  background: color-mix(in srgb, var(--cor-despesa) 10%, transparent);
+}
+
+/* Comparação com o mês anterior */
+.comparacao-mes {
+  font-size: 0.66rem;
+  font-weight: 600;
+  padding: 1px 7px;
+  border-radius: 999px;
+  align-self: flex-start;
+  align-items: center;
+  gap: 2px;
+}
+
+.comparacao-pior {
+  background: color-mix(in srgb, var(--cor-despesa) 16%, transparent);
+  color: var(--cor-despesa);
+}
+
+.comparacao-melhor {
+  background: color-mix(in srgb, var(--cor-receita) 16%, transparent);
+  color: var(--cor-receita);
+}
+
+/* Gráfico de tendência (evolução mensal com linhas) — estilos SVG no final do arquivo */
+
+.stat-desc {
+  font-size: 0.68rem;
+  color: var(--cor-texto-suave);
+  margin-top: 2px;
+}
+
+.grafico-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  padding: 9px 10px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 65%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 78%, var(--cor-fundo));
+  overflow: hidden;
+}
+
+.grafico-resumo-topo {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 8px;
+  min-width: 0;
+  flex-wrap: wrap;
+}
+
+.grafico-resumo-label {
+  flex: 0 0 auto;
+  color: var(--cor-texto-suave);
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.grafico-resumo-valor {
+  flex: 1 1 120px;
+  min-width: 0;
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: clamp(0.68rem, 2.4vw, 0.82rem);
+  text-align: right;
+  overflow-wrap: anywhere;
+  word-break: break-word;
+  line-height: 1.25;
+}
+
+.grafico-resumo-detalhe {
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+.grafico-resumo-positivo .grafico-resumo-valor {
+  color: var(--cor-receita);
+}
+
+.grafico-resumo-negativo .grafico-resumo-valor {
+  color: var(--cor-despesa);
+}
+
+/* Gráfico comparativo receitas vs despesas (6 meses) */
+.comparativo-grafico {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+  padding-top: 8px;
+}
+
+.comparativo-resumo {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 10px;
+  border-radius: 14px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 62%, transparent);
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-fundo-card) 90%, transparent), color-mix(in srgb, var(--cor-fundo) 78%, transparent));
+  overflow: hidden;
+}
+
+.comparativo-resumo-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.comparativo-resumo-item {
+  min-width: 0;
+  padding: 8px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 76%, var(--cor-fundo));
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 78%, transparent);
+}
+
+.comparativo-resumo-label {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--cor-texto-suave);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.comparativo-resumo-valor {
+  display: block;
+  min-width: 0;
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: clamp(0.7rem, 2vw, 0.86rem);
+  line-height: 1.25;
+  overflow-wrap: anywhere;
+}
+
+.comparativo-resumo-item:first-child .comparativo-resumo-valor {
+  color: var(--cor-receita);
+}
+
+.comparativo-resumo-item:last-child .comparativo-resumo-valor {
+  color: var(--cor-despesa);
+}
+
+.comparativo-resumo-detalhe {
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
+@media (max-width: 480px) {
+  .comparativo-resumo-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+.comparativo-barras-container {
+  display: flex;
+  align-items: flex-end;
+  gap: 10px;
+  padding: 4px 4px 0;
+}
+
+.comparativo-coluna {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+}
+
+.comparativo-barras {
+  width: 100%;
+  height: 104px;
+  display: flex;
+  align-items: flex-end;
+  gap: 4px;
+  border-radius: 6px 6px 0 0;
+  overflow: visible;
+  border-bottom: 1px solid color-mix(in srgb, var(--cor-texto) 18%, transparent);
+  background:
+    linear-gradient(to top, transparent calc(50% - 0.5px), color-mix(in srgb, var(--cor-texto) 8%, transparent) 50%, transparent calc(50% + 0.5px));
+}
+
+.comparativo-barra {
+  flex: 1;
+  height: 0%;
+  border-radius: 6px 6px 0 0;
+  transition: height 0.6s cubic-bezier(0.22, 1, 0.36, 1);
+  position: relative;
+  min-width: 7px;
+  outline: 1px solid color-mix(in srgb, var(--cor-fundo-card) 42%, transparent);
+}
+
+.comparativo-barra-receita {
+  background: linear-gradient(to top, color-mix(in srgb, var(--cor-receita) 78%, var(--cor-texto)), color-mix(in srgb, var(--cor-receita) 88%, var(--cor-superficie-alta)));
+}
+
+.comparativo-barra-despesa {
+  background: linear-gradient(to top, color-mix(in srgb, var(--cor-despesa) 78%, var(--cor-texto)), color-mix(in srgb, var(--cor-despesa) 88%, var(--cor-superficie-alta)));
+}
+
+.comparativo-barra-receita.comparativo-barra-atual {
+  background: linear-gradient(to top, var(--cor-receita), color-mix(in srgb, var(--cor-receita) 90%, var(--cor-superficie-alta)));
+  box-shadow: 0 -2px 8px color-mix(in srgb, var(--cor-receita) 30%, transparent);
+}
+
+.comparativo-barra-despesa.comparativo-barra-atual {
+  background: linear-gradient(to top, var(--cor-despesa), color-mix(in srgb, var(--cor-despesa) 90%, var(--cor-superficie-alta)));
+  box-shadow: 0 -2px 8px color-mix(in srgb, var(--cor-despesa) 30%, transparent);
+}
+
+.comparativo-rotulo {
+  font-size: 0.66rem;
+  color: var(--cor-texto);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  font-family: var(--fonte-mono);
+  font-weight: 700;
+}
+
+.comparativo-valor-mes {
+  min-height: 13px;
+  font-size: 0.56rem;
+  color: var(--cor-texto-suave);
+  font-family: var(--fonte-mono);
+  white-space: nowrap;
+}
+
+.comparativo-legenda {
+  display: flex;
+  gap: 16px;
+  justify-content: center;
+  margin-top: 2px;
+  padding-top: 10px;
+  border-top: 1px solid var(--cor-pauta-fraca);
+}
+
+.comparativo-legenda-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.7rem;
+  color: var(--cor-texto);
+  font-weight: 700;
+}
+
+.comparativo-legenda-dot {
+  width: 8px;
+  height: 8px;
+  border-radius: 50%;
+}
+
+.busca-lancamentos {
+  margin-bottom: 14px;
+}
+
+.busca-lancamentos input {
+  width: 100%;
+}
+
+.busca-lancamentos input::-webkit-search-cancel-button {
+  cursor: pointer;
+}
+
+.filtros-lancamentos {
+  display: flex;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.filtros-lancamentos select {
+  flex: 1;
+  padding: 6px 10px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: var(--raio-botoes);
+  background: var(--cor-fundo);
+  color: var(--cor-texto);
+  font-size: 0.8rem;
+  cursor: pointer;
+  min-width: 0;
+}
+
+.filtros-lancamentos select:focus {
+  outline: 2px solid var(--cor-pauta-forte);
+  outline-offset: 1px;
+}
+
