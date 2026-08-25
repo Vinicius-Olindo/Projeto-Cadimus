@@ -178,6 +178,12 @@ export default {
       if (url.pathname.startsWith("/api/admin/zerar-dados")) {
         return comCors(await processarLimpezaDados(request, env, ctx), frontendUrl, request);
       }
+
+      return comCors(
+        new Response(JSON.stringify({ erro: "Rota não encontrada." }), { status: 404 }),
+        frontendUrl,
+        request
+      );
     } catch (erro) {
       console.error("Erro não tratado:", erro);
       return new Response(JSON.stringify({ erro: "Erro interno no servidor." }), {
