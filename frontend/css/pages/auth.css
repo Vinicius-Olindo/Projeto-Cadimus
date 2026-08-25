@@ -145,10 +145,36 @@
   padding: 12px;
   border-radius: var(--raio-md);
   margin-top: 6px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 9px;
 }
 
 .login-box button[type="submit"]:hover {
   background: var(--cor-marca-forte);
+}
+
+.login-box button[type="submit"]:disabled {
+  cursor: wait;
+  opacity: 0.82;
+  transform: none;
+}
+
+.login-spinner {
+  width: 15px;
+  height: 15px;
+  border-radius: 999px;
+  border: 2px solid color-mix(in srgb, currentColor 28%, transparent);
+  border-top-color: currentColor;
+  animation: girar 0.75s linear infinite;
+}
+
+.login-form-carregando input,
+.login-form-carregando .btn-toggle-senha,
+.login-form-carregando .login-social-btn,
+.login-form-carregando .login-link {
+  pointer-events: none;
 }
 
 .login-social {

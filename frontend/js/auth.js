@@ -298,6 +298,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const fluxoLoginLabel = document.getElementById("login-fluxo-label");
   const fluxoLoginValor = document.getElementById("login-fluxo-valor");
   const barrasFluxoLogin = document.querySelectorAll(".login-painel-grafico span");
+  let loginEmAndamento = false;
   const cenariosFluxoLogin = [
     { label: "Fluxo do mês", valor: "R$ 8.420", alturas: ["34%", "58%", "46%", "72%", "62%", "86%"] },
     { label: "Receitas previstas", valor: "R$ 12.350", alturas: ["42%", "64%", "52%", "78%", "74%", "92%"] },
@@ -327,9 +328,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   function definirCarregamentoLogin(carregando) {
+    loginEmAndamento = carregando;
+    fLogin?.classList.toggle("login-form-carregando", carregando);
+    fLogin?.setAttribute("aria-busy", String(carregando));
+
     if (!botaoSubmitLogin) return;
     botaoSubmitLogin.disabled = carregando;
-    botaoSubmitLogin.textContent = carregando ? "Entrando..." : "Entrar";
+    botaoSubmitLogin.setAttribute("aria-disabled", String(carregando));
+    botaoSubmitLogin.innerHTML = carregando
+      ? '<span class="login-spinner" aria-hidden="true"></span><span>Entrando...</span>'
+      : "Entrar";
   }
 
   function mensagemErroLogin(resposta, dados) {
@@ -495,6 +503,7 @@ document.addEventListener("DOMContentLoaded", () => {
   if (fLogin) {
     fLogin.addEventListener("submit", async (e) => {
       e.preventDefault();
+      if (loginEmAndamento) return;
       definirFeedbackLogin();
       const usuario = campoUsuarioLogin?.value.trim() || "";
       const senha = campoSenhaLogin?.value || "";
