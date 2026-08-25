@@ -288,6 +288,135 @@ function alternarTelas(estaLogado) {
 
 document.addEventListener("DOMContentLoaded", () => {
   const fLogin = document.getElementById("login-form");
+  const loginBox = document.getElementById("login-box");
+  const campoUsuarioLogin = document.getElementById("usuario");
+  const campoSenhaLogin = document.getElementById("senha");
+  const btnTemaLogin = document.getElementById("login-theme-toggle");
+  const fluxoLoginLabel = document.getElementById("login-fluxo-label");
+  const fluxoLoginValor = document.getElementById("login-fluxo-valor");
+  const barrasFluxoLogin = document.querySelectorAll(".login-painel-grafico span");
+  const cenariosFluxoLogin = [
+    { label: "Fluxo do mês", valor: "R$ 8.420", alturas: ["34%", "58%", "46%", "72%", "62%", "86%"] },
+    { label: "Receitas previstas", valor: "R$ 12.350", alturas: ["42%", "64%", "52%", "78%", "74%", "92%"] },
+    { label: "Despesas no radar", valor: "R$ 3.180", alturas: ["28%", "44%", "66%", "38%", "58%", "48%"] },
+    { label: "Saldo projetado", valor: "R$ 5.240", alturas: ["36%", "54%", "68%", "60%", "76%", "82%"] },
+  ];
+  let indiceFluxoLogin = 0;
+  let timerFluxoLogin = null;
+  const ICONE_TEMA_LUA = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12.79A9 9 0 1 1 11.21 3 7 7 0 0 0 21 12.79Z"/></svg>';
+  const ICONE_TEMA_SOL = '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
+
+  function definirEstadoLogin(estado, classePulso = "") {
+    if (!loginBox) return;
+    loginBox.dataset.estado = estado;
+    if (!classePulso) return;
+    loginBox.classList.remove(classePulso);
+    void loginBox.offsetWidth;
+    loginBox.classList.add(classePulso);
+  }
+
+  function atualizarEstadoCamposLogin() {
+    if (!loginBox || document.activeElement === campoSenhaLogin) return;
+    if (document.activeElement === campoUsuarioLogin) {
+      definirEstadoLogin("usuario");
+      return;
+    }
+    definirEstadoLogin("idle");
+  }
+
+  function aplicarCenarioFluxoLogin(indice) {
+    if (!fluxoLoginLabel || !fluxoLoginValor || !barrasFluxoLogin.length) return;
+    const cenario = cenariosFluxoLogin[indice % cenariosFluxoLogin.length];
+    fluxoLoginValor.classList.add("atualizando");
+    setTimeout(() => {
+      fluxoLoginLabel.textContent = cenario.label;
+      fluxoLoginValor.textContent = cenario.valor;
+      barrasFluxoLogin.forEach((barra, i) => {
+        barra.style.setProperty("--altura", cenario.alturas[i] || cenario.alturas.at(-1));
+      });
+      fluxoLoginValor.classList.remove("atualizando");
+    }, 220);
+  }
+
+  function iniciarFluxoLoginAnimado() {
+    if (!fluxoLoginValor || timerFluxoLogin) return;
+    timerFluxoLogin = setInterval(() => {
+      indiceFluxoLogin = (indiceFluxoLogin + 1) % cenariosFluxoLogin.length;
+      aplicarCenarioFluxoLogin(indiceFluxoLogin);
+    }, 3200);
+  }
+
+  function pararFluxoLoginAnimado() {
+    clearInterval(timerFluxoLogin);
+    timerFluxoLogin = null;
+  }
+
+  function atualizarSeletorTemaLogin() {
+    if (!btnTemaLogin) return;
+    const estaEscuro = document.body.classList.contains("dark-mode");
+    btnTemaLogin.classList.toggle("tema-switch-escuro", estaEscuro);
+    btnTemaLogin.setAttribute("aria-pressed", String(estaEscuro));
+    btnTemaLogin.title = estaEscuro ? "Tema escuro ativo. Clique para usar tema claro." : "Tema claro ativo. Clique para usar tema escuro.";
+    btnTemaLogin.innerHTML = `
+      <span class="tema-switch-trilho" aria-hidden="true">
+        <span class="tema-switch-opcao tema-switch-sol">${ICONE_TEMA_SOL}</span>
+        <span class="tema-switch-opcao tema-switch-lua">${ICONE_TEMA_LUA}</span>
+        <span class="tema-switch-thumb"></span>
+      </span>
+    `;
+  }
+
+  function lerTemaLoginSalvo() {
+    try {
+      return window.localStorage?.getItem("cadimus_tema");
+    } catch {
+      return lerLocalStorageSeguro("cadimus_tema");
+    }
+  }
+
+  function gravarTemaLogin(tema) {
+    gravarLocalStorageSeguro("cadimus_tema", tema);
+    try {
+      window.localStorage?.setItem("cadimus_tema", tema);
+    } catch {
+      // O helper seguro acima já mantém o app funcionando quando storage não está disponível.
+    }
+  }
+
+  if (lerTemaLoginSalvo() === "dark") {
+    document.body.classList.add("dark-mode");
+  }
+  atualizarSeletorTemaLogin();
+  btnTemaLogin?.addEventListener("click", () => {
+    document.body.classList.toggle("dark-mode");
+    gravarTemaLogin(document.body.classList.contains("dark-mode") ? "dark" : "light");
+    atualizarSeletorTemaLogin();
+    if (typeof atualizarSeletorTemaTopo === "function") atualizarSeletorTemaTopo();
+    if (typeof sincronizarToggleTema === "function") sincronizarToggleTema();
+  });
+
+  iniciarFluxoLoginAnimado();
+
+  campoUsuarioLogin?.addEventListener("focus", () => definirEstadoLogin("usuario"));
+  campoUsuarioLogin?.addEventListener("input", () => definirEstadoLogin("usuario"));
+  campoUsuarioLogin?.addEventListener("blur", atualizarEstadoCamposLogin);
+  campoSenhaLogin?.addEventListener("focus", () => definirEstadoLogin(campoSenhaLogin.type === "text" ? "visivel" : "senha"));
+  campoSenhaLogin?.addEventListener("input", () => definirEstadoLogin(campoSenhaLogin.type === "text" ? "visivel" : "senha"));
+  campoSenhaLogin?.addEventListener("blur", atualizarEstadoCamposLogin);
+
+  document.querySelectorAll("[data-login-social]").forEach((botao) => {
+    botao.addEventListener("click", async () => {
+      definirEstadoLogin("usuario");
+      const provedor = botao.dataset.loginSocial === "apple" ? "Apple" : "Gmail";
+      const mensagem = `Login com ${provedor} ainda não está disponível.`;
+      if (typeof mostrarAviso === "function") {
+        await mostrarAviso(mensagem);
+      } else {
+        alert(mensagem);
+      }
+    });
+  });
+
   if (fLogin) {
     fLogin.addEventListener("submit", async (e) => {
       e.preventDefault();
@@ -296,14 +425,18 @@ document.addEventListener("DOMContentLoaded", () => {
       const res = await CadimusAuthApi.login({ usuario, senha });
       const d = await res.json();
       if (res.ok) {
+        definirEstadoLogin("sucesso", "login-sucesso");
+        pararFluxoLoginAnimado();
         salvarSessao(d.token, d.usuario);
         alternarTelas(true);
       } else {
+        definirEstadoLogin("erro", "login-erro");
         if (typeof mostrarAviso === "function") {
           await mostrarAviso(d.erro);
         } else {
           alert(d.erro); // segurança: se por algum motivo main.js não carregou ainda
         }
+        setTimeout(atualizarEstadoCamposLogin, 900);
       }
     });
   }
@@ -446,6 +579,9 @@ document.addEventListener("DOMContentLoaded", () => {
       const mostrando = alvo.type === "text";
       alvo.type = mostrando ? "password" : "text";
       atualizarBotaoSenha(botao, !mostrando);
+      if (alvo.id === "senha") {
+        definirEstadoLogin(alvo.type === "text" ? "visivel" : "senha");
+      }
     });
   });
 
