@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=100" />
-    <link rel="stylesheet" href="css/style.css?v=123" />
+    <link rel="stylesheet" href="css/style.css?v=124" />
   </head>
   <body>
     <main class="app-container">
@@ -66,6 +66,7 @@
                 <input type="password" id="senha" placeholder="Senha" autocomplete="current-password" required />
                 <button type="button" class="btn-toggle-senha" data-alvo="senha" aria-label="Mostrar senha"></button>
               </div>
+              <div class="login-feedback" id="login-feedback" role="alert" aria-live="polite" hidden></div>
               <button type="submit">Entrar</button>
               <div class="login-social" aria-label="Outras formas de login">
                 <span>ou entre com</span>
@@ -2468,7 +2469,7 @@
     <script src="js/budgets-api.js?v=100"></script>
     <script src="js/goals-api.js?v=100"></script>
     <script src="js/scheduled-api.js?v=100"></script>
-    <script src="js/auth.js?v=112"></script>
+    <script src="js/auth.js?v=113"></script>
     <script src="js/ui-formatters.js?v=100"></script>
     <script src="js/money-utils.js?v=100"></script>
     <script src="js/money-ui.js?v=100"></script>

@@ -210,6 +210,40 @@
   flex: 0 0 auto;
 }
 
+.login-feedback {
+  display: flex;
+  align-items: flex-start;
+  gap: 8px;
+  margin: 2px 0 12px;
+  padding: 10px 12px;
+  border-radius: var(--raio-md);
+  border: 1px solid color-mix(in srgb, var(--cor-despesa) 28%, transparent);
+  background: color-mix(in srgb, var(--cor-despesa) 8%, var(--cor-superficie));
+  color: var(--cor-despesa);
+  font-size: 0.78rem;
+  font-weight: 600;
+  line-height: 1.35;
+  text-align: left;
+}
+
+.login-feedback::before {
+  content: "!";
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 17px;
+  height: 17px;
+  flex: 0 0 17px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-despesa) 16%, transparent);
+  font-size: 0.68rem;
+  font-weight: 800;
+}
+
+.login-feedback[hidden] {
+  display: none;
+}
+
 .login-links {
   margin-top: 18px;
   font-size: 0.8rem;

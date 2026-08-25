@@ -292,6 +292,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const loginBox = document.getElementById("login-box");
   const campoUsuarioLogin = document.getElementById("usuario");
   const campoSenhaLogin = document.getElementById("senha");
+  const feedbackLogin = document.getElementById("login-feedback");
+  const botaoSubmitLogin = fLogin?.querySelector('button[type="submit"]');
   const btnTemaLogin = document.getElementById("login-theme-toggle");
   const fluxoLoginLabel = document.getElementById("login-fluxo-label");
   const fluxoLoginValor = document.getElementById("login-fluxo-valor");
@@ -315,6 +317,33 @@ document.addEventListener("DOMContentLoaded", () => {
     loginBox.classList.remove(classePulso);
     void loginBox.offsetWidth;
     loginBox.classList.add(classePulso);
+  }
+
+  function definirFeedbackLogin(mensagem = "") {
+    if (!feedbackLogin) return;
+    const texto = String(mensagem || "").trim();
+    feedbackLogin.textContent = texto;
+    feedbackLogin.hidden = !texto;
+  }
+
+  function definirCarregamentoLogin(carregando) {
+    if (!botaoSubmitLogin) return;
+    botaoSubmitLogin.disabled = carregando;
+    botaoSubmitLogin.textContent = carregando ? "Entrando..." : "Entrar";
+  }
+
+  function mensagemErroLogin(resposta, dados) {
+    if (!resposta) {
+      return "Não foi possível conectar ao Cadimus. Confira sua internet e tente novamente.";
+    }
+
+    if (resposta.status === 400) return dados?.erro || "Informe usuário e senha para continuar.";
+    if (resposta.status === 401) return "Usuário ou senha incorretos. Confira os dados e tente novamente.";
+    if (resposta.status === 403) return dados?.erro || "Esta conta não está ativa. Fale com um administrador.";
+    if (resposta.status === 429) return dados?.erro || "Muitas tentativas de login. Aguarde alguns minutos e tente novamente.";
+    if (resposta.status >= 500) return "O servidor do Cadimus não respondeu como esperado. Tente novamente em instantes.";
+
+    return dados?.erro || "Não foi possível entrar agora. Tente novamente.";
   }
 
   function atualizarEstadoCamposLogin() {
@@ -438,10 +467,16 @@ document.addEventListener("DOMContentLoaded", () => {
   loginBox?.addEventListener("pointerleave", resetarParallaxLogin);
 
   campoUsuarioLogin?.addEventListener("focus", () => definirEstadoLogin("usuario"));
-  campoUsuarioLogin?.addEventListener("input", () => definirEstadoLogin("usuario"));
+  campoUsuarioLogin?.addEventListener("input", () => {
+    definirEstadoLogin("usuario");
+    definirFeedbackLogin();
+  });
   campoUsuarioLogin?.addEventListener("blur", atualizarEstadoCamposLogin);
   campoSenhaLogin?.addEventListener("focus", () => definirEstadoLogin(campoSenhaLogin.type === "text" ? "visivel" : "senha"));
-  campoSenhaLogin?.addEventListener("input", () => definirEstadoLogin(campoSenhaLogin.type === "text" ? "visivel" : "senha"));
+  campoSenhaLogin?.addEventListener("input", () => {
+    definirEstadoLogin(campoSenhaLogin.type === "text" ? "visivel" : "senha");
+    definirFeedbackLogin();
+  });
   campoSenhaLogin?.addEventListener("blur", atualizarEstadoCamposLogin);
 
   document.querySelectorAll("[data-login-social]").forEach((botao) => {
@@ -460,23 +495,42 @@ document.addEventListener("DOMContentLoaded", () => {
   if (fLogin) {
     fLogin.addEventListener("submit", async (e) => {
       e.preventDefault();
-      const usuario = document.getElementById("usuario").value;
-      const senha = document.getElementById("senha").value;
-      const res = await CadimusAuthApi.login({ usuario, senha });
-      const d = await res.json();
-      if (res.ok) {
-        definirEstadoLogin("sucesso", "login-sucesso");
-        pararFluxoLoginAnimado();
-        salvarSessao(d.token, d.usuario);
-        alternarTelas(true);
-      } else {
+      definirFeedbackLogin();
+      const usuario = campoUsuarioLogin?.value.trim() || "";
+      const senha = campoSenhaLogin?.value || "";
+
+      if (!usuario || !senha) {
         definirEstadoLogin("erro", "login-erro");
-        if (typeof mostrarAviso === "function") {
-          await mostrarAviso(d.erro);
-        } else {
-          alert(d.erro); // segurança: se por algum motivo main.js não carregou ainda
-        }
+        definirFeedbackLogin(!usuario && !senha ? "Informe usuário e senha para entrar." : !usuario ? "Informe seu usuário para entrar." : "Informe sua senha para entrar.");
+        (!usuario ? campoUsuarioLogin : campoSenhaLogin)?.focus();
         setTimeout(atualizarEstadoCamposLogin, 900);
+        return;
+      }
+
+      definirEstadoLogin("senha");
+      definirCarregamentoLogin(true);
+
+      try {
+        const res = await CadimusAuthApi.login({ usuario, senha });
+        const d = await res.json().catch(() => null);
+        if (res.ok) {
+          definirEstadoLogin("sucesso", "login-sucesso");
+          pararFluxoLoginAnimado();
+          salvarSessao(d.token, d.usuario);
+          alternarTelas(true);
+        } else {
+          definirEstadoLogin("erro", "login-erro");
+          definirFeedbackLogin(mensagemErroLogin(res, d));
+          campoSenhaLogin?.focus();
+          setTimeout(atualizarEstadoCamposLogin, 900);
+        }
+      } catch (erro) {
+        console.error("Erro ao fazer login:", erro);
+        definirEstadoLogin("erro", "login-erro");
+        definirFeedbackLogin(mensagemErroLogin(null));
+        setTimeout(atualizarEstadoCamposLogin, 900);
+      } finally {
+        definirCarregamentoLogin(false);
       }
     });
   }
