@@ -193,7 +193,7 @@ async function alternarBonificacao(id) {
       mostrarToast(alvo.ativo ? "Bonificação pausada" : "Bonificação ativada", "info");
     } else {
       const erro = await resposta.json();
-      await mostrarAviso(`Erro: ${erro.erro}`);
+      await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível alterar esta bonificação agora."));
     }
   } catch {
     await mostrarAviso("Erro de conexão.");
@@ -224,7 +224,7 @@ async function excluirBonificacao(id) {
       mostrarToast("Bonificação excluída", "info");
     } else {
       const erro = await resposta.json();
-      await mostrarAviso(`Erro: ${erro.erro}`);
+      await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível excluir esta bonificação agora."));
     }
   } catch {
     await mostrarAviso("Erro de conexão.");

@@ -285,7 +285,7 @@ function configurarModal() {
 
         if (!respostaCategoria.ok) {
           const erro = await respostaCategoria.json();
-          await mostrarAviso(`Erro ao cadastrar categoria: ${erro.erro}`);
+          await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível cadastrar esta categoria agora."));
           btnSalvar.innerText = idEdicao ? "Salvar edição" : "Salvar";
           btnSalvar.disabled = false;
           return;
@@ -340,7 +340,7 @@ function configurarModal() {
         mostrarToast(idEdicao ? "Lançamento atualizado" : "Lançamento salvo");
       } else {
         const erro = await resposta.json();
-        await mostrarAviso(`Erro ao salvar: ${erro.erro}`);
+        await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível salvar este lançamento agora."));
       }
     } catch (erro) {
       console.error(erro);

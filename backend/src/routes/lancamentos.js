@@ -231,6 +231,24 @@ export async function processarLancamentos(request, env, ctx) {
       if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
+
+      const descricao = String(dados.descricao || "").trim();
+      const dataCompra = String(dados.data_compra || "").trim();
+      const categoria = String(dados.categoria || "").trim();
+
+      if (!descricao) {
+        return erroCliente("Informe uma descrição para o lançamento.", 400, "descricao_obrigatoria");
+      }
+      if (dados.valor === undefined && dados.valor_centavos === undefined) {
+        return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
+      }
+      if (!dataCompra || Number.isNaN(Date.parse(`${dataCompra}T12:00:00`))) {
+        return erroCliente("Informe uma data válida para o lançamento.", 400, "data_compra_invalida");
+      }
+      if (!categoria) {
+        return erroCliente("Escolha uma categoria.", 400, "categoria_obrigatoria");
+      }
+
       const tipoNormalizado = normalizarTipoLancamento(dados.tipo);
       const statusNormalizado = normalizarStatusLancamento(dados.status);
       const meioPagamentoNormalizado = normalizarMeioPagamento(dados.meio_pagamento);
@@ -248,16 +266,24 @@ export async function processarLancamentos(request, env, ctx) {
       // Não usamos FK no banco porque a categoria é texto livre nos lançamentos
       // históricos (permite renomear retroativamente via categorias.ts), mas
       // garantimos aqui que só entram valores reconhecidos pelo sistema.
-      if (dados.categoria) {
+      if (categoria) {
         const { results: catValida } = await env.DB.prepare(
           `SELECT id FROM categorias WHERE LOWER(nome) = LOWER(?)`
-        ).bind(dados.categoria).all();
+        ).bind(categoria).all();
         if (catValida.length === 0) {
           return erroCliente("Categoria inválida. Escolha uma categoria existente ou cadastre uma nova antes de salvar.", 400, "categoria_invalida");
         }
       }
 
-      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      let valorCentavos;
+      try {
+        valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      } catch {
+        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
+      }
+      if (valorCentavos <= 0) {
+        return erroCliente("Informe um valor maior que zero.", 400, "valor_invalido");
+      }
       const valor = centavosParaReais(valorCentavos);
       let cartaoCreditoId = null;
       if (deveVincularCartaoCredito({ ...dados, tipo: tipoNormalizado, meio_pagamento: meioPagamentoNormalizado }) && dados.cartao_credito_id) {
@@ -275,12 +301,12 @@ export async function processarLancamentos(request, env, ctx) {
             `;
       const insertResult = await env.DB.prepare(query)
         .bind(
-          dados.descricao,
+          descricao,
           valor,
           valorCentavos,
-          dados.data_compra,
+          dataCompra,
           tipoNormalizado,
-          dados.categoria,
+          categoria,
           meioPagamentoNormalizado,
           statusNormalizado,
           carteiraIdNormalizada,
@@ -299,7 +325,7 @@ export async function processarLancamentos(request, env, ctx) {
         metadata: {
           tipo: tipoNormalizado,
           status: statusNormalizado,
-          categoria: dados.categoria || null,
+          categoria,
         },
       });
 

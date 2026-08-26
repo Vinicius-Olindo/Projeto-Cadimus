@@ -48,13 +48,26 @@ async function apiJson(caminho, opcoes = {}) {
   return { resposta, dados };
 }
 
+function obterMensagemErroApi(erroOuDados, fallback = "Não foi possível concluir a operação.") {
+  if (!erroOuDados) return fallback;
+  if (typeof erroOuDados === "string") return erroOuDados.trim() || fallback;
+
+  const mensagem =
+    (typeof erroOuDados.erro === "string" && erroOuDados.erro.trim()) ||
+    (typeof erroOuDados.mensagem === "string" && erroOuDados.mensagem.trim());
+
+  return mensagem || fallback;
+}
+
 window.CadimusApi = {
   baseUrl: API_URL,
   montarUrl: montarUrlApi,
   fetch: apiFetch,
   json: apiJson,
   headersAutenticados,
+  obterMensagemErro: obterMensagemErroApi,
 };
 
 window.API_URL = API_URL;
 window.headersAutenticados = headersAutenticados;
+window.obterMensagemErroApi = obterMensagemErroApi;

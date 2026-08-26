@@ -11,6 +11,7 @@ import { processarCarteiras } from "../src/routes/carteiras.js";
 import { processarPlanos, processarPlanoDepositos } from "../src/routes/planos.js";
 import { processarMetas, processarMetaDepositos } from "../src/routes/metas.js";
 import { processarCartoesCredito } from "../src/routes/cartoesCredito.ts";
+import { processarComprasParceladas } from "../src/routes/comprasParceladas.js";
 import { processarLancamentosRecorrentes } from "../src/routes/lancamentosRecorrentes.ts";
 import worker from "../src/index.js";
 
@@ -161,6 +162,43 @@ test("calcularValorParcelaCentavos joga sobra de centavos na última parcela", (
     [1, 2, 3].map((numeroParcela) => calcularValorParcelaCentavos(compra, numeroParcela)),
     [33333, 33333, 33334],
   );
+});
+
+test("criação de compra parcelada retorna erro claro quando valor é inválido", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "run",
+      match: "INSERT INTO compras_parceladas",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarComprasParceladas(
+    request("POST", "https://cadimus.test/api/compras-parceladas", {
+      carteira_id: 10,
+      descricao: "Compra teste",
+      valor_total: "abc",
+      dia_vencimento: 10,
+      total_parcelas: 2,
+      ano_inicio: 2026,
+      mes_inicio: 8,
+      categoria: "Casa",
+      meio_pagamento: "Credito",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), {
+    erro: "Informe o valor total da compra.",
+    codigo: "valor_total_invalido",
+  });
+  assert.equal(inserts.length, 0);
 });
 
 test("despesas fixas geradas usam centavos como fonte do valor", async () => {
@@ -574,6 +612,83 @@ test("criação de lançamento faz escrita dupla em reais e centavos", async () 
   assert.equal(insertLancamento.args[1], 123.45);
   assert.equal(insertLancamento.args[2], 12345);
   assert.equal(auditLogs.length, 1);
+});
+
+test("criação de lançamento retorna erro claro quando descrição está ausente", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarLancamentos(
+    request("POST", "https://cadimus.test/api/lancamentos", {
+      descricao: "   ",
+      valor_centavos: 1000,
+      data_compra: "2026-08-14",
+      tipo: "despesa",
+      categoria: "Casa",
+      meio_pagamento: "Pix",
+      status: "pago",
+      carteira_id: 10,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), {
+    erro: "Informe uma descrição para o lançamento.",
+    codigo: "descricao_obrigatoria",
+  });
+  assert.equal(inserts.length, 0);
+});
+
+test("criação de lançamento retorna erro claro quando valor é inválido", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT id FROM categorias WHERE LOWER(nome) = LOWER(?)",
+      reply: () => [{ id: 1 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarLancamentos(
+    request("POST", "https://cadimus.test/api/lancamentos", {
+      descricao: "Conta teste",
+      valor: "abc",
+      data_compra: "2026-08-14",
+      tipo: "despesa",
+      categoria: "Casa",
+      meio_pagamento: "Pix",
+      status: "pago",
+      carteira_id: 10,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), {
+    erro: "Informe um valor válido.",
+    codigo: "valor_invalido",
+  });
+  assert.equal(inserts.length, 0);
 });
 
 test("membro de carteira compartilhada pode excluir lançamento criado por outro usuário", async () => {

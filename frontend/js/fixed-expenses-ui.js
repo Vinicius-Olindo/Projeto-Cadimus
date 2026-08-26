@@ -152,7 +152,7 @@ function configurarModalDespesasFixas() {
         mostrarToast(idEdicao ? "Despesa fixa atualizada" : "Despesa fixa criada");
       } else {
         const erro = await resposta.json();
-        await mostrarAviso(`Erro: ${erro.erro}`);
+        await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível salvar esta despesa fixa agora."));
       }
     } catch (erro) {
       console.error(erro);
@@ -266,7 +266,7 @@ async function alternarDespesaFixa(id) {
       mostrarToast(alvo.ativo ? "Despesa fixa pausada" : "Despesa fixa ativada", "info");
     } else {
       const erro = await resposta.json();
-      await mostrarAviso(`Erro: ${erro.erro}`);
+      await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível alterar esta despesa fixa agora."));
     }
   } catch (erro) {
     await mostrarAviso("Erro de conexão.");
@@ -286,7 +286,7 @@ async function excluirDespesaFixa(id) {
       mostrarToast("Despesa fixa excluída", "info");
     } else {
       const erro = await resposta.json();
-      await mostrarAviso(`Erro: ${erro.erro}`);
+      await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível excluir esta despesa fixa agora."));
     }
   } catch (erro) {
     await mostrarAviso("Erro de conexão.");

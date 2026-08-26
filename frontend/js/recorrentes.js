@@ -200,7 +200,7 @@ function configurarModalRecorrencia() {
         mostrarToast(idEdicao ? "Recorrência atualizada" : "Recorrência criada");
       } else {
         const erro = await resposta.json();
-        await mostrarAviso(`Erro: ${erro.erro}`);
+        await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível salvar esta recorrência agora."));
       }
     } catch (erro) {
       console.error(erro);
@@ -268,7 +268,7 @@ async function alternarRecorrencia(id) {
       mostrarToast(alvo.ativo ? "Recorrência pausada" : "Recorrência ativada", "info");
     } else {
       const erro = await resposta.json();
-      await mostrarAviso(`Erro: ${erro.erro}`);
+      await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível alterar esta recorrência agora."));
     }
   } catch (erro) {
     await mostrarAviso("Erro de conexão.");
@@ -291,7 +291,7 @@ async function excluirRecorrencia(id) {
       mostrarToast("Recorrência excluída", "info");
     } else {
       const erro = await resposta.json();
-      await mostrarAviso(`Erro: ${erro.erro}`);
+      await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível excluir esta recorrência agora."));
     }
   } catch (erro) {
     await mostrarAviso("Erro de conexão.");

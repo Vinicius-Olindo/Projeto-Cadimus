@@ -176,7 +176,7 @@ function configurarModalComprasParceladas() {
         mostrarToast("Compra parcelada criada");
       } else {
         const erro = await resposta.json();
-        await mostrarAviso(`Erro: ${erro.erro}`);
+        await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível salvar esta compra parcelada agora."));
       }
     } catch (erro) {
       console.error(erro);
@@ -283,7 +283,7 @@ async function alternarComprasParcelada(id) {
       mostrarToast(alvo.ativo ? "Compra parcelada cancelada" : "Compra parcelada reativada", "info");
     } else {
       const erro = await resposta.json();
-      await mostrarAviso(`Erro: ${erro.erro}`);
+      await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível alterar esta compra parcelada agora."));
     }
   } catch (erro) {
     await mostrarAviso("Erro de conexão.");
@@ -303,7 +303,7 @@ async function excluirComprasParcelada(id) {
       mostrarToast("Compra parcelada excluída", "info");
     } else {
       const erro = await resposta.json();
-      await mostrarAviso(`Erro: ${erro.erro}`);
+      await mostrarAviso(obterMensagemErroApi(erro, "Não foi possível excluir esta compra parcelada agora."));
     }
   } catch (erro) {
     await mostrarAviso("Erro de conexão.");

@@ -88,26 +88,8 @@ export async function processarComprasParceladas(request, env, ctx) {
         return erroCliente("Informe o valor total da compra.", 400, "valor_total_obrigatorio");
       }
 
-      const valorTotalCentavos = dados.valor_total !== undefined || dados.valor_total_centavos !== undefined
-        ? normalizarCentavos(dados.valor_total, dados.valor_total_centavos)
-        : normalizarCentavos(dados.valor_parcela, dados.valor_parcela_centavos) * totalParcelas;
-      const valorTotal = centavosParaReais(valorTotalCentavos);
-      const valorParcelaCentavos = Number.isInteger(totalParcelas) && totalParcelas > 0
-        ? Math.floor(valorTotalCentavos / totalParcelas)
-        : 0;
-      const valorParcela = centavosParaReais(valorParcelaCentavos);
-
       if (!descricao) {
         return erroCliente("Informe uma descrição.", 400, "descricao_obrigatoria");
-      }
-      if (valorTotalCentavos <= 0) {
-        return erroCliente("Informe o valor total da compra.", 400, "valor_total_invalido");
-      }
-      if (valorParcelaCentavos <= 0) {
-        return erroCliente("Valor de parcela inválido.", 400, "valor_parcela_invalido");
-      }
-      if (!Number.isInteger(diaVencimento) || diaVencimento < 1 || diaVencimento > 28) {
-        return erroCliente("Escolha um dia de vencimento entre 1 e 28.", 400, "dia_vencimento_invalido");
       }
       if (!Number.isInteger(totalParcelas) || totalParcelas < 2) {
         return erroCliente("Uma compra parcelada precisa de pelo menos 2 parcelas (pra 1x, lance como despesa comum).", 400, "total_parcelas_invalido");
@@ -115,8 +97,32 @@ export async function processarComprasParceladas(request, env, ctx) {
       if (totalParcelas > 60) {
         return erroCliente("Máximo de 60 parcelas.", 400, "total_parcelas_limite");
       }
+      if (!Number.isInteger(diaVencimento) || diaVencimento < 1 || diaVencimento > 28) {
+        return erroCliente("Escolha um dia de vencimento entre 1 e 28.", 400, "dia_vencimento_invalido");
+      }
       if (!Number.isInteger(anoInicio) || !Number.isInteger(mesInicio) || mesInicio < 1 || mesInicio > 12) {
         return erroCliente("Informe o mês da primeira parcela.", 400, "periodo_inicio_invalido");
+      }
+
+      let valorTotalCentavos;
+      try {
+        valorTotalCentavos = dados.valor_total !== undefined || dados.valor_total_centavos !== undefined
+          ? normalizarCentavos(dados.valor_total, dados.valor_total_centavos)
+          : normalizarCentavos(dados.valor_parcela, dados.valor_parcela_centavos) * totalParcelas;
+      } catch {
+        return erroCliente("Informe o valor total da compra.", 400, "valor_total_invalido");
+      }
+      const valorTotal = centavosParaReais(valorTotalCentavos);
+      const valorParcelaCentavos = Number.isInteger(totalParcelas) && totalParcelas > 0
+        ? Math.floor(valorTotalCentavos / totalParcelas)
+        : 0;
+      const valorParcela = centavosParaReais(valorParcelaCentavos);
+
+      if (valorTotalCentavos <= 0) {
+        return erroCliente("Informe o valor total da compra.", 400, "valor_total_invalido");
+      }
+      if (valorParcelaCentavos <= 0) {
+        return erroCliente("Valor de parcela inválido.", 400, "valor_parcela_invalido");
       }
       if (!dados.categoria) {
         return erroCliente("Escolha uma categoria.", 400, "categoria_obrigatoria");
@@ -189,7 +195,12 @@ export async function processarComprasParceladas(request, env, ctx) {
         valores.push(String(dados.descricao).trim());
       }
       if (dados.valor_parcela !== undefined || dados.valor_parcela_centavos !== undefined) {
-        const valorParcelaCentavos = normalizarCentavos(dados.valor_parcela, dados.valor_parcela_centavos);
+        let valorParcelaCentavos;
+        try {
+          valorParcelaCentavos = normalizarCentavos(dados.valor_parcela, dados.valor_parcela_centavos);
+        } catch {
+          return erroCliente("Informe o valor da parcela.", 400, "valor_parcela_invalido");
+        }
         const valor = centavosParaReais(valorParcelaCentavos);
         if (valorParcelaCentavos <= 0) {
           return erroCliente("Informe o valor da parcela.", 400, "valor_parcela_invalido");
@@ -200,7 +211,12 @@ export async function processarComprasParceladas(request, env, ctx) {
         valores.push(valorParcelaCentavos);
       }
       if (dados.valor_total !== undefined || dados.valor_total_centavos !== undefined) {
-        const valorTotalCentavos = normalizarCentavos(dados.valor_total, dados.valor_total_centavos);
+        let valorTotalCentavos;
+        try {
+          valorTotalCentavos = normalizarCentavos(dados.valor_total, dados.valor_total_centavos);
+        } catch {
+          return erroCliente("Informe o valor total da compra.", 400, "valor_total_invalido");
+        }
         if (valorTotalCentavos <= 0) {
           return erroCliente("Informe o valor total da compra.", 400, "valor_total_invalido");
         }
