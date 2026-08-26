@@ -1169,3 +1169,90 @@
   outline-offset: 1px;
 }
 
+@media (max-width: 860px) {
+  #conteudo-periodo {
+    gap: 16px;
+  }
+
+  .area-controle {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    align-items: start;
+  }
+
+  .area-controle > * {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-layout-editando {
+    padding: 8px;
+    border-radius: 18px;
+  }
+
+  .dashboard-layout-banner {
+    align-items: flex-start;
+    padding: 9px 10px;
+  }
+
+  .dashboard-layout-banner-texto small {
+    font-size: 0.68rem;
+  }
+
+  .area-controle {
+    grid-template-columns: 1fr;
+  }
+
+  .card,
+  .stat-card {
+    border-radius: 16px;
+  }
+
+  .stat-card {
+    min-height: 122px;
+  }
+
+  .stat-card-topo {
+    gap: 9px;
+  }
+
+  .card-lancamentos-bloco {
+    min-width: 0;
+  }
+
+  .filtros-lancamentos {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 7px;
+  }
+}
+
+@media (max-width: 420px) {
+  .dashboard-layout-card-acoes {
+    right: 8px;
+    gap: 2px;
+  }
+
+  .dashboard-card-editavel::before {
+    right: 82px;
+  }
+
+  .stat-card {
+    padding: 16px;
+  }
+
+  .grafico-resumo-topo,
+  .categoria-barra-topo {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .grafico-resumo-valor,
+  .categoria-barra-valor {
+    width: 100%;
+    align-items: flex-start;
+    text-align: left;
+  }
+}
+

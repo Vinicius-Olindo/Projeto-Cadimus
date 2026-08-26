@@ -258,3 +258,53 @@
   .plano-comp-linha { grid-template-columns: 80px 1fr 1fr 60px; font-size: 0.75rem; }
 }
 
+@media (max-width: 520px) {
+  .plano-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .plano-kpi {
+    text-align: left;
+  }
+
+  .plano-ind-item,
+  .plano-lista-item,
+  .plano-dist-item {
+    align-items: flex-start;
+  }
+
+  .plano-lista-item,
+  .plano-dist-item {
+    flex-wrap: wrap;
+  }
+
+  .plano-lista-info,
+  .plano-dist-info {
+    flex: 1 1 calc(100% - 44px);
+    min-width: 0;
+  }
+
+  .plano-lista-valor,
+  .plano-dist-valor,
+  .plano-dist-restante {
+    width: 100%;
+    text-align: left;
+    overflow-wrap: anywhere;
+  }
+
+  .plano-comp-linha {
+    grid-template-columns: 1fr;
+    gap: 4px;
+    padding: 12px 0;
+  }
+
+  .plano-comp-header {
+    display: none;
+  }
+
+  .plano-comp-valor,
+  .plano-comp-diferenca {
+    text-align: left;
+  }
+}
+

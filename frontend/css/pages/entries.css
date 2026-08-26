@@ -749,6 +749,103 @@ button.item-status:active {
   color: var(--cor-marca-forte);
 }
 
+@media (max-width: 640px) {
+  .grupo-data-header {
+    padding-inline: 2px;
+  }
+
+  .grupo-data-identidade {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .grupo-data-subheader {
+    margin-left: 14px;
+  }
+
+  .linha-item {
+    gap: 9px;
+    padding: 10px;
+  }
+
+  .linha-corpo {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .item-info-principal,
+  .item-valores {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .item-descricao {
+    white-space: normal;
+    overflow: visible;
+    text-overflow: clip;
+    line-height: 1.25;
+  }
+
+  .item-metadados {
+    gap: 5px;
+  }
+
+  .item-categoria {
+    white-space: normal;
+    word-break: break-word;
+  }
+
+  .item-nota-texto {
+    max-width: 100%;
+    border-radius: 12px;
+  }
+
+  .item-nota-preview {
+    max-width: none;
+  }
+
+  .item-valores {
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .item-chips {
+    justify-content: flex-start;
+  }
+
+  .item-valor-acoes {
+    align-items: center;
+    justify-content: space-between;
+  }
+
+  .item-valor {
+    text-align: left;
+  }
+}
+
+@media (max-width: 420px) {
+  .data-chip {
+    width: 40px;
+    min-height: 46px;
+  }
+
+  .carimbo-autor-chip {
+    max-width: 100%;
+  }
+
+  .item-acoes {
+    gap: 2px;
+  }
+
+  .btn-editar,
+  .btn-excluir {
+    width: 30px;
+    height: 30px;
+  }
+}
+
 /* Estados de carregamento / lista vazia */
 .loading-container,
 .lista-vazia {

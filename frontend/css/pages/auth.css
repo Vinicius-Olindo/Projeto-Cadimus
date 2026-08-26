@@ -739,10 +739,9 @@
 @media (max-width: 820px) {
   #login-section,
   #redefinir-senha-section {
-    align-items: flex-start;
-    overflow-y: auto;
+    align-items: center;
+    overflow: hidden;
     padding: clamp(10px, 3vw, 18px);
-    -webkit-overflow-scrolling: touch;
   }
 
   .login-modelo-painel {
@@ -761,7 +760,7 @@
   }
 
   .login-painel-visual {
-    min-height: 210px;
+    min-height: clamp(144px, 24svh, 210px);
     padding: 22px;
   }
 
@@ -787,7 +786,7 @@
   }
 
   .login-form-panel {
-    padding: 34px 34px 38px;
+    padding: clamp(24px, 4svh, 34px) 34px clamp(26px, 4svh, 38px);
   }
 }
 
@@ -812,7 +811,7 @@
   }
 
   .login-painel-visual {
-    min-height: 156px;
+    min-height: clamp(102px, 23svh, 156px);
     padding: 18px;
   }
 
@@ -858,7 +857,7 @@
   }
 
   .login-form-panel {
-    padding: 24px clamp(18px, 6vw, 28px) 28px;
+    padding: clamp(16px, 3.8svh, 24px) clamp(18px, 6vw, 28px) clamp(18px, 4svh, 28px);
   }
 
   .login-form-panel form {
@@ -905,11 +904,71 @@
   }
 
   .login-social {
-    margin-top: 12px;
+    margin-top: 10px;
   }
 
   .login-links {
-    margin-top: 14px;
+    margin-top: 10px;
+  }
+}
+
+@media (max-width: 430px), (max-height: 660px) {
+  #login-section,
+  #redefinir-senha-section {
+    padding: 6px;
+  }
+
+  .login-box,
+  .login-modelo-painel {
+    border-radius: 18px;
+  }
+
+  .login-painel-topo,
+  .login-painel-grafico,
+  .login-social {
+    display: none;
+  }
+
+  .login-painel-visual {
+    min-height: 86px;
+    padding: 14px 16px;
+  }
+
+  .login-painel-logo {
+    margin-top: 8px;
+  }
+
+  .login-painel-logo img {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .login-painel-logo strong {
+    font-size: 1.32rem;
+  }
+
+  .login-painel-logo span {
+    margin-top: 3px;
+  }
+
+  .login-form-panel {
+    padding-block: 16px 18px;
+  }
+
+  .login-box input,
+  .login-modelo-painel input,
+  .login-box button[type="submit"] {
+    min-height: 44px;
+  }
+
+  .login-box input {
+    margin-bottom: 10px;
+  }
+
+  .login-primeiro-acesso {
+    margin-top: 10px;
+    padding: 10px;
   }
 }
 

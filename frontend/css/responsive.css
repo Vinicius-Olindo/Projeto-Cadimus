@@ -4,6 +4,19 @@
 
 /* Tablet: 480px–900px */
 @media (min-width: 481px) and (max-width: 900px) {
+  .app-container {
+    padding-inline: clamp(18px, 3vw, 26px);
+  }
+
+  .top-bar-linha1 {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .top-bar-linha1 .acoes-topo {
+    flex: 1 1 420px;
+  }
+
   .stat-grid {
     grid-template-columns: repeat(3, 1fr);
   }
@@ -18,6 +31,10 @@
 
   .acoes-topo {
     gap: 6px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding-bottom: 2px;
+    scrollbar-width: thin;
   }
 
   .acoes-topo-grupo {
@@ -29,7 +46,15 @@
 @media (max-width: 480px) {
   .app-container {
     --app-padding-vertical: 68px;
-    padding: 20px 14px 48px;
+    padding: 14px 10px 42px;
+  }
+
+  #dashboard-section,
+  #planejamento-section,
+  #relatorios-section,
+  #admin-section {
+    width: 100%;
+    min-width: 0;
   }
 
   .lancamento-tipo-rapido {
@@ -46,15 +71,30 @@
 
   .top-bar-linha1 {
     align-items: flex-start;
+    flex-direction: column;
+    gap: 12px;
   }
 
   .acoes-topo {
+    width: 100%;
     gap: 5px;
-    justify-content: flex-end;
+    justify-content: flex-start;
+    flex-wrap: nowrap;
+    overflow-x: auto;
+    overflow-y: hidden;
+    padding-bottom: 4px;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: thin;
   }
 
   .acoes-topo-grupo {
+    flex: 0 0 auto;
     padding: 2px;
+  }
+
+  .acoes-topo::after {
+    content: "";
+    flex: 0 0 2px;
   }
 
   .painel-notificacoes-controles {
@@ -76,6 +116,8 @@
   }
 
   .top-bar-linha2 {
+    flex-direction: column;
+    align-items: stretch;
     flex-wrap: nowrap;
   }
 
@@ -86,7 +128,19 @@
 
   .user-controls {
     width: 100%;
+    justify-content: flex-end;
+    flex-wrap: nowrap;
+    min-width: 0;
+  }
+
+  .seletor-mes {
+    width: 100%;
     justify-content: space-between;
+  }
+
+  #rotulo-mes {
+    min-width: 0;
+    flex: 1;
   }
 
   #saldo-total {
@@ -119,7 +173,7 @@
   }
 
   .stat-grid {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
     gap: 10px;
   }
 
@@ -143,7 +197,9 @@
 
   .linha-corpo {
     align-items: flex-start;
-    flex-wrap: wrap;
+    flex-direction: column;
+    flex-wrap: nowrap;
+    gap: 10px;
   }
 
   .linha-item {
@@ -190,11 +246,13 @@
   }
 
   .lancamentos-cabecalho {
-    flex-wrap: wrap;
+    align-items: stretch;
+    flex-direction: column;
     gap: 10px;
   }
 
   #btn-novo-gasto {
+    width: 100%;
     font-size: 0.78rem;
     padding: 8px 16px;
   }

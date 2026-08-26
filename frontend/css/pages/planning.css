@@ -162,10 +162,13 @@
 @media (max-width: 720px) {
   #planejamento-section .top-bar-linha1 {
     align-items: stretch;
+    flex-direction: column;
+    gap: 12px;
   }
 
   #planejamento-section .acoes-topo {
     width: 100%;
+    justify-content: stretch;
   }
 
   .seletor-mes-planejamento {
@@ -175,6 +178,11 @@
 
   .seletor-mes-contexto {
     flex: 1 0 100%;
+  }
+
+  .seletor-mes-planejamento .seletor-mes-rotulo {
+    flex: 1;
+    min-width: 0;
   }
 }
 
@@ -759,6 +767,98 @@
   font-size: 0.75rem;
   color: var(--cor-texto-suave);
   margin-top: -0.25rem;
+}
+
+@media (max-width: 720px) {
+  .plano-overview,
+  .plano-tabs,
+  .plano-container {
+    width: 100%;
+    max-width: none;
+  }
+
+  .plano-overview {
+    grid-template-columns: 1fr;
+    margin-top: 10px;
+    padding: 14px;
+    border-radius: 16px;
+  }
+
+  .plano-overview-kpis {
+    grid-template-columns: 1fr;
+  }
+
+  .plano-overview-acoes {
+    justify-content: stretch;
+  }
+
+  .plano-overview-acoes button {
+    flex: 1 1 160px;
+  }
+
+  .plano-container {
+    padding: 14px 0 0;
+  }
+
+  .plano-tabs {
+    margin-top: 10px;
+    border-radius: 16px;
+  }
+
+  .plano-tab {
+    flex: 1 0 auto;
+    text-align: center;
+  }
+
+  .plano-salario-linha,
+  .plano-meta-topo,
+  .plano-meta-detalhes,
+  .plano-card-detalhes,
+  .plano-card-acoes {
+    align-items: stretch;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .plano-salario-acoes,
+  .plano-meta-acoes,
+  .plano-card-acoes {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+
+  .plano-barra-item {
+    grid-template-columns: 1fr;
+    gap: 5px;
+  }
+
+  .plano-barra-valor {
+    text-align: left;
+  }
+}
+
+@media (max-width: 420px) {
+  .seletor-mes-planejamento {
+    gap: 6px;
+    padding: 6px;
+  }
+
+  .seletor-mes-contexto {
+    font-size: 0.56rem;
+  }
+
+  .seletor-mes-planejamento .seletor-mes-rotulo {
+    padding-inline: 6px;
+    font-size: 0.7rem;
+  }
+
+  .plano-overview h3 {
+    font-size: 1rem;
+  }
+
+  .plano-card-topo {
+    align-items: flex-start;
+  }
 }
 
 /* ==========================================
