@@ -11,6 +11,12 @@
   padding: 20px;
 }
 
+.app-container:has(> #login-section:not([style*="display: none"])),
+.app-container:has(> #redefinir-senha-section[style*="display: flex"]) {
+  --app-padding-vertical: 0px;
+  padding: 0;
+}
+
 @supports (height: 100svh) {
   #login-section,
   #redefinir-senha-section {
@@ -24,8 +30,10 @@
   position: relative;
   overflow: hidden;
   background:
-    radial-gradient(circle at calc(18% + var(--login-bg-parallax-x)) calc(18% + var(--login-bg-parallax-y)), color-mix(in srgb, var(--cor-marca) 18%, transparent), transparent 28%),
-    radial-gradient(circle at calc(82% - var(--login-bg-parallax-x)) calc(78% - var(--login-bg-parallax-y)), color-mix(in srgb, var(--cor-receita) 14%, transparent), transparent 30%);
+    radial-gradient(circle at calc(16% + var(--login-bg-parallax-x)) calc(18% + var(--login-bg-parallax-y)), color-mix(in srgb, var(--cor-marca) 20%, transparent), transparent 27%),
+    radial-gradient(circle at calc(86% - var(--login-bg-parallax-x)) calc(78% - var(--login-bg-parallax-y)), color-mix(in srgb, var(--cor-receita) 17%, transparent), transparent 30%),
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-superficie) 38%, transparent), transparent 38%),
+    var(--cor-fundo);
 }
 
 #login-section::before,
@@ -38,23 +46,25 @@
 }
 
 #login-section::before {
-  width: 360px;
-  height: 360px;
-  left: max(-140px, -10vw);
-  top: max(-120px, -8vw);
-  border: 1px solid color-mix(in srgb, var(--cor-marca) 22%, transparent);
+  width: min(420px, 42vw);
+  height: min(420px, 42vw);
+  left: max(-150px, -9vw);
+  top: max(-128px, -8vw);
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 24%, transparent);
   border-radius: 50%;
+  box-shadow: inset 0 0 0 22px color-mix(in srgb, var(--cor-superficie) 18%, transparent);
   transform: translate(calc(var(--login-bg-parallax-x) * 0.7), calc(var(--login-bg-parallax-y) * 0.7));
   transition: transform 0.18s ease-out;
 }
 
 #login-section::after {
-  width: 300px;
-  height: 300px;
-  right: max(-120px, -8vw);
-  bottom: max(-110px, -8vw);
-  border: 1px solid color-mix(in srgb, var(--cor-receita) 20%, transparent);
+  width: min(360px, 38vw);
+  height: min(360px, 38vw);
+  right: max(-130px, -8vw);
+  bottom: max(-118px, -8vw);
+  border: 1px solid color-mix(in srgb, var(--cor-receita) 22%, transparent);
   border-radius: 50%;
+  box-shadow: inset 0 0 0 18px color-mix(in srgb, var(--cor-marca) 8%, transparent);
   transform: translate(calc(var(--login-bg-parallax-x) * -0.55), calc(var(--login-bg-parallax-y) * -0.55));
   transition: transform 0.18s ease-out;
 }
@@ -78,8 +88,13 @@
   background:
     linear-gradient(160deg, color-mix(in srgb, var(--cor-superficie) 88%, transparent), color-mix(in srgb, var(--cor-fundo-card) 96%, transparent)),
     var(--cor-superficie);
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
+  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease, background 0.22s ease;
   z-index: 1;
+}
+
+.login-box-interativo:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 30px 64px -24px var(--cor-sombra);
 }
 
 .login-box-interativo:focus-within {
@@ -403,7 +418,9 @@
   overflow: hidden;
   text-align: left;
   border-radius: 24px;
-  background: var(--cor-superficie);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 48%, transparent), transparent 42%),
+    var(--cor-superficie);
 }
 
 .login-tema-switch {
@@ -427,8 +444,9 @@
   padding: 28px;
   color: #fff8e8;
   background:
-    radial-gradient(circle at calc(72% + var(--login-parallax-x)) calc(18% + var(--login-parallax-y)), rgba(215, 171, 95, 0.16), transparent 28%),
-    linear-gradient(135deg, rgba(16, 27, 21, 0.94), rgba(36, 54, 31, 0.92)),
+    radial-gradient(circle at calc(72% + var(--login-parallax-x)) calc(18% + var(--login-parallax-y)), rgba(215, 171, 95, 0.2), transparent 28%),
+    radial-gradient(circle at calc(18% - var(--login-parallax-x)) calc(86% - var(--login-parallax-y)), rgba(108, 189, 139, 0.14), transparent 30%),
+    linear-gradient(135deg, rgba(14, 28, 21, 0.97), rgba(34, 55, 34, 0.94)),
     var(--cor-texto);
   overflow: hidden;
   transition: background-position 0.28s ease;
@@ -514,9 +532,11 @@
 .login-painel-logo img {
   width: 62px;
   height: 62px;
-  padding: 5px;
-  border-radius: 18px;
-  background: rgba(255, 248, 232, 0.9);
+  object-fit: contain;
+  padding: 6px;
+  border-radius: 20px;
+  background: rgba(255, 248, 232, 0.94);
+  box-shadow: 0 14px 30px rgba(0, 0, 0, 0.18), inset 0 0 0 1px rgba(28, 38, 32, 0.08);
 }
 
 .login-painel-logo strong {
@@ -624,6 +644,9 @@
   flex-direction: column;
   justify-content: center;
   padding: 52px 48px;
+  background:
+    radial-gradient(circle at 100% 0%, color-mix(in srgb, var(--cor-marca) 7%, transparent), transparent 32%),
+    transparent;
 }
 
 .login-form-panel form {
@@ -772,6 +795,7 @@
   #login-section,
   #redefinir-senha-section {
     padding: 8px;
+    min-height: 100dvh;
   }
 
   #login-section::before,
@@ -857,6 +881,11 @@
 }
 
 @media (max-width: 560px) and (max-height: 700px) {
+  #login-section,
+  #redefinir-senha-section {
+    align-items: center;
+  }
+
   .login-painel-visual {
     min-height: 104px;
   }
