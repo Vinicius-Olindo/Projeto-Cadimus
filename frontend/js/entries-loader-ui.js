@@ -143,11 +143,12 @@ async function carregarLancamentos() {
 
     dados.forEach((lancamento) => {
       const valor = valorMonetario(lancamento);
-      // Pendente é um compromisso, não dinheiro que já entrou ou saiu — não conta no saldo nem nas categorias
-      if (lancamento.status === "pendente") {
-        if (lancamento.tipo === "despesa") {
-          totalPendente += valor;
-        }
+      const despesaNaoPaga = lancamento.tipo === "despesa" && lancamento.status !== "pago";
+
+      // Despesa não paga é compromisso em aberto — entra em "A pagar",
+      // mas não conta no saldo, nas despesas pagas nem nas categorias.
+      if (despesaNaoPaga) {
+        totalPendente += valor;
         return;
       }
 
