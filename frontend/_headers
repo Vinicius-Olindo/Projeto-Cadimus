@@ -5,6 +5,11 @@
   Referrer-Policy: strict-origin-when-cross-origin
   Permissions-Policy: camera=(), microphone=(), geolocation=()
 
+https://staging.cadimus.pages.dev/*
+  ! Content-Security-Policy
+  ! X-Frame-Options
+  Content-Security-Policy: default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src 'self' https://fonts.gstatic.com; img-src 'self' data: https:; connect-src 'self' https://cadimus-backend.olinbytedigital.workers.dev https://cadimus-backend-staging.olinbytedigital.workers.dev; frame-ancestors 'self' chrome-extension:;
+
 /index.html
   Cache-Control: no-cache, no-store, must-revalidate
 
