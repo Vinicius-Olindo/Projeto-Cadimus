@@ -310,7 +310,9 @@ function renderizarListaLancamentos() {
       const dataVenc = new Date(l.data_compra + "T23:59:59");
       const atrasado = l.status !== "pago" && dataVenc < hoje;
       const statusAtual = l.status === "pago" ? "pago" : atrasado ? "atrasado" : "pendente";
-      if (statusFiltro === "nao_atrasado") {
+      if (statusFiltro === "pendente") {
+        if (l.status === "pago") return false;
+      } else if (statusFiltro === "nao_atrasado") {
         if (atrasado) return false;
       } else if (statusAtual !== statusFiltro) {
         return false;
@@ -401,7 +403,7 @@ function filtrarLancamentosPendentes() {
   renderizarListaLancamentos();
 
   document.querySelector(".lancamentos-cabecalho")?.scrollIntoView({ behavior: "smooth", block: "start" });
-  mostrarToast("Mostrando lançamentos pendentes", "info");
+  mostrarToast("Mostrando compromissos a pagar", "info");
 }
 
 function limparFiltrosPeloResumo() {
