@@ -16,6 +16,7 @@
   --raio-sm: 4px;
   --raio-md: 10px;
   --raio-lg: 18px;
+  --raio-botoes: 10px;
   --borda: 1px;
 
   /* --- Elevação (camadas de sombra, do cartão de painel ao modal) --- */
@@ -25,13 +26,16 @@
   /* --- Modo Papel (padrão) --- */
   --cor-fundo: #e7e3d6;
   --cor-fundo-card: #f5f2e8;
+  --cor-fundo-foco: #efeadc;
   --cor-superficie: #f8f6ee;
   --cor-superficie-alta: #fffdf6;
   --cor-texto: #1c2620;
   --cor-texto-suave: #3d4d3f; /* WCAG AA: 5.2:1 contraste com --cor-fundo */
   --cor-pauta: #c9cdb9;
+  --cor-pauta-fraca: #dde1cc;
   --cor-pauta-forte: #dfe3cc;
   --cor-marca: #a97a2f;
+  --cor-marca-10: color-mix(in srgb, var(--cor-marca) 10%, transparent);
   --cor-marca-forte: #8c621f;
   --cor-receita: #3f7d52;
   --cor-despesa: #a23e3e;
@@ -50,13 +54,16 @@
   /* --- Modo Tinta (escuro) --- */
   --cor-fundo: #101b15;
   --cor-fundo-card: #1a2b1d;
+  --cor-fundo-foco: #1f3121;
   --cor-superficie: #172519;
   --cor-superficie-alta: #1c2c1e;
   --cor-texto: #ece7d6;
   --cor-texto-suave: #a8baa9;
   --cor-pauta: #263524;
+  --cor-pauta-fraca: #20311f;
   --cor-pauta-forte: #24361f;
   --cor-marca: #d7ab5f;
+  --cor-marca-10: color-mix(in srgb, var(--cor-marca) 10%, transparent);
   --cor-marca-forte: #e8c07d;
   --cor-receita: #6cbd8b;
   --cor-despesa: #e0857a;
