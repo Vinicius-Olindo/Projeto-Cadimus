@@ -19,6 +19,9 @@ function invalidarCachesDashboardFinanceiro() {
 async function recarregarLancamentosAposMutacao() {
   invalidarCachesDashboardFinanceiro();
   await carregarLancamentos();
+  if (typeof atualizarPlanejamentoVisivel === "function") {
+    await atualizarPlanejamentoVisivel();
+  }
 }
 
 function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, totalPendente = 0, saldoCalculado = 0 } = {}) {

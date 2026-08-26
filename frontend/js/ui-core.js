@@ -522,14 +522,18 @@ function configurarMonitoresDeFiltro() {
   const filtroMes = document.getElementById("filtro-mes");
 
   if (seletorCarteira) {
-    seletorCarteira.addEventListener("change", () => carregarLancamentos());
+    seletorCarteira.addEventListener("change", async () => {
+      await carregarLancamentos();
+      if (typeof atualizarPlanejamentoVisivel === "function") {
+        await atualizarPlanejamentoVisivel();
+      }
+    });
   }
   if (filtroMes) {
-    filtroMes.addEventListener("change", () => {
-      carregarLancamentos();
-      const secaoPlano = document.getElementById("planejamento-section");
-      if (secaoPlano && secaoPlano.style.display !== "none" && typeof renderizarPlano === "function") {
-        renderizarPlano();
+    filtroMes.addEventListener("change", async () => {
+      await carregarLancamentos();
+      if (typeof atualizarPlanejamentoVisivel === "function") {
+        await atualizarPlanejamentoVisivel();
       }
     });
   }

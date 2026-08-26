@@ -3,6 +3,7 @@
 // ==========================================
 // --- PLANEJAMENTO ---
 let planosCarregados = [];
+let ultimaAtualizacaoPlanejamento = 0;
 
 // ==========================================
 // [28] PLANEJAMENTO: Planos Financeiros
@@ -16,11 +17,11 @@ function configurarPlano() {
 
   if (!btnPlano || !btnVoltar || !secaoDashboard || !secaoPlano) return;
 
-  btnPlano.addEventListener("click", () => {
+  btnPlano.addEventListener("click", async () => {
     secaoDashboard.style.display = "none";
     secaoPlano.style.display = "flex";
     secaoPlano.style.flexDirection = "column";
-    renderizarPlano();
+    await atualizarPlanejamentoVisivel();
   });
 
   btnVoltar.addEventListener("click", () => {
@@ -34,6 +35,47 @@ function configurarPlano() {
   configurarMetaPlano();
   configurarModalPlano();
   configurarModalPlanoDeposito();
+}
+
+function planejamentoEstaVisivel() {
+  const secaoPlano = document.getElementById("planejamento-section");
+  return !!secaoPlano && secaoPlano.style.display !== "none";
+}
+
+function mostrarPlanejamentoCarregando() {
+  const saudeEl = document.getElementById("plano-resumo-saude");
+  const comprometidoEl = document.getElementById("plano-resumo-comprometido");
+  const acaoEl = document.getElementById("plano-resumo-acao");
+
+  if (saudeEl) {
+    saudeEl.textContent = "Atualizando";
+    saudeEl.style.color = "var(--cor-pendente)";
+  }
+  if (comprometidoEl) comprometidoEl.textContent = "—";
+  if (acaoEl) acaoEl.textContent = "Carregando dados";
+}
+
+async function carregarDependenciasPlanejamento() {
+  const tarefas = [];
+
+  if (typeof carregarPainelDespesasFixas === "function") tarefas.push(carregarPainelDespesasFixas());
+  if (typeof carregarPainelComprasParceladas === "function") tarefas.push(carregarPainelComprasParceladas());
+  if (typeof carregarPainelBonificacoes === "function") tarefas.push(carregarPainelBonificacoes());
+  if (typeof carregarOrcamentos === "function") tarefas.push(carregarOrcamentos());
+  if (typeof carregarMetas === "function") tarefas.push(carregarMetas());
+  if (typeof carregarPlanos === "function") tarefas.push(carregarPlanos());
+
+  await Promise.allSettled(tarefas);
+}
+
+async function atualizarPlanejamentoVisivel({ forcarRender = false } = {}) {
+  if (!forcarRender && !planejamentoEstaVisivel()) return;
+
+  const idAtualizacao = ++ultimaAtualizacaoPlanejamento;
+  mostrarPlanejamentoCarregando();
+  await carregarDependenciasPlanejamento();
+  if (idAtualizacao !== ultimaAtualizacaoPlanejamento) return;
+  renderizarPlano();
 }
 
 function configurarTabsPlano() {
@@ -206,6 +248,8 @@ function renderizarPlano() {
   const usuario = obterUsuarioLogado();
   const salario = usuario.salario || 0;
 
+  atualizarContextoPlanejamento();
+
   const salarioDisplay = document.getElementById("plano-salario-display");
   if (salarioDisplay) {
     salarioDisplay.textContent = salario > 0 ? formatadorBRL.format(salario) : "Não definido";
@@ -221,4 +265,19 @@ function renderizarPlano() {
   renderizarDespesasPlano();
   renderizarComparacaoPlano();
   configurarSimulacaoPlano();
+}
+
+function atualizarContextoPlanejamento() {
+  const contexto = document.getElementById("plano-overview-contexto");
+  if (!contexto) return;
+
+  const campoMes = document.getElementById("filtro-mes");
+  const carteira = typeof obterCarteiraSelecionada === "function" ? obterCarteiraSelecionada() : null;
+  const [ano, mes] = campoMes?.value ? campoMes.value.split("-") : [];
+  const mesIndice = Number(mes) - 1;
+  const nomesMeses = typeof NOMES_MESES !== "undefined" ? NOMES_MESES : [];
+  const nomeMes = Number.isInteger(mesIndice) && nomesMeses[mesIndice] ? `${nomesMeses[mesIndice]} de ${ano}` : "período atual";
+  const nomeCarteira = carteira?.nome || "carteira selecionada";
+
+  contexto.textContent = `Resumo de ${nomeMes} para ${nomeCarteira}: salário, compromissos, metas, orçamento e simulações no mesmo lugar.`;
 }
