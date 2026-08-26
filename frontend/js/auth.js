@@ -293,6 +293,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const campoUsuarioLogin = document.getElementById("usuario");
   const campoSenhaLogin = document.getElementById("senha");
   const feedbackLogin = document.getElementById("login-feedback");
+  const avisoCapsLockLogin = document.getElementById("login-capslock");
   const botaoSubmitLogin = fLogin?.querySelector('button[type="submit"]');
   const btnTemaLogin = document.getElementById("login-theme-toggle");
   const fluxoLoginLabel = document.getElementById("login-fluxo-label");
@@ -355,7 +356,7 @@ document.addEventListener("DOMContentLoaded", () => {
     if (resposta.status === 400) return dados?.erro || "Informe usuário e senha para continuar.";
     if (resposta.status === 401) return "Usuário ou senha incorretos. Confira os dados e tente novamente.";
     if (resposta.status === 403) return dados?.erro || "Esta conta não está ativa. Fale com um administrador.";
-    if (resposta.status === 429) return dados?.erro || "Muitas tentativas de login. Aguarde alguns minutos e tente novamente.";
+    if (resposta.status === 429) return "Muitas tentativas de login. Aguarde alguns minutos, confira usuário e senha ou recupere o acesso.";
     if (resposta.status >= 500) return "O servidor do Cadimus não respondeu como esperado. Tente novamente em instantes.";
 
     return dados?.erro || "Não foi possível entrar agora. Tente novamente.";
@@ -495,6 +496,17 @@ document.addEventListener("DOMContentLoaded", () => {
     campoSenhaLogin.setAttribute("aria-invalid", "false");
   });
   campoSenhaLogin?.addEventListener("blur", atualizarEstadoCamposLogin);
+
+  function atualizarAvisoCapsLock(evento) {
+    if (!avisoCapsLockLogin || !evento.getModifierState) return;
+    avisoCapsLockLogin.hidden = !evento.getModifierState("CapsLock");
+  }
+
+  campoSenhaLogin?.addEventListener("keydown", atualizarAvisoCapsLock);
+  campoSenhaLogin?.addEventListener("keyup", atualizarAvisoCapsLock);
+  campoSenhaLogin?.addEventListener("blur", () => {
+    if (avisoCapsLockLogin) avisoCapsLockLogin.hidden = true;
+  });
 
   document.querySelectorAll("[data-login-social]").forEach((botao) => {
     botao.addEventListener("click", async () => {
@@ -679,6 +691,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function atualizarBotaoSenha(botao, mostrando) {
     botao.setAttribute("aria-label", mostrando ? "Ocultar senha" : "Mostrar senha");
+    botao.setAttribute("aria-pressed", String(mostrando));
+    botao.classList.toggle("senha-visivel", mostrando);
+    botao.title = mostrando ? "Ocultar senha" : "Mostrar senha";
     botao.innerHTML = mostrando ? ICONE_SENHA_OCULTA : ICONE_SENHA_VISIVEL;
   }
 

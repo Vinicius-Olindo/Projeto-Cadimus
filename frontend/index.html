@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=100" />
-    <link rel="stylesheet" href="css/style.css?v=127" />
+    <link rel="stylesheet" href="css/style.css?v=128" />
   </head>
   <body>
     <main class="app-container">
@@ -65,9 +65,10 @@
               <input type="text" id="usuario" name="username" placeholder="Usuário" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="login-feedback" required />
               <div class="campo-senha-toggle">
                 <label class="sr-only" for="senha">Senha</label>
-                <input type="password" id="senha" name="password" placeholder="Senha" autocomplete="current-password" aria-describedby="login-feedback" required />
+                <input type="password" id="senha" name="password" placeholder="Senha" autocomplete="current-password" aria-describedby="login-capslock login-feedback" required />
                 <button type="button" class="btn-toggle-senha" data-alvo="senha" aria-label="Mostrar senha"></button>
               </div>
+              <div class="login-capslock" id="login-capslock" aria-live="polite" hidden>Caps Lock ativo. Confira letras maiúsculas na senha.</div>
               <div class="login-feedback" id="login-feedback" role="alert" aria-live="polite" hidden></div>
               <button type="submit">Entrar</button>
               <div class="login-social" aria-label="Outras formas de login">
