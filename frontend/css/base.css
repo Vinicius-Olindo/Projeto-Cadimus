@@ -106,13 +106,21 @@ button {
   width: 38px;
   height: 38px;
   box-sizing: border-box;
-  object-fit: cover;
+  object-fit: contain;
   border-radius: 50%;
-  background: var(--cor-superficie-alta);
-  padding: 4px;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 92%, white);
+  padding: 5px;
   box-shadow:
-    0 0 0 1px color-mix(in srgb, var(--cor-receita) 42%, var(--cor-pauta-forte)),
+    0 0 0 1px color-mix(in srgb, var(--cor-receita) 46%, var(--cor-pauta-forte)),
     0 5px 12px var(--cor-sombra);
+}
+
+.dark-mode .header-logo-wrapper img {
+  background: #fffdf6;
+  box-shadow:
+    0 0 0 1px color-mix(in srgb, var(--cor-receita) 58%, transparent),
+    0 0 0 5px color-mix(in srgb, var(--cor-receita) 14%, transparent),
+    0 8px 18px rgba(0, 0, 0, 0.26);
 }
 
 .header-logo-wrapper span {
