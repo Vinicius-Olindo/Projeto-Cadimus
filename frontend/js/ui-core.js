@@ -443,11 +443,21 @@ function inicializarFiltroMes() {
 
   const btnAnterior = document.getElementById("btn-mes-anterior");
   const btnSeguinte = document.getElementById("btn-mes-seguinte");
+  const btnPlanoAnterior = document.getElementById("btn-plano-mes-anterior");
+  const btnPlanoSeguinte = document.getElementById("btn-plano-mes-seguinte");
   const rotulo = document.getElementById("rotulo-mes");
+  const rotuloPlano = document.getElementById("plano-rotulo-mes");
 
   btnAnterior?.addEventListener("click", () => navegarMes(-1));
   btnSeguinte?.addEventListener("click", () => navegarMes(1));
+  btnPlanoAnterior?.addEventListener("click", () => navegarMes(-1));
+  btnPlanoSeguinte?.addEventListener("click", () => navegarMes(1));
   rotulo?.addEventListener("click", () => {
+    const agora = new Date();
+    definirMesExibido(agora.getFullYear(), agora.getMonth());
+    animarTrocaDePeriodo("agora");
+  });
+  rotuloPlano?.addEventListener("click", () => {
     const agora = new Date();
     definirMesExibido(agora.getFullYear(), agora.getMonth());
     animarTrocaDePeriodo("agora");
@@ -465,6 +475,8 @@ function definirMesExibido(ano, mesIndiceZero, opcoes = {}) {
   campoMes.dataset.mes = String(mesIndiceZero);
 
   if (rotulo) rotulo.textContent = `${NOMES_MESES[mesIndiceZero]} de ${ano}`;
+  const rotuloPlano = document.getElementById("plano-rotulo-mes");
+  if (rotuloPlano) rotuloPlano.textContent = `${NOMES_MESES[mesIndiceZero]} de ${ano}`;
 
   if (opcoes.disparaEvento !== false) {
     campoMes.dispatchEvent(new Event("change"));
@@ -513,7 +525,13 @@ function configurarMonitoresDeFiltro() {
     seletorCarteira.addEventListener("change", () => carregarLancamentos());
   }
   if (filtroMes) {
-    filtroMes.addEventListener("change", () => carregarLancamentos());
+    filtroMes.addEventListener("change", () => {
+      carregarLancamentos();
+      const secaoPlano = document.getElementById("planejamento-section");
+      if (secaoPlano && secaoPlano.style.display !== "none" && typeof renderizarPlano === "function") {
+        renderizarPlano();
+      }
+    });
   }
 }
 

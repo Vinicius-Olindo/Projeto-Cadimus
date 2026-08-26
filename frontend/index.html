@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=100" />
-    <link rel="stylesheet" href="css/style.css?v=135" />
+    <link rel="stylesheet" href="css/style.css?v=136" />
   </head>
   <body>
     <main class="app-container">
@@ -560,12 +560,13 @@
           <div class="top-bar-linha1">
             <h2>Planejamento Financeiro</h2>
             <div class="acoes-topo">
-              <div class="seletor-mes">
-                <button type="button" id="btn-plano-mes-anterior" aria-label="Mês anterior">
+              <div class="seletor-mes seletor-mes-planejamento" aria-label="Período do planejamento">
+                <span class="seletor-mes-contexto">Período do planejamento</span>
+                <button type="button" id="btn-plano-mes-anterior" aria-label="Mês anterior do planejamento">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
                 </button>
-                <span id="plano-rotulo-mes"></span>
-                <button type="button" id="btn-plano-mes-seguinte" aria-label="Próximo mês">
+                <span id="plano-rotulo-mes" class="seletor-mes-rotulo" title="Voltar para o mês atual"></span>
+                <button type="button" id="btn-plano-mes-seguinte" aria-label="Próximo mês do planejamento">
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
                 </button>
               </div>
@@ -2481,7 +2482,7 @@
     <script src="js/money-utils.js?v=100"></script>
     <script src="js/money-ui.js?v=100"></script>
     <script src="js/components.js?v=101"></script>
-    <script src="js/ui-core.js?v=100"></script>
+    <script src="js/ui-core.js?v=101"></script>
     <script src="js/dashboard-layout-ui.js?v=103"></script>
     <script src="js/wallets-ui.js?v=103"></script>
     <script src="js/categories-ui.js?v=100"></script>

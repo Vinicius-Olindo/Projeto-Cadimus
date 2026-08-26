@@ -6,6 +6,66 @@
   background: var(--cor-fundo);
 }
 
+#planejamento-section .top-bar-linha1 {
+  align-items: flex-start;
+}
+
+.seletor-mes-planejamento {
+  flex-wrap: wrap;
+  gap: 8px;
+  padding: 6px 8px 6px 12px;
+  border-radius: 16px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 8%, transparent), transparent 54%),
+    var(--cor-fundo-card);
+  border-color: color-mix(in srgb, var(--cor-marca) 24%, var(--cor-pauta-fraca));
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--cor-sombra) 38%, transparent);
+}
+
+.seletor-mes-contexto {
+  display: inline-flex;
+  color: var(--cor-texto-suave);
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  white-space: nowrap;
+}
+
+.seletor-mes-planejamento .seletor-mes-rotulo {
+  min-width: 132px;
+  padding: 3px 10px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-superficie) 74%, transparent);
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: 0.78rem;
+  font-weight: 700;
+  text-align: center;
+  cursor: pointer;
+  user-select: none;
+}
+
+.seletor-mes-planejamento .seletor-mes-rotulo:hover {
+  color: var(--cor-marca-forte);
+}
+
+.seletor-mes-planejamento button {
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 22%, transparent);
+  background: color-mix(in srgb, var(--cor-superficie) 68%, transparent);
+}
+
+.seletor-mes-planejamento button:hover {
+  border-color: var(--cor-marca);
+}
+
+.dark-mode .seletor-mes-planejamento {
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 12%, transparent), transparent 54%),
+    color-mix(in srgb, var(--cor-superficie) 88%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-marca) 32%, var(--cor-pauta));
+}
+
 .plano-container {
   max-width: 700px;
   margin: 0 auto;
@@ -97,6 +157,25 @@
   flex-wrap: wrap;
   gap: 8px;
   justify-content: flex-end;
+}
+
+@media (max-width: 720px) {
+  #planejamento-section .top-bar-linha1 {
+    align-items: stretch;
+  }
+
+  #planejamento-section .acoes-topo {
+    width: 100%;
+  }
+
+  .seletor-mes-planejamento {
+    width: 100%;
+    justify-content: space-between;
+  }
+
+  .seletor-mes-contexto {
+    flex: 1 0 100%;
+  }
 }
 
 .plano-card-salario {
