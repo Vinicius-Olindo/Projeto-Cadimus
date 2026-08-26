@@ -466,7 +466,7 @@ button:active {
   right: 0;
   width: 260px;
   background: var(--cor-superficie);
-  border: 1px solid var(--cor-borda);
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 76%, transparent);
   border-radius: 12px;
   box-shadow: 0 8px 32px color-mix(in srgb, var(--cor-sombra) 72%, transparent);
   z-index: 1000;
@@ -536,7 +536,7 @@ button:active {
 
 .dropdown-avatar-divider {
   height: 1px;
-  background: var(--cor-borda);
+  background: color-mix(in srgb, var(--cor-pauta-forte) 72%, transparent);
 }
 
 .dropdown-avatar-item {
@@ -552,19 +552,47 @@ button:active {
   color: var(--cor-texto);
   font-family: var(--fonte-corpo);
   text-align: left;
-  transition: background 0.12s ease;
+  transition: background 0.12s ease, color 0.12s ease;
 }
 
-.dropdown-avatar-item:hover {
-  background: var(--cor-fundo-hover, #f5f5f5);
+.dropdown-avatar-item svg {
+  color: currentColor;
+  flex: 0 0 auto;
+}
+
+.dropdown-avatar-item:hover,
+.dropdown-avatar-item:focus-visible {
+  background: color-mix(in srgb, var(--cor-marca) 10%, var(--cor-superficie));
+  color: var(--cor-marca-forte);
+  outline: none;
 }
 
 .dropdown-avatar-sair {
-  color: var(--cor-erro, #dc3545);
+  color: var(--cor-despesa);
 }
 
-.dropdown-avatar-sair:hover {
-  background: var(--cor-erro-bg, #fff5f5);
+.dropdown-avatar-sair:hover,
+.dropdown-avatar-sair:focus-visible {
+  background: color-mix(in srgb, var(--cor-despesa) 12%, var(--cor-superficie));
+  color: var(--cor-despesa);
+}
+
+.dark-mode .dropdown-avatar {
+  background: color-mix(in srgb, var(--cor-superficie) 88%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-pauta) 78%, transparent);
+  box-shadow: 0 18px 38px rgba(0, 0, 0, 0.36);
+}
+
+.dark-mode .dropdown-avatar-item:hover,
+.dark-mode .dropdown-avatar-item:focus-visible {
+  background: color-mix(in srgb, var(--cor-marca) 14%, var(--cor-superficie));
+  color: var(--cor-marca-forte);
+}
+
+.dark-mode .dropdown-avatar-sair:hover,
+.dark-mode .dropdown-avatar-sair:focus-visible {
+  background: color-mix(in srgb, var(--cor-despesa) 14%, var(--cor-superficie));
+  color: var(--cor-despesa);
 }
 
 #btn-salvar-lancamento {
