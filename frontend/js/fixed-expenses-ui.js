@@ -7,6 +7,26 @@
 
 let despesasFixasCarregadas = [];
 
+function sincronizarVencimentoFixaComCartao() {
+  const campoDia = document.getElementById("fixa-dia");
+  const selectCartao = document.getElementById("fixa-cartao-credito");
+  if (!campoDia || !selectCartao) return;
+
+  const opcaoSelecionada = selectCartao.selectedOptions?.[0];
+  const diaVencimento = opcaoSelecionada?.dataset?.diaVencimento || "";
+
+  if (selectCartao.value && diaVencimento) {
+    campoDia.value = diaVencimento;
+    campoDia.readOnly = true;
+    campoDia.classList.add("campo-bloqueado-cartao");
+    campoDia.title = "Vencimento definido pelo cartão selecionado.";
+  } else {
+    campoDia.readOnly = false;
+    campoDia.classList.remove("campo-bloqueado-cartao");
+    campoDia.title = "";
+  }
+}
+
 function fecharModalDespesaFixa() {
   const modal = document.getElementById("modal-despesas-fixas");
   const form = document.getElementById("form-despesa-fixa");
@@ -34,6 +54,7 @@ async function abrirModalDespesasFixas() {
   document.getElementById("btn-salvar-fixa").innerText = "Salvar";
   await popularSelectCategorias(document.getElementById("fixa-categoria"));
   await popularSelectCartoesCredito?.(document.getElementById("fixa-cartao-credito"), carteiraId);
+  sincronizarVencimentoFixaComCartao();
   modal.style.display = "flex";
   trapFoco(modal);
 }
@@ -58,6 +79,7 @@ async function editarDespesaFixa(id) {
   await popularSelectCartoesCredito?.(document.getElementById("fixa-cartao-credito"), fixa.carteira_id, fixa.cartao_credito_id || "");
   document.getElementById("fixa-cartao-credito").value = fixa.cartao_credito_id || "";
   document.getElementById("fixa-meio-pagamento")?.dispatchEvent(new Event("change"));
+  sincronizarVencimentoFixaComCartao();
 
   document.getElementById("titulo-modal-fixa").innerText = `Editando "${fixa.descricao}"`;
   document.getElementById("btn-salvar-fixa").innerText = "Salvar edição";
@@ -80,6 +102,10 @@ function configurarModalDespesasFixas() {
     meioId: "fixa-meio-pagamento",
     tipoId: "fixa-tipo",
   });
+
+  document.getElementById("fixa-cartao-credito")?.addEventListener("change", sincronizarVencimentoFixaComCartao);
+  document.getElementById("fixa-meio-pagamento")?.addEventListener("change", sincronizarVencimentoFixaComCartao);
+  document.getElementById("fixa-tipo")?.addEventListener("change", sincronizarVencimentoFixaComCartao);
 
   btnAbrir?.addEventListener("click", abrirModalDespesasFixas);
   btnAbrirDoCard?.addEventListener("click", abrirModalDespesasFixas);

@@ -903,6 +903,31 @@ test("cartao de credito nao pode ser criado em carteira sem acesso", async () =>
   assert.equal(inserts.length, 0);
 });
 
+test("listagem de cartoes considera apenas despesas em aberto no limite usado", async () => {
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT c.*",
+      reply: () => [],
+    },
+  ]));
+
+  const res = await processarCartoesCredito(
+    request("GET", "https://cadimus.test/api/cartoes-credito?carteira_id=10"),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 200);
+
+  const consultaCartoes = db.calls.find((call) => call.type === "all" && call.sql.includes("SELECT c.*"));
+  assert.ok(consultaCartoes);
+  assert.match(consultaCartoes.sql, /lp\.status != 'pago'/);
+  assert.match(consultaCartoes.sql, /lf\.status != 'pago'/);
+  assert.match(consultaCartoes.sql, /l\.status != 'pago'/);
+  assert.match(consultaCartoes.sql, /INNER JOIN despesas_fixas df ON df\.id = lf\.despesa_fixa_id/);
+});
+
 test("orcamento em carteira permitida nao pode ser excluido por usuario que nao criou", async () => {
   const deletes = [];
   const db = new FakeD1([

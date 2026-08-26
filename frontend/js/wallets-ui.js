@@ -673,6 +673,7 @@ async function carregarCartoesCredito() {
       const nomeBandeira = NOMES_BANDEIRAS[cartao.bandeira] || "Cartão";
       const limite = valorMonetario(cartao, "limite");
       const gastoAtual = valorMonetario(cartao, "gasto_atual");
+      const disponivel = Math.max(0, limite - gastoAtual);
       const pctLimite = limite > 0 ? Math.min((gastoAtual / limite) * 100, 100) : 0;
       const corBarra = pctLimite >= 80 ? "var(--cor-despesa)" : pctLimite >= 50 ? "var(--cor-pendente)" : "var(--cor-receita)";
 
@@ -704,10 +705,14 @@ async function carregarCartoesCredito() {
         <div class="cartao-item-limite">
           <div class="cartao-limite-texto">
             <span>${formatadorBRL.format(gastoAtual)} usado</span>
-            <span>de ${formatadorBRL.format(limite)}</span>
+            <span>${pctLimite.toFixed(0)}% de ${formatadorBRL.format(limite)}</span>
           </div>
           <div class="cartao-limite-barra">
             <div class="cartao-limite-preenchimento" style="width:${pctLimite}%;background:${corBarra}"></div>
+          </div>
+          <div class="cartao-limite-disponivel">
+            <span>Disponível</span>
+            <strong>${formatadorBRL.format(disponivel)}</strong>
           </div>
         </div>
         ` : ""}

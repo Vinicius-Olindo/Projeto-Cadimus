@@ -63,14 +63,20 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
             AND lp.tipo = 'despesa'
             AND lp.status != 'pago'), 0)
         +
-        COALESCE((SELECT SUM(COALESCE(df.valor_centavos, ROUND(df.valor * 100)))
-          FROM despesas_fixas df
-          WHERE df.cartao_credito_id = c.id AND df.ativo = 1 AND df.tipo = 'despesa'), 0)
+        COALESCE((SELECT SUM(COALESCE(lf.valor_centavos, ROUND(lf.valor * 100)))
+          FROM lancamentos lf
+          INNER JOIN despesas_fixas df ON df.id = lf.despesa_fixa_id
+          WHERE df.cartao_credito_id = c.id
+            AND df.ativo = 1
+            AND lf.tipo = 'despesa'
+            AND lf.status != 'pago'
+            AND strftime('%Y-%m', lf.data_compra) = strftime('%Y-%m', 'now')), 0)
         +
         COALESCE((SELECT SUM(COALESCE(l.valor_centavos, ROUND(l.valor * 100)))
           FROM lancamentos l
           WHERE l.cartao_credito_id = c.id
             AND l.tipo = 'despesa'
+            AND l.status != 'pago'
             AND l.compra_parcelada_id IS NULL
             AND l.despesa_fixa_id IS NULL
             AND strftime('%Y-%m', l.data_compra) = strftime('%Y-%m', 'now')), 0)
@@ -84,14 +90,20 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
             AND lp.tipo = 'despesa'
             AND lp.status != 'pago'), 0)
         +
-        COALESCE((SELECT SUM(COALESCE(df.valor_centavos, ROUND(df.valor * 100)))
-          FROM despesas_fixas df
-          WHERE df.cartao_credito_id = c.id AND df.ativo = 1 AND df.tipo = 'despesa'), 0)
+        COALESCE((SELECT SUM(COALESCE(lf.valor_centavos, ROUND(lf.valor * 100)))
+          FROM lancamentos lf
+          INNER JOIN despesas_fixas df ON df.id = lf.despesa_fixa_id
+          WHERE df.cartao_credito_id = c.id
+            AND df.ativo = 1
+            AND lf.tipo = 'despesa'
+            AND lf.status != 'pago'
+            AND strftime('%Y-%m', lf.data_compra) = strftime('%Y-%m', 'now')), 0)
         +
         COALESCE((SELECT SUM(COALESCE(l.valor_centavos, ROUND(l.valor * 100)))
           FROM lancamentos l
           WHERE l.cartao_credito_id = c.id
             AND l.tipo = 'despesa'
+            AND l.status != 'pago'
             AND l.compra_parcelada_id IS NULL
             AND l.despesa_fixa_id IS NULL
             AND strftime('%Y-%m', l.data_compra) = strftime('%Y-%m', 'now')), 0)

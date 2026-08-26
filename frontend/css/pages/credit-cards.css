@@ -104,6 +104,21 @@
   transition: width 0.6s ease;
 }
 
+.cartao-limite-disponivel {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 6px;
+  font-size: 0.7rem;
+  color: var(--cor-texto-suave);
+}
+
+.cartao-limite-disponivel strong {
+  color: var(--cor-receita);
+  font-family: var(--fonte-mono);
+  font-weight: 800;
+}
+
 .cartao-item-parcelas {
   margin-top: 6px;
   font-size: 0.72rem;
