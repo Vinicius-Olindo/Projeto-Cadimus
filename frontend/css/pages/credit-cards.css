@@ -3,10 +3,14 @@
    ========================================== */
 
 .cartao-item {
-  background: var(--cor-fundo-input, #f8f8f8);
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 48%, transparent), transparent 72%),
+    var(--cor-superficie);
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 72%, transparent);
   border-radius: 10px;
   padding: 12px;
   margin-bottom: 10px;
+  box-shadow: 0 10px 24px -18px var(--cor-sombra);
 }
 
 .cartao-item-header {
@@ -33,11 +37,12 @@
 .cartao-item-info strong {
   display: block;
   font-size: 0.85rem;
+  color: var(--cor-texto);
 }
 
 .cartao-item-detalhe {
   font-size: 0.72rem;
-  color: var(--cor-texto-suave, #666);
+  color: var(--cor-texto-suave);
 }
 
 .cartao-item-acoes {
@@ -51,19 +56,27 @@
   border: none;
   padding: 4px;
   cursor: pointer;
-  color: var(--cor-texto-suave, #666);
+  color: var(--cor-texto-suave);
   border-radius: 4px;
+  transition: background 0.14s ease, color 0.14s ease, transform 0.14s ease;
 }
 
-.cartao-editar-btn:hover { color: var(--cor-marca, #a97a2f); }
-.cartao-apagar-btn:hover { color: var(--cor-despesa, #c62828); }
+.cartao-editar-btn:hover {
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+  color: var(--cor-marca);
+}
+
+.cartao-apagar-btn:hover {
+  background: color-mix(in srgb, var(--cor-despesa) 10%, transparent);
+  color: var(--cor-despesa);
+}
 
 .cartao-item-datas {
   display: flex;
   gap: 16px;
   margin-top: 8px;
   font-size: 0.72rem;
-  color: var(--cor-texto-suave, #666);
+  color: var(--cor-texto-suave);
 }
 
 .cartao-item-limite {
@@ -75,11 +88,12 @@
   justify-content: space-between;
   font-size: 0.7rem;
   margin-bottom: 4px;
+  color: var(--cor-texto-suave);
 }
 
 .cartao-limite-barra {
   height: 4px;
-  background: var(--cor-pauta-forte, #e0e0e0);
+  background: var(--cor-pauta-forte);
   border-radius: 2px;
   overflow: hidden;
 }
@@ -93,6 +107,17 @@
 .cartao-item-parcelas {
   margin-top: 6px;
   font-size: 0.72rem;
-  color: var(--cor-pendente, #a97a2f);
+  color: var(--cor-pendente);
+}
+
+.dark-mode .cartao-item {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 62%, transparent), transparent 74%),
+    color-mix(in srgb, var(--cor-superficie) 82%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-pauta) 76%, transparent);
+}
+
+.dark-mode .cartao-limite-barra {
+  background: color-mix(in srgb, var(--cor-pauta) 70%, transparent);
 }
 
