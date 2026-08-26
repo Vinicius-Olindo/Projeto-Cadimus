@@ -284,6 +284,25 @@
   text-align: center;
 }
 
+.login-primeiro-acesso {
+  margin-top: 14px;
+  padding: 12px;
+  border-radius: var(--raio-md);
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 72%, transparent);
+  background: color-mix(in srgb, var(--cor-fundo-card) 72%, var(--cor-superficie));
+  color: var(--cor-texto-suave);
+  display: grid;
+  gap: 6px;
+  text-align: center;
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.login-primeiro-acesso .login-link {
+  color: var(--cor-marca);
+  font-weight: 700;
+}
+
 .login-link-info {
   color: var(--cor-texto-suave);
   font-size: 0.85rem;

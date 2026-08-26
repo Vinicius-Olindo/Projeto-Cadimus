@@ -521,6 +521,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
+  document.getElementById("link-solicitar-acesso")?.addEventListener("click", async () => {
+    const mensagem = "O Cadimus funciona por convite. Peça para um administrador gerar seu acesso em Configurações > Usuários.";
+    if (typeof mostrarAviso === "function") {
+      await mostrarAviso(mensagem);
+    } else {
+      alert(mensagem);
+    }
+  });
+
   if (fLogin) {
     fLogin.addEventListener("submit", async (e) => {
       e.preventDefault();
