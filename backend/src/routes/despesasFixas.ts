@@ -1,19 +1,46 @@
 // ==========================================
-// despesasFixas.js (rota) - Gestão das despesas/receitas fixas
+// despesasFixas.ts (rota) - Gestão das despesas/receitas fixas
 // ==========================================
+import type {
+  CadimusEnv,
+  DespesaFixa,
+  IdEntrada,
+  MeioPagamento,
+  SqlParam,
+  TipoLancamento,
+  WorkerCtx,
+} from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
-import { isTipoLancamento, normalizarId, normalizarMeioPagamento } from "../domain.ts";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
+import { isTipoLancamento, normalizarId, normalizarMeioPagamento, normalizarTipoLancamento } from "../domain.ts";
+import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
-/**
- * @param {Request} request
- * @param {import("../types.js").CadimusEnv} env
- * @param {import("../types.js").WorkerCtx} ctx
- */
-export async function processarDespesasFixas(request, env, ctx) {
+interface DespesaFixaPayload {
+  carteira_id?: IdEntrada;
+  descricao?: string;
+  valor?: ValorMonetarioEntrada;
+  valor_centavos?: ValorMonetarioEntrada;
+  tipo?: TipoLancamento | string;
+  categoria?: string;
+  meio_pagamento?: MeioPagamento | string;
+  dia_vencimento?: number | string;
+  ativo?: boolean | number;
+  cartao_credito_id?: IdEntrada | null;
+}
+
+interface DespesaFixaAlvoRow {
+  carteira_id: number;
+  tipo?: TipoLancamento;
+  meio_pagamento?: MeioPagamento;
+}
+
+interface DespesaFixaCartaoRow {
+  cartao_credito_id?: number | null;
+}
+
+export async function processarDespesasFixas(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
 
@@ -40,7 +67,7 @@ export async function processarDespesasFixas(request, env, ctx) {
       }
 
       let query = `SELECT * FROM despesas_fixas WHERE 1=1`;
-      let params = /** @type {import("../types.js").SqlParam[]} */ ([]);
+      const params: SqlParam[] = [];
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
@@ -54,7 +81,7 @@ export async function processarDespesasFixas(request, env, ctx) {
 
       const { results } = await env.DB.prepare(query)
         .bind(...params)
-        .all();
+        .all<DespesaFixa>();
       return json(results);
     } catch (erro) {
       return erroInterno(erro, "despesasFixas.listar", "Não foi possível carregar as despesas fixas agora.", "fixas_listar_falhou");
@@ -66,7 +93,7 @@ export async function processarDespesasFixas(request, env, ctx) {
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json();
+      const dados = await request.json() as DespesaFixaPayload;
       const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
       if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
@@ -79,7 +106,7 @@ export async function processarDespesasFixas(request, env, ctx) {
       }
       const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
       const valor = centavosParaReais(valorCentavos);
-      const diaVencimento = parseInt(dados.dia_vencimento, 10);
+      const diaVencimento = Number(dados.dia_vencimento);
       const tipo = dados.tipo === "receita" ? "receita" : "despesa";
 
       if (!descricao) {
@@ -101,7 +128,7 @@ export async function processarDespesasFixas(request, env, ctx) {
       if (!meioPagamento) {
         return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
       }
-      let cartaoCreditoId = null;
+      let cartaoCreditoId: number | null = null;
       if (deveVincularCartaoCredito({ ...dados, tipo, meio_pagamento: meioPagamento }) && dados.cartao_credito_id) {
         const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, carteiraIdNormalizada);
         if (cartaoValido === false) {
@@ -133,7 +160,7 @@ export async function processarDespesasFixas(request, env, ctx) {
         return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, tipo, meio_pagamento FROM despesas_fixas WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, tipo, meio_pagamento FROM despesas_fixas WHERE id = ?`).bind(id).all<DespesaFixaAlvoRow>();
       if (alvo.length === 0) {
         return erroCliente("Despesa fixa não encontrada.", 404, "fixa_nao_encontrada");
       }
@@ -141,9 +168,9 @@ export async function processarDespesasFixas(request, env, ctx) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const dados = await request.json();
-      const campos = [];
-      const valores = [];
+      const dados = await request.json() as DespesaFixaPayload;
+      const campos: string[] = [];
+      const valores: SqlParam[] = [];
 
       if (dados.descricao !== undefined) {
         campos.push("descricao = ?");
@@ -165,7 +192,7 @@ export async function processarDespesasFixas(request, env, ctx) {
           return erroCliente("Tipo inválido.", 400, "tipo_invalido");
         }
         campos.push("tipo = ?");
-        valores.push(dados.tipo);
+        valores.push(normalizarTipoLancamento(dados.tipo));
       }
       if (dados.categoria !== undefined) {
         campos.push("categoria = ?");
@@ -180,7 +207,7 @@ export async function processarDespesasFixas(request, env, ctx) {
         valores.push(meioPagamento);
       }
       if (dados.dia_vencimento !== undefined) {
-        const dia = parseInt(dados.dia_vencimento, 10);
+        const dia = Number(dados.dia_vencimento);
         if (!Number.isInteger(dia) || dia < 1 || dia > 28) {
           return erroCliente("Escolha um dia de vencimento entre 1 e 28.", 400, "dia_vencimento_invalido");
         }
@@ -197,7 +224,7 @@ export async function processarDespesasFixas(request, env, ctx) {
           meio_pagamento: dados.meio_pagamento ?? alvo[0].meio_pagamento,
           cartao_credito_id: dados.cartao_credito_id,
         };
-        let cartaoCreditoId = null;
+        let cartaoCreditoId: number | null = null;
         if (deveVincularCartaoCredito(dadosCartao) && dados.cartao_credito_id) {
           const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, alvo[0].carteira_id);
           if (cartaoValido === false) {
@@ -219,7 +246,7 @@ export async function processarDespesasFixas(request, env, ctx) {
         .run();
 
       if (campos.some((campo) => campo.startsWith("cartao_credito_id")) || dados.meio_pagamento !== undefined || dados.tipo !== undefined) {
-        const { results: atualizada } = await env.DB.prepare(`SELECT cartao_credito_id FROM despesas_fixas WHERE id = ?`).bind(id).all();
+        const { results: atualizada } = await env.DB.prepare(`SELECT cartao_credito_id FROM despesas_fixas WHERE id = ?`).bind(id).all<DespesaFixaCartaoRow>();
         await env.DB.prepare(`UPDATE lancamentos SET cartao_credito_id = ? WHERE despesa_fixa_id = ?`)
           .bind(atualizada[0]?.cartao_credito_id || null, id)
           .run();
@@ -241,7 +268,7 @@ export async function processarDespesasFixas(request, env, ctx) {
         return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM despesas_fixas WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM despesas_fixas WHERE id = ?`).bind(id).all<DespesaFixaAlvoRow>();
       if (alvo.length === 0) {
         return erroCliente("Despesa fixa não encontrada.", 404, "fixa_nao_encontrada");
       }

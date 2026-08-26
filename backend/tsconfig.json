@@ -28,7 +28,7 @@
     "src/routes/cartoesCredito.ts",
     "src/routes/categorias.ts",
     "src/routes/comprasParceladas.js",
-    "src/routes/despesasFixas.js",
+    "src/routes/despesasFixas.ts",
     "src/routes/lancamentos.js",
     "src/routes/lancamentosRecorrentes.ts",
     "src/routes/manutencao.ts",

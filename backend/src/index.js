@@ -6,7 +6,7 @@ import { processarLancamentos } from "./routes/lancamentos.js";
 import { processarUsuarios } from "./routes/usuarios.js";
 import { processarCategorias } from "./routes/categorias.ts";
 import { processarCarteiras } from "./routes/carteiras.js";
-import { processarDespesasFixas } from "./routes/despesasFixas.js";
+import { processarDespesasFixas } from "./routes/despesasFixas.ts";
 import { processarMetas, processarMetaDepositos } from "./routes/metas.js";
 import { processarPlanos, processarPlanoDepositos } from "./routes/planos.js";
 import { processarComprasParceladas } from "./routes/comprasParceladas.js";
