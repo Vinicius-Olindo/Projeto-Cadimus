@@ -320,11 +320,18 @@ document.addEventListener("DOMContentLoaded", () => {
     loginBox.classList.add(classePulso);
   }
 
-  function definirFeedbackLogin(mensagem = "") {
+  function definirCamposLoginInvalidos(invalidos = []) {
+    const idsInvalidos = new Set(invalidos);
+    campoUsuarioLogin?.setAttribute("aria-invalid", idsInvalidos.has("usuario") ? "true" : "false");
+    campoSenhaLogin?.setAttribute("aria-invalid", idsInvalidos.has("senha") ? "true" : "false");
+  }
+
+  function definirFeedbackLogin(mensagem = "", camposInvalidos = []) {
     if (!feedbackLogin) return;
     const texto = String(mensagem || "").trim();
     feedbackLogin.textContent = texto;
     feedbackLogin.hidden = !texto;
+    definirCamposLoginInvalidos(texto ? camposInvalidos : []);
   }
 
   function definirCarregamentoLogin(carregando) {
@@ -478,12 +485,14 @@ document.addEventListener("DOMContentLoaded", () => {
   campoUsuarioLogin?.addEventListener("input", () => {
     definirEstadoLogin("usuario");
     definirFeedbackLogin();
+    campoUsuarioLogin.setAttribute("aria-invalid", "false");
   });
   campoUsuarioLogin?.addEventListener("blur", atualizarEstadoCamposLogin);
   campoSenhaLogin?.addEventListener("focus", () => definirEstadoLogin(campoSenhaLogin.type === "text" ? "visivel" : "senha"));
   campoSenhaLogin?.addEventListener("input", () => {
     definirEstadoLogin(campoSenhaLogin.type === "text" ? "visivel" : "senha");
     definirFeedbackLogin();
+    campoSenhaLogin.setAttribute("aria-invalid", "false");
   });
   campoSenhaLogin?.addEventListener("blur", atualizarEstadoCamposLogin);
 
@@ -510,7 +519,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!usuario || !senha) {
         definirEstadoLogin("erro", "login-erro");
-        definirFeedbackLogin(!usuario && !senha ? "Informe usuário e senha para entrar." : !usuario ? "Informe seu usuário para entrar." : "Informe sua senha para entrar.");
+        const camposInvalidos = !usuario && !senha ? ["usuario", "senha"] : !usuario ? ["usuario"] : ["senha"];
+        definirFeedbackLogin(!usuario && !senha ? "Informe usuário e senha para entrar." : !usuario ? "Informe seu usuário para entrar." : "Informe sua senha para entrar.", camposInvalidos);
         (!usuario ? campoUsuarioLogin : campoSenhaLogin)?.focus();
         setTimeout(atualizarEstadoCamposLogin, 900);
         return;
@@ -529,7 +539,7 @@ document.addEventListener("DOMContentLoaded", () => {
           alternarTelas(true);
         } else {
           definirEstadoLogin("erro", "login-erro");
-          definirFeedbackLogin(mensagemErroLogin(res, d));
+          definirFeedbackLogin(mensagemErroLogin(res, d), ["usuario", "senha"]);
           campoSenhaLogin?.focus();
           setTimeout(atualizarEstadoCamposLogin, 900);
         }
