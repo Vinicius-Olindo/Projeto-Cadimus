@@ -76,7 +76,8 @@
 .dashboard-card-editavel {
   position: relative;
   cursor: grab;
-  margin-top: 18px;
+  margin-top: 6px;
+  padding-top: max(var(--card-padding-top, 0px), 44px);
   outline: 1px dashed color-mix(in srgb, var(--cor-marca) 38%, transparent);
   outline-offset: 4px;
   box-shadow: 0 8px 22px color-mix(in srgb, var(--cor-marca) 8%, transparent);
@@ -85,11 +86,11 @@
 .dashboard-card-editavel::before {
   content: "⋮⋮";
   position: absolute;
-  top: -18px;
-  right: 82px;
-  z-index: 2;
+  top: 10px;
+  right: 86px;
+  z-index: 5;
   width: 28px;
-  height: 26px;
+  height: 28px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -106,9 +107,9 @@
 
 .dashboard-layout-card-acoes {
   position: absolute;
-  top: -18px;
-  right: 10px;
-  z-index: 3;
+  top: 10px;
+  right: 12px;
+  z-index: 6;
   display: inline-flex;
   align-items: center;
   gap: 4px;
@@ -117,6 +118,13 @@
   background: color-mix(in srgb, var(--cor-fundo-card) 86%, transparent);
   border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent);
   box-shadow: 0 4px 12px color-mix(in srgb, var(--cor-texto) 7%, transparent);
+}
+
+.dashboard-card-editavel .comparativo-periodo-header,
+.dashboard-card-editavel .lancamentos-cabecalho,
+.dashboard-card-editavel > h3,
+.dashboard-card-editavel > h4 {
+  padding-right: 126px;
 }
 
 .dashboard-layout-modo-ativo #btn-novo-gasto,
@@ -153,6 +161,28 @@
 .dashboard-layout-card-acoes button:disabled {
   opacity: 0.32;
   cursor: not-allowed;
+}
+
+@media (max-width: 640px) {
+  .dashboard-card-editavel {
+    padding-top: max(var(--card-padding-top, 0px), 52px);
+  }
+
+  .dashboard-card-editavel::before {
+    top: 12px;
+    right: 92px;
+  }
+
+  .dashboard-layout-card-acoes {
+    top: 12px;
+  }
+
+  .dashboard-card-editavel .comparativo-periodo-header,
+  .dashboard-card-editavel .lancamentos-cabecalho,
+  .dashboard-card-editavel > h3,
+  .dashboard-card-editavel > h4 {
+    padding-right: 0;
+  }
 }
 
 .dashboard-card-editavel.arrastando {
