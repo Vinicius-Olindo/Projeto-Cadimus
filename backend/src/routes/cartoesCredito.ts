@@ -60,7 +60,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
     let query = `SELECT c.*,
       (SELECT COUNT(*) FROM lancamentos lp
        INNER JOIN compras_parceladas cp ON cp.id = lp.compra_parcelada_id
-       WHERE cp.cartao_credito_id = c.id
+       WHERE COALESCE(lp.cartao_credito_id, cp.cartao_credito_id) = c.id
          AND cp.ativo = 1
          AND lp.tipo = 'despesa'
          AND lp.status != 'pago') as parcelas_ativas,
@@ -68,7 +68,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
         COALESCE((SELECT SUM(COALESCE(lp.valor_centavos, ROUND(lp.valor * 100)))
           FROM lancamentos lp
           INNER JOIN compras_parceladas cp ON cp.id = lp.compra_parcelada_id
-          WHERE cp.cartao_credito_id = c.id
+          WHERE COALESCE(lp.cartao_credito_id, cp.cartao_credito_id) = c.id
             AND cp.ativo = 1
             AND lp.tipo = 'despesa'
             AND lp.status != 'pago'), 0)
@@ -76,7 +76,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
         COALESCE((SELECT SUM(COALESCE(lf.valor_centavos, ROUND(lf.valor * 100)))
           FROM lancamentos lf
           INNER JOIN despesas_fixas df ON df.id = lf.despesa_fixa_id
-          WHERE df.cartao_credito_id = c.id
+          WHERE COALESCE(lf.cartao_credito_id, df.cartao_credito_id) = c.id
             AND df.ativo = 1
             AND lf.tipo = 'despesa'
             AND lf.status != 'pago'
@@ -95,7 +95,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
         COALESCE((SELECT SUM(COALESCE(lp.valor_centavos, ROUND(lp.valor * 100)))
           FROM lancamentos lp
           INNER JOIN compras_parceladas cp ON cp.id = lp.compra_parcelada_id
-          WHERE cp.cartao_credito_id = c.id
+          WHERE COALESCE(lp.cartao_credito_id, cp.cartao_credito_id) = c.id
             AND cp.ativo = 1
             AND lp.tipo = 'despesa'
             AND lp.status != 'pago'), 0)
@@ -103,7 +103,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
         COALESCE((SELECT SUM(COALESCE(lf.valor_centavos, ROUND(lf.valor * 100)))
           FROM lancamentos lf
           INNER JOIN despesas_fixas df ON df.id = lf.despesa_fixa_id
-          WHERE df.cartao_credito_id = c.id
+          WHERE COALESCE(lf.cartao_credito_id, df.cartao_credito_id) = c.id
             AND df.ativo = 1
             AND lf.tipo = 'despesa'
             AND lf.status != 'pago'

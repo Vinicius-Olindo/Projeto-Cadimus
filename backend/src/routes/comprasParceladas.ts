@@ -49,6 +49,11 @@ function normalizarDiaVencimentoSeguro(valor: number | string | null | undefined
   return Number.isInteger(dia) && dia >= 1 && dia <= 28 ? dia : null;
 }
 
+function normalizarDiaVencimentoCartao(valor: number | string | null | undefined): number | null {
+  const dia = Number(valor);
+  return Number.isInteger(dia) && dia >= 1 && dia <= 31 ? dia : null;
+}
+
 export async function processarComprasParceladas(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -174,7 +179,7 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
         }
         cartaoCreditoId = cartaoValido;
         const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all<CartaoVencimentoRow>();
-        diaVencimento = normalizarDiaVencimentoSeguro(cartao[0]?.dia_vencimento);
+        diaVencimento = normalizarDiaVencimentoCartao(cartao[0]?.dia_vencimento);
         if (diaVencimento === null) {
           return erroCliente("O cartão selecionado não possui vencimento válido.", 400, "cartao_vencimento_invalido");
         }
@@ -298,7 +303,7 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
           }
           cartaoCreditoId = cartaoValido;
           const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all<CartaoVencimentoRow>();
-          const diaCartao = normalizarDiaVencimentoSeguro(cartao[0]?.dia_vencimento);
+          const diaCartao = normalizarDiaVencimentoCartao(cartao[0]?.dia_vencimento);
           if (diaCartao === null) {
             return erroCliente("O cartão selecionado não possui vencimento válido.", 400, "cartao_vencimento_invalido");
           }

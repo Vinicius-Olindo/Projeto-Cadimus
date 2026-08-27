@@ -213,7 +213,7 @@ test("compra parcelada com cartão usa vencimento do cartão selecionado", async
     {
       type: "all",
       match: "SELECT dia_vencimento FROM cartoes_credito WHERE id = ?",
-      reply: () => [{ dia_vencimento: 18 }],
+      reply: () => [{ dia_vencimento: 31 }],
     },
     {
       type: "run",
@@ -248,7 +248,7 @@ test("compra parcelada com cartão usa vencimento do cartão selecionado", async
   );
 
   assert.equal(res.status, 201);
-  assert.equal(insertCompra.args[8], 18);
+  assert.equal(insertCompra.args[8], 31);
   assert.equal(insertCompra.args[13], 55);
 });
 
@@ -352,7 +352,7 @@ test("despesa fixa com cartão usa vencimento do cartão selecionado", async () 
     {
       type: "all",
       match: "SELECT dia_vencimento FROM cartoes_credito WHERE id = ?",
-      reply: () => [{ dia_vencimento: 12 }],
+      reply: () => [{ dia_vencimento: 30 }],
     },
     {
       type: "run",
@@ -380,7 +380,7 @@ test("despesa fixa com cartão usa vencimento do cartão selecionado", async () 
   );
 
   assert.equal(res.status, 201);
-  assert.equal(insertFixa.args[7], 12);
+  assert.equal(insertFixa.args[7], 30);
   assert.equal(insertFixa.args[9], 55);
 });
 
@@ -1254,6 +1254,8 @@ test("listagem de cartoes considera apenas despesas em aberto no limite usado", 
   assert.match(consultaCartoes.sql, /lp\.status != 'pago'/);
   assert.match(consultaCartoes.sql, /lf\.status != 'pago'/);
   assert.match(consultaCartoes.sql, /l\.status != 'pago'/);
+  assert.match(consultaCartoes.sql, /COALESCE\(lp\.cartao_credito_id, cp\.cartao_credito_id\) = c\.id/);
+  assert.match(consultaCartoes.sql, /COALESCE\(lf\.cartao_credito_id, df\.cartao_credito_id\) = c\.id/);
   assert.match(consultaCartoes.sql, /INNER JOIN despesas_fixas df ON df\.id = lf\.despesa_fixa_id/);
 });
 

@@ -129,6 +129,7 @@ async function carregarLancamentos() {
       carregarComparacaoMesAnterior(0);
       carregarTendencia();
       carregarComparativo6Meses();
+      carregarCartoesCredito();
       document.getElementById("card-poupanca").style.display = "none";
       document.getElementById("card-guarda").style.display = "none";
       return;
