@@ -26,6 +26,7 @@
     "src/utils/respostas.ts",
     "src/utils/sessao.ts",
     "src/routes/cartoesCredito.ts",
+    "src/routes/carteiras.ts",
     "src/routes/categorias.ts",
     "src/routes/comprasParceladas.ts",
     "src/routes/despesasFixas.ts",

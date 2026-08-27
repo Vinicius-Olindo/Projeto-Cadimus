@@ -221,7 +221,7 @@ export async function processarUsuarios(request, env, ctx) {
       // Toda conta nova já nasce com sua própria carteira pessoal — sem isso
       // o usuário fica sem nenhum lugar pra lançar nada. Quem cria carteiras
       // compartilhadas continua sendo decisão manual, feita depois pelo próprio
-      // usuário (ver carteiras.js).
+      // usuário (ver carteiras.ts).
       try {
         const nomeCarteira = `Pessoal - ${cadastrais.nome}`.slice(0, 40);
         const resultadoCarteira = await env.DB.prepare(`INSERT INTO carteiras (nome, tipo) VALUES (?, 'individual')`).bind(nomeCarteira).run();

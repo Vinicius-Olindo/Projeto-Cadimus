@@ -1,27 +1,77 @@
 // ==========================================
-// carteiras.js - Listagem e criação de carteiras (contas)
+// carteiras.ts - Listagem e criação de carteiras (contas)
 // ==========================================
+import type { CadimusEnv, Carteira, PapelCarteira, TipoCarteira, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { registrarAuditoria } from "../utils/auditoria.ts";
+import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
+
+interface UsuarioIdRow {
+  id: number;
+}
+
+interface ColegaRow {
+  id: number;
+  nome?: string | null;
+  nome_usuario: string;
+}
+
+interface AcessoCarteiraRow {
+  papel: PapelCarteira;
+}
+
+interface MembroCarteiraRow {
+  id: number;
+  nome?: string | null;
+  nome_usuario: string;
+  papel: PapelCarteira;
+}
+
+interface CriarCarteiraPayload {
+  nome?: string;
+  tipo?: TipoCarteira | string;
+  membros?: unknown;
+}
+
+interface AtualizarMembrosPayload {
+  membros?: unknown;
+}
+
+interface ReordenarPayload {
+  ordem?: unknown;
+}
+
+interface CarteiraTipoRow {
+  id: number;
+  tipo: TipoCarteira;
+}
+
+interface UsuarioCarteiraRow {
+  usuario_id: number;
+}
+
+interface TotalCarteirasRow {
+  total: number;
+}
 
 // Filtra e confirma no banco quais ids recebidos são de usuários que existem
 // de verdade (usado tanto na criação quanto na edição de membros).
-async function idsValidosDeUsuarios(env, idsRecebidos) {
+async function idsValidosDeUsuarios(env: CadimusEnv, idsRecebidos: number[]): Promise<number[]> {
   if (idsRecebidos.length === 0) return [];
   const placeholders = idsRecebidos.map(() => "?").join(", ");
   const { results } = await env.DB.prepare(`SELECT id FROM usuarios WHERE id IN (${placeholders})`)
     .bind(...idsRecebidos)
-    .all();
+    .all<UsuarioIdRow>();
   return results.map((u) => u.id);
 }
 
-export async function processarCarteiras(request, env, ctx) {
+export async function processarCarteiras(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
 
   const usuarioLogado = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuarioLogado) {
-    return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
+    return erroCliente("Não autenticado.", 401, "nao_autenticado");
   }
 
   // ==========================================
@@ -36,8 +86,8 @@ export async function processarCarteiras(request, env, ctx) {
       if (url.searchParams.get("colegas") === "1") {
         const { results } = await env.DB.prepare(`SELECT id, nome, nome_usuario FROM usuarios WHERE id != ? ORDER BY nome ASC`)
           .bind(usuarioLogado.id)
-          .all();
-        return new Response(JSON.stringify(results), { status: 200 });
+          .all<ColegaRow>();
+        return json(results);
       }
 
       // Membros atuais de uma carteira específica — só quem já tem acesso a
@@ -46,9 +96,9 @@ export async function processarCarteiras(request, env, ctx) {
       if (carteiraMembrosId) {
         const { results: acesso } = await env.DB.prepare(`SELECT papel FROM usuarios_carteiras WHERE usuario_id = ? AND carteira_id = ?`)
           .bind(usuarioLogado.id, carteiraMembrosId)
-          .all();
+          .all<AcessoCarteiraRow>();
         if (acesso.length === 0) {
-          return new Response(JSON.stringify({ erro: "Você não tem acesso a essa carteira." }), { status: 403 });
+          return erroCliente("Você não tem acesso a essa carteira.", 403, "carteira_acesso_negado");
         }
 
         const { results } = await env.DB.prepare(
@@ -56,11 +106,11 @@ export async function processarCarteiras(request, env, ctx) {
            FROM usuarios_carteiras uc
            JOIN usuarios u ON u.id = uc.usuario_id
            WHERE uc.carteira_id = ?
-           ORDER BY uc.papel ASC, u.nome ASC`,
+          ORDER BY uc.papel ASC, u.nome ASC`,
         )
           .bind(carteiraMembrosId)
-          .all();
-        return new Response(JSON.stringify({ souAdmin: acesso[0].papel === "admin", membros: results }), { status: 200 });
+          .all<MembroCarteiraRow>();
+        return json({ souAdmin: acesso[0].papel === "admin", membros: results });
       }
 
       const query = `
@@ -70,10 +120,10 @@ export async function processarCarteiras(request, env, ctx) {
         WHERE uc.usuario_id = ?
         ORDER BY uc.ordem ASC, c.tipo ASC, c.nome ASC
       `;
-      const { results } = await env.DB.prepare(query).bind(usuarioLogado.id).all();
-      return new Response(JSON.stringify(results), { status: 200 });
+      const { results } = await env.DB.prepare(query).bind(usuarioLogado.id).all<Carteira>();
+      return json(results);
     } catch (erro) {
-      return new Response(JSON.stringify({ erro: "Erro ao buscar carteiras." }), { status: 500 });
+      return erroInterno(erro, "carteiras.listar", "Não foi possível carregar as carteiras agora.", "carteiras_listar_falhou");
     }
   }
 
@@ -82,29 +132,32 @@ export async function processarCarteiras(request, env, ctx) {
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json();
+      const dados = await request.json() as CriarCarteiraPayload;
       const nome = (dados.nome || "").trim();
-      const tipo = dados.tipo === "compartilhada" ? "compartilhada" : "individual";
+      const tipo: TipoCarteira = dados.tipo === "compartilhada" ? "compartilhada" : "individual";
 
       if (!nome) {
-        return new Response(JSON.stringify({ erro: "Informe um nome para a carteira." }), { status: 400 });
+        return erroCliente("Informe um nome para a carteira.", 400, "nome_obrigatorio");
       }
       if (nome.length > 40) {
-        return new Response(JSON.stringify({ erro: "Nome muito longo (máx. 40 caracteres)." }), { status: 400 });
+        return erroCliente("Nome muito longo (máx. 40 caracteres).", 400, "nome_muito_longo");
       }
 
       // Carteira compartilhada: quem cria escolhe explicitamente com quem
       // compartilhar (não é mais "todo mundo do sistema" automaticamente —
       // isso deixaria de fazer sentido assim que existirem contas que não
       // são da mesma casa). Dá pra ajustar depois em "Gerenciar membros".
-      let membrosValidos = [];
+      let membrosValidos: number[] = [];
       if (tipo === "compartilhada") {
         const idsRecebidos = Array.isArray(dados.membros) ? dados.membros.map(Number).filter((id) => Number.isInteger(id) && id !== usuarioLogado.id) : [];
         membrosValidos = await idsValidosDeUsuarios(env, idsRecebidos);
       }
 
       const resultadoCarteira = await env.DB.prepare(`INSERT INTO carteiras (nome, tipo) VALUES (?, ?)`).bind(nome, tipo).run();
-      const novaCarteiraId = resultadoCarteira.meta.last_row_id;
+      const novaCarteiraId = resultadoCarteira.meta?.last_row_id;
+      if (!novaCarteiraId) {
+        return erroInterno(new Error("last_row_id ausente ao criar carteira"), "carteiras.criar", "Carteira criada, mas não foi possível finalizar a configuração agora.", "carteira_id_ausente");
+      }
 
       // Quem criou sempre vira admin da carteira
       await env.DB.prepare(`INSERT INTO usuarios_carteiras (usuario_id, carteira_id, papel) VALUES (?, ?, 'admin')`).bind(usuarioLogado.id, novaCarteiraId).run();
@@ -125,10 +178,9 @@ export async function processarCarteiras(request, env, ctx) {
         },
       });
 
-      return new Response(JSON.stringify({ id: novaCarteiraId, nome, tipo }), { status: 201 });
+      return json({ id: novaCarteiraId, nome, tipo }, 201);
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao criar carteira." }), { status: 500 });
+      return erroInterno(erro, "carteiras.criar", "Não foi possível criar esta carteira agora.", "carteira_criar_falhou");
     }
   }
 
@@ -139,33 +191,33 @@ export async function processarCarteiras(request, env, ctx) {
     try {
       const carteiraId = url.searchParams.get("id");
       if (!carteiraId) {
-        return new Response(JSON.stringify({ erro: "ID da carteira não fornecido." }), { status: 400 });
+        return erroCliente("ID da carteira não fornecido.", 400, "carteira_id_obrigatorio");
       }
 
-      const { results: carteira } = await env.DB.prepare(`SELECT id, tipo FROM carteiras WHERE id = ?`).bind(carteiraId).all();
+      const { results: carteira } = await env.DB.prepare(`SELECT id, tipo FROM carteiras WHERE id = ?`).bind(carteiraId).all<CarteiraTipoRow>();
       if (carteira.length === 0) {
-        return new Response(JSON.stringify({ erro: "Carteira não encontrada." }), { status: 404 });
+        return erroCliente("Carteira não encontrada.", 404, "carteira_nao_encontrada");
       }
       if (carteira[0].tipo !== "compartilhada") {
-        return new Response(JSON.stringify({ erro: "Só é possível gerenciar membros de uma carteira compartilhada." }), { status: 400 });
+        return erroCliente("Só é possível gerenciar membros de uma carteira compartilhada.", 400, "carteira_nao_compartilhada");
       }
 
       // Só quem é admin dessa carteira específica pode mexer em quem tem acesso
       const { results: acesso } = await env.DB.prepare(`SELECT papel FROM usuarios_carteiras WHERE usuario_id = ? AND carteira_id = ?`)
         .bind(usuarioLogado.id, carteiraId)
-        .all();
+        .all<AcessoCarteiraRow>();
       if (acesso.length === 0 || acesso[0].papel !== "admin") {
-        return new Response(JSON.stringify({ erro: "Só um administrador desta carteira pode gerenciar os membros." }), { status: 403 });
+        return erroCliente("Só um administrador desta carteira pode gerenciar os membros.", 403, "carteira_admin_obrigatorio");
       }
 
-      const dados = await request.json();
+      const dados = await request.json() as AtualizarMembrosPayload;
       const idsRecebidos = Array.isArray(dados.membros) ? dados.membros.map(Number).filter((id) => Number.isInteger(id) && id !== usuarioLogado.id) : [];
       const membrosDesejados = await idsValidosDeUsuarios(env, idsRecebidos);
 
       // Nunca mexe nos admins por aqui — só na lista de "membro" comum
       const { results: atuais } = await env.DB.prepare(`SELECT usuario_id FROM usuarios_carteiras WHERE carteira_id = ? AND papel = 'membro'`)
         .bind(carteiraId)
-        .all();
+        .all<UsuarioCarteiraRow>();
       const atuaisIds = atuais.map((m) => m.usuario_id);
 
       const paraRemover = atuaisIds.filter((id) => !membrosDesejados.includes(id));
@@ -190,10 +242,9 @@ export async function processarCarteiras(request, env, ctx) {
         },
       });
 
-      return new Response(JSON.stringify({ mensagem: "Membros atualizados com sucesso!" }), { status: 200 });
+      return json({ mensagem: "Membros atualizados com sucesso!" });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao atualizar membros." }), { status: 500 });
+      return erroInterno(erro, "carteiras.membros", "Não foi possível atualizar os membros agora.", "carteira_membros_falhou");
     }
   }
 
@@ -202,10 +253,10 @@ export async function processarCarteiras(request, env, ctx) {
   // ==========================================
   if (metodo === "PATCH") {
     try {
-      const dados = await request.json();
+      const dados = await request.json() as ReordenarPayload;
       const ordemRecebida = Array.isArray(dados.ordem) ? dados.ordem.map(Number).filter((id) => Number.isInteger(id)) : [];
       if (ordemRecebida.length === 0) {
-        return new Response(JSON.stringify({ erro: "Ordem inválida." }), { status: 400 });
+        return erroCliente("Ordem inválida.", 400, "ordem_invalida");
       }
 
       for (let indice = 0; indice < ordemRecebida.length; indice++) {
@@ -214,10 +265,9 @@ export async function processarCarteiras(request, env, ctx) {
           .run();
       }
 
-      return new Response(JSON.stringify({ mensagem: "Ordem salva." }), { status: 200 });
+      return json({ mensagem: "Ordem salva." });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao salvar ordem." }), { status: 500 });
+      return erroInterno(erro, "carteiras.reordenar", "Não foi possível salvar a ordem das carteiras agora.", "carteira_ordem_falhou");
     }
   }
 
@@ -228,21 +278,21 @@ export async function processarCarteiras(request, env, ctx) {
     try {
       const carteiraId = url.searchParams.get("id");
       if (!carteiraId) {
-        return new Response(JSON.stringify({ erro: "ID da carteira não fornecido." }), { status: 400 });
+        return erroCliente("ID da carteira não fornecido.", 400, "carteira_id_obrigatorio");
       }
 
       const { results: acesso } = await env.DB.prepare(`SELECT papel FROM usuarios_carteiras WHERE usuario_id = ? AND carteira_id = ?`)
         .bind(usuarioLogado.id, carteiraId)
-        .all();
+        .all<AcessoCarteiraRow>();
       if (acesso.length === 0 || acesso[0].papel !== "admin") {
-        return new Response(JSON.stringify({ erro: "Só um administrador desta carteira pode excluí-la." }), { status: 403 });
+        return erroCliente("Só um administrador desta carteira pode excluí-la.", 403, "carteira_admin_obrigatorio");
       }
 
       const { results: totalCarteiras } = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios_carteiras WHERE usuario_id = ?`)
         .bind(usuarioLogado.id)
-        .all();
+        .all<TotalCarteirasRow>();
       if (totalCarteiras[0].total <= 1) {
-        return new Response(JSON.stringify({ erro: "Você precisa ter pelo menos uma carteira." }), { status: 400 });
+        return erroCliente("Você precisa ter pelo menos uma carteira.", 400, "ultima_carteira_bloqueada");
       }
 
       // Limpa tudo que referencia essa carteira antes de excluí-la
@@ -265,12 +315,11 @@ export async function processarCarteiras(request, env, ctx) {
       await env.DB.prepare(`DELETE FROM usuarios_carteiras WHERE carteira_id = ?`).bind(carteiraId).run();
       await env.DB.prepare(`DELETE FROM carteiras WHERE id = ?`).bind(carteiraId).run();
 
-      return new Response(JSON.stringify({ mensagem: "Carteira excluída." }), { status: 200 });
+      return json({ mensagem: "Carteira excluída." });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao excluir carteira." }), { status: 500 });
+      return erroInterno(erro, "carteiras.excluir", "Não foi possível excluir esta carteira agora.", "carteira_excluir_falhou");
     }
   }
 
-  return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
+  return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
 }

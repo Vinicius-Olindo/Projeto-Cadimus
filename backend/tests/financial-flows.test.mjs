@@ -7,7 +7,7 @@ import { gerarLancamentosRecorrentesDoMes } from "../src/utils/lancamentosRecorr
 import { processarLancamentos } from "../src/routes/lancamentos.ts";
 import { processarOrcamentos } from "../src/routes/orcamentos.ts";
 import { processarTransferencias } from "../src/routes/transferencias.ts";
-import { processarCarteiras } from "../src/routes/carteiras.js";
+import { processarCarteiras } from "../src/routes/carteiras.ts";
 import { processarPlanos, processarPlanoDepositos } from "../src/routes/planos.js";
 import { processarMetas, processarMetaDepositos } from "../src/routes/metas.ts";
 import { processarCartoesCredito } from "../src/routes/cartoesCredito.ts";
