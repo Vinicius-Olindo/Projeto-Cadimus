@@ -31,8 +31,8 @@ interface RecorrenciaPayload {
   categoria?: string;
   meio_pagamento?: MeioPagamento | string;
   frequencia?: FrequenciaRecorrencia | string;
-  dia_semana?: number;
-  dia_mes?: number;
+  dia_semana?: number | string;
+  dia_mes?: number | string;
   data_inicio?: string;
   data_fim?: string | null;
   ativo?: boolean | number;
@@ -42,8 +42,26 @@ interface RecorrenciaCarteiraRow {
   carteira_id: number;
 }
 
+type FrequenciaComDiaMes = Extract<FrequenciaRecorrencia, "mensal" | "trimestral" | "anual">;
+
+const FREQUENCIAS_COM_DIA_MES: readonly FrequenciaComDiaMes[] = ["mensal", "trimestral", "anual"];
+
 function json<T>(dados: T, status = 200): Response {
   return new Response(JSON.stringify(dados), { status });
+}
+
+function frequenciaUsaDiaMes(frequencia: FrequenciaRecorrencia): frequencia is FrequenciaComDiaMes {
+  return FREQUENCIAS_COM_DIA_MES.includes(frequencia as FrequenciaComDiaMes);
+}
+
+function normalizarDiaSemana(valor: number | string | null | undefined): number | null {
+  const numero = Number(valor);
+  return Number.isInteger(numero) && numero >= 0 && numero <= 6 ? numero : null;
+}
+
+function normalizarDiaMesSeguro(valor: number | string | null | undefined): number | null {
+  const numero = Number(valor);
+  return Number.isInteger(numero) && numero >= 1 && numero <= 28 ? numero : null;
 }
 
 export async function processarLancamentosRecorrentes(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
@@ -120,8 +138,8 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
       const tipo = ehBonificacao ? "receita" : dados.tipo === "receita" ? "receita" : "despesa";
       const frequencia = normalizarFrequenciaRecorrencia(dados.frequencia);
       const dataInicio = dados.data_inicio;
-      const diaSemana = typeof dados.dia_semana === "number" ? dados.dia_semana : Number(dados.dia_semana ?? 0);
-      const diaMes = typeof dados.dia_mes === "number" ? dados.dia_mes : Number(dados.dia_mes ?? 1);
+      const diaSemana = normalizarDiaSemana(dados.dia_semana ?? 0);
+      const diaMes = normalizarDiaMesSeguro(dados.dia_mes ?? 1);
 
       if (!descricao) {
         return erroCliente("Informe uma descrição.", 400, "descricao_obrigatoria");
@@ -146,10 +164,10 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
         return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
       }
 
-      if (frequencia === "semanal" && (diaSemana < 0 || diaSemana > 6)) {
+      if (frequencia === "semanal" && diaSemana === null) {
         return erroCliente("Dia da semana inválido.", 400, "dia_semana_invalido");
       }
-      if (["mensal", "trimestral", "anual"].includes(frequencia) && (diaMes < 1 || diaMes > 28)) {
+      if (frequenciaUsaDiaMes(frequencia) && diaMes === null) {
         return erroCliente("Dia do mês inválido (1-28).", 400, "dia_mes_invalido");
       }
 
@@ -157,7 +175,7 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
         carteiraIdNormalizada, descricao, valor, tipo, categoria, meioPagamento,
         frequencia,
         frequencia === "semanal" ? diaSemana : null,
-        ["mensal", "trimestral", "anual"].includes(frequencia) ? diaMes : null,
+        frequenciaUsaDiaMes(frequencia) ? diaMes : null,
         dataInicio,
         dados.data_fim || null,
         usuarioLogado.id,
@@ -174,7 +192,7 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
             carteiraIdNormalizada, descricao, valor, valorCentavos, tipo, categoria, meioPagamento,
             frequencia,
             frequencia === "semanal" ? diaSemana : null,
-            ["mensal", "trimestral", "anual"].includes(frequencia) ? diaMes : null,
+            frequenciaUsaDiaMes(frequencia) ? diaMes : null,
             dataInicio,
             dados.data_fim || null,
             usuarioLogado.id,
@@ -254,8 +272,22 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
         campos.push("frequencia = ?");
         valores.push(frequencia);
       }
-      if (dados.dia_semana !== undefined) { campos.push("dia_semana = ?"); valores.push(dados.dia_semana); }
-      if (dados.dia_mes !== undefined) { campos.push("dia_mes = ?"); valores.push(dados.dia_mes); }
+      if (dados.dia_semana !== undefined) {
+        const diaSemana = normalizarDiaSemana(dados.dia_semana);
+        if (diaSemana === null) {
+          return erroCliente("Dia da semana inválido.", 400, "dia_semana_invalido");
+        }
+        campos.push("dia_semana = ?");
+        valores.push(diaSemana);
+      }
+      if (dados.dia_mes !== undefined) {
+        const diaMes = normalizarDiaMesSeguro(dados.dia_mes);
+        if (diaMes === null) {
+          return erroCliente("Dia do mês inválido (1-28).", 400, "dia_mes_invalido");
+        }
+        campos.push("dia_mes = ?");
+        valores.push(diaMes);
+      }
       if (dados.data_inicio !== undefined) { campos.push("data_inicio = ?"); valores.push(dados.data_inicio); }
       if (dados.data_fim !== undefined) { campos.push("data_fim = ?"); valores.push(dados.data_fim); }
       if (dados.ativo !== undefined) { campos.push("ativo = ?"); valores.push(dados.ativo ? 1 : 0); }

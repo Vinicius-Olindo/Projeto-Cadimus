@@ -3,7 +3,7 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 import { isBandeiraCartao, normalizarId } from "../domain.ts";
-import type { BandeiraCartao, CadimusEnv, SqlParam, WorkerCtx } from "../types.js";
+import type { BandeiraCartao, CadimusEnv, CartaoCredito, IdEntrada, SqlParam, WorkerCtx } from "../types.js";
 
 interface CartaoCreditoPayload {
   nome?: string;
@@ -13,11 +13,21 @@ interface CartaoCreditoPayload {
   dia_vencimento?: number | string;
   limite?: number | string | null;
   limite_centavos?: number | string | null;
-  carteira_id?: number | string;
+  carteira_id?: IdEntrada;
 }
 
 interface CartaoCreditoAlvoRow {
   carteira_id: number;
+}
+
+interface CartaoCreditoResumoRow extends CartaoCredito {
+  parcelas_ativas: number;
+  gasto_atual: number;
+  gasto_atual_centavos: number;
+}
+
+function diaCartaoValido(valor: number): boolean {
+  return Number.isInteger(valor) && valor >= 1 && valor <= 31;
 }
 
 export async function processarCartoesCredito(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
@@ -123,7 +133,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
     query += ` ORDER BY c.nome`;
 
     try {
-      const { results } = await env.DB.prepare(query).bind(...params).all();
+      const { results } = await env.DB.prepare(query).bind(...params).all<CartaoCreditoResumoRow>();
       return json(results);
     } catch (erro) {
       return erroInterno(erro, "cartoesCredito.listar", "Não foi possível carregar os cartões agora.", "cartoes_listar_falhou");
@@ -141,7 +151,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
     const carteiraIdNormalizada = normalizarId(carteira_id);
     const bandeiraNormalizada = bandeira ? String(bandeira).toLowerCase() : "outro";
 
-    if (!nome || !diaFechamento || !diaVencimento || !carteiraIdNormalizada) {
+    if (!nome || !carteiraIdNormalizada) {
       return erroCliente("Nome, dia de fechamento, dia de vencimento e carteira são obrigatórios.", 400, "cartao_campos_obrigatorios");
     }
 
@@ -149,7 +159,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
       return erroCliente("Bandeira de cartão inválida.", 400, "cartao_bandeira_invalida");
     }
 
-    if (diaFechamento < 1 || diaFechamento > 31 || diaVencimento < 1 || diaVencimento > 31) {
+    if (!diaCartaoValido(diaFechamento) || !diaCartaoValido(diaVencimento)) {
       return erroCliente("Dias devem estar entre 1 e 31.", 400, "cartao_dias_invalidos");
     }
 
@@ -206,6 +216,9 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
       if (["nome", "bandeira", "ultimos4", "dia_fechamento", "dia_vencimento"].includes(chave)) {
         if (chave === "bandeira" && valor && !isBandeiraCartao(String(valor).toLowerCase())) {
           return erroCliente("Bandeira de cartão inválida.", 400, "cartao_bandeira_invalida");
+        }
+        if ((chave === "dia_fechamento" || chave === "dia_vencimento") && !diaCartaoValido(Number(valor))) {
+          return erroCliente("Dias devem estar entre 1 e 31.", 400, "cartao_dias_invalidos");
         }
         campos.push(`${chave} = ?`);
         params.push(chave === "bandeira" && valor ? String(valor).toLowerCase() : valor);
