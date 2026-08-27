@@ -4,7 +4,7 @@ export type CampoOpcional<T> = T | null | undefined;
 export type SqlParam = string | number | boolean | null | undefined;
 export type AtivoBanco = 0 | 1 | boolean;
 
-export interface D1Result<T = any> {
+export interface D1Result<T = unknown> {
   results: T[];
   success?: boolean;
   meta?: {
@@ -16,9 +16,9 @@ export interface D1Result<T = any> {
 
 export interface D1PreparedStatement {
   bind(...values: unknown[]): D1PreparedStatement;
-  all<T = any>(): Promise<D1Result<T>>;
-  run<T = any>(): Promise<D1Result<T>>;
-  first<T = any>(): Promise<T | null>;
+  all<T = unknown>(): Promise<D1Result<T>>;
+  run<T = unknown>(): Promise<D1Result<T>>;
+  first<T = unknown>(): Promise<T | null>;
 }
 
 export interface D1DatabaseBinding {
