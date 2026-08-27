@@ -1,20 +1,50 @@
 // ==========================================
-// comprasParceladas.js (rota) - Gestão das compras parceladas
+// comprasParceladas.ts (rota) - Gestão das compras parceladas
 // ==========================================
+import type { CadimusEnv, CompraParcelada, IdEntrada, MeioPagamento, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { normalizarId, normalizarMeioPagamento } from "../domain.ts";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.ts";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
+import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
-/**
- * @param {Request} request
- * @param {import("../types.js").CadimusEnv} env
- * @param {import("../types.js").WorkerCtx} ctx
- */
-export async function processarComprasParceladas(request, env, ctx) {
+interface CompraParceladaPayload {
+  carteira_id?: IdEntrada;
+  descricao?: string;
+  valor_total?: ValorMonetarioEntrada;
+  valor_total_centavos?: ValorMonetarioEntrada;
+  valor_parcela?: ValorMonetarioEntrada;
+  valor_parcela_centavos?: ValorMonetarioEntrada;
+  categoria?: string;
+  meio_pagamento?: MeioPagamento | string;
+  dia_vencimento?: number | string;
+  total_parcelas?: number | string;
+  ano_inicio?: number | string;
+  mes_inicio?: number | string;
+  ativo?: boolean | number;
+  cartao_credito_id?: IdEntrada | null;
+}
+
+interface CompraParceladaAlvoRow {
+  carteira_id: number;
+  meio_pagamento: MeioPagamento;
+}
+
+interface CompraParceladaCarteiraRow {
+  carteira_id: number;
+}
+
+interface CartaoVencimentoRow {
+  dia_vencimento: number | string | null;
+}
+
+interface CompraParceladaCartaoRow {
+  cartao_credito_id?: number | null;
+}
+
+export async function processarComprasParceladas(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
 
@@ -41,7 +71,7 @@ export async function processarComprasParceladas(request, env, ctx) {
       }
 
       let query = `SELECT * FROM compras_parceladas WHERE 1=1`;
-      let params = /** @type {import("../types.js").SqlParam[]} */ ([]);
+      const params: SqlParam[] = [];
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
@@ -55,7 +85,7 @@ export async function processarComprasParceladas(request, env, ctx) {
 
       const { results } = await env.DB.prepare(query)
         .bind(...params)
-        .all();
+        .all<CompraParcelada>();
       return json(results);
     } catch (erro) {
       return erroInterno(erro, "comprasParceladas.listar", "Não foi possível carregar as compras parceladas agora.", "parceladas_listar_falhou");
@@ -67,7 +97,7 @@ export async function processarComprasParceladas(request, env, ctx) {
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json();
+      const dados = await request.json() as CompraParceladaPayload;
       const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
       if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
@@ -75,10 +105,10 @@ export async function processarComprasParceladas(request, env, ctx) {
       }
 
       const descricao = (dados.descricao || "").trim();
-      let diaVencimento = parseInt(dados.dia_vencimento, 10);
-      const totalParcelas = parseInt(dados.total_parcelas, 10);
-      const anoInicio = parseInt(dados.ano_inicio, 10);
-      const mesInicio = parseInt(dados.mes_inicio, 10);
+      let diaVencimento = Number(dados.dia_vencimento);
+      const totalParcelas = Number(dados.total_parcelas);
+      const anoInicio = Number(dados.ano_inicio);
+      const mesInicio = Number(dados.mes_inicio);
       if (
         dados.valor_total === undefined &&
         dados.valor_total_centavos === undefined &&
@@ -104,7 +134,7 @@ export async function processarComprasParceladas(request, env, ctx) {
         return erroCliente("Informe o mês da primeira parcela.", 400, "periodo_inicio_invalido");
       }
 
-      let valorTotalCentavos;
+      let valorTotalCentavos: number;
       try {
         valorTotalCentavos = dados.valor_total !== undefined || dados.valor_total_centavos !== undefined
           ? normalizarCentavos(dados.valor_total, dados.valor_total_centavos)
@@ -134,14 +164,14 @@ export async function processarComprasParceladas(request, env, ctx) {
       if (!meioPagamento) {
         return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
       }
-      let cartaoCreditoId = null;
+      let cartaoCreditoId: number | null = null;
       if (meioPagamento === "credito" && dados.cartao_credito_id) {
         const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, carteiraIdNormalizada);
         if (cartaoValido === false) {
           return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
         }
         cartaoCreditoId = cartaoValido;
-        const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all();
+        const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all<CartaoVencimentoRow>();
         diaVencimento = Math.min(Math.max(Number(cartao[0]?.dia_vencimento || diaVencimento), 1), 28);
       }
 
@@ -178,7 +208,7 @@ export async function processarComprasParceladas(request, env, ctx) {
         return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, meio_pagamento FROM compras_parceladas WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, meio_pagamento FROM compras_parceladas WHERE id = ?`).bind(id).all<CompraParceladaAlvoRow>();
       if (alvo.length === 0) {
         return erroCliente("Compra parcelada não encontrada.", 404, "parcelada_nao_encontrada");
       }
@@ -186,16 +216,16 @@ export async function processarComprasParceladas(request, env, ctx) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const dados = await request.json();
-      const campos = [];
-      const valores = [];
+      const dados = await request.json() as CompraParceladaPayload;
+      const campos: string[] = [];
+      const valores: SqlParam[] = [];
 
       if (dados.descricao !== undefined) {
         campos.push("descricao = ?");
         valores.push(String(dados.descricao).trim());
       }
       if (dados.valor_parcela !== undefined || dados.valor_parcela_centavos !== undefined) {
-        let valorParcelaCentavos;
+        let valorParcelaCentavos: number;
         try {
           valorParcelaCentavos = normalizarCentavos(dados.valor_parcela, dados.valor_parcela_centavos);
         } catch {
@@ -211,7 +241,7 @@ export async function processarComprasParceladas(request, env, ctx) {
         valores.push(valorParcelaCentavos);
       }
       if (dados.valor_total !== undefined || dados.valor_total_centavos !== undefined) {
-        let valorTotalCentavos;
+        let valorTotalCentavos: number;
         try {
           valorTotalCentavos = normalizarCentavos(dados.valor_total, dados.valor_total_centavos);
         } catch {
@@ -238,7 +268,7 @@ export async function processarComprasParceladas(request, env, ctx) {
         valores.push(meioPagamento);
       }
       if (dados.dia_vencimento !== undefined) {
-        const dia = parseInt(dados.dia_vencimento, 10);
+        const dia = Number(dados.dia_vencimento);
         if (!Number.isInteger(dia) || dia < 1 || dia > 28) {
           return erroCliente("Escolha um dia de vencimento entre 1 e 28.", 400, "dia_vencimento_invalido");
         }
@@ -251,14 +281,14 @@ export async function processarComprasParceladas(request, env, ctx) {
       }
       if (dados.cartao_credito_id !== undefined || dados.meio_pagamento !== undefined) {
         const meioPagamento = dados.meio_pagamento ?? alvo[0].meio_pagamento;
-        let cartaoCreditoId = null;
+        let cartaoCreditoId: number | null = null;
         if (String(meioPagamento).toLowerCase() === "credito" && dados.cartao_credito_id) {
           const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, alvo[0].carteira_id);
           if (cartaoValido === false) {
             return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
           }
           cartaoCreditoId = cartaoValido;
-          const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all();
+          const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all<CartaoVencimentoRow>();
           const diaCartao = Math.min(Math.max(Number(cartao[0]?.dia_vencimento || 1), 1), 28);
           const indiceDia = campos.indexOf("dia_vencimento = ?");
           if (indiceDia >= 0) valores[indiceDia] = diaCartao;
@@ -281,7 +311,7 @@ export async function processarComprasParceladas(request, env, ctx) {
         .run();
 
       if (campos.some((campo) => campo.startsWith("cartao_credito_id")) || dados.meio_pagamento !== undefined) {
-        const { results: atualizada } = await env.DB.prepare(`SELECT cartao_credito_id FROM compras_parceladas WHERE id = ?`).bind(id).all();
+        const { results: atualizada } = await env.DB.prepare(`SELECT cartao_credito_id FROM compras_parceladas WHERE id = ?`).bind(id).all<CompraParceladaCartaoRow>();
         await env.DB.prepare(`UPDATE lancamentos SET cartao_credito_id = ? WHERE compra_parcelada_id = ?`)
           .bind(atualizada[0]?.cartao_credito_id || null, id)
           .run();
@@ -303,7 +333,7 @@ export async function processarComprasParceladas(request, env, ctx) {
         return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM compras_parceladas WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM compras_parceladas WHERE id = ?`).bind(id).all<CompraParceladaCarteiraRow>();
       if (alvo.length === 0) {
         return erroCliente("Compra parcelada não encontrada.", 404, "parcelada_nao_encontrada");
       }

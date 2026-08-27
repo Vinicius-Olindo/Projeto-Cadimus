@@ -9,7 +9,7 @@ import { processarCarteiras } from "./routes/carteiras.js";
 import { processarDespesasFixas } from "./routes/despesasFixas.ts";
 import { processarMetas, processarMetaDepositos } from "./routes/metas.js";
 import { processarPlanos, processarPlanoDepositos } from "./routes/planos.js";
-import { processarComprasParceladas } from "./routes/comprasParceladas.js";
+import { processarComprasParceladas } from "./routes/comprasParceladas.ts";
 import { processarLancamentosRecorrentes } from "./routes/lancamentosRecorrentes.ts";
 import { processarConvites } from "./routes/convites.js";
 import { processarTransferencias } from "./routes/transferencias.js";
