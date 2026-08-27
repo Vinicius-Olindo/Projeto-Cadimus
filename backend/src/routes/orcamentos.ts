@@ -5,7 +5,7 @@ import type { CadimusEnv, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
-import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
+import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 import { normalizarId, normalizarMesReferencia } from "../domain.ts";
 
 interface OrcamentoPayload {
@@ -183,7 +183,7 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
 
       return json({ mensagem: "Orçamento salvo com sucesso!" }, 201);
     } catch (erro) {
-      return erroInterno(erro, "orcamentos.salvar", "Não foi possível salvar este orçamento agora.", "orcamento_salvar_falhou");
+      return erroFinanceiro(erro, "orcamentos.salvar", "Não foi possível salvar este orçamento agora.", "orcamento_salvar_falhou");
     }
   }
 
@@ -220,7 +220,7 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
 
       return json({ mensagem: "Orçamento apagado." });
     } catch (erro) {
-      return erroInterno(erro, "orcamentos.excluir", "Não foi possível apagar este orçamento agora.", "orcamento_excluir_falhou");
+      return erroFinanceiro(erro, "orcamentos.excluir", "Não foi possível apagar este orçamento agora.", "orcamento_excluir_falhou");
     }
   }
 

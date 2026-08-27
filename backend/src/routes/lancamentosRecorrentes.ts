@@ -20,7 +20,7 @@ import {
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
-import { erroCliente, erroInterno } from "../utils/respostas.ts";
+import { erroCliente, erroFinanceiro, erroInterno } from "../utils/respostas.ts";
 
 interface RecorrenciaPayload {
   carteira_id?: IdEntrada;
@@ -218,7 +218,7 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
 
       return json({ id: resultado.meta?.last_row_id ?? null, mensagem: "Recorrência criada!" }, 201);
     } catch (erro) {
-      return erroInterno(erro, "recorrencias.criar", "Não foi possível criar esta recorrência agora.", "recorrencia_criar_falhou");
+      return erroFinanceiro(erro, "recorrencias.criar", "Não foi possível criar esta recorrência agora.", "recorrencia_criar_falhou");
     }
   }
 
@@ -313,7 +313,7 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
 
       return json({ mensagem: "Atualizado." });
     } catch (erro) {
-      return erroInterno(erro, "recorrencias.atualizar", "Não foi possível atualizar esta recorrência agora.", "recorrencia_atualizar_falhou");
+      return erroFinanceiro(erro, "recorrencias.atualizar", "Não foi possível atualizar esta recorrência agora.", "recorrencia_atualizar_falhou");
     }
   }
 
@@ -340,7 +340,7 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
 
       return json({ mensagem: "Recorrência excluída." });
     } catch (erro) {
-      return erroInterno(erro, "recorrencias.excluir", "Não foi possível excluir esta recorrência agora.", "recorrencia_excluir_falhou");
+      return erroFinanceiro(erro, "recorrencias.excluir", "Não foi possível excluir esta recorrência agora.", "recorrencia_excluir_falhou");
     }
   }
 

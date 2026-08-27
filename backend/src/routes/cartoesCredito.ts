@@ -1,7 +1,7 @@
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
-import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
+import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 import { isBandeiraCartao, normalizarId } from "../domain.ts";
 import type { BandeiraCartao, CadimusEnv, CartaoCredito, IdEntrada, SqlParam, WorkerCtx } from "../types.js";
 
@@ -189,9 +189,9 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
       ).run();
 
       if (success) return json({ ok: true }, 201);
-      return erroInterno(new Error("D1 retornou success=false ao criar cartão"), "cartoesCredito.criar", "Não foi possível criar este cartão agora.", "cartao_criar_falhou");
+      return erroFinanceiro(new Error("D1 retornou success=false ao criar cartão"), "cartoesCredito.criar", "Não foi possível criar este cartão agora.", "cartao_criar_falhou");
     } catch (erro) {
-      return erroInterno(erro, "cartoesCredito.criar", "Não foi possível criar este cartão agora.", "cartao_criar_falhou");
+      return erroFinanceiro(erro, "cartoesCredito.criar", "Não foi possível criar este cartão agora.", "cartao_criar_falhou");
     }
   }
 
@@ -251,7 +251,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
         `UPDATE cartoes_credito SET ${campos.join(", ")} WHERE id = ?`
       ).bind(...params).run();
     } catch (erro) {
-      return erroInterno(erro, "cartoesCredito.atualizar", "Não foi possível atualizar este cartão agora.", "cartao_atualizar_falhou");
+      return erroFinanceiro(erro, "cartoesCredito.atualizar", "Não foi possível atualizar este cartão agora.", "cartao_atualizar_falhou");
     }
 
     return json({ ok: true });
@@ -278,7 +278,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
         `UPDATE cartoes_credito SET ativo = 0 WHERE id = ?`
       ).bind(id).run();
     } catch (erro) {
-      return erroInterno(erro, "cartoesCredito.excluir", "Não foi possível excluir este cartão agora.", "cartao_excluir_falhou");
+      return erroFinanceiro(erro, "cartoesCredito.excluir", "Não foi possível excluir este cartão agora.", "cartao_excluir_falhou");
     }
 
     return json({ ok: true });

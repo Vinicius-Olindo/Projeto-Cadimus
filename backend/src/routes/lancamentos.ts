@@ -18,7 +18,7 @@ import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrente
 import { registrarAuditoria } from "../utils/auditoria.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
-import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
+import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface LancamentoPayload {
   carteira_id?: IdEntrada;
@@ -352,7 +352,7 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
 
       return json({ mensagem: "Salvo com sucesso!" }, 201);
     } catch (erro) {
-      return erroInterno(erro, "lancamentos.criar", "Não foi possível salvar este lançamento agora.", "lancamento_salvar_falhou");
+      return erroFinanceiro(erro, "lancamentos.criar", "Não foi possível salvar este lançamento agora.", "lancamento_salvar_falhou");
     }
   }
 
@@ -476,7 +476,7 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
 
       return json({ mensagem: "Atualizado com sucesso." });
     } catch (erro) {
-      return erroInterno(erro, "lancamentos.atualizar", "Não foi possível atualizar este lançamento agora.", "lancamento_atualizar_falhou");
+      return erroFinanceiro(erro, "lancamentos.atualizar", "Não foi possível atualizar este lançamento agora.", "lancamento_atualizar_falhou");
     }
   }
 
@@ -516,7 +516,7 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
 
       return json({ mensagem: "Lançamento apagado." });
     } catch (erro) {
-      return erroInterno(erro, "lancamentos.excluir", "Não foi possível apagar este lançamento agora.", "lancamento_excluir_falhou");
+      return erroFinanceiro(erro, "lancamentos.excluir", "Não foi possível apagar este lançamento agora.", "lancamento_excluir_falhou");
     }
   }
 
@@ -606,7 +606,7 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
 
       return json({ mensagem: `${atualizados} lançamento(s) atualizado(s).` });
     } catch (erro) {
-      return erroInterno(erro, "lancamentos.lote", "Não foi possível atualizar os lançamentos selecionados agora.", "lancamentos_lote_falhou");
+      return erroFinanceiro(erro, "lancamentos.lote", "Não foi possível atualizar os lançamentos selecionados agora.", "lancamentos_lote_falhou");
     }
   }
 

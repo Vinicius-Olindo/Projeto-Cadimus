@@ -8,7 +8,7 @@ import { normalizarId, normalizarMeioPagamento } from "../domain.ts";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
-import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
+import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface CompraParceladaPayload {
   carteira_id?: IdEntrada;
@@ -206,7 +206,7 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
 
       return json({ id: compraParceladaId, mensagem: "Compra parcelada cadastrada!" }, 201);
     } catch (erro) {
-      return erroInterno(erro, "comprasParceladas.criar", "Não foi possível cadastrar a compra parcelada agora.", "parcelada_criar_falhou");
+      return erroFinanceiro(erro, "comprasParceladas.criar", "Não foi possível cadastrar a compra parcelada agora.", "parcelada_criar_falhou");
     }
   }
 
@@ -336,7 +336,7 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
 
       return json({ mensagem: "Atualizado com sucesso." });
     } catch (erro) {
-      return erroInterno(erro, "comprasParceladas.atualizar", "Não foi possível atualizar esta compra parcelada agora.", "parcelada_atualizar_falhou");
+      return erroFinanceiro(erro, "comprasParceladas.atualizar", "Não foi possível atualizar esta compra parcelada agora.", "parcelada_atualizar_falhou");
     }
   }
 
@@ -365,7 +365,7 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
 
       return json({ mensagem: "Compra parcelada excluída." });
     } catch (erro) {
-      return erroInterno(erro, "comprasParceladas.excluir", "Não foi possível excluir esta compra parcelada agora.", "parcelada_excluir_falhou");
+      return erroFinanceiro(erro, "comprasParceladas.excluir", "Não foi possível excluir esta compra parcelada agora.", "parcelada_excluir_falhou");
     }
   }
 

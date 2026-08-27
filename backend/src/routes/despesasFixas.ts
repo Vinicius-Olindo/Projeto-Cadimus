@@ -15,7 +15,7 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { isTipoLancamento, normalizarId, normalizarMeioPagamento, normalizarTipoLancamento } from "../domain.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
-import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
+import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface DespesaFixaPayload {
   carteira_id?: IdEntrada;
@@ -169,7 +169,7 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
 
       return json({ id: resultado.meta?.last_row_id ?? null, mensagem: "Despesa fixa cadastrada!" }, 201);
     } catch (erro) {
-      return erroInterno(erro, "despesasFixas.criar", "Não foi possível cadastrar esta despesa fixa agora.", "fixa_criar_falhou");
+      return erroFinanceiro(erro, "despesasFixas.criar", "Não foi possível cadastrar esta despesa fixa agora.", "fixa_criar_falhou");
     }
   }
 
@@ -298,7 +298,7 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
 
       return json({ mensagem: "Atualizado com sucesso." });
     } catch (erro) {
-      return erroInterno(erro, "despesasFixas.atualizar", "Não foi possível atualizar esta despesa fixa agora.", "fixa_atualizar_falhou");
+      return erroFinanceiro(erro, "despesasFixas.atualizar", "Não foi possível atualizar esta despesa fixa agora.", "fixa_atualizar_falhou");
     }
   }
 
@@ -328,7 +328,7 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
 
       return json({ mensagem: "Despesa fixa excluída." });
     } catch (erro) {
-      return erroInterno(erro, "despesasFixas.excluir", "Não foi possível excluir esta despesa fixa agora.", "fixa_excluir_falhou");
+      return erroFinanceiro(erro, "despesasFixas.excluir", "Não foi possível excluir esta despesa fixa agora.", "fixa_excluir_falhou");
     }
   }
 
