@@ -1,6 +1,7 @@
 // ==========================================
-// lancamentos.js - Lógica de Despesas e Receitas
+// lancamentos.ts - Lógica de Despesas e Receitas
 // ==========================================
+import type { CadimusEnv, IdEntrada, Lancamento, MeioPagamento, SqlParam, StatusLancamento, TipoLancamento, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import {
@@ -15,22 +16,56 @@ import { gerarLancamentosFixosDoMes } from "../utils/despesasFixas.ts";
 import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.ts";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.ts";
 import { registrarAuditoria } from "../utils/auditoria.ts";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
+import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
-/** @param {unknown} valor */
-function dataISOValida(valor) {
+interface LancamentoPayload {
+  carteira_id?: IdEntrada;
+  descricao?: string;
+  valor?: ValorMonetarioEntrada;
+  valor_centavos?: ValorMonetarioEntrada;
+  data_compra?: string;
+  tipo?: TipoLancamento | string;
+  categoria?: string;
+  meio_pagamento?: MeioPagamento | string;
+  status?: StatusLancamento | string;
+  nota?: string | null;
+  cartao_credito_id?: IdEntrada | null;
+}
+
+interface LancamentoAlvoRow {
+  carteira_id: number;
+  criado_por: number;
+  tipo: TipoLancamento;
+  meio_pagamento: MeioPagamento;
+}
+
+interface LancamentoPermissaoRow {
+  id: number;
+  criado_por: number;
+  carteira_id: number;
+}
+
+interface CarteiraTipoRow {
+  tipo: string;
+}
+
+interface CarteiraIdRow {
+  id: number | string;
+}
+
+interface LoteLancamentoPayload {
+  ids?: IdEntrada[];
+  status?: StatusLancamento | string;
+  categoria?: string;
+}
+
+function dataISOValida(valor: unknown): valor is string {
   return typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor);
 }
 
-/**
- * @param {import("../types.js").CadimusEnv} env
- * @param {number[]} carteirasAlvo
- * @param {string} dataInicio
- * @param {string} dataFim
- */
-async function gerarLancamentosDoPeriodo(env, carteirasAlvo, dataInicio, dataFim) {
+async function gerarLancamentosDoPeriodo(env: CadimusEnv, carteirasAlvo: number[], dataInicio: string, dataFim: string): Promise<void> {
   if (!dataISOValida(dataInicio) || !dataISOValida(dataFim)) return;
 
   const inicio = new Date(`${dataInicio}T12:00:00`);
@@ -52,21 +87,12 @@ async function gerarLancamentosDoPeriodo(env, carteirasAlvo, dataInicio, dataFim
   }
 }
 
-/**
- * @param {import("../types.js").CadimusEnv} env
- * @param {number} carteiraId
- */
-async function carteiraEhCompartilhada(env, carteiraId) {
-  const { results } = await env.DB.prepare(`SELECT tipo FROM carteiras WHERE id = ?`).bind(carteiraId).all();
+async function carteiraEhCompartilhada(env: CadimusEnv, carteiraId: number): Promise<boolean> {
+  const { results } = await env.DB.prepare(`SELECT tipo FROM carteiras WHERE id = ?`).bind(carteiraId).all<CarteiraTipoRow>();
   return results[0]?.tipo === "compartilhada";
 }
 
-/**
- * @param {import("../types.js").CadimusEnv} env
- * @param {Array<number|string>} carteiraIds
- * @returns {Promise<Set<number>>}
- */
-async function obterCarteirasCompartilhadas(env, carteiraIds) {
+async function obterCarteirasCompartilhadas(env: CadimusEnv, carteiraIds: Array<number | string>): Promise<Set<number>> {
   const idsUnicos = [...new Set(carteiraIds.map((id) => Number(id)).filter((id) => Number.isInteger(id) && id > 0))];
   if (idsUnicos.length === 0) return new Set();
 
@@ -74,17 +100,12 @@ async function obterCarteirasCompartilhadas(env, carteiraIds) {
     `SELECT id FROM carteiras WHERE tipo = 'compartilhada' AND id IN (${idsUnicos.map(() => "?").join(",")})`,
   )
     .bind(...idsUnicos)
-    .all();
+    .all<CarteiraIdRow>();
 
-  return new Set(/** @type {{ id: number|string }[]} */ (results).map((carteira) => Number(carteira.id)));
+  return new Set(results.map((carteira) => Number(carteira.id)));
 }
 
-/**
- * @param {Request} request
- * @param {import("../types.js").CadimusEnv} env
- * @param {import("../types.js").WorkerCtx} ctx
- */
-export async function processarLancamentos(request, env, ctx) {
+export async function processarLancamentos(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
 
@@ -147,7 +168,7 @@ export async function processarLancamentos(request, env, ctx) {
         JOIN usuarios u ON u.id = l.criado_por
         WHERE 1=1
       `;
-      let params = /** @type {import("../types.js").SqlParam[]} */ ([]);
+      const params: SqlParam[] = [];
 
       if (carteiraId) {
         query += ` AND l.carteira_id = ?`;
@@ -213,7 +234,7 @@ export async function processarLancamentos(request, env, ctx) {
 
       const { results } = await env.DB.prepare(query)
         .bind(...params)
-        .all();
+        .all<Lancamento>();
       return json(results);
     } catch (erro) {
       return erroInterno(erro, "lancamentos.listar", "Não foi possível carregar os lançamentos agora.", "lancamentos_listar_falhou");
@@ -225,7 +246,7 @@ export async function processarLancamentos(request, env, ctx) {
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json();
+      const dados = await request.json() as LancamentoPayload;
       const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
       if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
@@ -275,7 +296,7 @@ export async function processarLancamentos(request, env, ctx) {
         }
       }
 
-      let valorCentavos;
+      let valorCentavos: number;
       try {
         valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
       } catch {
@@ -285,7 +306,7 @@ export async function processarLancamentos(request, env, ctx) {
         return erroCliente("Informe um valor maior que zero.", 400, "valor_invalido");
       }
       const valor = centavosParaReais(valorCentavos);
-      let cartaoCreditoId = null;
+      let cartaoCreditoId: number | null = null;
       if (deveVincularCartaoCredito({ ...dados, tipo: tipoNormalizado, meio_pagamento: meioPagamentoNormalizado }) && dados.cartao_credito_id) {
         const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, carteiraIdNormalizada);
         if (cartaoValido === false) {
@@ -345,7 +366,7 @@ export async function processarLancamentos(request, env, ctx) {
         return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, criado_por, tipo, meio_pagamento FROM lancamentos WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id, criado_por, tipo, meio_pagamento FROM lancamentos WHERE id = ?`).bind(id).all<LancamentoAlvoRow>();
       if (alvo.length === 0) {
         return erroCliente("Lançamento não encontrado.", 404, "lancamento_nao_encontrado");
       }
@@ -353,7 +374,7 @@ export async function processarLancamentos(request, env, ctx) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const dados = await request.json();
+      const dados = await request.json() as LancamentoPayload;
       const camposPermitidos = ["descricao", "valor", "valor_centavos", "data_compra", "tipo", "categoria", "meio_pagamento", "status", "nota", "cartao_credito_id"];
       const camposEnviados = Object.keys(dados).filter((campo) => camposPermitidos.includes(campo));
 
@@ -368,8 +389,8 @@ export async function processarLancamentos(request, env, ctx) {
         return erroCliente("Só quem lançou (ou um administrador) pode editar os detalhes deste registro.", 403, "lancamento_edicao_negada");
       }
 
-      const campos = [];
-      const valores = [];
+      const campos: string[] = [];
+      const valores: SqlParam[] = [];
 
       if (dados.valor !== undefined || dados.valor_centavos !== undefined) {
         const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
@@ -385,7 +406,7 @@ export async function processarLancamentos(request, env, ctx) {
           meio_pagamento: dados.meio_pagamento ?? alvo[0].meio_pagamento,
           cartao_credito_id: dados.cartao_credito_id,
         };
-        let cartaoCreditoId = null;
+        let cartaoCreditoId: number | null = null;
         if (deveVincularCartaoCredito(dadosCartao) && dados.cartao_credito_id) {
           const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, alvo[0].carteira_id);
           if (cartaoValido === false) {
@@ -422,7 +443,7 @@ export async function processarLancamentos(request, env, ctx) {
         if (campo === "tipo") valores.push(normalizarTipoLancamento(dados[campo]));
         else if (campo === "status") valores.push(normalizarStatusLancamento(dados[campo]));
         else if (campo === "meio_pagamento") valores.push(normalizarMeioPagamento(dados[campo]));
-        else valores.push(dados[campo]);
+        else valores.push(dados[campo as keyof LancamentoPayload] as SqlParam);
       }
 
       if (campos.length === 0) {
@@ -462,7 +483,7 @@ export async function processarLancamentos(request, env, ctx) {
         return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const { results } = await env.DB.prepare(`SELECT carteira_id, criado_por FROM lancamentos WHERE id = ?`).bind(idParaApagar).all();
+      const { results } = await env.DB.prepare(`SELECT carteira_id, criado_por FROM lancamentos WHERE id = ?`).bind(idParaApagar).all<LancamentoPermissaoRow>();
 
       if (results.length === 0) {
         return erroCliente("Lançamento não encontrado.", 404, "lancamento_nao_encontrado");
@@ -496,7 +517,7 @@ export async function processarLancamentos(request, env, ctx) {
   // ==========================================
   if (metodo === "PATCH") {
     try {
-      const dados = await request.json();
+      const dados = await request.json() as LoteLancamentoPayload;
       const { ids, status, categoria } = dados;
 
       if (!ids || !Array.isArray(ids) || ids.length === 0) {
@@ -525,25 +546,25 @@ export async function processarLancamentos(request, env, ctx) {
       const placeholders = ids.map(() => "?").join(",");
       const { results: alvos } = await env.DB.prepare(
         `SELECT id, criado_por, carteira_id FROM lancamentos WHERE id IN (${placeholders})`
-      ).bind(...ids).all();
+      ).bind(...ids).all<LancamentoPermissaoRow>();
 
       const carteirasCompartilhadas = await obterCarteirasCompartilhadas(env, alvos.map((a) => a.carteira_id));
-      const semPermissao = /** @type {any[]} */ (alvos).filter(
+      const semPermissao = alvos.filter(
         (a) => !carteirasCompartilhadas.has(Number(a.carteira_id)) && a.criado_por !== usuarioLogado.id && usuarioLogado.perfil !== "superadmin"
       );
       if (semPermissao.length > 0) {
         return erroCliente("Sem permissão para editar alguns lançamentos.", 403, "lote_edicao_negada");
       }
 
-      const foraDaCarteira = /** @type {any[]} */ (alvos).filter((a) => !carteirasPermitidas.includes(a.carteira_id));
+      const foraDaCarteira = alvos.filter((a) => !carteirasPermitidas.includes(a.carteira_id));
       if (foraDaCarteira.length > 0) {
         return erroCliente("Acesso negado a alguns lançamentos.", 403, "lote_acesso_negado");
       }
 
       let atualizados = 0;
       for (const id of ids) {
-        const campos = [];
-        const valores = [];
+        const campos: string[] = [];
+        const valores: SqlParam[] = [];
 
         if (status) {
           campos.push("status = ?");

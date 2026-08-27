@@ -4,7 +4,7 @@ import assert from "node:assert/strict";
 import { calcularValorParcelaCentavos, gerarTodasParcelasDaCompra } from "../src/utils/comprasParceladas.ts";
 import { gerarLancamentosFixosDoMes } from "../src/utils/despesasFixas.ts";
 import { gerarLancamentosRecorrentesDoMes } from "../src/utils/lancamentosRecorrentes.ts";
-import { processarLancamentos } from "../src/routes/lancamentos.js";
+import { processarLancamentos } from "../src/routes/lancamentos.ts";
 import { processarOrcamentos } from "../src/routes/orcamentos.ts";
 import { processarTransferencias } from "../src/routes/transferencias.js";
 import { processarCarteiras } from "../src/routes/carteiras.js";

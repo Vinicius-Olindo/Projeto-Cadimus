@@ -2,7 +2,7 @@
 // index.js - O Porteiro da API (Cloudflare Worker)
 // ==========================================
 import { processarLogin } from "./routes/auth.js";
-import { processarLancamentos } from "./routes/lancamentos.js";
+import { processarLancamentos } from "./routes/lancamentos.ts";
 import { processarUsuarios } from "./routes/usuarios.js";
 import { processarCategorias } from "./routes/categorias.ts";
 import { processarCarteiras } from "./routes/carteiras.js";
