@@ -2,7 +2,7 @@
 name = "cadimus-backend"
 
 # Onde o Worker começa a rodar
-main = "src/index.js"
+main = "src/index.ts"
 
 # Data de compatibilidade (mantém o seu Worker usando a versão mais estável da infraestrutura)
 compatibility_date = "2024-03-20"

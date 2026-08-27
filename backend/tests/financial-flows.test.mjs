@@ -13,7 +13,7 @@ import { processarMetas, processarMetaDepositos } from "../src/routes/metas.ts";
 import { processarCartoesCredito } from "../src/routes/cartoesCredito.ts";
 import { processarComprasParceladas } from "../src/routes/comprasParceladas.ts";
 import { processarLancamentosRecorrentes } from "../src/routes/lancamentosRecorrentes.ts";
-import worker from "../src/index.js";
+import worker from "../src/index.ts";
 
 class FakeD1 {
   constructor(handlers = []) {

@@ -1,6 +1,8 @@
 // ==========================================
-// index.js - O Porteiro da API (Cloudflare Worker)
+// index.ts - O Porteiro da API (Cloudflare Worker)
 // ==========================================
+import type { CadimusEnv, WorkerCtx } from "./types.js";
+
 import { processarLogin } from "./routes/auth.ts";
 import { processarLancamentos } from "./routes/lancamentos.ts";
 import { processarUsuarios } from "./routes/usuarios.ts";
@@ -26,16 +28,20 @@ import { processarNotificacoes } from "./routes/notificacoes.ts";
 // Se a variável não estiver definida (ex.: ambiente local sem .dev.vars),
 // cai para "*" para não quebrar o desenvolvimento.
 // ==========================================
-function resolverOrigemPermitida(request, frontendUrl) {
+function resolverOrigemPermitida(request: Request, frontendUrl: string): string {
   if (!frontendUrl || frontendUrl === "*") return "*";
   const permitidas = frontendUrl.split(",").map((u) => u.trim());
   const origem = request.headers.get("Origin") || "";
   return permitidas.includes(origem) ? origem : permitidas[0];
 }
 
-function comCors(resposta, frontendUrl, request) {
+function comCors(resposta: Response, frontendUrl: string, request: Request): Response {
   const origem = resolverOrigemPermitida(request, frontendUrl);
-  const nova = new Response(resposta.body, resposta);
+  const nova = new Response(resposta.body, {
+    status: resposta.status,
+    statusText: resposta.statusText,
+    headers: resposta.headers,
+  });
   nova.headers.set("Access-Control-Allow-Origin", origem);
   nova.headers.set("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS");
   nova.headers.set("Access-Control-Allow-Headers", "Content-Type, Authorization");
@@ -44,7 +50,7 @@ function comCors(resposta, frontendUrl, request) {
 }
 
 export default {
-  async fetch(request, env, ctx) {
+  async fetch(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
     const frontendUrl = env.FRONTEND_URL || "*";
 
     // Preflight CORS — responde antes de qualquer lógica de rota
