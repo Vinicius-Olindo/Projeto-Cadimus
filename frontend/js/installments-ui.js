@@ -198,12 +198,20 @@ async function carregarPainelComprasParceladas() {
   const card = document.getElementById("card-compras-parceladas");
   const container = document.getElementById("lista-compras-parceladas-painel");
   const carteiraId = document.getElementById("seletor-carteira").value;
-  if (!card || !container || !carteiraId) return;
+  comprasParceladasCarregadas = [];
+  if (!card || !container || !carteiraId) {
+    if (card) card.style.display = "none";
+    return;
+  }
 
   try {
     const resposta = await CadimusScheduledApi.listarParceladas({ carteira_id: carteiraId });
     if (tratarSessaoExpirada(resposta)) return;
-    if (!resposta.ok) return;
+    if (!resposta.ok) {
+      comprasParceladasCarregadas = [];
+      card.style.display = "none";
+      return;
+    }
 
     comprasParceladasCarregadas = await resposta.json();
 
@@ -264,6 +272,8 @@ async function carregarPainelComprasParceladas() {
     });
   } catch (erro) {
     console.error("Erro ao carregar compras parceladas:", erro);
+    comprasParceladasCarregadas = [];
+    card.style.display = "none";
   }
 
   atualizarBadgeNotificacoes();

@@ -110,12 +110,20 @@ async function carregarPainelBonificacoes(lancamentosDoPeriodo = ultimoLoteLanca
   const card = document.getElementById("card-bonificacoes");
   const container = document.getElementById("lista-bonificacoes-painel");
   const carteiraId = document.getElementById("seletor-carteira")?.value;
-  if (!card || !container || !carteiraId) return;
+  bonificacoesCarregadas = [];
+  if (!card || !container || !carteiraId) {
+    if (card) card.style.display = "none";
+    return;
+  }
 
   try {
     const resposta = await CadimusScheduledApi.listarRecorrentes({ carteira_id: carteiraId });
     if (tratarSessaoExpirada(resposta)) return;
-    if (!resposta.ok) return;
+    if (!resposta.ok) {
+      bonificacoesCarregadas = [];
+      card.style.display = "none";
+      return;
+    }
 
     bonificacoesCarregadas = (await resposta.json()).filter(ehBonificacaoRecorrente);
 
@@ -176,6 +184,8 @@ async function carregarPainelBonificacoes(lancamentosDoPeriodo = ultimoLoteLanca
     });
   } catch (erro) {
     console.error("Erro ao carregar bonificações:", erro);
+    bonificacoesCarregadas = [];
+    card.style.display = "none";
   }
 }
 

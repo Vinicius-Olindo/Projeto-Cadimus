@@ -168,12 +168,20 @@ async function carregarPainelDespesasFixas() {
   const card = document.getElementById("card-despesas-fixas");
   const container = document.getElementById("lista-despesas-fixas-painel");
   const carteiraId = document.getElementById("seletor-carteira").value;
-  if (!card || !container || !carteiraId) return;
+  despesasFixasCarregadas = [];
+  if (!card || !container || !carteiraId) {
+    if (card) card.style.display = "none";
+    return;
+  }
 
   try {
     const resposta = await CadimusScheduledApi.listarFixas({ carteira_id: carteiraId });
     if (tratarSessaoExpirada(resposta)) return;
-    if (!resposta.ok) return;
+    if (!resposta.ok) {
+      despesasFixasCarregadas = [];
+      card.style.display = "none";
+      return;
+    }
 
     despesasFixasCarregadas = await resposta.json();
 
@@ -228,6 +236,8 @@ async function carregarPainelDespesasFixas() {
     });
   } catch (erro) {
     console.error("Erro ao carregar despesas fixas:", erro);
+    despesasFixasCarregadas = [];
+    card.style.display = "none";
   }
 
   atualizarBadgeNotificacoes();

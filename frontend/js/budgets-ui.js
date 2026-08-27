@@ -12,7 +12,11 @@ async function carregarOrcamentos() {
   const card = document.getElementById("card-orcamentos");
   const container = document.getElementById("lista-orcamentos-painel");
   const carteiraId = document.getElementById("seletor-carteira").value;
-  if (!card || !container || !carteiraId) return;
+  orcamentosCarregados = [];
+  if (!card || !container || !carteiraId) {
+    if (card) card.style.display = "none";
+    return;
+  }
 
   const inputMes = document.getElementById("filtro-mes").value;
   if (!inputMes) {
@@ -27,6 +31,7 @@ async function carregarOrcamentos() {
 
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) {
+      orcamentosCarregados = [];
       card.style.display = "none";
       return;
     }
@@ -92,6 +97,7 @@ async function carregarOrcamentos() {
     });
   } catch (erro) {
     console.error("Erro ao carregar orçamentos:", erro);
+    orcamentosCarregados = [];
     card.style.display = "none";
   }
 }

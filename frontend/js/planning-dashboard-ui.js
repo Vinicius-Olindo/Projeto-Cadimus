@@ -215,6 +215,16 @@ function renderizarIndicadoresPlano(salario) {
 }
 
 // --- ALERTAS ---
+function lancamentoPendenteAtrasadoPlano(lancamento) {
+  if (!lancamento || lancamento.status === "pago") return false;
+  if (lancamento.status === "atrasado") return true;
+  if (!lancamento.data_compra) return false;
+
+  const vencimento = new Date(`${lancamento.data_compra}T23:59:59`);
+  const hoje = new Date();
+  return !Number.isNaN(vencimento.getTime()) && vencimento < hoje;
+}
+
 function renderizarAlertasPlano(salario) {
   const card = document.getElementById("plano-card-alertas");
   const container = document.getElementById("plano-alertas");
@@ -233,7 +243,7 @@ function renderizarAlertasPlano(salario) {
   else if (salario > 0) alertas.push({ tipo: "ok", texto: `Parabéns! Apenas ${pct.toFixed(0)}% da renda está comprometida.` });
 
   if (typeof ultimoLoteLancamentos !== "undefined") {
-    const atrasados = ultimoLoteLancamentos.filter((l) => l.status === "atrasado");
+    const atrasados = ultimoLoteLancamentos.filter(lancamentoPendenteAtrasadoPlano);
     if (atrasados.length > 0) alertas.push({ tipo: "erro", texto: `Você tem ${atrasados.length} conta(s) atrasada(s).` });
   }
 

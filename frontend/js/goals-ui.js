@@ -12,15 +12,20 @@ let metasCarregadas = [];
 
 async function carregarMetas() {
   const carteiraId = document.getElementById("seletor-carteira").value;
+  metasCarregadas = [];
   if (!carteiraId) return;
 
   try {
     const resposta = await CadimusGoalsApi.listarMetas({ carteira_id: carteiraId });
     if (tratarSessaoExpirada(resposta)) return;
-    if (!resposta.ok) return;
+    if (!resposta.ok) {
+      metasCarregadas = [];
+      return;
+    }
     metasCarregadas = await resposta.json();
   } catch (erro) {
     console.error("Erro ao carregar metas:", erro);
+    metasCarregadas = [];
   }
 }
 

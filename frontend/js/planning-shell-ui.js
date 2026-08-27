@@ -55,8 +55,19 @@ function mostrarPlanejamentoCarregando() {
   if (acaoEl) acaoEl.textContent = "Carregando dados";
 }
 
+function limparEstadoPlanejamentoDependencias() {
+  if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas = [];
+  if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas = [];
+  if (typeof bonificacoesCarregadas !== "undefined") bonificacoesCarregadas = [];
+  if (typeof orcamentosCarregados !== "undefined") orcamentosCarregados = [];
+  if (typeof metasCarregadas !== "undefined") metasCarregadas = [];
+  if (typeof planosCarregados !== "undefined") planosCarregados = [];
+}
+
 async function carregarDependenciasPlanejamento() {
   const tarefas = [];
+
+  limparEstadoPlanejamentoDependencias();
 
   if (typeof carregarPainelDespesasFixas === "function") tarefas.push(carregarPainelDespesasFixas());
   if (typeof carregarPainelComprasParceladas === "function") tarefas.push(carregarPainelComprasParceladas());
