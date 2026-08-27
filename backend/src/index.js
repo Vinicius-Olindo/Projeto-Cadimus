@@ -3,7 +3,7 @@
 // ==========================================
 import { processarLogin } from "./routes/auth.ts";
 import { processarLancamentos } from "./routes/lancamentos.ts";
-import { processarUsuarios } from "./routes/usuarios.js";
+import { processarUsuarios } from "./routes/usuarios.ts";
 import { processarCategorias } from "./routes/categorias.ts";
 import { processarCarteiras } from "./routes/carteiras.ts";
 import { processarDespesasFixas } from "./routes/despesasFixas.ts";

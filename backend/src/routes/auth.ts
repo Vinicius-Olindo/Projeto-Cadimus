@@ -193,7 +193,7 @@ export async function processarLogin(request: Request, env: CadimusEnv, ctx: Wor
 
     // Busca o usuário pelo nome_usuario, sem diferenciar maiúsculas/minúsculas — teclados
     // de celular costumam capitalizar a primeira letra sozinhos, e o cadastro/edição de
-    // usuário já trata "Vinicius" e "vinicius" como o mesmo nome (ver usuarios.js)
+    // usuário já trata "Vinicius" e "vinicius" como o mesmo nome (ver usuarios.ts)
     const query = `SELECT id, nome_usuario, perfil, nome, foto_perfil, senha_hash, ativo FROM usuarios WHERE LOWER(nome_usuario) = LOWER(?)`;
     const { results } = await env.DB.prepare(query).bind(usuario).all<UsuarioLoginRow>();
 

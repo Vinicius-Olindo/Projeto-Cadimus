@@ -1,8 +1,10 @@
 // ==========================================
-// usuarios.js - Gestão de Contas e Perfis (somente superadmin)
+// usuarios.ts - Gestão de Contas e Perfis (somente superadmin)
 // ==========================================
+import type { CadimusEnv, PerfilUsuario, SqlParam, UsuarioSessao, WorkerCtx } from "../types.js";
 import { hashSenha } from "../utils/crypto.ts";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
+import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 // Regra simples de formato (não valida se o e-mail existe de verdade — isso
 // só o envio da confirmação/recuperação por e-mail vai garantir, quando essa
@@ -18,8 +20,60 @@ const TAMANHO_MAXIMO_FOTO = 300000;
 // Valida e normaliza os campos cadastrais (nome, telefone, e-mail, foto).
 // Usado tanto na criação quanto na edição. `idAtual` é usado para não
 // barrar o próprio e-mail do usuário quando ele edita outra coisa.
-async function validarDadosCadastrais(dados, env, idAtual = null) {
-  const resultado = {};
+interface UsuarioPayload {
+  usuario?: string;
+  senha?: string;
+  perfil?: PerfilUsuario | string;
+  nome?: string;
+  telefone?: string | number | null;
+  email?: string;
+  foto_perfil?: string | null;
+  salario?: string | number | null;
+}
+
+interface DadosCadastraisValidados {
+  erro?: string;
+  nome?: string;
+  email?: string;
+  telefone?: string | null;
+  foto_perfil?: string | null;
+}
+
+interface IdRow {
+  id: number;
+}
+
+interface UsuarioAlvoRow {
+  id: number;
+  perfil: PerfilUsuario;
+  criado_por?: number | null;
+  ativo?: number | boolean | null;
+}
+
+interface ContagemRow {
+  total: number;
+}
+
+interface UsuarioPerfilRow {
+  id: number;
+  nome_usuario: string;
+  perfil: PerfilUsuario;
+  nome?: string | null;
+  telefone?: string | null;
+  email?: string | null;
+  foto_perfil?: string | null;
+  salario?: number | null;
+  criado_em?: string;
+  ultimo_acesso?: string | null;
+}
+
+interface UsuarioListagemRow extends UsuarioPerfilRow {
+  ativo?: number | boolean | null;
+  criado_por?: number | null;
+}
+
+async function validarDadosCadastrais(dados: UsuarioPayload, env: CadimusEnv, idAtual: number | null = null): Promise<DadosCadastraisValidados> {
+  const resultado: DadosCadastraisValidados = {};
 
   if (dados.nome !== undefined) {
     const nome = String(dados.nome).trim();
@@ -42,7 +96,7 @@ async function validarDadosCadastrais(dados, env, idAtual = null) {
     const binds = idAtual !== null ? [email, idAtual] : [email];
     const { results: duplicado } = await env.DB.prepare(`SELECT id FROM usuarios WHERE LOWER(email) = LOWER(?) ${condicaoId}`)
       .bind(...binds)
-      .all();
+      .all<IdRow>();
     if (duplicado.length > 0) {
       return { erro: "Já existe um usuário cadastrado com esse e-mail." };
     }
@@ -73,22 +127,22 @@ async function validarDadosCadastrais(dados, env, idAtual = null) {
   return resultado;
 }
 
-function ehSuperadminRaiz(usuario) {
+function ehSuperadminRaiz(usuario: Pick<UsuarioSessao, "id">): boolean {
   return Number(usuario.id) === 1;
 }
 
-function podeGerenciarUsuario(usuarioLogado, usuarioAlvo) {
+function podeGerenciarUsuario(usuarioLogado: UsuarioSessao, usuarioAlvo: Pick<UsuarioAlvoRow, "criado_por">): boolean {
   return ehSuperadminRaiz(usuarioLogado) || Number(usuarioAlvo.criado_por) === Number(usuarioLogado.id);
 }
 
-export async function processarUsuarios(request, env, ctx) {
+export async function processarUsuarios(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
 
   // Todo o painel de usuários é restrito: precisa estar logado E ser superadmin
   const usuarioLogado = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuarioLogado) {
-    return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
+    return erroCliente("Não autenticado.", 401, "nao_autenticado");
   }
 
   // ==========================================
@@ -100,26 +154,26 @@ export async function processarUsuarios(request, env, ctx) {
       try {
         const { results } = await env.DB.prepare(
           `SELECT id, nome_usuario, perfil, nome, telefone, email, foto_perfil, salario, criado_em, ultimo_acesso FROM usuarios WHERE id = ?`
-        ).bind(usuarioLogado.id).all();
+        ).bind(usuarioLogado.id).all<UsuarioPerfilRow>();
         if (results.length === 0) {
-          return new Response(JSON.stringify({ erro: "Usuário não encontrado." }), { status: 404 });
+          return erroCliente("Usuário não encontrado.", 404, "usuario_nao_encontrado");
         }
-        return new Response(JSON.stringify(results[0]), { status: 200 });
+        return json(results[0]);
       } catch (erro) {
-        return new Response(JSON.stringify({ erro: "Erro ao buscar perfil." }), { status: 500 });
+        return erroInterno(erro, "usuarios.me", "Não foi possível carregar o perfil agora.", "perfil_carregar_falhou");
       }
     }
 
     // PUT: editar próprio perfil (nome, email, telefone, salario, foto, senha)
     if (metodo === "PUT") {
       try {
-        const dados = await request.json();
-        const campos = [];
-        const valores = [];
+        const dados = await request.json() as UsuarioPayload;
+        const campos: string[] = [];
+        const valores: SqlParam[] = [];
 
         const cadastrais = await validarDadosCadastrais(dados, env, usuarioLogado.id);
         if (cadastrais.erro) {
-          return new Response(JSON.stringify({ erro: cadastrais.erro }), { status: 400 });
+          return erroCliente(cadastrais.erro, 400, "dados_cadastrais_invalidos");
         }
         if (cadastrais.nome !== undefined) { campos.push("nome = ?"); valores.push(cadastrais.nome); }
         if (cadastrais.email !== undefined) { campos.push("email = ?"); valores.push(cadastrais.email); }
@@ -133,30 +187,30 @@ export async function processarUsuarios(request, env, ctx) {
 
         if (dados.senha) {
           if (dados.senha.length < 6) {
-            return new Response(JSON.stringify({ erro: "A senha deve ter ao menos 6 caracteres." }), { status: 400 });
+            return erroCliente("A senha deve ter ao menos 6 caracteres.", 400, "senha_curta");
           }
           campos.push("senha_hash = ?");
           valores.push(await hashSenha(dados.senha));
         }
 
         if (campos.length === 0) {
-          return new Response(JSON.stringify({ erro: "Nenhum dado para atualizar." }), { status: 400 });
+          return erroCliente("Nenhum dado para atualizar.", 400, "sem_campos_para_atualizar");
         }
 
         valores.push(usuarioLogado.id);
         await env.DB.prepare(`UPDATE usuarios SET ${campos.join(", ")} WHERE id = ?`).bind(...valores).run();
 
-        return new Response(JSON.stringify({ mensagem: "Perfil atualizado com sucesso!" }), { status: 200 });
+        return json({ mensagem: "Perfil atualizado com sucesso!" });
       } catch (erro) {
-        return new Response(JSON.stringify({ erro: "Erro ao atualizar perfil." }), { status: 500 });
+        return erroInterno(erro, "usuarios.atualizarPerfil", "Não foi possível atualizar o perfil agora.", "perfil_atualizar_falhou");
       }
     }
 
-    return new Response(JSON.stringify({ erro: "Use GET ou PUT." }), { status: 405 });
+    return erroCliente("Use GET ou PUT.", 405, "metodo_invalido");
   }
 
   if (usuarioLogado.perfil !== "superadmin") {
-    return new Response(JSON.stringify({ erro: "Acesso restrito a administradores." }), { status: 403 });
+    return erroCliente("Acesso restrito a administradores.", 403, "admin_obrigatorio");
   }
 
   // ==========================================
@@ -166,18 +220,18 @@ export async function processarUsuarios(request, env, ctx) {
     try {
       // Apenas o superadmin original (id=1) vê todos os usuários.
       // Outros admins (mesmo com perfil superadmin) só veem quem eles criaram.
-      let query;
-      let binds = [];
+      let query: string;
+      let binds: SqlParam[] = [];
       if (Number(usuarioLogado.id) === 1) {
         query = `SELECT id, nome_usuario, perfil, nome, telefone, email, foto_perfil, criado_em, ultimo_acesso, ativo, criado_por, salario FROM usuarios ORDER BY id ASC`;
       } else {
         query = `SELECT id, nome_usuario, perfil, nome, telefone, email, foto_perfil, criado_em, ultimo_acesso, ativo, criado_por, salario FROM usuarios WHERE criado_por = ? ORDER BY id ASC`;
         binds = [usuarioLogado.id];
       }
-      const { results } = await env.DB.prepare(query).bind(...binds).all();
-      return new Response(JSON.stringify(results), { status: 200 });
+      const { results } = await env.DB.prepare(query).bind(...binds).all<UsuarioListagemRow>();
+      return json(results);
     } catch (erro) {
-      return new Response(JSON.stringify({ erro: "Erro ao buscar usuários." }), { status: 500 });
+      return erroInterno(erro, "usuarios.listar", "Não foi possível carregar os usuários agora.", "usuarios_listar_falhou");
     }
   }
 
@@ -186,27 +240,27 @@ export async function processarUsuarios(request, env, ctx) {
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json();
-      const perfil = dados.perfil === "superadmin" && ehSuperadminRaiz(usuarioLogado) ? "superadmin" : "comum";
+      const dados = await request.json() as UsuarioPayload;
+      const perfil: PerfilUsuario = dados.perfil === "superadmin" && ehSuperadminRaiz(usuarioLogado) ? "superadmin" : "comum";
 
       if (!dados.usuario || !dados.senha) {
-        return new Response(JSON.stringify({ erro: "Usuário e senha obrigatórios." }), { status: 400 });
+        return erroCliente("Usuário e senha obrigatórios.", 400, "credenciais_obrigatorias");
       }
       if (dados.senha.length < 6) {
-        return new Response(JSON.stringify({ erro: "A senha deve ter ao menos 6 caracteres." }), { status: 400 });
+        return erroCliente("A senha deve ter ao menos 6 caracteres.", 400, "senha_curta");
       }
       if (!dados.nome || !dados.email) {
-        return new Response(JSON.stringify({ erro: "Nome completo e e-mail são obrigatórios." }), { status: 400 });
+        return erroCliente("Nome completo e e-mail são obrigatórios.", 400, "dados_cadastrais_obrigatorios");
       }
 
-      const { results: existente } = await env.DB.prepare(`SELECT id FROM usuarios WHERE LOWER(nome_usuario) = LOWER(?)`).bind(dados.usuario).all();
+      const { results: existente } = await env.DB.prepare(`SELECT id FROM usuarios WHERE LOWER(nome_usuario) = LOWER(?)`).bind(dados.usuario).all<IdRow>();
       if (existente.length > 0) {
-        return new Response(JSON.stringify({ erro: "Já existe um usuário com esse nome." }), { status: 409 });
+        return erroCliente("Já existe um usuário com esse nome.", 409, "usuario_duplicado");
       }
 
       const cadastrais = await validarDadosCadastrais(dados, env);
       if (cadastrais.erro) {
-        return new Response(JSON.stringify({ erro: cadastrais.erro }), { status: 400 });
+        return erroCliente(cadastrais.erro, 400, "dados_cadastrais_invalidos");
       }
 
       // Nunca mais gravamos a senha em texto puro
@@ -216,7 +270,10 @@ export async function processarUsuarios(request, env, ctx) {
       const resultadoUsuario = await env.DB.prepare(query)
         .bind(dados.usuario, senhaHash, perfil, cadastrais.nome, cadastrais.telefone ?? null, cadastrais.email, cadastrais.foto_perfil ?? null, usuarioLogado.id)
         .run();
-      const novoUsuarioId = resultadoUsuario.meta.last_row_id;
+      const novoUsuarioId = resultadoUsuario.meta?.last_row_id;
+      if (!novoUsuarioId) {
+        return erroInterno(new Error("last_row_id ausente ao criar usuário"), "usuarios.criar", "Usuário cadastrado, mas não foi possível finalizar a criação agora.", "usuario_id_ausente");
+      }
 
       // Toda conta nova já nasce com sua própria carteira pessoal — sem isso
       // o usuário fica sem nenhum lugar pra lançar nada. Quem cria carteiras
@@ -225,19 +282,20 @@ export async function processarUsuarios(request, env, ctx) {
       try {
         const nomeCarteira = `Pessoal - ${cadastrais.nome}`.slice(0, 40);
         const resultadoCarteira = await env.DB.prepare(`INSERT INTO carteiras (nome, tipo) VALUES (?, 'individual')`).bind(nomeCarteira).run();
-        const novaCarteiraId = resultadoCarteira.meta.last_row_id;
+        const novaCarteiraId = resultadoCarteira.meta?.last_row_id;
+        if (!novaCarteiraId) throw new Error("last_row_id ausente ao criar carteira pessoal");
         await env.DB.prepare(`INSERT INTO usuarios_carteiras (usuario_id, carteira_id, papel) VALUES (?, ?, 'admin')`)
           .bind(novoUsuarioId, novaCarteiraId)
           .run();
       } catch (erroCarteira) {
         // Desfaz o usuário pra não deixar uma conta órfã, sem carteira e presa
         await env.DB.prepare(`DELETE FROM usuarios WHERE id = ?`).bind(novoUsuarioId).run();
-        return new Response(JSON.stringify({ erro: "Usuário não pôde ser cadastrado (falha ao criar a carteira pessoal)." }), { status: 500 });
+        return erroInterno(erroCarteira, "usuarios.criarCarteiraPessoal", "Usuário não pôde ser cadastrado (falha ao criar a carteira pessoal).", "carteira_pessoal_criar_falhou");
       }
 
-      return new Response(JSON.stringify({ mensagem: "Usuário cadastrado com sucesso!" }), { status: 201 });
+      return json({ mensagem: "Usuário cadastrado com sucesso!" }, 201);
     } catch (erro) {
-      return new Response(JSON.stringify({ erro: "Erro ao cadastrar." }), { status: 500 });
+      return erroInterno(erro, "usuarios.criar", "Não foi possível cadastrar este usuário agora.", "usuario_criar_falhou");
     }
   }
 
@@ -248,44 +306,44 @@ export async function processarUsuarios(request, env, ctx) {
     try {
       const id = url.searchParams.get("id");
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil, criado_por FROM usuarios WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil, criado_por FROM usuarios WHERE id = ?`).bind(id).all<UsuarioAlvoRow>();
       if (alvo.length > 0 && !podeGerenciarUsuario(usuarioLogado, alvo[0])) {
-        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+        return erroCliente("Acesso negado.", 403, "acesso_negado");
       }
       if (alvo.length > 0 && alvo[0].perfil === "superadmin" && !ehSuperadminRaiz(usuarioLogado)) {
-        return new Response(JSON.stringify({ erro: "Somente o administrador principal pode gerenciar outros administradores." }), { status: 403 });
+        return erroCliente("Somente o administrador principal pode gerenciar outros administradores.", 403, "admin_raiz_obrigatorio");
       }
       if (alvo.length === 0) {
-        return new Response(JSON.stringify({ erro: "Usuário não encontrado." }), { status: 404 });
+        return erroCliente("Usuário não encontrado.", 404, "usuario_nao_encontrado");
       }
 
-      const dados = await request.json();
-      const campos = [];
-      const valores = [];
+      const dados = await request.json() as UsuarioPayload;
+      const campos: string[] = [];
+      const valores: SqlParam[] = [];
 
       if (dados.usuario) {
-        const { results: duplicado } = await env.DB.prepare(`SELECT id FROM usuarios WHERE LOWER(nome_usuario) = LOWER(?) AND id != ?`).bind(dados.usuario, id).all();
+        const { results: duplicado } = await env.DB.prepare(`SELECT id FROM usuarios WHERE LOWER(nome_usuario) = LOWER(?) AND id != ?`).bind(dados.usuario, id).all<IdRow>();
         if (duplicado.length > 0) {
-          return new Response(JSON.stringify({ erro: "Já existe um usuário com esse nome." }), { status: 409 });
+          return erroCliente("Já existe um usuário com esse nome.", 409, "usuario_duplicado");
         }
         campos.push("nome_usuario = ?");
         valores.push(dados.usuario);
       }
 
       if (dados.perfil) {
-        const novoPerfil = dados.perfil === "superadmin" ? "superadmin" : "comum";
+        const novoPerfil: PerfilUsuario = dados.perfil === "superadmin" ? "superadmin" : "comum";
         if (novoPerfil === "superadmin" && !ehSuperadminRaiz(usuarioLogado)) {
-          return new Response(JSON.stringify({ erro: "Somente o administrador principal pode conceder perfil de administrador." }), { status: 403 });
+          return erroCliente("Somente o administrador principal pode conceder perfil de administrador.", 403, "admin_raiz_obrigatorio");
         }
 
         // Impede remover o último superadmin do sistema (evitaria travar o painel pra sempre)
         if (alvo[0].perfil === "superadmin" && novoPerfil !== "superadmin") {
-          const { results: contagem } = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios WHERE perfil = 'superadmin'`).all();
+          const { results: contagem } = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios WHERE perfil = 'superadmin'`).all<ContagemRow>();
           if (contagem[0].total <= 1) {
-            return new Response(JSON.stringify({ erro: "Não é possível remover o último administrador do sistema." }), { status: 400 });
+            return erroCliente("Não é possível remover o último administrador do sistema.", 400, "ultimo_admin_bloqueado");
           }
         }
 
@@ -295,7 +353,7 @@ export async function processarUsuarios(request, env, ctx) {
 
       if (dados.senha) {
         if (dados.senha.length < 6) {
-          return new Response(JSON.stringify({ erro: "A senha deve ter ao menos 6 caracteres." }), { status: 400 });
+          return erroCliente("A senha deve ter ao menos 6 caracteres.", 400, "senha_curta");
         }
         campos.push("senha_hash = ?");
         valores.push(await hashSenha(dados.senha));
@@ -309,7 +367,7 @@ export async function processarUsuarios(request, env, ctx) {
 
       const cadastrais = await validarDadosCadastrais(dados, env, Number(id));
       if (cadastrais.erro) {
-        return new Response(JSON.stringify({ erro: cadastrais.erro }), { status: 400 });
+        return erroCliente(cadastrais.erro, 400, "dados_cadastrais_invalidos");
       }
       if (cadastrais.nome !== undefined) {
         campos.push("nome = ?");
@@ -329,7 +387,7 @@ export async function processarUsuarios(request, env, ctx) {
       }
 
       if (campos.length === 0) {
-        return new Response(JSON.stringify({ erro: "Nada para atualizar." }), { status: 400 });
+        return erroCliente("Nada para atualizar.", 400, "sem_campos_para_atualizar");
       }
 
       valores.push(id);
@@ -337,10 +395,9 @@ export async function processarUsuarios(request, env, ctx) {
         .bind(...valores)
         .run();
 
-      return new Response(JSON.stringify({ mensagem: "Usuário atualizado com sucesso!" }), { status: 200 });
+      return json({ mensagem: "Usuário atualizado com sucesso!" });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao atualizar." }), { status: 500 });
+      return erroInterno(erro, "usuarios.atualizar", "Não foi possível atualizar este usuário agora.", "usuario_atualizar_falhou");
     }
   }
 
@@ -351,29 +408,29 @@ export async function processarUsuarios(request, env, ctx) {
     try {
       const id = url.searchParams.get("id");
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
       if (Number(id) === usuarioLogado.id) {
-        return new Response(JSON.stringify({ erro: "Você não pode desativar a própria conta." }), { status: 400 });
+        return erroCliente("Você não pode desativar a própria conta.", 400, "auto_desativacao_bloqueada");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil, ativo, criado_por FROM usuarios WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil, ativo, criado_por FROM usuarios WHERE id = ?`).bind(id).all<UsuarioAlvoRow>();
       if (alvo.length > 0 && !podeGerenciarUsuario(usuarioLogado, alvo[0])) {
-        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+        return erroCliente("Acesso negado.", 403, "acesso_negado");
       }
       if (alvo.length > 0 && alvo[0].perfil === "superadmin" && !ehSuperadminRaiz(usuarioLogado)) {
-        return new Response(JSON.stringify({ erro: "Somente o administrador principal pode gerenciar outros administradores." }), { status: 403 });
+        return erroCliente("Somente o administrador principal pode gerenciar outros administradores.", 403, "admin_raiz_obrigatorio");
       }
       if (alvo.length === 0) {
-        return new Response(JSON.stringify({ erro: "Usuário não encontrado." }), { status: 404 });
+        return erroCliente("Usuário não encontrado.", 404, "usuario_nao_encontrado");
       }
 
       // Impede desativar o último superadmin
       if (alvo[0].perfil === "superadmin" && alvo[0].ativo === 1) {
-        const { results: contagem } = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios WHERE perfil = 'superadmin' AND ativo = 1`).all();
+        const { results: contagem } = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios WHERE perfil = 'superadmin' AND ativo = 1`).all<ContagemRow>();
         if (contagem[0].total <= 1) {
-          return new Response(JSON.stringify({ erro: "Não é possível desativar o único administrador ativo do sistema." }), { status: 400 });
+          return erroCliente("Não é possível desativar o único administrador ativo do sistema.", 400, "ultimo_admin_ativo_bloqueado");
         }
       }
 
@@ -385,10 +442,9 @@ export async function processarUsuarios(request, env, ctx) {
         await env.DB.prepare(`DELETE FROM sessoes WHERE usuario_id = ?`).bind(id).run();
       }
 
-      return new Response(JSON.stringify({ ativo: novoStatus, mensagem: novoStatus === 1 ? "Usuário ativado." : "Usuário desativado." }), { status: 200 });
+      return json({ ativo: novoStatus, mensagem: novoStatus === 1 ? "Usuário ativado." : "Usuário desativado." });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao alterar status." }), { status: 500 });
+      return erroInterno(erro, "usuarios.alterarStatus", "Não foi possível alterar o status deste usuário agora.", "usuario_status_falhou");
     }
   }
 
@@ -399,39 +455,36 @@ export async function processarUsuarios(request, env, ctx) {
     try {
       const id = url.searchParams.get("id");
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
       if (Number(id) === usuarioLogado.id) {
-        return new Response(JSON.stringify({ erro: "Você não pode excluir a própria conta enquanto está logado nela." }), { status: 400 });
+        return erroCliente("Você não pode excluir a própria conta enquanto está logado nela.", 400, "auto_exclusao_bloqueada");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil, criado_por FROM usuarios WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT id, perfil, criado_por FROM usuarios WHERE id = ?`).bind(id).all<UsuarioAlvoRow>();
       if (alvo.length > 0 && !podeGerenciarUsuario(usuarioLogado, alvo[0])) {
-        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+        return erroCliente("Acesso negado.", 403, "acesso_negado");
       }
       if (alvo.length > 0 && alvo[0].perfil === "superadmin" && !ehSuperadminRaiz(usuarioLogado)) {
-        return new Response(JSON.stringify({ erro: "Somente o administrador principal pode gerenciar outros administradores." }), { status: 403 });
+        return erroCliente("Somente o administrador principal pode gerenciar outros administradores.", 403, "admin_raiz_obrigatorio");
       }
       if (alvo.length === 0) {
-        return new Response(JSON.stringify({ erro: "Usuário não encontrado." }), { status: 404 });
+        return erroCliente("Usuário não encontrado.", 404, "usuario_nao_encontrado");
       }
 
       // Impede excluir o último superadmin
       if (alvo[0].perfil === "superadmin") {
-        const { results: contagem } = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios WHERE perfil = 'superadmin'`).all();
+        const { results: contagem } = await env.DB.prepare(`SELECT COUNT(*) AS total FROM usuarios WHERE perfil = 'superadmin'`).all<ContagemRow>();
         if (contagem[0].total <= 1) {
-          return new Response(JSON.stringify({ erro: "Não é possível excluir o último administrador do sistema." }), { status: 400 });
+          return erroCliente("Não é possível excluir o último administrador do sistema.", 400, "ultimo_admin_bloqueado");
         }
       }
 
       // Impede excluir quem já tem lançamentos gravados (evita registros órfãos)
-      const { results: lancamentosDoUsuario } = await env.DB.prepare(`SELECT COUNT(*) AS total FROM lancamentos WHERE criado_por = ?`).bind(id).all();
+      const { results: lancamentosDoUsuario } = await env.DB.prepare(`SELECT COUNT(*) AS total FROM lancamentos WHERE criado_por = ?`).bind(id).all<ContagemRow>();
       if (lancamentosDoUsuario[0].total > 0) {
-        return new Response(
-          JSON.stringify({ erro: "Este usuário já tem lançamentos registrados e não pode ser excluído. Você pode alterar o perfil dele em vez de excluir." }),
-          { status: 400 },
-        );
+        return erroCliente("Este usuário já tem lançamentos registrados e não pode ser excluído. Você pode alterar o perfil dele em vez de excluir.", 400, "usuario_com_lancamentos");
       }
 
       // Limpa acessos e sessões antes de remover a conta
@@ -439,12 +492,11 @@ export async function processarUsuarios(request, env, ctx) {
       await env.DB.prepare(`DELETE FROM sessoes WHERE usuario_id = ?`).bind(id).run();
       await env.DB.prepare(`DELETE FROM usuarios WHERE id = ?`).bind(id).run();
 
-      return new Response(JSON.stringify({ mensagem: "Usuário excluído." }), { status: 200 });
+      return json({ mensagem: "Usuário excluído." });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao excluir." }), { status: 500 });
+      return erroInterno(erro, "usuarios.excluir", "Não foi possível excluir este usuário agora.", "usuario_excluir_falhou");
     }
   }
 
-  return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
+  return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
 }
