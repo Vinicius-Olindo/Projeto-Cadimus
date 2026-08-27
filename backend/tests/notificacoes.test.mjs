@@ -1,7 +1,7 @@
 import test from "node:test";
 import assert from "node:assert/strict";
 
-import { processarNotificacoes } from "../src/routes/notificacoes.js";
+import { processarNotificacoes } from "../src/routes/notificacoes.ts";
 
 class FakeD1 {
   constructor(handlers = []) {

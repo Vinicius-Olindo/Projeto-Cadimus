@@ -1,30 +1,82 @@
+import type {
+  CadimusEnv,
+  CompraParcelada,
+  DespesaFixa,
+  IdEntrada,
+  Lancamento,
+  Notificacao,
+  SeveridadeNotificacao,
+  SqlParam,
+  StatusNotificacao,
+  WorkerCtx,
+} from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { erroCliente, erroInterno, json as responderJson } from "../utils/respostas.ts";
 
-const STATUS_VALIDOS = new Set(["nao_lida", "lida", "arquivada"]);
-const SEVERIDADES_VALIDAS = new Set(["info", "sucesso", "aviso", "perigo"]);
+const STATUS_VALIDOS = new Set<StatusNotificacao>(["nao_lida", "lida", "arquivada"]);
+const SEVERIDADES_VALIDAS = new Set<SeveridadeNotificacao>(["info", "sucesso", "aviso", "perigo"]);
 
-/** @param {unknown} dados @param {number} [status] */
-function json(dados, status = 200) {
+type NotificacaoEntrada = Partial<Notificacao> & {
+  descricao?: unknown;
+  texto?: unknown;
+  chave?: unknown;
+  atrasado?: unknown;
+  status?: unknown;
+  severidade?: unknown;
+};
+
+type NotificacaoNormalizada = Omit<Notificacao, "id" | "criado_em">;
+
+interface MetaAlertaRow {
+  id: number;
+  carteira_id: number;
+  categoria: string;
+  valor_limite?: number | null;
+  valor_limite_centavos?: number | null;
+  depositado_centavos?: number | string | null;
+  data_limite: string;
+}
+
+interface ResumoNotificacoesRow {
+  nao_lidas: number | null;
+  total: number | null;
+}
+
+interface GerarPayload {
+  data_referencia?: string;
+}
+
+interface SincronizarPayload {
+  notificacoes?: unknown;
+}
+
+interface AtualizarPayload {
+  status?: unknown;
+}
+
+function isStatusNotificacao(valor: unknown): valor is StatusNotificacao {
+  return typeof valor === "string" && STATUS_VALIDOS.has(valor as StatusNotificacao);
+}
+
+function isSeveridadeNotificacao(valor: unknown): valor is SeveridadeNotificacao {
+  return typeof valor === "string" && SEVERIDADES_VALIDAS.has(valor as SeveridadeNotificacao);
+}
+
+function json<T>(dados: T, status = 200): Response {
   return responderJson(dados, status);
 }
 
-/** @param {unknown} valor @param {number} limite */
-function limparTexto(valor, limite) {
+function limparTexto(valor: unknown, limite: number): string {
   return String(valor || "").trim().slice(0, limite);
 }
 
-/**
- * @param {any} item
- * @param {number} usuarioId
- */
-function normalizarNotificacao(item, usuarioId) {
+function normalizarNotificacao(item: NotificacaoEntrada, usuarioId: number): NotificacaoNormalizada {
   const tipo = limparTexto(item.tipo, 60) || "sistema";
   const titulo = limparTexto(item.titulo || item.descricao, 140);
   const mensagem = limparTexto(item.mensagem || item.texto, 500);
-  const status = STATUS_VALIDOS.has(item.status) ? item.status : "nao_lida";
-  const severidade = SEVERIDADES_VALIDAS.has(item.severidade) ? item.severidade : item.atrasado ? "perigo" : "aviso";
+  const status = isStatusNotificacao(item.status) ? item.status : "nao_lida";
+  const severidade = isSeveridadeNotificacao(item.severidade) ? item.severidade : item.atrasado ? "perigo" : "aviso";
   const chaveUnica = limparTexto(item.chave_unica || item.chave, 180) || null;
 
   if (!titulo || !mensagem) {
@@ -47,22 +99,13 @@ function normalizarNotificacao(item, usuarioId) {
   };
 }
 
-/**
- * @param {import("../types.js").CadimusEnv} env
- * @param {number} usuarioId
- * @param {number|string|null|undefined} carteiraId
- */
-async function usuarioPodeUsarCarteira(env, usuarioId, carteiraId) {
+async function usuarioPodeUsarCarteira(env: CadimusEnv, usuarioId: number, carteiraId: IdEntrada | null | undefined): Promise<boolean> {
   if (!carteiraId) return true;
   const carteiras = await obterCarteirasDoUsuario(env, usuarioId);
   return carteiras.includes(Number(carteiraId));
 }
 
-/**
- * @param {import("../types.js").CadimusEnv} env
- * @param {any} notificacao
- */
-async function salvarNotificacao(env, notificacao) {
+async function salvarNotificacao(env: CadimusEnv, notificacao: NotificacaoNormalizada): Promise<void> {
   await env.DB.prepare(
     `INSERT INTO notificacoes
       (usuario_id, carteira_id, tipo, titulo, mensagem, status, severidade, entidade, entidade_id, chave_unica, url_acao, data_evento)
@@ -96,28 +139,23 @@ async function salvarNotificacao(env, notificacao) {
     .run();
 }
 
-/** @param {Date} data */
-function inicioDoDia(data) {
+function inicioDoDia(data: Date): Date {
   return new Date(data.getFullYear(), data.getMonth(), data.getDate());
 }
 
-/** @param {Date} data */
-function formatarDataChave(data) {
+function formatarDataChave(data: Date): string {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}`;
 }
 
-/** @param {Date} data */
-function formatarDataIso(data) {
+function formatarDataIso(data: Date): string {
   return `${data.getFullYear()}-${String(data.getMonth() + 1).padStart(2, "0")}-${String(data.getDate()).padStart(2, "0")}`;
 }
 
-/** @param {Date} dataEvento @param {Date} dataReferencia */
-function diferencaDias(dataEvento, dataReferencia) {
+function diferencaDias(dataEvento: Date, dataReferencia: Date): number {
   return Math.round((inicioDoDia(dataEvento).getTime() - inicioDoDia(dataReferencia).getTime()) / 86400000);
 }
 
-/** @param {Date} dataEvento @param {Date} dataReferencia @param {number} [janelaDias] */
-function avisoPorData(dataEvento, dataReferencia, janelaDias = 3) {
+function avisoPorData(dataEvento: Date, dataReferencia: Date, janelaDias = 3): { texto: string; severidade: SeveridadeNotificacao; urgencia: number } | null {
   const diff = diferencaDias(dataEvento, dataReferencia);
   if (diff === 0) return { texto: "Vence hoje", severidade: "aviso", urgencia: 1 };
   if (diff > 0 && diff <= janelaDias) return { texto: `Vence em ${diff} dia${diff > 1 ? "s" : ""}`, severidade: "aviso", urgencia: 2 };
@@ -125,41 +163,32 @@ function avisoPorData(dataEvento, dataReferencia, janelaDias = 3) {
   return null;
 }
 
-/** @param {Date} dataReferencia @param {number|string} dia */
-function dataDoMesPorDia(dataReferencia, dia) {
+function dataDoMesPorDia(dataReferencia: Date, dia: number | string): Date {
   const diaSeguro = Math.min(Math.max(Number(dia) || 1, 1), 28);
   return new Date(dataReferencia.getFullYear(), dataReferencia.getMonth(), diaSeguro);
 }
 
-/** @param {number|string|null|undefined} centavos */
-function reaisDeCentavos(centavos) {
+function reaisDeCentavos(centavos: number | string | null | undefined): number {
   return (Number(centavos) || 0) / 100;
 }
 
-/** @param {number|string|null|undefined} valor */
-function moeda(valor) {
+function moeda(valor: number | string | null | undefined): string {
   return reaisDeCentavos(valor).toLocaleString("pt-BR", { style: "currency", currency: "BRL" });
 }
 
-/**
- * @param {import("../types.js").CadimusEnv} env
- * @param {number} usuarioId
- * @param {number[]} carteirasPermitidas
- * @param {Date} [dataReferencia]
- */
-async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas, dataReferencia = new Date()) {
+async function gerarNotificacoesAutomaticas(env: CadimusEnv, usuarioId: number, carteirasPermitidas: number[], dataReferencia = new Date()): Promise<number> {
   if (!carteirasPermitidas.length) return 0;
 
   const placeholders = carteirasPermitidas.map(() => "?").join(",");
   const chaveMes = formatarDataChave(dataReferencia);
   const chaveDia = formatarDataIso(dataReferencia);
-  const notificacoes = [];
+  const notificacoes: NotificacaoNormalizada[] = [];
 
   const { results: despesasFixas } = await env.DB.prepare(
     `SELECT * FROM despesas_fixas WHERE ativo = 1 AND carteira_id IN (${placeholders})`,
   )
     .bind(...carteirasPermitidas)
-    .all();
+    .all<DespesaFixa>();
 
   for (const fixa of despesasFixas) {
     const dataEvento = dataDoMesPorDia(dataReferencia, fixa.dia_vencimento);
@@ -186,7 +215,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
     `SELECT * FROM compras_parceladas WHERE ativo = 1 AND carteira_id IN (${placeholders})`,
   )
     .bind(...carteirasPermitidas)
-    .all();
+    .all<CompraParcelada>();
 
   for (const compra of comprasParceladas) {
     const dataEvento = dataDoMesPorDia(dataReferencia, compra.dia_vencimento);
@@ -213,7 +242,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
     `SELECT * FROM lancamentos WHERE status != 'pago' AND carteira_id IN (${placeholders})`,
   )
     .bind(...carteirasPermitidas)
-    .all();
+    .all<Lancamento>();
 
   for (const lancamento of lancamentos) {
     if (!lancamento.data_compra) continue;
@@ -244,7 +273,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
      WHERE m.data_limite IS NOT NULL AND m.carteira_id IN (${placeholders})`,
   )
     .bind(...carteirasPermitidas)
-    .all();
+    .all<MetaAlertaRow>();
 
   for (const meta of metas) {
     const valorLimiteCentavos = meta.valor_limite_centavos ?? Math.round((Number(meta.valor_limite) || 0) * 100);
@@ -253,7 +282,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
 
     const dataEvento = new Date(`${meta.data_limite}T12:00:00`);
     const diff = diferencaDias(dataEvento, dataReferencia);
-    let aviso = null;
+    let aviso: { texto: string; severidade: SeveridadeNotificacao } | null = null;
     if (diff < 0) aviso = { texto: `Meta passou do prazo. Faltava ${moeda(faltaCentavos)}`, severidade: "perigo" };
     else if (diff <= 7) aviso = { texto: `Meta vence em ${diff} dia${diff !== 1 ? "s" : ""}. Falta ${moeda(faltaCentavos)}`, severidade: "aviso" };
     if (!aviso) continue;
@@ -281,12 +310,7 @@ async function gerarNotificacoesAutomaticas(env, usuarioId, carteirasPermitidas,
   return notificacoes.length;
 }
 
-/**
- * @param {Request} request
- * @param {import("../types.js").CadimusEnv} env
- * @param {import("../types.js").WorkerCtx} ctx
- */
-export async function processarNotificacoes(request, env, ctx) {
+export async function processarNotificacoes(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const usuario = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuario) return erroCliente("Não autenticado.", 401, "nao_autenticado");
 
@@ -303,10 +327,10 @@ export async function processarNotificacoes(request, env, ctx) {
     }
 
     let query = `SELECT * FROM notificacoes WHERE usuario_id = ?`;
-    const params = /** @type {import("../types.js").SqlParam[]} */ ([usuario.id]);
+    const params: SqlParam[] = [usuario.id];
 
     if (status !== "todas") {
-      if (!STATUS_VALIDOS.has(status)) return erroCliente("Status inválido.", 400, "status_invalido");
+      if (!isStatusNotificacao(status)) return erroCliente("Status inválido.", 400, "status_invalido");
       query += ` AND status = ?`;
       params.push(status);
     }
@@ -320,7 +344,7 @@ export async function processarNotificacoes(request, env, ctx) {
     params.push(limite);
 
     try {
-      const { results } = await env.DB.prepare(query).bind(...params).all();
+      const { results } = await env.DB.prepare(query).bind(...params).all<Notificacao>();
       const { results: resumo } = await env.DB.prepare(
         `SELECT
            SUM(CASE WHEN status = 'nao_lida' THEN 1 ELSE 0 END) AS nao_lidas,
@@ -329,7 +353,7 @@ export async function processarNotificacoes(request, env, ctx) {
          WHERE usuario_id = ?`,
       )
         .bind(usuario.id)
-        .all();
+        .all<ResumoNotificacoesRow>();
 
       return json({ notificacoes: results, resumo: resumo[0] || { nao_lidas: 0, total: 0 } });
     } catch (erro) {
@@ -341,7 +365,7 @@ export async function processarNotificacoes(request, env, ctx) {
     const carteirasPermitidas = await obterCarteirasDoUsuario(env, usuario.id);
     let dataReferencia = new Date();
     try {
-      const dados = await request.json();
+      const dados = await request.json() as GerarPayload;
       if (dados?.data_referencia) dataReferencia = new Date(`${dados.data_referencia}T12:00:00`);
     } catch {
       // Corpo opcional.
@@ -355,13 +379,13 @@ export async function processarNotificacoes(request, env, ctx) {
   }
 
   if (metodo === "POST" && url.pathname.endsWith("/sincronizar")) {
-    const dados = await request.json();
+    const dados = await request.json() as SincronizarPayload;
     const recebidas = Array.isArray(dados.notificacoes) ? dados.notificacoes : [];
     const limite = recebidas.slice(0, 50);
     let salvas = 0;
 
     for (const item of limite) {
-      const notif = normalizarNotificacao(item, usuario.id);
+      const notif = normalizarNotificacao(item as NotificacaoEntrada, usuario.id);
       if (!(await usuarioPodeUsarCarteira(env, usuario.id, notif.carteira_id))) continue;
       try {
         await salvarNotificacao(env, notif);
@@ -392,8 +416,8 @@ export async function processarNotificacoes(request, env, ctx) {
   if (metodo === "PATCH") {
     const id = Number(url.searchParams.get("id"));
     if (!id) return erroCliente("ID obrigatório.", 400, "id_obrigatorio");
-    const dados = await request.json();
-    const status = STATUS_VALIDOS.has(dados.status) ? dados.status : "lida";
+    const dados = await request.json() as AtualizarPayload;
+    const status = isStatusNotificacao(dados.status) ? dados.status : "lida";
 
     try {
       await env.DB.prepare(

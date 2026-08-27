@@ -16,7 +16,7 @@ import { processarTransferencias } from "./routes/transferencias.js";
 import { processarOrcamentos } from "./routes/orcamentos.ts";
 import { processarLimpezaDados } from "./routes/manutencao.ts";
 import { processarCartoesCredito } from "./routes/cartoesCredito.ts";
-import { processarNotificacoes } from "./routes/notificacoes.js";
+import { processarNotificacoes } from "./routes/notificacoes.ts";
 
 // ==========================================
 // HELPER: adiciona os headers de CORS à resposta e força Content-Type JSON.
