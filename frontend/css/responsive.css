@@ -293,3 +293,193 @@
   }
 }
 
+/* ==========================================
+   MOBILE REAL — fluxo completo
+   Ajustes de contenção para 320–560px sem alterar o desktop.
+   ========================================== */
+
+@media (max-width: 560px) {
+  html,
+  body {
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .app-container {
+    max-width: 100vw;
+  }
+
+  .card,
+  .card-lancamentos-bloco,
+  .stat-card,
+  .area-controle,
+  .area-lancamentos,
+  .grafico-card,
+  .resumo-categorias,
+  .comparativo-periodo-card {
+    min-width: 0;
+    max-width: 100%;
+  }
+
+  .top-bar-linha1,
+  .top-bar-linha2 {
+    min-width: 0;
+  }
+
+  .header-logo-wrapper {
+    min-width: 0;
+  }
+
+  .header-logo-wrapper span {
+    font-size: clamp(1.05rem, 5vw, 1.28rem);
+  }
+
+  .acoes-topo {
+    scroll-snap-type: x proximity;
+  }
+
+  .acoes-topo-grupo {
+    scroll-snap-align: start;
+  }
+
+  .user-controls {
+    gap: 6px;
+  }
+
+  .avatar-dropdown-wrapper {
+    flex: 0 0 auto;
+  }
+
+  .dropdown-avatar {
+    left: max(10px, env(safe-area-inset-left, 0px));
+    right: max(10px, env(safe-area-inset-right, 0px));
+    bottom: calc(10px + env(safe-area-inset-bottom, 0px));
+    max-height: min(78dvh, 430px);
+  }
+
+  .dropdown-avatar-info,
+  .dropdown-avatar-nome,
+  .dropdown-avatar-email {
+    min-width: 0;
+  }
+
+  .busca-lancamentos {
+    margin-bottom: 10px;
+  }
+
+  .busca-lancamentos input,
+  .filtros-lancamentos select {
+    min-height: 42px;
+    font-size: 0.86rem;
+  }
+
+  .linha-item {
+    align-items: flex-start;
+  }
+
+  .lote-checkbox {
+    margin-top: 12px;
+  }
+
+  .item-valor-acoes {
+    gap: 8px;
+  }
+
+  .item-acoes {
+    margin-left: auto;
+  }
+
+  .lancamentos-paginacao {
+    gap: 10px;
+  }
+
+  .lancamentos-paginacao-info {
+    text-align: center;
+  }
+}
+
+@media (max-width: 420px) {
+  .app-container {
+    padding-inline: max(8px, env(safe-area-inset-left, 0px)) max(8px, env(safe-area-inset-right, 0px));
+  }
+
+  .stat-grid {
+    gap: 8px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .item-valor-acoes {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .item-acoes {
+    width: 100%;
+    justify-content: flex-end;
+  }
+
+  .popup-nota-overlay {
+    padding: 10px;
+  }
+}
+
+@media (max-width: 560px), (max-height: 680px) {
+  #login-section,
+  #redefinir-senha-section {
+    overflow: hidden;
+  }
+
+  .login-modelo-painel {
+    max-height: calc(100dvh - 16px);
+    overflow: hidden;
+  }
+
+  .login-form-panel {
+    min-height: 0;
+    overflow-y: auto;
+    -webkit-overflow-scrolling: touch;
+  }
+}
+
+@media (max-width: 380px), (max-height: 620px) {
+  .login-painel-visual {
+    min-height: 88px;
+    padding: 14px;
+  }
+
+  .login-painel-topo,
+  .login-painel-grafico {
+    display: none;
+  }
+
+  .login-painel-logo {
+    margin-top: 0;
+  }
+
+  .login-painel-logo img {
+    width: 44px;
+    height: 44px;
+    border-radius: 14px;
+  }
+
+  .login-painel-logo strong {
+    font-size: 1.45rem;
+  }
+
+  .login-painel-logo span {
+    font-size: 0.58rem;
+  }
+
+  .login-form-panel {
+    padding: 16px 18px 18px;
+  }
+
+  .login-social,
+  .login-primeiro-acesso {
+    margin-top: 10px;
+  }
+}
+

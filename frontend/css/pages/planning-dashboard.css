@@ -284,9 +284,16 @@
 .plano-status-pendente { background: color-mix(in srgb, var(--cor-pendente) 10%, transparent); color: var(--cor-pendente); }
 
 @media (max-width: 700px) {
-  .plano-kpi-grid { grid-template-columns: repeat(2, 1fr); }
+  .plano-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .plano-indicadores { grid-template-columns: 1fr; }
-  .plano-simulacao-form { flex-direction: column; }
+  .plano-simulacao-form {
+    align-items: stretch;
+    flex-direction: column;
+  }
+  .plano-simulacao-form .campo,
+  .plano-simulacao-form button {
+    width: 100%;
+  }
   .plano-sim-result { grid-template-columns: 1fr; }
   .plano-comp-linha { grid-template-columns: minmax(92px, 1fr) minmax(0, 1fr) minmax(0, 1fr) minmax(62px, 0.8fr); font-size: 0.75rem; }
 }
@@ -294,10 +301,12 @@
 @media (max-width: 520px) {
   .plano-kpi-grid {
     grid-template-columns: 1fr;
+    gap: 8px;
   }
 
   .plano-kpi {
     text-align: left;
+    padding: 12px;
   }
 
   .plano-ind-item,
@@ -338,6 +347,15 @@
   .plano-comp-valor,
   .plano-comp-diferenca {
     text-align: left;
+  }
+
+  .plano-alerta-item {
+    padding: 9px;
+    font-size: 0.78rem;
+  }
+
+  .plano-ind-item {
+    padding: 9px;
   }
 }
 

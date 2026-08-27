@@ -160,6 +160,11 @@
 }
 
 @media (max-width: 720px) {
+  #planejamento-section {
+    min-width: 0;
+    overflow-x: hidden;
+  }
+
   #planejamento-section .top-bar-linha1 {
     align-items: stretch;
     flex-direction: column;
@@ -799,6 +804,7 @@
   .plano-container {
     width: 100%;
     max-width: none;
+    min-width: 0;
   }
 
   .plano-overview {
@@ -827,11 +833,15 @@
   .plano-tabs {
     margin-top: 10px;
     border-radius: 16px;
+    padding-bottom: 6px;
+    scroll-snap-type: x proximity;
   }
 
   .plano-tab {
-    flex: 1 0 auto;
+    flex: 1 0 max-content;
+    min-height: 40px;
     text-align: center;
+    scroll-snap-align: start;
   }
 
   .plano-salario-linha,
@@ -882,6 +892,36 @@
 
   .plano-card-topo {
     align-items: flex-start;
+  }
+
+  .plano-overview,
+  .plano-container {
+    padding-inline: 10px;
+  }
+
+  .plano-overview {
+    gap: 12px;
+  }
+
+  .plano-overview-kpis div,
+  .plano-card-item,
+  .plano-meta-item {
+    padding: 10px;
+  }
+
+  .plano-tabs {
+    width: calc(100% + 4px);
+    margin-left: -2px;
+    margin-right: -2px;
+  }
+
+  .plano-tab {
+    padding-inline: 0.8rem;
+    font-size: 0.78rem;
+  }
+
+  .plano-card-desc {
+    white-space: normal;
   }
 }
 
