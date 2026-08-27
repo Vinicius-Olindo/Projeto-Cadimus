@@ -393,7 +393,15 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
       const valores: SqlParam[] = [];
 
       if (dados.valor !== undefined || dados.valor_centavos !== undefined) {
-        const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+        let valorCentavos: number;
+        try {
+          valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+        } catch {
+          return erroCliente("Informe um valor válido.", 400, "valor_invalido");
+        }
+        if (valorCentavos <= 0) {
+          return erroCliente("Informe um valor maior que zero.", 400, "valor_invalido");
+        }
         campos.push("valor = ?");
         valores.push(centavosParaReais(valorCentavos));
         campos.push("valor_centavos = ?");

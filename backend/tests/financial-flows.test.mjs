@@ -691,6 +691,45 @@ test("criação de lançamento retorna erro claro quando valor é inválido", as
   assert.equal(inserts.length, 0);
 });
 
+test("atualização de lançamento retorna erro claro quando valor é inválido", async () => {
+  const updates = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT carteira_id, criado_por, tipo, meio_pagamento FROM lancamentos WHERE id = ?",
+      reply: () => [{ carteira_id: 10, criado_por: 1, tipo: "despesa", meio_pagamento: "pix" }],
+    },
+    {
+      type: "all",
+      match: "SELECT tipo FROM carteiras WHERE id = ?",
+      reply: () => [{ tipo: "pessoal" }],
+    },
+    {
+      type: "run",
+      match: "UPDATE lancamentos SET",
+      reply: ({ args }) => {
+        updates.push(args);
+        return { meta: { changes: 1 } };
+      },
+    },
+  ]));
+
+  const res = await processarLancamentos(
+    request("PUT", "https://cadimus.test/api/lancamentos?id=55", {
+      valor: "abc",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), {
+    erro: "Informe um valor válido.",
+    codigo: "valor_invalido",
+  });
+  assert.equal(updates.length, 0);
+});
+
 test("membro de carteira compartilhada pode excluir lançamento criado por outro usuário", async () => {
   let deletouLancamento = false;
   const auditLogs = [];
@@ -1015,6 +1054,39 @@ test("cartao de credito nao pode ser criado em carteira sem acesso", async () =>
   );
 
   assert.equal(res.status, 403);
+  assert.equal(inserts.length, 0);
+});
+
+test("cartao de credito retorna erro claro quando limite é inválido", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "run",
+      match: "INSERT INTO cartoes_credito",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarCartoesCredito(
+    request("POST", "https://cadimus.test/api/cartoes-credito", {
+      nome: "Cartão teste",
+      dia_fechamento: 10,
+      dia_vencimento: 20,
+      limite: "valor inválido",
+      carteira_id: 10,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), {
+    erro: "Limite do cartão inválido.",
+    codigo: "cartao_limite_invalido",
+  });
   assert.equal(inserts.length, 0);
 });
 

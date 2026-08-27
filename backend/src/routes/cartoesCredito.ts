@@ -144,7 +144,12 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
   if (method === "POST") {
     const body = (await request.json()) as CartaoCreditoPayload;
     const { nome, bandeira, ultimos4, dia_fechamento, dia_vencimento, limite, carteira_id } = body;
-    const limiteCentavos = normalizarCentavos(limite || 0, body.limite_centavos);
+    let limiteCentavos: number;
+    try {
+      limiteCentavos = normalizarCentavos(limite || 0, body.limite_centavos);
+    } catch {
+      return erroCliente("Limite do cartão inválido.", 400, "cartao_limite_invalido");
+    }
     const limiteNormalizado = centavosParaReais(limiteCentavos);
     const diaFechamento = Number(dia_fechamento);
     const diaVencimento = Number(dia_vencimento);
@@ -226,7 +231,12 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
     }
 
     if (body.limite !== undefined || body.limite_centavos !== undefined) {
-      const limiteCentavos = normalizarCentavos(body.limite || 0, body.limite_centavos);
+      let limiteCentavos: number;
+      try {
+        limiteCentavos = normalizarCentavos(body.limite || 0, body.limite_centavos);
+      } catch {
+        return erroCliente("Limite do cartão inválido.", 400, "cartao_limite_invalido");
+      }
       campos.push("limite = ?");
       params.push(centavosParaReais(limiteCentavos));
       campos.push("limite_centavos = ?");

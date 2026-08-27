@@ -104,7 +104,12 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
       if (dados.valor === undefined && dados.valor_centavos === undefined) {
         return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
       }
-      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      let valorCentavos: number;
+      try {
+        valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      } catch {
+        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
+      }
       const valor = centavosParaReais(valorCentavos);
       const diaVencimento = Number(dados.dia_vencimento);
       const tipo = dados.tipo === "receita" ? "receita" : "despesa";
@@ -177,7 +182,12 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
         valores.push(String(dados.descricao).trim());
       }
       if (dados.valor !== undefined || dados.valor_centavos !== undefined) {
-        const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+        let valorCentavos: number;
+        try {
+          valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+        } catch {
+          return erroCliente("Informe um valor válido.", 400, "valor_invalido");
+        }
         const valor = centavosParaReais(valorCentavos);
         if (valorCentavos <= 0) {
           return erroCliente("Informe um valor válido.", 400, "valor_invalido");

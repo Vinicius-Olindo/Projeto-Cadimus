@@ -128,7 +128,12 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
       if (dados.valor === undefined && dados.valor_centavos === undefined) {
         return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
       }
-      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      let valorCentavos: number;
+      try {
+        valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      } catch {
+        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
+      }
       const valor = centavosParaReais(valorCentavos);
       const categoria = String(dados.categoria || "").trim();
       const ehBonificacao = categoria.toLowerCase() === "bonificação";
@@ -241,7 +246,12 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
 
       if (dados.descricao !== undefined) { campos.push("descricao = ?"); valores.push(String(dados.descricao).trim()); }
       if (dados.valor !== undefined || dados.valor_centavos !== undefined) {
-        const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+        let valorCentavos: number;
+        try {
+          valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+        } catch {
+          return erroCliente("Valor inválido.", 400, "valor_invalido");
+        }
         if (valorCentavos <= 0) return erroCliente("Valor inválido.", 400, "valor_invalido");
         campos.push("valor = ?"); valores.push(centavosParaReais(valorCentavos));
         campos.push("valor_centavos = ?"); valores.push(valorCentavos);
