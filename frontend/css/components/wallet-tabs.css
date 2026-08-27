@@ -12,6 +12,7 @@
   overflow-x: auto;
   max-width: 100%;
   scrollbar-width: none;
+  min-width: 0;
 }
 
 .carteira-tabs::-webkit-scrollbar {
@@ -42,6 +43,9 @@
 
 .tab-carteira-nome {
   line-height: 1;
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 
 .tab-carteira.ativo {
@@ -172,5 +176,34 @@
 
 #btn-excluir-carteira:hover {
   background: color-mix(in srgb, var(--cor-despesa) 12%, transparent);
+}
+
+.dark-mode .tab-carteira.ativo,
+.dark-mode .tab-carteira.tab-compartilhada.ativo {
+  background: color-mix(in srgb, var(--cor-marca) 18%, var(--cor-fundo-card));
+  border-color: color-mix(in srgb, var(--cor-marca) 44%, transparent);
+  color: var(--cor-texto);
+}
+
+.dark-mode .tab-carteira.ativo .tab-carteira-icone,
+.dark-mode .tab-carteira.tab-compartilhada.ativo .tab-carteira-icone {
+  stroke: var(--cor-marca-forte);
+}
+
+.dark-mode .tab-carteira:not(.ativo):hover,
+.dark-mode .btn-gerenciar-membros:hover {
+  color: var(--cor-marca-forte);
+  background: color-mix(in srgb, var(--cor-marca) 12%, var(--cor-fundo-card));
+  border-color: color-mix(in srgb, var(--cor-marca) 26%, transparent);
+}
+
+@media (max-width: 480px) {
+  .tab-carteira {
+    max-width: min(190px, 62vw);
+  }
+
+  .tab-carteira-add {
+    min-width: 30px;
+  }
 }
 

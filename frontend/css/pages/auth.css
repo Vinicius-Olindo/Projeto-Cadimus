@@ -795,6 +795,7 @@
   #redefinir-senha-section {
     padding: 8px;
     min-height: 100dvh;
+    height: 100dvh;
   }
 
   #login-section::before,
@@ -808,6 +809,8 @@
     max-width: none;
     width: 100%;
     border-radius: 20px;
+    max-height: calc(100dvh - 16px);
+    overflow: hidden;
   }
 
   .login-painel-visual {
@@ -858,6 +861,7 @@
 
   .login-form-panel {
     padding: clamp(16px, 3.8svh, 24px) clamp(18px, 6vw, 28px) clamp(18px, 4svh, 28px);
+    min-height: 0;
   }
 
   .login-form-panel form {
@@ -969,6 +973,30 @@
   .login-primeiro-acesso {
     margin-top: 10px;
     padding: 10px;
+  }
+}
+
+@media (max-width: 380px), (max-height: 590px) {
+  .login-painel-visual {
+    display: none;
+  }
+
+  .login-modelo-painel {
+    max-height: calc(100dvh - 12px);
+  }
+
+  .login-form-panel {
+    padding: 18px 16px;
+  }
+
+  .login-logo-wrapper .login-logo-texto {
+    font-size: 1.55rem;
+  }
+
+  .login-feedback,
+  .login-capslock,
+  .login-primeiro-acesso {
+    font-size: 0.7rem;
   }
 }
 

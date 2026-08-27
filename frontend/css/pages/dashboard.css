@@ -372,6 +372,7 @@
   display: flex;
   align-items: center;
   gap: 8px;
+  min-width: 0;
 }
 
 .stat-card-icone {
@@ -446,6 +447,8 @@
   color: var(--cor-texto-suave);
   font-weight: 600;
   flex: 1;
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .stat-valor {
@@ -1150,6 +1153,7 @@
   display: flex;
   gap: 8px;
   margin-top: 8px;
+  min-width: 0;
 }
 
 .filtros-lancamentos select {
@@ -1210,7 +1214,8 @@
   }
 
   .stat-card {
-    min-height: 122px;
+    min-height: 112px;
+    gap: 8px;
   }
 
   .stat-card-topo {
@@ -1239,7 +1244,23 @@
   }
 
   .stat-card {
-    padding: 16px;
+    padding: 14px;
+    min-height: 106px;
+  }
+
+  .stat-card-icone {
+    width: 28px;
+    height: 28px;
+  }
+
+  .stat-rotulo {
+    font-size: 0.62rem;
+    letter-spacing: 0.9px;
+  }
+
+  .stat-desc {
+    font-size: 0.68rem;
+    line-height: 1.35;
   }
 
   .grafico-resumo-topo,

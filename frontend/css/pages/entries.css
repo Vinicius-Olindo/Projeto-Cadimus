@@ -112,6 +112,7 @@
   padding: 10px 4px 2px;
   background: transparent;
   border-bottom: none;
+  min-width: 0;
 }
 
 .grupo-data-header-principal {
@@ -132,6 +133,8 @@
   text-transform: uppercase;
   letter-spacing: 0.5px;
   color: var(--cor-texto-suave);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .grupo-data-subtitulo {
@@ -204,6 +207,7 @@
   transition: background-color 0.12s ease, border-color 0.12s ease, box-shadow 0.12s ease, transform 0.12s ease;
   padding: 12px;
   background: color-mix(in srgb, var(--cor-fundo-card) 82%, transparent);
+  min-width: 0;
 }
 
 .linha-item:hover {
@@ -379,6 +383,7 @@
   gap: 7px;
   min-width: 0;
   padding-left: 0;
+  flex: 1 1 auto;
 }
 
 .item-descricao {
@@ -818,10 +823,12 @@ button.item-status:active {
   .item-valor-acoes {
     align-items: center;
     justify-content: space-between;
+    flex-wrap: wrap;
   }
 
   .item-valor {
     text-align: left;
+    flex-basis: min(100%, 260px);
   }
 }
 
@@ -843,6 +850,15 @@ button.item-status:active {
   .btn-excluir {
     width: 30px;
     height: 30px;
+  }
+
+  .lancamentos-paginacao-info,
+  .lancamentos-por-pagina {
+    white-space: normal;
+  }
+
+  .item-valor {
+    font-size: 0.82rem;
   }
 }
 

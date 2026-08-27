@@ -192,6 +192,16 @@
   background:
     linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 22%, transparent), transparent 76%),
     color-mix(in srgb, var(--cor-superficie) 92%, var(--cor-fundo));
+  color: var(--cor-texto);
+}
+
+.dark-mode .dropdown-avatar-nome,
+.dark-mode .dropdown-avatar-item {
+  color: var(--cor-texto);
+}
+
+.dark-mode .dropdown-avatar-email {
+  color: color-mix(in srgb, var(--cor-texto-suave) 86%, transparent);
 }
 
 .dark-mode .dropdown-avatar-divider,
@@ -207,8 +217,19 @@
 .dark-mode .dropdown-avatar-item:focus-visible,
 .dark-mode .settings-nav-item:hover,
 .dark-mode .settings-overview-card:hover {
-  background: color-mix(in srgb, var(--cor-marca) 14%, var(--cor-superficie));
+  background: color-mix(in srgb, var(--cor-marca) 14%, var(--cor-fundo-card));
   color: var(--cor-marca-forte);
+}
+
+.dark-mode .dropdown-avatar-item:disabled,
+.dark-mode .dropdown-avatar-item[disabled] {
+  color: color-mix(in srgb, var(--cor-texto-suave) 60%, transparent);
+}
+
+.dark-mode .dropdown-avatar-item:disabled:hover,
+.dark-mode .dropdown-avatar-item[disabled]:hover {
+  background: transparent;
+  color: color-mix(in srgb, var(--cor-texto-suave) 60%, transparent);
 }
 
 .dark-mode .settings-nav-perigo:hover,
@@ -220,8 +241,8 @@
 
 .dark-mode .cartao-item {
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 26%, transparent), transparent 74%),
-    color-mix(in srgb, var(--cor-superficie) 90%, var(--cor-fundo));
+    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 22%, transparent), transparent 74%),
+    color-mix(in srgb, var(--cor-fundo-card) 84%, var(--cor-fundo));
   border-color: color-mix(in srgb, var(--cor-pauta) 82%, transparent);
 }
 
@@ -230,11 +251,15 @@
 .dark-mode .cartao-item-datas,
 .dark-mode .cartao-limite-disponivel,
 .dark-mode .cartao-item-parcelas {
-  color: var(--cor-texto-suave);
+  color: color-mix(in srgb, var(--cor-texto-suave) 90%, transparent);
 }
 
 .dark-mode .cartao-item-info strong {
   color: var(--cor-texto);
+}
+
+.dark-mode .cartao-limite-disponivel strong {
+  color: var(--cor-receita);
 }
 
 .dark-mode .cartao-limite-barra,

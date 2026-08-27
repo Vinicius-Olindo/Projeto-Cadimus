@@ -11,12 +11,15 @@
   padding: 12px;
   margin-bottom: 10px;
   box-shadow: 0 10px 24px -18px var(--cor-sombra);
+  min-width: 0;
+  overflow: hidden;
 }
 
 .cartao-item-header {
   display: flex;
   align-items: center;
   gap: 10px;
+  min-width: 0;
 }
 
 .cartao-item-bandeira {
@@ -48,6 +51,7 @@
 .cartao-item-acoes {
   display: flex;
   gap: 4px;
+  flex-shrink: 0;
 }
 
 .cartao-editar-btn,
@@ -73,6 +77,7 @@
 
 .cartao-item-datas {
   display: flex;
+  flex-wrap: wrap;
   gap: 16px;
   margin-top: 8px;
   font-size: 0.72rem;
@@ -86,9 +91,18 @@
 .cartao-limite-texto {
   display: flex;
   justify-content: space-between;
+  gap: 8px;
   font-size: 0.7rem;
   margin-bottom: 4px;
   color: var(--cor-texto-suave);
+}
+
+.cartao-limite-texto span,
+.cartao-limite-texto strong,
+.cartao-limite-disponivel span,
+.cartao-limite-disponivel strong {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .cartao-limite-barra {
@@ -127,12 +141,31 @@
 
 .dark-mode .cartao-item {
   background:
-    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 62%, transparent), transparent 74%),
-    color-mix(in srgb, var(--cor-superficie) 82%, var(--cor-fundo));
+    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 22%, transparent), transparent 74%),
+    color-mix(in srgb, var(--cor-fundo-card) 84%, var(--cor-fundo));
   border-color: color-mix(in srgb, var(--cor-pauta) 76%, transparent);
 }
 
 .dark-mode .cartao-limite-barra {
   background: color-mix(in srgb, var(--cor-pauta) 70%, transparent);
+}
+
+@media (max-width: 520px) {
+  .cartao-item {
+    padding: 11px;
+  }
+
+  .cartao-item-header {
+    align-items: flex-start;
+  }
+
+  .cartao-item-acoes {
+    margin-left: auto;
+  }
+
+  .cartao-limite-texto,
+  .cartao-limite-disponivel {
+    font-size: 0.66rem;
+  }
 }
 
