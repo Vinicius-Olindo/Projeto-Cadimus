@@ -1,0 +1,356 @@
+/* ==========================================
+   POLIMENTO VISUAL FINAL
+   Ajustes finos de ícones, hovers, cards internos,
+   contraste, botões secundários e estados vazios.
+   ========================================== */
+
+:where(
+  .stat-card,
+  .card,
+  .linha-item,
+  .cartao-item,
+  .plano-card-item,
+  .plano-meta-item,
+  .plano-kpi,
+  .plano-ind-item,
+  .plano-sim-card,
+  .plano-lista-item,
+  .settings-card,
+  .settings-mini-card,
+  .settings-system-card,
+  .settings-overview-card,
+  .lancamento-recorrente-card,
+  .orcamento-item,
+  .grafico-resumo,
+  .comparativo-resumo,
+  .comparativo-resumo-item,
+  .popup-nota-conteudo
+) {
+  transition:
+    border-color 0.18s ease,
+    box-shadow 0.18s ease,
+    background 0.18s ease,
+    transform 0.18s ease;
+}
+
+:where(
+  .card,
+  .linha-item,
+  .cartao-item,
+  .plano-card-item,
+  .plano-meta-item,
+  .settings-mini-card,
+  .settings-system-card,
+  .settings-overview-card,
+  .lancamento-recorrente-card,
+  .orcamento-item
+):hover {
+  border-color: color-mix(in srgb, var(--cor-marca) 34%, var(--cor-pauta-forte));
+  box-shadow: 0 16px 34px -24px var(--cor-sombra);
+}
+
+:where(
+  .stat-card-icone,
+  .plano-card-icone,
+  .plano-ind-icone,
+  .settings-categoria-icone,
+  .dashboard-layout-banner-icone,
+  .cartao-item-bandeira,
+  .lancamento-atalho-icone
+) {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 14%, transparent);
+  transition:
+    background 0.18s ease,
+    color 0.18s ease,
+    box-shadow 0.18s ease,
+    transform 0.18s ease;
+}
+
+:where(
+  .stat-card:hover .stat-card-icone,
+  .plano-card-item:hover .plano-card-icone,
+  .plano-ind-item:hover .plano-ind-icone,
+  .cartao-item:hover .cartao-item-bandeira
+) {
+  transform: translateY(-1px);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 24%, transparent);
+}
+
+:where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .rel-paginacao button,
+  .lancamentos-paginacao button,
+  .settings-tema-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn,
+  .cartao-editar-btn,
+  .cartao-apagar-btn,
+  .btn-editar,
+  .btn-excluir,
+  .periodo-btn,
+  .plano-tab,
+  .plano-sub-tab,
+  .grupo-data-toggle,
+  .dropdown-avatar-item
+) {
+  transition:
+    background 0.16s ease,
+    border-color 0.16s ease,
+    color 0.16s ease,
+    box-shadow 0.16s ease,
+    transform 0.16s ease,
+    opacity 0.16s ease;
+}
+
+:where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn,
+  .settings-tema-btn
+) {
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 82%, transparent);
+  background: color-mix(in srgb, var(--cor-superficie) 90%, var(--cor-fundo));
+  color: var(--cor-texto);
+}
+
+:where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn,
+  .settings-tema-btn
+):hover {
+  border-color: color-mix(in srgb, var(--cor-marca) 44%, var(--cor-pauta-forte));
+  background: color-mix(in srgb, var(--cor-marca) 9%, var(--cor-superficie));
+  color: var(--cor-marca-forte);
+  box-shadow: 0 10px 24px -18px var(--cor-sombra);
+  transform: translateY(-1px);
+}
+
+:where(
+  .cartao-editar-btn,
+  .cartao-apagar-btn,
+  .btn-editar,
+  .btn-excluir,
+  .btn-topo-icone,
+  .grupo-data-toggle,
+  .periodo-btn
+):hover {
+  transform: translateY(-1px);
+}
+
+:where(
+  .loading-container,
+  .lista-vazia,
+  .estado-vazio-admin,
+  .historico-fixa-vazio,
+  .plano-vazio,
+  .settings-empty,
+  .relatorio-vazio
+) {
+  border: 1px dashed color-mix(in srgb, var(--cor-pauta-forte) 74%, transparent);
+  border-radius: 18px;
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--cor-marca) 7%, transparent), transparent 48%),
+    color-mix(in srgb, var(--cor-superficie) 72%, transparent);
+  color: color-mix(in srgb, var(--cor-texto-suave) 92%, var(--cor-texto));
+}
+
+.lista-vazia-icone,
+.estado-vazio-admin .icone-vazio {
+  color: color-mix(in srgb, var(--cor-texto-suave) 76%, transparent);
+  opacity: 1;
+}
+
+.lista-vazia-texto,
+.estado-vazio-admin p {
+  color: color-mix(in srgb, var(--cor-texto-suave) 88%, var(--cor-texto));
+}
+
+.spinner,
+.login-spinner {
+  border-color: color-mix(in srgb, var(--cor-pauta-forte) 72%, transparent);
+  border-top-color: var(--cor-marca);
+  filter: drop-shadow(0 2px 8px color-mix(in srgb, var(--cor-marca) 20%, transparent));
+}
+
+.dropdown-avatar-item:disabled,
+.dropdown-avatar-item[disabled] {
+  cursor: not-allowed;
+  opacity: 1;
+  color: color-mix(in srgb, var(--cor-texto-suave) 58%, transparent);
+}
+
+.dropdown-avatar-item:disabled:hover,
+.dropdown-avatar-item[disabled]:hover,
+.dropdown-avatar-item:disabled:focus-visible,
+.dropdown-avatar-item[disabled]:focus-visible {
+  background: transparent;
+  color: color-mix(in srgb, var(--cor-texto-suave) 58%, transparent);
+  box-shadow: none;
+  transform: none;
+}
+
+.dark-mode :where(
+  .card,
+  .settings-card,
+  .settings-mini-card,
+  .settings-system-card,
+  .settings-overview-card,
+  .plano-card-item,
+  .plano-meta-item,
+  .plano-kpi,
+  .plano-ind-item,
+  .plano-sim-card,
+  .plano-lista-item,
+  .linha-item,
+  .cartao-item,
+  .lancamento-recorrente-card,
+  .orcamento-item,
+  .grafico-resumo,
+  .comparativo-resumo,
+  .comparativo-resumo-item,
+  .popup-nota-conteudo
+) {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 24%, transparent), transparent 78%),
+    color-mix(in srgb, var(--cor-superficie) 90%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-pauta) 82%, transparent);
+  color: var(--cor-texto);
+  box-shadow: 0 14px 34px -28px rgba(0, 0, 0, 0.72);
+}
+
+.dark-mode :where(
+  .card,
+  .settings-mini-card,
+  .settings-system-card,
+  .settings-overview-card,
+  .plano-card-item,
+  .plano-meta-item,
+  .linha-item,
+  .cartao-item,
+  .lancamento-recorrente-card,
+  .orcamento-item
+):hover {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cor-marca) 10%, transparent), transparent 82%),
+    color-mix(in srgb, var(--cor-superficie-alta) 72%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-marca) 42%, var(--cor-pauta));
+  box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.86);
+}
+
+.dark-mode .stat-card {
+  background:
+    radial-gradient(circle at 88% 10%, color-mix(in srgb, currentColor 8%, transparent), transparent 34%),
+    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 18%, transparent), transparent 76%),
+    color-mix(in srgb, var(--cor-superficie) 88%, var(--cor-fundo));
+  border-color: color-mix(in srgb, currentColor 18%, var(--cor-pauta));
+}
+
+.dark-mode :where(
+  .stat-card-icone,
+  .settings-categoria-icone,
+  .dashboard-layout-banner-icone,
+  .plano-card-icone,
+  .plano-ind-icone,
+  .cartao-item-bandeira,
+  .lancamento-atalho-icone
+) {
+  background: color-mix(in srgb, currentColor 14%, var(--cor-fundo-card));
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, currentColor 28%, transparent);
+}
+
+.dark-mode :where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .rel-paginacao button,
+  .lancamentos-paginacao button,
+  .settings-tema-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn
+) {
+  background: color-mix(in srgb, var(--cor-superficie) 84%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-pauta) 86%, transparent);
+  color: var(--cor-texto);
+  box-shadow: 0 8px 20px -16px rgba(0, 0, 0, 0.75);
+}
+
+.dark-mode :where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .rel-paginacao button,
+  .lancamentos-paginacao button,
+  .settings-tema-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn
+):hover:not(:disabled) {
+  background: color-mix(in srgb, var(--cor-marca) 15%, var(--cor-superficie));
+  border-color: color-mix(in srgb, var(--cor-marca) 48%, transparent);
+  color: var(--cor-marca-forte);
+}
+
+.dark-mode :where(
+  .loading-container,
+  .lista-vazia,
+  .estado-vazio-admin,
+  .historico-fixa-vazio,
+  .plano-vazio,
+  .settings-empty,
+  .relatorio-vazio
+) {
+  border-color: color-mix(in srgb, var(--cor-pauta) 82%, transparent);
+  background:
+    radial-gradient(circle at 50% 0%, color-mix(in srgb, var(--cor-marca) 12%, transparent), transparent 48%),
+    color-mix(in srgb, var(--cor-superficie) 70%, var(--cor-fundo));
+  color: color-mix(in srgb, var(--cor-texto-suave) 88%, var(--cor-texto));
+}
+
+.dark-mode .lista-vazia-icone,
+.dark-mode .estado-vazio-admin .icone-vazio {
+  color: color-mix(in srgb, var(--cor-texto-suave) 82%, transparent);
+}
+
+.dark-mode .dropdown-avatar-item:disabled,
+.dark-mode .dropdown-avatar-item[disabled] {
+  color: color-mix(in srgb, var(--cor-texto-suave) 62%, transparent);
+}
+
+.dark-mode .dropdown-avatar-item:disabled:hover,
+.dark-mode .dropdown-avatar-item[disabled]:hover,
+.dark-mode .dropdown-avatar-item:disabled:focus-visible,
+.dark-mode .dropdown-avatar-item[disabled]:focus-visible {
+  background: transparent;
+  color: color-mix(in srgb, var(--cor-texto-suave) 62%, transparent);
+}
+
+.dark-mode svg {
+  stroke-opacity: 0.98;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  :where(
+    .stat-card,
+    .card,
+    .linha-item,
+    .cartao-item,
+    .plano-card-item,
+    .plano-meta-item,
+    .btn-secundario,
+    .dropdown-avatar-item,
+    .spinner,
+    .login-spinner
+  ) {
+    transition: none;
+    animation-duration: 0.01ms;
+  }
+}
