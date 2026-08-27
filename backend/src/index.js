@@ -12,7 +12,7 @@ import { processarPlanos, processarPlanoDepositos } from "./routes/planos.js";
 import { processarComprasParceladas } from "./routes/comprasParceladas.ts";
 import { processarLancamentosRecorrentes } from "./routes/lancamentosRecorrentes.ts";
 import { processarConvites } from "./routes/convites.js";
-import { processarTransferencias } from "./routes/transferencias.js";
+import { processarTransferencias } from "./routes/transferencias.ts";
 import { processarOrcamentos } from "./routes/orcamentos.ts";
 import { processarLimpezaDados } from "./routes/manutencao.ts";
 import { processarCartoesCredito } from "./routes/cartoesCredito.ts";
