@@ -25,6 +25,7 @@
     "src/utils/lancamentosRecorrentes.ts",
     "src/utils/respostas.ts",
     "src/utils/sessao.ts",
+    "src/routes/auth.ts",
     "src/routes/cartoesCredito.ts",
     "src/routes/carteiras.ts",
     "src/routes/categorias.ts",
