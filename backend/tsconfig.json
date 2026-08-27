@@ -37,6 +37,7 @@
     "src/routes/metas.ts",
     "src/routes/notificacoes.ts",
     "src/routes/orcamentos.ts",
+    "src/routes/planos.ts",
     "src/routes/transferencias.ts",
     "src/routes/usuarios.ts"
   ]
