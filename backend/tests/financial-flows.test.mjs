@@ -9,7 +9,7 @@ import { processarOrcamentos } from "../src/routes/orcamentos.ts";
 import { processarTransferencias } from "../src/routes/transferencias.ts";
 import { processarCarteiras } from "../src/routes/carteiras.js";
 import { processarPlanos, processarPlanoDepositos } from "../src/routes/planos.js";
-import { processarMetas, processarMetaDepositos } from "../src/routes/metas.js";
+import { processarMetas, processarMetaDepositos } from "../src/routes/metas.ts";
 import { processarCartoesCredito } from "../src/routes/cartoesCredito.ts";
 import { processarComprasParceladas } from "../src/routes/comprasParceladas.ts";
 import { processarLancamentosRecorrentes } from "../src/routes/lancamentosRecorrentes.ts";

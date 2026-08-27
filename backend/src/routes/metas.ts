@@ -1,18 +1,85 @@
 // ==========================================
-// metas.js - Metas (orçamento) por categoria + depósitos
+// metas.ts - Metas (orçamento) por categoria + depósitos
 // ==========================================
+import type { CadimusEnv, IdEntrada, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { registrarAuditoria } from "../utils/auditoria.ts";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
+import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
+import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
-export async function processarMetas(request, env, ctx) {
+interface MetaPayload {
+  carteira_id?: IdEntrada;
+  categoria?: string;
+  valor_limite?: ValorMonetarioEntrada;
+  valor_limite_centavos?: ValorMonetarioEntrada;
+  data_limite?: string | null;
+}
+
+interface MetaDepositoPayload {
+  meta_id?: IdEntrada;
+  valor?: ValorMonetarioEntrada;
+  valor_centavos?: ValorMonetarioEntrada;
+  descricao?: string;
+}
+
+interface MetaCategoriaRow {
+  id: number;
+  carteira_id: number;
+  categoria: string;
+  valor_limite: number;
+  valor_limite_centavos?: number | null;
+  data_limite?: string | null;
+  criado_por?: number | null;
+}
+
+interface DepositoResumoRow {
+  meta_id: number;
+  total?: number | null;
+  total_centavos?: number | string | null;
+}
+
+interface MetaComProgresso extends MetaCategoriaRow {
+  total_depositado: number;
+  total_depositado_centavos: number;
+  falta: number;
+  falta_centavos: number;
+  guarda_semanal: number | null;
+  guarda_semanal_centavos: number | null;
+  semanas_restantes: number | null;
+}
+
+interface MetaIdRow {
+  id: number;
+}
+
+interface MetaCarteiraRow {
+  carteira_id: number;
+}
+
+interface MetaDepositoListagemRow {
+  id: number;
+  meta_id: number;
+  valor?: number;
+  valor_centavos?: number | null;
+  descricao?: string | null;
+  criado_por: number;
+  criado_por_nome?: string;
+  criado_em?: string;
+}
+
+interface DepositoAlvoRow {
+  meta_id: number;
+  carteira_id: number;
+}
+
+export async function processarMetas(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
 
   const usuarioLogado = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuarioLogado) {
-    return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
+    return erroCliente("Não autenticado.", 401, "nao_autenticado");
   }
 
   const carteirasPermitidas = await obterCarteirasDoUsuario(env, usuarioLogado.id);
@@ -26,14 +93,14 @@ export async function processarMetas(request, env, ctx) {
       const metaId = url.searchParams.get("meta_id");
 
       if (carteiraId && !carteirasPermitidas.includes(Number(carteiraId))) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
       if (carteirasPermitidas.length === 0) {
-        return new Response(JSON.stringify([]), { status: 200 });
+        return json([]);
       }
 
       let query = `SELECT * FROM metas_categoria WHERE 1=1`;
-      let params = [];
+      const params: SqlParam[] = [];
 
       if (carteiraId) {
         query += ` AND carteira_id = ?`;
@@ -45,10 +112,10 @@ export async function processarMetas(request, env, ctx) {
 
       const { results } = await env.DB.prepare(query)
         .bind(...params)
-        .all();
+        .all<MetaCategoriaRow>();
 
       const metaIds = results.map((m) => m.id);
-      let depositosMap = {};
+      let depositosMap: Record<number, DepositoResumoRow> = {};
 
       if (metaIds.length > 0) {
         const placeholders = metaIds.map(() => "?").join(",");
@@ -60,25 +127,27 @@ export async function processarMetas(request, env, ctx) {
            FROM meta_depositos
            WHERE meta_id IN (${placeholders})
            GROUP BY meta_id`
-        ).bind(...metaIds).all();
+        ).bind(...metaIds).all<DepositoResumoRow>();
         depositosMap = Object.fromEntries(depositosResults.map((d) => [d.meta_id, d]));
       }
 
       const agora = new Date();
       const metasComProgresso = results.map((meta) => {
         const valorLimiteCentavos = meta.valor_limite_centavos ?? Math.round(meta.valor_limite * 100);
-        const totalDepositadoCentavos = depositosMap[meta.id]?.total_centavos ?? Math.round((depositosMap[meta.id]?.total || 0) * 100);
+        const totalDepositadoCentavos = Number(depositosMap[meta.id]?.total_centavos ?? Math.round((depositosMap[meta.id]?.total || 0) * 100));
         const totalDepositado = centavosParaReais(totalDepositadoCentavos);
         const faltaCentavos = Math.max(0, valorLimiteCentavos - totalDepositadoCentavos);
         const falta = centavosParaReais(faltaCentavos);
-        let guarda_semanal = null;
-        let semanas_restantes = null;
+        let guarda_semanal: number | null = null;
+        let guardaSemanalCentavos: number | null = null;
+        let semanas_restantes: number | null = null;
 
         if (meta.data_limite && faltaCentavos > 0) {
           const dataLimite = new Date(meta.data_limite + "T23:59:59");
-          const diffMs = dataLimite - agora;
+          const diffMs = dataLimite.getTime() - agora.getTime();
           semanas_restantes = Math.max(1, Math.ceil(diffMs / (7 * 24 * 60 * 60 * 1000)));
-          guarda_semanal = centavosParaReais(Math.ceil(faltaCentavos / semanas_restantes));
+          guardaSemanalCentavos = Math.ceil(faltaCentavos / semanas_restantes);
+          guarda_semanal = centavosParaReais(guardaSemanalCentavos);
         }
 
         return {
@@ -88,20 +157,19 @@ export async function processarMetas(request, env, ctx) {
           falta,
           falta_centavos: faltaCentavos,
           guarda_semanal,
-          guarda_semanal_centavos: guarda_semanal === null ? null : Math.ceil(faltaCentavos / semanas_restantes),
+          guarda_semanal_centavos: guardaSemanalCentavos,
           semanas_restantes,
         };
       });
 
       if (metaId) {
         const metasFiltradas = metasComProgresso.filter((m) => m.id === Number(metaId));
-        return new Response(JSON.stringify(metasFiltradas), { status: 200 });
+        return json(metasFiltradas);
       }
 
-      return new Response(JSON.stringify(metasComProgresso), { status: 200 });
+      return json(metasComProgresso);
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao buscar metas." }), { status: 500 });
+      return erroInterno(erro, "metas.listar", "Não foi possível carregar as metas agora.", "metas_listar_falhou");
     }
   }
 
@@ -110,25 +178,25 @@ export async function processarMetas(request, env, ctx) {
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json();
+      const dados = await request.json() as MetaPayload;
 
       if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       const categoria = (dados.categoria || "").trim();
       if (dados.valor_limite === undefined && dados.valor_limite_centavos === undefined) {
-        return new Response(JSON.stringify({ erro: "Informe um valor de meta vÃ¡lido." }), { status: 400 });
+        return erroCliente("Informe um valor de meta válido.", 400, "valor_meta_obrigatorio");
       }
       const valorLimiteCentavos = normalizarCentavos(dados.valor_limite, dados.valor_limite_centavos);
       const valorLimite = centavosParaReais(valorLimiteCentavos);
       const dataLimite = dados.data_limite || null;
 
       if (!categoria) {
-        return new Response(JSON.stringify({ erro: "Categoria não informada." }), { status: 400 });
+        return erroCliente("Categoria não informada.", 400, "categoria_obrigatoria");
       }
       if (valorLimiteCentavos <= 0) {
-        return new Response(JSON.stringify({ erro: "Informe um valor de meta válido." }), { status: 400 });
+        return erroCliente("Informe um valor de meta válido.", 400, "valor_meta_invalido");
       }
 
       const resultado = await env.DB.prepare(
@@ -143,7 +211,7 @@ export async function processarMetas(request, env, ctx) {
         `SELECT id FROM metas_categoria WHERE carteira_id = ? AND LOWER(categoria) = LOWER(?)`,
       )
         .bind(dados.carteira_id, categoria)
-        .all();
+        .all<MetaIdRow>();
 
       await registrarAuditoria(env, {
         usuarioId: usuarioLogado.id,
@@ -157,10 +225,9 @@ export async function processarMetas(request, env, ctx) {
         },
       });
 
-      return new Response(JSON.stringify({ mensagem: "Meta salva com sucesso!" }), { status: 200 });
+      return json({ mensagem: "Meta salva com sucesso!" });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao salvar meta." }), { status: 500 });
+      return erroInterno(erro, "metas.salvar", "Não foi possível salvar esta meta agora.", "meta_salvar_falhou");
     }
   }
 
@@ -171,15 +238,15 @@ export async function processarMetas(request, env, ctx) {
     try {
       const id = url.searchParams.get("id");
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM metas_categoria WHERE id = ?`).bind(id).all();
+      const { results: alvo } = await env.DB.prepare(`SELECT carteira_id FROM metas_categoria WHERE id = ?`).bind(id).all<MetaCarteiraRow>();
       if (alvo.length === 0) {
-        return new Response(JSON.stringify({ erro: "Meta não encontrada." }), { status: 404 });
+        return erroCliente("Meta não encontrada.", 404, "meta_nao_encontrada");
       }
       if (!carteirasPermitidas.includes(alvo[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado a esta carteira." }), { status: 403 });
+        return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
       await registrarAuditoria(env, {
@@ -193,26 +260,25 @@ export async function processarMetas(request, env, ctx) {
       await env.DB.prepare(`DELETE FROM meta_depositos WHERE meta_id = ?`).bind(id).run();
       await env.DB.prepare(`DELETE FROM metas_categoria WHERE id = ?`).bind(id).run();
 
-      return new Response(JSON.stringify({ mensagem: "Meta removida." }), { status: 200 });
+      return json({ mensagem: "Meta removida." });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao remover meta." }), { status: 500 });
+      return erroInterno(erro, "metas.excluir", "Não foi possível remover esta meta agora.", "meta_excluir_falhou");
     }
   }
 
-  return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
+  return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
 }
 
 // ==========================================
 // processarMetaDepositos - CRUD de depósitos em metas
 // ==========================================
-export async function processarMetaDepositos(request, env, ctx) {
+export async function processarMetaDepositos(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
 
   const usuarioLogado = await obterUsuarioDaSessao(request, env, ctx);
   if (!usuarioLogado) {
-    return new Response(JSON.stringify({ erro: "Não autenticado." }), { status: 401 });
+    return erroCliente("Não autenticado.", 401, "nao_autenticado");
   }
 
   const carteirasPermitidas = await obterCarteirasDoUsuario(env, usuarioLogado.id);
@@ -224,15 +290,15 @@ export async function processarMetaDepositos(request, env, ctx) {
     try {
       const metaId = url.searchParams.get("meta_id");
       if (!metaId) {
-        return new Response(JSON.stringify({ erro: "meta_id não fornecido." }), { status: 400 });
+        return erroCliente("meta_id não fornecido.", 400, "meta_id_obrigatorio");
       }
 
-      const { results: meta } = await env.DB.prepare(`SELECT carteira_id FROM metas_categoria WHERE id = ?`).bind(metaId).all();
+      const { results: meta } = await env.DB.prepare(`SELECT carteira_id FROM metas_categoria WHERE id = ?`).bind(metaId).all<MetaCarteiraRow>();
       if (meta.length === 0) {
-        return new Response(JSON.stringify({ erro: "Meta não encontrada." }), { status: 404 });
+        return erroCliente("Meta não encontrada.", 404, "meta_nao_encontrada");
       }
       if (!carteirasPermitidas.includes(meta[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+        return erroCliente("Acesso negado.", 403, "acesso_negado");
       }
 
       const { results } = await env.DB.prepare(
@@ -243,12 +309,11 @@ export async function processarMetaDepositos(request, env, ctx) {
          ORDER BY d.criado_em DESC`,
       )
         .bind(metaId)
-        .all();
+        .all<MetaDepositoListagemRow>();
 
-      return new Response(JSON.stringify(results), { status: 200 });
+      return json(results);
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao buscar depósitos." }), { status: 500 });
+      return erroInterno(erro, "metaDepositos.listar", "Não foi possível carregar os depósitos agora.", "depositos_listar_falhou");
     }
   }
 
@@ -257,28 +322,28 @@ export async function processarMetaDepositos(request, env, ctx) {
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json();
+      const dados = await request.json() as MetaDepositoPayload;
       const metaId = dados.meta_id;
       if (dados.valor === undefined && dados.valor_centavos === undefined) {
-        return new Response(JSON.stringify({ erro: "Informe um valor vÃ¡lido." }), { status: 400 });
+        return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
       }
       const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
       const valor = centavosParaReais(valorCentavos);
       const descricao = (dados.descricao || "").trim();
 
       if (!metaId) {
-        return new Response(JSON.stringify({ erro: "meta_id não fornecido." }), { status: 400 });
+        return erroCliente("meta_id não fornecido.", 400, "meta_id_obrigatorio");
       }
       if (valorCentavos <= 0) {
-        return new Response(JSON.stringify({ erro: "Informe um valor válido." }), { status: 400 });
+        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
       }
 
-      const { results: meta } = await env.DB.prepare(`SELECT carteira_id FROM metas_categoria WHERE id = ?`).bind(metaId).all();
+      const { results: meta } = await env.DB.prepare(`SELECT carteira_id FROM metas_categoria WHERE id = ?`).bind(metaId).all<MetaCarteiraRow>();
       if (meta.length === 0) {
-        return new Response(JSON.stringify({ erro: "Meta não encontrada." }), { status: 404 });
+        return erroCliente("Meta não encontrada.", 404, "meta_nao_encontrada");
       }
       if (!carteirasPermitidas.includes(meta[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+        return erroCliente("Acesso negado.", 403, "acesso_negado");
       }
 
       const resultado = await env.DB.prepare(
@@ -299,10 +364,9 @@ export async function processarMetaDepositos(request, env, ctx) {
         },
       });
 
-      return new Response(JSON.stringify({ id: resultado.meta.last_row_id, mensagem: "Depósito registrado!" }), { status: 201 });
+      return json({ id: resultado.meta?.last_row_id ?? null, mensagem: "Depósito registrado!" }, 201);
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao registrar depósito." }), { status: 500 });
+      return erroInterno(erro, "metaDepositos.criar", "Não foi possível registrar este depósito agora.", "deposito_criar_falhou");
     }
   }
 
@@ -313,20 +377,20 @@ export async function processarMetaDepositos(request, env, ctx) {
     try {
       const id = url.searchParams.get("id");
       if (!id) {
-        return new Response(JSON.stringify({ erro: "ID não fornecido." }), { status: 400 });
+        return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
       const { results: deposito } = await env.DB.prepare(
         `SELECT d.meta_id, m.carteira_id FROM meta_depositos d JOIN metas_categoria m ON m.id = d.meta_id WHERE d.id = ?`,
       )
         .bind(id)
-        .all();
+        .all<DepositoAlvoRow>();
 
       if (deposito.length === 0) {
-        return new Response(JSON.stringify({ erro: "Depósito não encontrado." }), { status: 404 });
+        return erroCliente("Depósito não encontrado.", 404, "deposito_nao_encontrado");
       }
       if (!carteirasPermitidas.includes(deposito[0].carteira_id)) {
-        return new Response(JSON.stringify({ erro: "Acesso negado." }), { status: 403 });
+        return erroCliente("Acesso negado.", 403, "acesso_negado");
       }
 
       await env.DB.prepare(`DELETE FROM meta_depositos WHERE id = ?`).bind(id).run();
@@ -342,12 +406,11 @@ export async function processarMetaDepositos(request, env, ctx) {
         },
       });
 
-      return new Response(JSON.stringify({ mensagem: "Depósito removido." }), { status: 200 });
+      return json({ mensagem: "Depósito removido." });
     } catch (erro) {
-      console.error("Erro:", erro);
-      return new Response(JSON.stringify({ erro: "Erro ao remover depósito." }), { status: 500 });
+      return erroInterno(erro, "metaDepositos.excluir", "Não foi possível remover este depósito agora.", "deposito_excluir_falhou");
     }
   }
 
-  return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
+  return erroCliente("Método não permitido.", 405, "metodo_nao_permitido");
 }
