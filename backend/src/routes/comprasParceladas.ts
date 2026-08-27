@@ -44,6 +44,11 @@ interface CompraParceladaCartaoRow {
   cartao_credito_id?: number | null;
 }
 
+function normalizarDiaVencimentoSeguro(valor: number | string | null | undefined): number | null {
+  const dia = Number(valor);
+  return Number.isInteger(dia) && dia >= 1 && dia <= 28 ? dia : null;
+}
+
 export async function processarComprasParceladas(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -105,7 +110,7 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
       }
 
       const descricao = (dados.descricao || "").trim();
-      let diaVencimento = Number(dados.dia_vencimento);
+      let diaVencimento = normalizarDiaVencimentoSeguro(dados.dia_vencimento);
       const totalParcelas = Number(dados.total_parcelas);
       const anoInicio = Number(dados.ano_inicio);
       const mesInicio = Number(dados.mes_inicio);
@@ -126,9 +131,6 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
       }
       if (totalParcelas > 60) {
         return erroCliente("Máximo de 60 parcelas.", 400, "total_parcelas_limite");
-      }
-      if (!Number.isInteger(diaVencimento) || diaVencimento < 1 || diaVencimento > 28) {
-        return erroCliente("Escolha um dia de vencimento entre 1 e 28.", 400, "dia_vencimento_invalido");
       }
       if (!Number.isInteger(anoInicio) || !Number.isInteger(mesInicio) || mesInicio < 1 || mesInicio > 12) {
         return erroCliente("Informe o mês da primeira parcela.", 400, "periodo_inicio_invalido");
@@ -172,7 +174,12 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
         }
         cartaoCreditoId = cartaoValido;
         const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all<CartaoVencimentoRow>();
-        diaVencimento = Math.min(Math.max(Number(cartao[0]?.dia_vencimento || diaVencimento), 1), 28);
+        diaVencimento = normalizarDiaVencimentoSeguro(cartao[0]?.dia_vencimento);
+        if (diaVencimento === null) {
+          return erroCliente("O cartão selecionado não possui vencimento válido.", 400, "cartao_vencimento_invalido");
+        }
+      } else if (diaVencimento === null) {
+        return erroCliente("Escolha um dia de vencimento entre 1 e 28.", 400, "dia_vencimento_invalido");
       }
 
       const resultado = await env.DB.prepare(
@@ -267,9 +274,11 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
         campos.push("meio_pagamento = ?");
         valores.push(meioPagamento);
       }
-      if (dados.dia_vencimento !== undefined) {
-        const dia = Number(dados.dia_vencimento);
-        if (!Number.isInteger(dia) || dia < 1 || dia > 28) {
+      const vaiUsarCartaoInformado = String(dados.meio_pagamento ?? alvo[0].meio_pagamento).toLowerCase() === "credito" && Boolean(dados.cartao_credito_id);
+
+      if (dados.dia_vencimento !== undefined && !vaiUsarCartaoInformado) {
+        const dia = normalizarDiaVencimentoSeguro(dados.dia_vencimento);
+        if (dia === null) {
           return erroCliente("Escolha um dia de vencimento entre 1 e 28.", 400, "dia_vencimento_invalido");
         }
         campos.push("dia_vencimento = ?");
@@ -289,7 +298,10 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
           }
           cartaoCreditoId = cartaoValido;
           const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all<CartaoVencimentoRow>();
-          const diaCartao = Math.min(Math.max(Number(cartao[0]?.dia_vencimento || 1), 1), 28);
+          const diaCartao = normalizarDiaVencimentoSeguro(cartao[0]?.dia_vencimento);
+          if (diaCartao === null) {
+            return erroCliente("O cartão selecionado não possui vencimento válido.", 400, "cartao_vencimento_invalido");
+          }
           const indiceDia = campos.indexOf("dia_vencimento = ?");
           if (indiceDia >= 0) valores[indiceDia] = diaCartao;
           else {

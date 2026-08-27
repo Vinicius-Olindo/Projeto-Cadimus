@@ -40,6 +40,15 @@ interface DespesaFixaCartaoRow {
   cartao_credito_id?: number | null;
 }
 
+interface CartaoVencimentoRow {
+  dia_vencimento: number | string | null;
+}
+
+function normalizarDiaVencimentoSeguro(valor: number | string | null | undefined): number | null {
+  const dia = Number(valor);
+  return Number.isInteger(dia) && dia >= 1 && dia <= 28 ? dia : null;
+}
+
 export async function processarDespesasFixas(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -111,7 +120,7 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
         return erroCliente("Informe um valor válido.", 400, "valor_invalido");
       }
       const valor = centavosParaReais(valorCentavos);
-      const diaVencimento = Number(dados.dia_vencimento);
+      let diaVencimento = normalizarDiaVencimentoSeguro(dados.dia_vencimento);
       const tipo = dados.tipo === "receita" ? "receita" : "despesa";
 
       if (!descricao) {
@@ -119,9 +128,6 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
       }
       if (valorCentavos <= 0) {
         return erroCliente("Informe um valor válido.", 400, "valor_invalido");
-      }
-      if (!Number.isInteger(diaVencimento) || diaVencimento < 1 || diaVencimento > 28) {
-        return erroCliente("Escolha um dia de vencimento entre 1 e 28 (evita problemas em meses mais curtos).", 400, "dia_vencimento_invalido");
       }
       if (!dados.categoria) {
         return erroCliente("Escolha uma categoria.", 400, "categoria_obrigatoria");
@@ -140,6 +146,13 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
           return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
         }
         cartaoCreditoId = cartaoValido;
+        const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all<CartaoVencimentoRow>();
+        diaVencimento = normalizarDiaVencimentoSeguro(cartao[0]?.dia_vencimento);
+        if (diaVencimento === null) {
+          return erroCliente("O cartão selecionado não possui vencimento válido.", 400, "cartao_vencimento_invalido");
+        }
+      } else if (diaVencimento === null) {
+        return erroCliente("Escolha um dia de vencimento entre 1 e 28 (evita problemas em meses mais curtos).", 400, "dia_vencimento_invalido");
       }
 
       const resultado = await env.DB.prepare(
@@ -216,9 +229,14 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
         campos.push("meio_pagamento = ?");
         valores.push(meioPagamento);
       }
-      if (dados.dia_vencimento !== undefined) {
-        const dia = Number(dados.dia_vencimento);
-        if (!Number.isInteger(dia) || dia < 1 || dia > 28) {
+      const vaiUsarCartaoInformado = deveVincularCartaoCredito({
+        tipo: dados.tipo ?? alvo[0].tipo,
+        meio_pagamento: dados.meio_pagamento ?? alvo[0].meio_pagamento,
+      }) && Boolean(dados.cartao_credito_id);
+
+      if (dados.dia_vencimento !== undefined && !vaiUsarCartaoInformado) {
+        const dia = normalizarDiaVencimentoSeguro(dados.dia_vencimento);
+        if (dia === null) {
           return erroCliente("Escolha um dia de vencimento entre 1 e 28.", 400, "dia_vencimento_invalido");
         }
         campos.push("dia_vencimento = ?");
@@ -241,6 +259,17 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
             return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
           }
           cartaoCreditoId = cartaoValido;
+          const { results: cartao } = await env.DB.prepare(`SELECT dia_vencimento FROM cartoes_credito WHERE id = ?`).bind(cartaoCreditoId).all<CartaoVencimentoRow>();
+          const diaCartao = normalizarDiaVencimentoSeguro(cartao[0]?.dia_vencimento);
+          if (diaCartao === null) {
+            return erroCliente("O cartão selecionado não possui vencimento válido.", 400, "cartao_vencimento_invalido");
+          }
+          const indiceDia = campos.indexOf("dia_vencimento = ?");
+          if (indiceDia >= 0) valores[indiceDia] = diaCartao;
+          else {
+            campos.push("dia_vencimento = ?");
+            valores.push(diaCartao);
+          }
         }
         campos.push("cartao_credito_id = ?");
         valores.push(cartaoCreditoId);

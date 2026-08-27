@@ -13,6 +13,7 @@ import { processarMetas, processarMetaDepositos } from "../src/routes/metas.ts";
 import { processarCartoesCredito } from "../src/routes/cartoesCredito.ts";
 import { processarComprasParceladas } from "../src/routes/comprasParceladas.ts";
 import { processarLancamentosRecorrentes } from "../src/routes/lancamentosRecorrentes.ts";
+import { processarDespesasFixas } from "../src/routes/despesasFixas.ts";
 import worker from "../src/index.ts";
 
 class FakeD1 {
@@ -201,6 +202,56 @@ test("criação de compra parcelada retorna erro claro quando valor é inválido
   assert.equal(inserts.length, 0);
 });
 
+test("compra parcelada com cartão usa vencimento do cartão selecionado", async () => {
+  let insertCompra;
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT id FROM cartoes_credito WHERE id = ? AND carteira_id = ?",
+      reply: () => [{ id: 55 }],
+    },
+    {
+      type: "all",
+      match: "SELECT dia_vencimento FROM cartoes_credito WHERE id = ?",
+      reply: () => [{ dia_vencimento: 18 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO compras_parceladas",
+      reply: ({ args }) => {
+        insertCompra = { args };
+        return { meta: { last_row_id: 88 } };
+      },
+    },
+    {
+      type: "all",
+      match: "SELECT * FROM compras_parceladas WHERE id = ?",
+      reply: () => [],
+    },
+  ]));
+
+  const res = await processarComprasParceladas(
+    request("POST", "https://cadimus.test/api/compras-parceladas", {
+      carteira_id: 10,
+      descricao: "Notebook",
+      valor_total_centavos: 300000,
+      dia_vencimento: 1,
+      total_parcelas: 3,
+      ano_inicio: 2026,
+      mes_inicio: 8,
+      categoria: "Tecnologia",
+      meio_pagamento: "credito",
+      cartao_credito_id: 55,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 201);
+  assert.equal(insertCompra.args[8], 18);
+  assert.equal(insertCompra.args[13], 55);
+});
+
 test("despesas fixas geradas usam centavos como fonte do valor", async () => {
   const lancamentos = [];
   const db = new FakeD1([
@@ -288,6 +339,49 @@ test("despesas fixas geradas preservam vínculo com cartão de crédito", async 
     despesa_fixa_id: 4,
     cartao_credito_id: 55,
   }]);
+});
+
+test("despesa fixa com cartão usa vencimento do cartão selecionado", async () => {
+  let insertFixa;
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT id FROM cartoes_credito WHERE id = ? AND carteira_id = ?",
+      reply: () => [{ id: 55 }],
+    },
+    {
+      type: "all",
+      match: "SELECT dia_vencimento FROM cartoes_credito WHERE id = ?",
+      reply: () => [{ dia_vencimento: 12 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO despesas_fixas",
+      reply: ({ args }) => {
+        insertFixa = { args };
+        return { meta: { last_row_id: 44 } };
+      },
+    },
+  ]));
+
+  const res = await processarDespesasFixas(
+    request("POST", "https://cadimus.test/api/despesas-fixas", {
+      carteira_id: 10,
+      descricao: "Assinatura",
+      valor_centavos: 4990,
+      tipo: "despesa",
+      categoria: "Serviços",
+      meio_pagamento: "credito",
+      dia_vencimento: 1,
+      cartao_credito_id: 55,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 201);
+  assert.equal(insertFixa.args[7], 12);
+  assert.equal(insertFixa.args[9], 55);
 });
 
 test("recorrências semanais geram ocorrências do mês sem duplicar", async () => {
@@ -612,6 +706,54 @@ test("criação de lançamento faz escrita dupla em reais e centavos", async () 
   assert.equal(insertLancamento.args[1], 123.45);
   assert.equal(insertLancamento.args[2], 12345);
   assert.equal(auditLogs.length, 1);
+});
+
+test("criação de lançamento comum com cartão preserva vínculo do cartão", async () => {
+  let insertLancamento;
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT id FROM categorias WHERE LOWER(nome) = LOWER(?)",
+      reply: () => [{ id: 1 }],
+    },
+    {
+      type: "all",
+      match: "SELECT id FROM cartoes_credito WHERE id = ? AND carteira_id = ?",
+      reply: () => [{ id: 55 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ args }) => {
+        insertLancamento = { args };
+        return { meta: { last_row_id: 78 } };
+      },
+    },
+    {
+      type: "run",
+      match: "INSERT INTO audit_logs",
+      reply: () => ({ meta: { last_row_id: 1 } }),
+    },
+  ]));
+
+  const res = await processarLancamentos(
+    request("POST", "https://cadimus.test/api/lancamentos", {
+      descricao: "Mercado",
+      valor_centavos: 12345,
+      data_compra: "2026-08-14",
+      tipo: "despesa",
+      categoria: "Casa",
+      meio_pagamento: "credito",
+      status: "pendente",
+      carteira_id: 10,
+      cartao_credito_id: 55,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 201);
+  assert.equal(insertLancamento.args[11], 55);
 });
 
 test("criação de lançamento retorna erro claro quando descrição está ausente", async () => {
