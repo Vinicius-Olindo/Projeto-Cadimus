@@ -65,6 +65,16 @@ Todas as alterações foram feitas e enviadas exclusivamente para `origin/stagin
 
 - Sessões agora expiram após 30 minutos de inatividade: frontend desloga automaticamente e backend renova a sessão apenas quando há requisições autenticadas.
 
+### Backend e TypeScript
+
+- `backend/src` foi migrado para TypeScript: entrypoint, rotas, utilitários, tipos compartilhados e guards de domínio estão em `.ts`.
+- `backend/src/routes/expenses.js`, arquivo legado vazio, foi removido.
+- Revisão de JavaScript remanescente confirmou que fora de `backend/src` ainda existem apenas:
+  - módulos do frontend em `frontend/js/*.js`;
+  - `frontend/sw.js`;
+  - testes do backend em `.mjs`, mantidos por enquanto no runner `node --test`.
+- A decisão atual é não converter o frontend para TypeScript nesta etapa, para evitar mexer em bundler/build enquanto os ajustes visuais e funcionais ainda seguem ativos.
+
 ### UI e CSS
 
 - Seletor claro/escuro foi melhorado.

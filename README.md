@@ -168,7 +168,8 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - **Cloudflare Workers** (edge computing)
 - **Cloudflare D1** (SQLite serverless)
 - Roteamento manual com padrão de rotas otimizadas (GROUP BY + IN)
-- TypeScript em adoção incremental via `npm run typecheck`, começando pelos utilitários financeiros críticos sem alterar o runtime JS atual
+- Backend em **TypeScript** dentro de `backend/src`, validado por `npm run typecheck`
+- Testes do backend mantidos em `.mjs` com `node --test`
 
 ### Segurança
 - Hash de senhas com **PBKDF2** (100.000 iterações)
@@ -227,32 +228,41 @@ Cadimus/
 ├── backend/
 │   ├── package.json
 │   ├── wrangler.toml           # Configuração Cloudflare Workers
+│   ├── tsconfig.json           # Typecheck do backend
+│   ├── tests/                  # Testes Node em .mjs
 │   └── src/
-│       ├── index.js            # Entry point e rotas
+│       ├── index.ts            # Entry point e roteador do Worker
+│       ├── types.d.ts          # Tipos compartilhados do backend
+│       ├── domain.ts           # Domínios e guards padronizados
 │       ├── routes/
-│       │   ├── auth.js         # Login/logout/recuperação de senha
-│       │   ├── usuarios.js     # CRUD de usuários (filtro por criado_por)
-│       │   ├── carteiras.js    # CRUD de carteiras
-│       │   ├── lancamentos.js  # CRUD + filtros + batch
-│       │   ├── despesasFixas.js
-│       │   ├── comprasParceladas.js
-│       │   ├── lancamentosRecorrentes.js
-│       │   ├── categorias.js
-│       │   ├── metas.js        # Metas de economia (GROUP BY)
-│       │   ├── planos.js       # Planos financeiros (GROUP BY)
-│       │   ├── convites.js     # Sistema de convites
-│       │   ├── transferencias.js # Transferências entre carteiras
-│       │   ├── orcamentos.js   # Orçamentos por categoria
-│       │   ├── cartoesCredito.js # Cartões de crédito
-│       │   └── manutencao.js
+│       │   ├── auth.ts         # Login/logout/recuperação de senha
+│       │   ├── usuarios.ts     # CRUD de usuários (filtro por criado_por)
+│       │   ├── carteiras.ts    # CRUD de carteiras
+│       │   ├── lancamentos.ts  # CRUD + filtros + batch
+│       │   ├── despesasFixas.ts
+│       │   ├── comprasParceladas.ts
+│       │   ├── lancamentosRecorrentes.ts
+│       │   ├── categorias.ts
+│       │   ├── metas.ts        # Metas de economia (GROUP BY)
+│       │   ├── planos.ts       # Planos financeiros (GROUP BY)
+│       │   ├── convites.ts     # Sistema de convites
+│       │   ├── transferencias.ts # Transferências entre carteiras
+│       │   ├── orcamentos.ts   # Orçamentos por categoria
+│       │   ├── cartoesCredito.ts # Cartões de crédito
+│       │   ├── notificacoes.ts # Central de notificações
+│       │   └── manutencao.ts
 │       └── utils/
-│           ├── crypto.js       # PBKDF2 + comparação segura
-│           ├── sessao.js       # Gerenciamento de sessões
-│           ├── email.js        # Envio via Resend
-│           ├── carteiras.js    # Utilitários de carteiras
-│           ├── despesasFixas.js
-│           ├── comprasParceladas.js
-│           └── lancamentosRecorrentes.js
+│           ├── crypto.ts       # PBKDF2 + comparação segura
+│           ├── sessao.ts       # Gerenciamento de sessões
+│           ├── email.ts        # Envio via Resend
+│           ├── dinheiro.ts     # Conversão monetária em centavos
+│           ├── respostas.ts    # Respostas de erro padronizadas
+│           ├── auditoria.ts    # Registro de auditoria
+│           ├── carteiras.ts    # Utilitários de carteiras
+│           ├── cartoesCredito.ts
+│           ├── despesasFixas.ts
+│           ├── comprasParceladas.ts
+│           └── lancamentosRecorrentes.ts
 └── database/
     └── migrations/             # 34 migrações SQL (0001-0034)
 ```
