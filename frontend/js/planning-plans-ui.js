@@ -86,9 +86,7 @@ async function atualizarStatusPlano(id, status) {
     if (tratarSessaoExpirada(resposta)) return;
     if (resposta.ok) {
       mostrarToast(status === "concluido" ? "Plano concluído!" : "Plano cancelado.", "info");
-      await carregarPlanos();
-      renderizarListaPlanos();
-      renderizarDistribuicaoPlano(obterUsuarioLogado().salario || 0);
+      await atualizarPlanejamentoVisivel({ forcarRender: true });
     }
   } catch (erro) {
     console.error("Erro ao atualizar plano:", erro);
@@ -153,9 +151,7 @@ function configurarModalPlano() {
         mostrarToast(idEdicao ? "Plano atualizado!" : "Plano criado!", "sucesso");
         modal.style.display = "none";
         liberarFoco();
-        await carregarPlanos();
-        renderizarListaPlanos();
-        renderizarDistribuicaoPlano(obterUsuarioLogado().salario || 0);
+        await atualizarPlanejamentoVisivel({ forcarRender: true });
       } else {
         const erro = await resposta.json();
         mostrarToast(erro.erro || "Erro ao salvar plano.", "erro");
@@ -244,8 +240,7 @@ function configurarModalPlanoDeposito() {
         await carregarPlanos();
         const plano = planosCarregados.find((p) => p.id === Number(planoId));
         if (plano) preencherModalDepositoPlano(plano);
-        renderizarListaPlanos();
-        renderizarDistribuicaoPlano(obterUsuarioLogado().salario || 0);
+        await atualizarPlanejamentoVisivel({ forcarRender: true });
       } else {
         const erro = await resposta.json();
         mostrarToast(erro.erro || "Erro ao registrar depósito.", "erro");

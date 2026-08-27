@@ -312,6 +312,7 @@
   border: 1px solid var(--cor-pauta-forte);
   cursor: pointer;
   transition: border-color 0.2s;
+  min-width: 0;
 }
 
 .plano-meta-item:hover {
@@ -322,17 +323,23 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
 }
 
 .plano-meta-categoria {
   font-weight: 600;
   color: var(--cor-texto);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .plano-meta-valor {
   font-family: var(--fonte-mono);
   font-size: 0.9rem;
   color: var(--cor-texto-suave);
+  text-align: right;
+  overflow-wrap: anywhere;
 }
 
 .plano-meta-barra {
@@ -353,8 +360,11 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   font-size: 0.78rem;
   color: var(--cor-texto-suave);
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .plano-meta-badge-semana {
@@ -370,6 +380,7 @@
 .plano-meta-acoes {
   display: flex;
   gap: 0.5rem;
+  flex-wrap: wrap;
 }
 
 .plano-meta-acoes button {
@@ -391,6 +402,7 @@
   border-radius: 999px;
   overflow-x: auto;
   scrollbar-width: thin;
+  min-width: 0;
 }
 
 .plano-tab {
@@ -433,6 +445,7 @@
   border: 1px solid var(--cor-pauta-forte);
   cursor: pointer;
   transition: border-color 0.2s;
+  min-width: 0;
 }
 
 .plano-card-item:hover {
@@ -443,6 +456,7 @@
   display: flex;
   align-items: center;
   gap: 0.75rem;
+  min-width: 0;
 }
 
 .plano-card-icone {
@@ -465,6 +479,7 @@
   font-weight: 600;
   color: var(--cor-texto);
   font-size: 0.95rem;
+  overflow-wrap: anywhere;
 }
 
 .plano-card-prioridade {
@@ -505,13 +520,21 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
+  gap: 10px;
   font-size: 0.78rem;
   color: var(--cor-texto-suave);
+  min-width: 0;
+}
+
+.plano-card-detalhes > span {
+  min-width: 0;
+  overflow-wrap: anywhere;
 }
 
 .plano-card-valores {
   font-family: var(--fonte-mono);
   font-size: 0.8rem;
+  overflow-wrap: anywhere;
 }
 
 .plano-card-badge {
@@ -528,6 +551,7 @@
   display: flex;
   gap: 0.5rem;
   margin-top: 0.25rem;
+  flex-wrap: wrap;
 }
 
 .plano-card-acoes button {

@@ -56,6 +56,7 @@ function mostrarPlanejamentoCarregando() {
 }
 
 function limparEstadoPlanejamentoDependencias() {
+  if (typeof ultimoLoteLancamentos !== "undefined") ultimoLoteLancamentos = [];
   if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas = [];
   if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas = [];
   if (typeof bonificacoesCarregadas !== "undefined") bonificacoesCarregadas = [];
@@ -64,10 +65,47 @@ function limparEstadoPlanejamentoDependencias() {
   if (typeof planosCarregados !== "undefined") planosCarregados = [];
 }
 
+async function carregarLancamentosPlanejamento() {
+  if (typeof CadimusEntriesApi === "undefined") return;
+
+  const carteiraId = document.getElementById("seletor-carteira")?.value;
+  if (!carteiraId) return;
+
+  const filtros = { carteira_id: carteiraId };
+  const inputMes = document.getElementById("filtro-mes")?.value;
+
+  if (inputMes) {
+    const [ano, mes] = inputMes.split("-");
+    filtros.ano = ano;
+    filtros.mes = mes;
+  }
+
+  try {
+    const resposta = await CadimusEntriesApi.listarResposta(filtros);
+    if (tratarSessaoExpirada(resposta)) return;
+    if (!resposta.ok) {
+      if (typeof ultimoLoteLancamentos !== "undefined") ultimoLoteLancamentos = [];
+      return;
+    }
+
+    const dados = await resposta.json();
+    if (typeof ultimoLoteLancamentos !== "undefined") {
+      ultimoLoteLancamentos = Array.isArray(dados) ? dados : [];
+    }
+  } catch (erro) {
+    console.error("Erro ao carregar lançamentos do planejamento:", erro);
+    if (typeof ultimoLoteLancamentos !== "undefined") ultimoLoteLancamentos = [];
+  }
+}
+
 async function carregarDependenciasPlanejamento() {
   const tarefas = [];
 
   limparEstadoPlanejamentoDependencias();
+
+  if (typeof CadimusEntriesApi !== "undefined") {
+    await carregarLancamentosPlanejamento();
+  }
 
   if (typeof carregarPainelDespesasFixas === "function") tarefas.push(carregarPainelDespesasFixas());
   if (typeof carregarPainelComprasParceladas === "function") tarefas.push(carregarPainelComprasParceladas());
