@@ -11,7 +11,7 @@ import { processarMetas, processarMetaDepositos } from "./routes/metas.ts";
 import { processarPlanos, processarPlanoDepositos } from "./routes/planos.ts";
 import { processarComprasParceladas } from "./routes/comprasParceladas.ts";
 import { processarLancamentosRecorrentes } from "./routes/lancamentosRecorrentes.ts";
-import { processarConvites } from "./routes/convites.js";
+import { processarConvites } from "./routes/convites.ts";
 import { processarTransferencias } from "./routes/transferencias.ts";
 import { processarOrcamentos } from "./routes/orcamentos.ts";
 import { processarLimpezaDados } from "./routes/manutencao.ts";

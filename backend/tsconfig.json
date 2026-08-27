@@ -29,6 +29,7 @@
     "src/routes/cartoesCredito.ts",
     "src/routes/carteiras.ts",
     "src/routes/categorias.ts",
+    "src/routes/convites.ts",
     "src/routes/comprasParceladas.ts",
     "src/routes/despesasFixas.ts",
     "src/routes/lancamentos.ts",
