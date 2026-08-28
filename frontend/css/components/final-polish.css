@@ -644,3 +644,281 @@
     overflow-y: auto;
   }
 }
+
+/* ==========================================
+   RODADA VISUAL FINA — interação, contraste e estados
+   ========================================== */
+
+:where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .rel-paginacao button,
+  .lancamentos-paginacao button,
+  .settings-tema-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn,
+  .fixa-btn-toggle,
+  .cartao-editar-btn,
+  .cartao-apagar-btn,
+  .btn-editar,
+  .btn-excluir,
+  .periodo-btn,
+  .plano-tab,
+  .plano-sub-tab,
+  .grupo-data-toggle,
+  .dropdown-avatar-item,
+  .settings-nav-item
+) {
+  -webkit-tap-highlight-color: transparent;
+}
+
+:where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .rel-paginacao button,
+  .lancamentos-paginacao button,
+  .settings-tema-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn,
+  .fixa-btn-toggle,
+  .cartao-editar-btn,
+  .cartao-apagar-btn,
+  .btn-editar,
+  .btn-excluir,
+  .periodo-btn,
+  .plano-tab,
+  .plano-sub-tab,
+  .grupo-data-toggle,
+  .dropdown-avatar-item,
+  .settings-nav-item,
+  .btn-topo-icone
+):focus-visible {
+  outline: 2px solid color-mix(in srgb, var(--cor-marca) 74%, var(--cor-superficie));
+  outline-offset: 3px;
+  box-shadow: 0 0 0 5px color-mix(in srgb, var(--cor-marca) 16%, transparent);
+}
+
+:where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn,
+  .settings-tema-btn,
+  .rel-paginacao button,
+  .lancamentos-paginacao button
+):disabled {
+  cursor: not-allowed;
+  opacity: 1;
+  background: color-mix(in srgb, var(--cor-superficie) 82%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-pauta-forte) 64%, transparent);
+  color: color-mix(in srgb, var(--cor-texto-suave) 66%, transparent);
+  box-shadow: none;
+  transform: none;
+}
+
+:where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn,
+  .settings-tema-btn,
+  .rel-paginacao button,
+  .lancamentos-paginacao button
+):disabled:hover {
+  background: color-mix(in srgb, var(--cor-superficie) 82%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-pauta-forte) 64%, transparent);
+  color: color-mix(in srgb, var(--cor-texto-suave) 66%, transparent);
+  box-shadow: none;
+  transform: none;
+}
+
+:where(
+  .btn-topo-icone,
+  .dropdown-avatar-item,
+  .settings-nav-item,
+  .btn-secundario,
+  .lista-vazia-btn,
+  .fixa-btn,
+  .fixa-btn-toggle,
+  .cartao-editar-btn,
+  .cartao-apagar-btn,
+  .btn-editar,
+  .btn-excluir,
+  .notificacao-acao-secundaria,
+  .grupo-data-toggle,
+  .periodo-btn,
+  .plano-tab,
+  .plano-sub-tab
+) svg {
+  width: 1em;
+  height: 1em;
+  flex: 0 0 auto;
+  color: currentColor;
+  stroke: currentColor;
+}
+
+:where(
+  .cartao-item,
+  .lancamento-recorrente-card,
+  .orcamento-item,
+  .plano-card-item,
+  .plano-meta-item,
+  .plano-kpi,
+  .plano-ind-item,
+  .plano-sim-card,
+  .plano-lista-item,
+  .settings-mini-card,
+  .settings-system-card,
+  .settings-overview-card,
+  .comparativo-resumo-item
+) {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 18%, transparent), transparent 72%),
+    color-mix(in srgb, var(--cor-superficie) 86%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-pauta-forte) 84%, transparent);
+}
+
+:where(
+  .cartao-item-info,
+  .cartao-item-detalhe,
+  .cartao-limite-texto,
+  .cartao-item-datas,
+  .cartao-limite-disponivel,
+  .cartao-item-parcelas,
+  .plano-lista-info,
+  .plano-card-detalhe,
+  .plano-meta-detalhes,
+  .settings-mini-card p,
+  .settings-system-card p
+) {
+  color: color-mix(in srgb, var(--cor-texto-suave) 90%, var(--cor-texto));
+}
+
+:where(
+  .loading-container,
+  .lista-vazia,
+  .estado-vazio-admin,
+  .historico-fixa-vazio,
+  .plano-vazio,
+  .plano-vazio-carregando,
+  .settings-empty,
+  .relatorio-vazio,
+  .notificacao-vazio
+) {
+  min-height: 112px;
+  display: grid;
+  place-items: center;
+  gap: 10px;
+}
+
+.plano-vazio-carregando {
+  grid-auto-flow: column;
+  justify-content: center;
+}
+
+:where(.lista-vazia-btn, .btn-secundario, .settings-tema-btn) {
+  min-height: 36px;
+}
+
+:where(.dropdown-avatar-item, .settings-nav-item) {
+  min-height: 40px;
+}
+
+.dark-mode :where(
+  .cartao-item,
+  .lancamento-recorrente-card,
+  .orcamento-item,
+  .plano-card-item,
+  .plano-meta-item,
+  .plano-kpi,
+  .plano-ind-item,
+  .plano-sim-card,
+  .plano-lista-item,
+  .settings-mini-card,
+  .settings-system-card,
+  .settings-overview-card,
+  .comparativo-resumo-item
+) {
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--cor-superficie-alta) 28%, transparent), transparent 76%),
+    color-mix(in srgb, var(--cor-fundo-card) 88%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-pauta) 82%, transparent);
+}
+
+.dark-mode :where(
+  .cartao-item-info,
+  .cartao-item-detalhe,
+  .cartao-limite-texto,
+  .cartao-item-datas,
+  .cartao-limite-disponivel,
+  .cartao-item-parcelas,
+  .plano-lista-info,
+  .plano-card-detalhe,
+  .plano-meta-detalhes,
+  .settings-mini-card p,
+  .settings-system-card p
+) {
+  color: color-mix(in srgb, var(--cor-texto-suave) 92%, var(--cor-texto));
+}
+
+.dark-mode :where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn,
+  .settings-tema-btn,
+  .rel-paginacao button,
+  .lancamentos-paginacao button
+):disabled,
+.dark-mode :where(
+  .btn-secundario,
+  .lote-btn-cancelar,
+  .lista-vazia-btn,
+  .notificacao-acao-secundaria,
+  .fixa-btn,
+  .settings-tema-btn,
+  .rel-paginacao button,
+  .lancamentos-paginacao button
+):disabled:hover {
+  background: color-mix(in srgb, var(--cor-superficie) 64%, var(--cor-fundo));
+  border-color: color-mix(in srgb, var(--cor-pauta) 58%, transparent);
+  color: color-mix(in srgb, var(--cor-texto-suave) 58%, transparent);
+  box-shadow: none;
+}
+
+@media (hover: none) {
+  :where(
+    .card,
+    .linha-item,
+    .cartao-item,
+    .plano-card-item,
+    .plano-meta-item,
+    .settings-mini-card,
+    .settings-system-card,
+    .settings-overview-card,
+    .lancamento-recorrente-card,
+    .orcamento-item,
+    .btn-secundario,
+    .lote-btn-cancelar,
+    .lista-vazia-btn,
+    .notificacao-acao-secundaria,
+    .fixa-btn,
+    .settings-tema-btn,
+    .cartao-editar-btn,
+    .cartao-apagar-btn,
+    .btn-editar,
+    .btn-excluir,
+    .btn-topo-icone,
+    .grupo-data-toggle,
+    .periodo-btn,
+    .plano-tab,
+    .plano-sub-tab
+  ):hover {
+    transform: none;
+  }
+}
