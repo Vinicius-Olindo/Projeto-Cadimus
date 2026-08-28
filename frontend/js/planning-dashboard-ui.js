@@ -1,6 +1,36 @@
 // ==========================================
 // planning-dashboard-ui.js - Indicadores e cards do planejamento
 // ==========================================
+function obterPeriodoPlanejamentoSelecionado() {
+  const inputMes = document.getElementById("filtro-mes")?.value;
+  if (inputMes) {
+    const [anoTexto, mesTexto] = inputMes.split("-");
+    const ano = Number(anoTexto);
+    const mes = Number(mesTexto);
+    if (Number.isInteger(ano) && Number.isInteger(mes) && mes >= 1 && mes <= 12) {
+      return { ano, mes, mesIndice: mes - 1 };
+    }
+  }
+
+  const agora = new Date();
+  return { ano: agora.getFullYear(), mes: agora.getMonth() + 1, mesIndice: agora.getMonth() };
+}
+
+function calcularParcelaNoPeriodoPlanejamento(compra, periodo = obterPeriodoPlanejamentoSelecionado()) {
+  if (!compra) return 0;
+  const anoInicio = Number(compra.ano_inicio);
+  const mesInicio = Number(compra.mes_inicio);
+  if (!Number.isInteger(anoInicio) || !Number.isInteger(mesInicio)) return 0;
+  return (periodo.ano - anoInicio) * 12 + (periodo.mes - mesInicio) + 1;
+}
+
+function compraParceladaAtivaNoPeriodoPlanejamento(compra, periodo = obterPeriodoPlanejamentoSelecionado()) {
+  if (!compra || !compra.ativo) return false;
+  const parcela = calcularParcelaNoPeriodoPlanejamento(compra, periodo);
+  const totalParcelas = Number(compra.total_parcelas);
+  return Number.isInteger(totalParcelas) && parcela >= 1 && parcela <= totalParcelas;
+}
+
 function obterResumoFinanceiroPlanejamento(salario = 0) {
   const resumo = {
     salario: Number(salario) || 0,
@@ -12,6 +42,7 @@ function obterResumoFinanceiroPlanejamento(salario = 0) {
     investimentos: 0,
     planosAtivosQtd: 0,
   };
+  const periodo = obterPeriodoPlanejamentoSelecionado();
 
   if (typeof despesasFixasCarregadas !== "undefined") {
     despesasFixasCarregadas.forEach((fixa) => {
@@ -21,7 +52,9 @@ function obterResumoFinanceiroPlanejamento(salario = 0) {
 
   if (typeof comprasParceladasCarregadas !== "undefined") {
     comprasParceladasCarregadas.forEach((compra) => {
-      if (compra.ativo) resumo.parcelas += valorMonetario(compra, "valor_parcela");
+      if (compraParceladaAtivaNoPeriodoPlanejamento(compra, periodo)) {
+        resumo.parcelas += valorMonetario(compra, "valor_parcela");
+      }
     });
   }
 
@@ -374,8 +407,10 @@ function renderizarDespesasPlano() {
     });
   }
   if (typeof comprasParceladasCarregadas !== "undefined") {
-    comprasParceladasCarregadas.filter((c) => c.ativo).forEach((c) => {
-      itens.push({ nome: c.descricao, valor: valorMonetario(c, "valor_parcela"), cat: c.categoria, freq: `Parcela ${c.parcela_atual || 1}/${c.total_parcelas}`, tipo: "parcela" });
+    const periodo = obterPeriodoPlanejamentoSelecionado();
+    comprasParceladasCarregadas.filter((c) => compraParceladaAtivaNoPeriodoPlanejamento(c, periodo)).forEach((c) => {
+      const parcelaPeriodo = calcularParcelaNoPeriodoPlanejamento(c, periodo);
+      itens.push({ nome: c.descricao, valor: valorMonetario(c, "valor_parcela"), cat: c.categoria, freq: `Parcela ${parcelaPeriodo}/${c.total_parcelas}`, tipo: "parcela" });
     });
   }
   if (typeof planosCarregados !== "undefined") {

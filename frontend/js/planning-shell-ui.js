@@ -152,20 +152,31 @@ async function atualizarPlanejamentoVisivel({ forcarRender = false } = {}) {
 function configurarTabsPlano() {
   document.querySelectorAll("[data-plano-atalho]").forEach((atalho) => {
     atalho.addEventListener("click", () => {
-      const painelId = atalho.dataset.planoAtalho;
-      const tab = document.querySelector(`.plano-tab[data-painel="${painelId}"]`);
-      if (tab) tab.click();
+      selecionarPainelPlanejamento(atalho.dataset.planoAtalho, { foco: true });
     });
   });
 
   document.querySelectorAll(".plano-tab").forEach((tab) => {
     tab.addEventListener("click", () => {
-      document.querySelectorAll(".plano-tab").forEach((t) => t.classList.remove("ativo"));
-      document.querySelectorAll(".plano-painel").forEach((p) => (p.style.display = "none"));
-      tab.classList.add("ativo");
-      const painel = document.getElementById(tab.dataset.painel);
-      if (painel) painel.style.display = "block";
-      renderizarPlano();
+      selecionarPainelPlanejamento(tab.dataset.painel);
+    });
+
+    tab.addEventListener("keydown", (evento) => {
+      const teclas = ["ArrowLeft", "ArrowRight", "Home", "End"];
+      if (!teclas.includes(evento.key)) return;
+
+      const tabs = Array.from(document.querySelectorAll(".plano-tab"));
+      const indiceAtual = tabs.indexOf(tab);
+      if (indiceAtual < 0) return;
+
+      evento.preventDefault();
+      let proximoIndice = indiceAtual;
+      if (evento.key === "ArrowLeft") proximoIndice = indiceAtual === 0 ? tabs.length - 1 : indiceAtual - 1;
+      if (evento.key === "ArrowRight") proximoIndice = indiceAtual === tabs.length - 1 ? 0 : indiceAtual + 1;
+      if (evento.key === "Home") proximoIndice = 0;
+      if (evento.key === "End") proximoIndice = tabs.length - 1;
+
+      selecionarPainelPlanejamento(tabs[proximoIndice]?.dataset.painel, { foco: true });
     });
   });
 
@@ -192,6 +203,32 @@ function configurarTabsPlano() {
   });
 }
 
+function selecionarPainelPlanejamento(painelId, { foco = false } = {}) {
+  if (!painelId) return;
+
+  const tab = document.querySelector(`.plano-tab[data-painel="${painelId}"]`);
+  const painel = document.getElementById(painelId);
+  if (!tab || !painel) return;
+
+  document.querySelectorAll(".plano-tab").forEach((item) => {
+    const ativo = item === tab;
+    item.classList.toggle("ativo", ativo);
+    item.setAttribute("aria-selected", ativo ? "true" : "false");
+    item.setAttribute("tabindex", ativo ? "0" : "-1");
+  });
+
+  document.querySelectorAll(".plano-painel").forEach((item) => {
+    item.style.display = item === painel ? "block" : "none";
+  });
+
+  renderizarPlano();
+
+  if (foco) {
+    tab.focus({ preventScroll: true });
+    painel.scrollIntoView({ behavior: prefereMovimentoReduzido() ? "auto" : "smooth", block: "start" });
+  }
+}
+
 async function abrirLancamentoPeloPlanejamento(tipo) {
   if (typeof abrirModalNovoLancamento !== "function") return;
 
@@ -205,7 +242,10 @@ async function abrirLancamentoPeloPlanejamento(tipo) {
 
 function configurarAtalhosAcoesPlanejamento() {
   document.getElementById("btn-novo-orcamento-plano")?.addEventListener("click", () => {
-    if (typeof window.abrirModalOrcamento === "function") window.abrirModalOrcamento();
+    if (typeof window.abrirModalOrcamento === "function") {
+      const periodo = typeof obterPeriodoPlanejamentoSelecionado === "function" ? obterPeriodoPlanejamentoSelecionado() : null;
+      window.abrirModalOrcamento(periodo ? { mes: periodo.mes, ano: periodo.ano } : undefined);
+    }
   });
 
   document.getElementById("btn-nova-receita-plano")?.addEventListener("click", () => {

@@ -437,11 +437,13 @@ function configurarModalOrcamento() {
   }
 
   // Abrir modal
-  function abrirModalOrcamento() {
+  function abrirModalOrcamento(opcoes = {}) {
     carregarCategorias();
     const agora = new Date();
-    document.getElementById("orcamento-mes").value = agora.getMonth() + 1;
-    document.getElementById("orcamento-ano").value = agora.getFullYear();
+    const mes = Number(opcoes.mes) || agora.getMonth() + 1;
+    const ano = Number(opcoes.ano) || agora.getFullYear();
+    document.getElementById("orcamento-mes").value = mes;
+    document.getElementById("orcamento-ano").value = ano;
     document.getElementById("orcamento-editando-id").value = "";
     document.getElementById("titulo-modal-orcamento").innerText = "Novo orçamento";
     modal.style.display = "flex";
@@ -499,7 +501,10 @@ function configurarModalOrcamento() {
         modal.style.display = "none";
         liberarFoco();
         form.reset();
-        carregarOrcamentos();
+        await carregarOrcamentos();
+        if (typeof atualizarPlanejamentoVisivel === "function") {
+          await atualizarPlanejamentoVisivel({ forcarRender: true });
+        }
         mostrarToast("Orçamento salvo com sucesso!");
       } else {
         const erro = await resposta.json();

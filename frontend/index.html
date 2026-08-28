@@ -603,18 +603,18 @@
         </div>
 
         <!-- TABS -->
-        <div class="plano-tabs">
-          <button type="button" class="plano-tab ativo" data-painel="plano-resumo">Resumo</button>
-          <button type="button" class="plano-tab" data-painel="plano-orcamento">Orçamento</button>
-          <button type="button" class="plano-tab" data-painel="plano-metas">Metas</button>
-          <button type="button" class="plano-tab" data-painel="plano-receitas">Receitas</button>
-          <button type="button" class="plano-tab" data-painel="plano-despesas">Despesas</button>
-          <button type="button" class="plano-tab" data-painel="plano-comparar">Comparar</button>
-          <button type="button" class="plano-tab" data-painel="plano-simular">Simular</button>
+        <div class="plano-tabs" role="tablist" aria-label="Áreas do planejamento">
+          <button type="button" class="plano-tab ativo" data-painel="plano-resumo" role="tab" aria-selected="true" aria-controls="plano-resumo">Resumo</button>
+          <button type="button" class="plano-tab" data-painel="plano-orcamento" role="tab" aria-selected="false" aria-controls="plano-orcamento" tabindex="-1">Orçamento</button>
+          <button type="button" class="plano-tab" data-painel="plano-metas" role="tab" aria-selected="false" aria-controls="plano-metas" tabindex="-1">Metas</button>
+          <button type="button" class="plano-tab" data-painel="plano-receitas" role="tab" aria-selected="false" aria-controls="plano-receitas" tabindex="-1">Receitas</button>
+          <button type="button" class="plano-tab" data-painel="plano-despesas" role="tab" aria-selected="false" aria-controls="plano-despesas" tabindex="-1">Despesas</button>
+          <button type="button" class="plano-tab" data-painel="plano-comparar" role="tab" aria-selected="false" aria-controls="plano-comparar" tabindex="-1">Comparar</button>
+          <button type="button" class="plano-tab" data-painel="plano-simular" role="tab" aria-selected="false" aria-controls="plano-simular" tabindex="-1">Simular</button>
         </div>
 
         <!-- PAINEL: RESUMO GERAL -->
-        <div id="plano-resumo" class="plano-painel">
+        <div id="plano-resumo" class="plano-painel" role="tabpanel" tabindex="-1">
           <div class="plano-container">
             <!-- KPI Cards -->
             <div class="plano-kpi-grid" id="plano-kpi-grid">
@@ -675,7 +675,7 @@
         </div>
 
         <!-- PAINEL: ORÇAMENTO POR CATEGORIA -->
-        <div id="plano-orcamento" class="plano-painel" style="display:none">
+        <div id="plano-orcamento" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
           <div class="plano-container">
             <div class="card">
               <div class="plano-metas-cabecalho">
@@ -688,7 +688,7 @@
         </div>
 
         <!-- PAINEL: METAS -->
-        <div id="plano-metas" class="plano-painel" style="display:none">
+        <div id="plano-metas" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
           <div class="plano-container">
             <div class="card">
               <div class="plano-metas-cabecalho">
@@ -701,7 +701,7 @@
         </div>
 
         <!-- PAINEL: RECEITAS PLANEJADAS -->
-        <div id="plano-receitas" class="plano-painel" style="display:none">
+        <div id="plano-receitas" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
           <div class="plano-container">
             <div class="card">
               <div class="plano-metas-cabecalho">
@@ -714,7 +714,7 @@
         </div>
 
         <!-- PAINEL: DESPESAS PLANEJADAS -->
-        <div id="plano-despesas" class="plano-painel" style="display:none">
+        <div id="plano-despesas" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
           <div class="plano-container">
             <div class="card">
               <div class="plano-metas-cabecalho">
@@ -727,7 +727,7 @@
         </div>
 
         <!-- PAINEL: COMPARAR PLANEJADO × REAL -->
-        <div id="plano-comparar" class="plano-painel" style="display:none">
+        <div id="plano-comparar" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
           <div class="plano-container">
             <div class="card">
               <h3 class="plano-subtitulo">Comparação: Planejado × Real</h3>
@@ -741,7 +741,7 @@
         </div>
 
         <!-- PAINEL: SIMULAÇÕES -->
-        <div id="plano-simular" class="plano-painel" style="display:none">
+        <div id="plano-simular" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
           <div class="plano-container">
             <div class="card">
               <h3 class="plano-subtitulo">Simulações</h3>
@@ -2484,7 +2484,7 @@
     <script src="js/components.js?v=101"></script>
     <script src="js/ui-core.js?v=102"></script>
     <script src="js/dashboard-layout-ui.js?v=103"></script>
-    <script src="js/wallets-ui.js?v=104"></script>
+    <script src="js/wallets-ui.js?v=105"></script>
     <script src="js/categories-ui.js?v=100"></script>
     <script src="js/entries-modal-ui.js?v=111"></script>
     <script src="js/entries-list-ui.js?v=109"></script>
@@ -2507,8 +2507,8 @@
     <script src="js/reports-charts-ui.js?v=100"></script>
     <script src="js/reports-tables-ui.js?v=100"></script>
     <script src="js/reports-export-ui.js?v=100"></script>
-    <script src="js/planning-shell-ui.js?v=103"></script>
-    <script src="js/planning-dashboard-ui.js?v=102"></script>
+    <script src="js/planning-shell-ui.js?v=104"></script>
+    <script src="js/planning-dashboard-ui.js?v=103"></script>
     <script src="js/planning-plans-ui.js?v=100"></script>
     <script src="js/planning-goals-ui.js?v=100"></script>
     <script src="js/fixed-expenses-ui.js?v=106"></script>
