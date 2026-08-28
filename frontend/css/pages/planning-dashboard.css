@@ -222,6 +222,135 @@
 }
 
 /* ==========================================
+   PLANEJAMENTO — CHECKLIST DE FECHAMENTO
+   ========================================== */
+.plano-card-fechamento {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.plano-fechamento-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.plano-fechamento-cabecalho .plano-eyebrow {
+  margin-bottom: 4px;
+}
+
+.plano-fechamento-progresso {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-receita) 10%, transparent);
+  color: var(--cor-receita);
+  font-family: var(--fonte-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.plano-fechamento-barra {
+  height: 8px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--cor-pauta-forte);
+}
+
+.plano-fechamento-barra-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.35s ease, background-color 0.35s ease;
+}
+
+.plano-fechamento-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.plano-fechamento-item {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 10px;
+  align-items: flex-start;
+  padding: 11px;
+  border: 1px solid color-mix(in srgb, currentColor 16%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, currentColor 6%, transparent);
+  color: var(--cor-texto-suave);
+  cursor: pointer;
+}
+
+.plano-fechamento-item input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.plano-fechamento-check {
+  width: 20px;
+  height: 20px;
+  margin-top: 1px;
+  border: 2px solid currentColor;
+  border-radius: 7px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.plano-fechamento-check::after {
+  content: "";
+  width: 8px;
+  height: 4px;
+  border-left: 2px solid var(--cor-fundo-card);
+  border-bottom: 2px solid var(--cor-fundo-card);
+  transform: rotate(-45deg) translate(1px, -1px) scale(0);
+  transition: transform 0.18s ease;
+}
+
+.plano-fechamento-item input:checked + .plano-fechamento-check {
+  background: currentColor;
+}
+
+.plano-fechamento-item input:checked + .plano-fechamento-check::after {
+  transform: rotate(-45deg) translate(1px, -1px) scale(1);
+}
+
+.plano-fechamento-info {
+  min-width: 0;
+}
+
+.plano-fechamento-info strong {
+  display: block;
+  color: var(--cor-texto);
+  font-size: 0.84rem;
+}
+
+.plano-fechamento-info small {
+  display: block;
+  margin-top: 3px;
+  color: var(--cor-texto-suave);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.plano-fechamento-ok { color: var(--cor-receita); }
+.plano-fechamento-aviso { color: var(--cor-pendente); }
+.plano-fechamento-neutro { color: var(--cor-marca); }
+
+.plano-fechamento-acoes {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 10px;
+  justify-content: space-between;
+}
+
+/* ==========================================
    PLANEJAMENTO — ALERTAS
    ========================================== */
 #plano-card-alertas {
@@ -560,6 +689,7 @@
   }
 
   .plano-previsao-cabecalho,
+  .plano-fechamento-cabecalho,
   .plano-previsao-compromisso {
     align-items: flex-start;
     flex-direction: column;
@@ -567,6 +697,11 @@
 
   .plano-previsao-periodo {
     white-space: normal;
+  }
+
+  .plano-fechamento-acoes,
+  .plano-fechamento-acoes button {
+    width: 100%;
   }
 
   .plano-ind-item {

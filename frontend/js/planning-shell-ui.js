@@ -453,6 +453,7 @@ function renderizarPlano() {
   renderizarIndicadoresPlano(salario);
   renderizarAlertasPlano(salario);
   renderizarPrevisaoSaldoFuturo();
+  renderizarChecklistFechamentoMensal(salario);
   renderizarOrcamentosPlano();
   renderizarMetasPlano();
   renderizarReceitasPlano();

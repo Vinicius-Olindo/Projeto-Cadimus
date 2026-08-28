@@ -428,6 +428,178 @@ function renderizarPrevisaoSaldoFuturo() {
   `;
 }
 
+// --- CHECKLIST DE FECHAMENTO MENSAL ---
+function obterChaveChecklistFechamentoMensal() {
+  const usuario = obterUsuarioLogado();
+  const carteiraId = document.getElementById("seletor-carteira")?.value || "sem-carteira";
+  const periodo = document.getElementById("filtro-mes")?.value || "sem-periodo";
+  return `cadimus_fechamento_mensal_v1_${usuario?.id || "anon"}_${carteiraId}_${periodo}`;
+}
+
+function lerChecklistFechamentoMensal() {
+  try {
+    return JSON.parse(lerLocalStorageSeguro(obterChaveChecklistFechamentoMensal(), "{}")) || {};
+  } catch (erro) {
+    console.warn("Checklist de fechamento inválido no localStorage:", erro);
+    return {};
+  }
+}
+
+function salvarChecklistFechamentoMensal(estado) {
+  gravarLocalStorageSeguro(obterChaveChecklistFechamentoMensal(), JSON.stringify(estado || {}));
+}
+
+function contarLancamentosFechamento(predicado) {
+  if (typeof ultimoLoteLancamentos === "undefined" || !Array.isArray(ultimoLoteLancamentos)) return 0;
+  return ultimoLoteLancamentos.filter(predicado).length;
+}
+
+function obterItensChecklistFechamentoMensal(salario = 0) {
+  const estado = lerChecklistFechamentoMensal();
+  const pendencias = contarLancamentosFechamento((l) => l.tipo === "despesa" && l.status !== "pago");
+  const fixasPendentes = contarLancamentosFechamento((l) => l.tipo === "despesa" && l.despesa_fixa_id && l.status !== "pago");
+  const despesasCartao = contarLancamentosFechamento((l) => l.tipo === "despesa" && (l.cartao_credito_id || l.meio_pagamento === "credito"));
+  const cartaoPendente = contarLancamentosFechamento((l) => l.tipo === "despesa" && (l.cartao_credito_id || l.meio_pagamento === "credito") && l.status !== "pago");
+  const receitasPagas = contarLancamentosFechamento((l) => l.tipo === "receita" && l.status === "pago");
+  const receitasPendentes = contarLancamentosFechamento((l) => l.tipo === "receita" && l.status !== "pago");
+  const orcamentosCriticos = Array.isArray(orcamentosCarregados)
+    ? orcamentosCarregados.filter((orcamento) => {
+        const limite = obterValorLimiteOrcamento(orcamento);
+        const gasto = obterGastoAtualOrcamento(orcamento);
+        return limite > 0 && gasto / limite >= 0.9;
+      }).length
+    : 0;
+  const totalOrcamentos = Array.isArray(orcamentosCarregados) ? orcamentosCarregados.length : 0;
+  const totalMetas = Array.isArray(metasCarregadas) ? metasCarregadas.length : 0;
+
+  const itensBase = [
+    {
+      id: "pendencias",
+      titulo: "Revisar pendências do mês",
+      detalhe: pendencias > 0 ? `${pendencias} compromisso(s) ainda pendente(s).` : "Nenhuma despesa pendente no período.",
+      tipo: pendencias > 0 ? "aviso" : "ok",
+      automaticoConcluido: pendencias === 0,
+    },
+    {
+      id: "fixas",
+      titulo: "Pagar despesas fixas",
+      detalhe: fixasPendentes > 0 ? `${fixasPendentes} fixa(s) ainda aberta(s).` : "Fixas do período sem pendência aberta.",
+      tipo: fixasPendentes > 0 ? "aviso" : "ok",
+      automaticoConcluido: fixasPendentes === 0,
+    },
+    {
+      id: "cartao",
+      titulo: "Conferir cartão de crédito",
+      detalhe: despesasCartao > 0
+        ? `${despesasCartao} despesa(s) no cartão; ${cartaoPendente} pendente(s).`
+        : "Nenhuma despesa de cartão no período.",
+      tipo: cartaoPendente > 0 ? "aviso" : "ok",
+      automaticoConcluido: cartaoPendente === 0,
+    },
+    {
+      id: "receitas",
+      titulo: "Registrar receitas",
+      detalhe: receitasPagas > 0
+        ? `${receitasPagas} receita(s) recebida(s); ${receitasPendentes} pendente(s).`
+        : salario > 0
+          ? "Salário cadastrado; confirme se a entrada do mês foi lançada."
+          : "Nenhuma receita recebida ou salário cadastrado.",
+      tipo: receitasPagas > 0 ? "ok" : "aviso",
+      automaticoConcluido: receitasPagas > 0,
+    },
+    {
+      id: "planejamento",
+      titulo: "Revisar orçamento e metas",
+      detalhe: `${totalOrcamentos} orçamento(s), ${totalMetas} meta(s). ${orcamentosCriticos > 0 ? `${orcamentosCriticos} orçamento(s) em alerta.` : "Sem orçamento crítico."}`,
+      tipo: orcamentosCriticos > 0 ? "aviso" : "ok",
+      automaticoConcluido: totalOrcamentos > 0 && orcamentosCriticos === 0,
+    },
+  ];
+
+  const itens = itensBase.map((item) => ({
+    ...item,
+    concluido: item.automaticoConcluido || estado[item.id] === true,
+  }));
+  const itensObrigatoriosConcluidos = itens.every((item) => item.concluido);
+
+  itens.push({
+    id: "fechar",
+    titulo: "Fechar mês",
+    detalhe: itensObrigatoriosConcluidos ? "Tudo revisado. Mês pronto para fechamento." : "Finalize os itens acima antes de considerar o mês fechado.",
+    tipo: itensObrigatoriosConcluidos ? "ok" : "neutro",
+    automaticoConcluido: itensObrigatoriosConcluidos,
+    concluido: itensObrigatoriosConcluidos || estado.fechar === true,
+  });
+
+  return itens;
+}
+
+function renderizarChecklistFechamentoMensal(salario) {
+  const lista = document.getElementById("plano-fechamento-lista");
+  const progresso = document.getElementById("plano-fechamento-progresso");
+  const barra = document.getElementById("plano-fechamento-barra-fill");
+  if (!lista) return;
+
+  const itens = obterItensChecklistFechamentoMensal(salario);
+  const concluidos = itens.filter((item) => item.concluido).length;
+  const percentual = itens.length > 0 ? Math.round((concluidos / itens.length) * 100) : 0;
+
+  if (progresso) progresso.textContent = `${concluidos}/${itens.length}`;
+  if (barra) {
+    barra.style.width = `${percentual}%`;
+    barra.style.background = percentual === 100 ? "var(--cor-receita)" : "var(--cor-pendente)";
+  }
+
+  lista.innerHTML = itens.map((item) => `
+    <label class="plano-fechamento-item plano-fechamento-${item.tipo}">
+      <input type="checkbox" data-fechamento-id="${item.id}" ${item.concluido ? "checked" : ""} />
+      <span class="plano-fechamento-check"></span>
+      <span class="plano-fechamento-info">
+        <strong>${escaparHtml(item.titulo)}</strong>
+        <small>${escaparHtml(item.detalhe)}</small>
+      </span>
+    </label>
+  `).join("");
+
+  configurarEventosChecklistFechamentoMensal();
+}
+
+function configurarEventosChecklistFechamentoMensal() {
+  const lista = document.getElementById("plano-fechamento-lista");
+  const btnMarcarTudo = document.getElementById("btn-fechamento-marcar-tudo");
+  const btnLimpar = document.getElementById("btn-fechamento-limpar");
+  if (!lista) return;
+
+  lista.querySelectorAll("[data-fechamento-id]").forEach((checkbox) => {
+    checkbox.addEventListener("change", () => {
+      const estado = lerChecklistFechamentoMensal();
+      estado[checkbox.dataset.fechamentoId] = checkbox.checked;
+      salvarChecklistFechamentoMensal(estado);
+      renderizarPlano();
+    });
+  });
+
+  if (btnMarcarTudo) {
+    btnMarcarTudo.onclick = () => {
+      const estado = {};
+      obterItensChecklistFechamentoMensal(obterUsuarioLogado().salario || 0).forEach((item) => {
+        estado[item.id] = true;
+      });
+      salvarChecklistFechamentoMensal(estado);
+      renderizarPlano();
+      mostrarToast("Checklist do mês marcado como revisado", "sucesso");
+    };
+  }
+
+  if (btnLimpar) {
+    btnLimpar.onclick = () => {
+      salvarChecklistFechamentoMensal({});
+      renderizarPlano();
+      mostrarToast("Checklist do mês limpo", "info");
+    };
+  }
+}
+
 // --- ALERTAS ---
 function lancamentoPendenteAtrasadoPlano(lancamento) {
   if (!lancamento || lancamento.status === "pago") return false;
