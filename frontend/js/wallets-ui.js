@@ -438,7 +438,13 @@ function configurarModalOrcamento() {
 
   // Abrir modal
   function abrirModalOrcamento(opcoes = {}) {
-    carregarCategorias();
+    const categoriaSelecionada = typeof opcoes.categoria === "string" ? opcoes.categoria : "";
+    const selecionarCategoria = () => {
+      if (categoriaSelecionada && selectCategoria) {
+        selectCategoria.value = categoriaSelecionada;
+      }
+    };
+    Promise.resolve(carregarCategorias()).finally(selecionarCategoria);
     const agora = new Date();
     const mes = Number(opcoes.mes) || agora.getMonth() + 1;
     const ano = Number(opcoes.ano) || agora.getFullYear();
@@ -446,6 +452,7 @@ function configurarModalOrcamento() {
     document.getElementById("orcamento-ano").value = ano;
     document.getElementById("orcamento-editando-id").value = "";
     document.getElementById("titulo-modal-orcamento").innerText = "Novo orçamento";
+    selecionarCategoria();
     modal.style.display = "flex";
     trapFoco(modal);
   }

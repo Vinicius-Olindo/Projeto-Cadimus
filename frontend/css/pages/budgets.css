@@ -1,6 +1,146 @@
 /* ==========================================
    ORÇAMENTOS MENSAIS
    ========================================== */
+.metas-mes-destaque {
+  gap: 14px;
+}
+
+.metas-mes-header,
+.metas-mes-resumo,
+.metas-mes-item-topo,
+.metas-mes-item-rodape {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.metas-mes-subtitulo {
+  margin: 3px 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.metas-mes-resumo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.metas-mes-resumo > div {
+  padding: 10px;
+  border: var(--borda) solid var(--cor-pauta);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 45%, transparent);
+}
+
+.metas-mes-resumo span {
+  display: block;
+  margin-bottom: 4px;
+  color: var(--cor-texto-suave);
+  font-size: 0.68rem;
+  font-weight: 700;
+  letter-spacing: 0.7px;
+  text-transform: uppercase;
+}
+
+.metas-mes-resumo strong {
+  color: var(--cor-receita);
+  font-family: var(--fonte-mono);
+  font-size: 1rem;
+}
+
+.metas-mes-resumo .metas-mes-alertas-ativo {
+  color: var(--cor-pendente);
+}
+
+.metas-mes-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.metas-mes-item {
+  width: 100%;
+  padding: 11px;
+  border: var(--borda) solid var(--cor-pauta);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 86%, transparent);
+  color: var(--cor-texto);
+  cursor: pointer;
+  text-align: left;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.metas-mes-item:hover,
+.metas-mes-item:focus-visible {
+  border-color: color-mix(in srgb, var(--cor-marca) 55%, var(--cor-pauta));
+  background: color-mix(in srgb, var(--cor-marca) 7%, var(--cor-fundo-card));
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.metas-mes-item-topo strong {
+  min-width: 0;
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+
+.metas-mes-item-topo em {
+  flex: 0 0 auto;
+  font-family: var(--fonte-mono);
+  font-size: 0.72rem;
+  font-style: normal;
+  font-weight: 800;
+  color: var(--cor-texto-suave);
+}
+
+.metas-mes-barra {
+  display: block;
+  height: 7px;
+  margin: 9px 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--cor-fundo-alt);
+}
+
+.metas-mes-barra span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cor-receita);
+}
+
+.metas-mes-item-alerta .metas-mes-barra span {
+  background: var(--cor-pendente);
+}
+
+.metas-mes-item-estourado .metas-mes-barra span {
+  background: var(--cor-despesa);
+}
+
+.metas-mes-item-rodape small,
+.metas-mes-item-rodape b {
+  font-size: 0.72rem;
+}
+
+.metas-mes-item-rodape small {
+  color: var(--cor-texto-suave);
+}
+
+.metas-mes-item-rodape b {
+  color: var(--cor-receita);
+  font-weight: 800;
+}
+
+.metas-mes-item-alerta .metas-mes-item-rodape b {
+  color: var(--cor-pendente);
+}
+
+.metas-mes-item-estourado .metas-mes-item-rodape b {
+  color: var(--cor-despesa);
+}
+
 .orcamento-item {
   padding: 12px 0;
   border-bottom: var(--borda) solid var(--cor-pauta);
@@ -272,6 +412,18 @@
   box-shadow: none;
   cursor: not-allowed;
   transform: none;
+}
+
+@media (max-width: 420px) {
+  .metas-mes-header,
+  .metas-mes-item-rodape {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .metas-mes-resumo {
+    grid-template-columns: 1fr;
+  }
 }
 
 /* Aviso de vencimento próximo nas despesas fixas */
