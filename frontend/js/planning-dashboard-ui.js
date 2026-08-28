@@ -1,23 +1,88 @@
 // ==========================================
 // planning-dashboard-ui.js - Indicadores e cards do planejamento
 // ==========================================
+function obterResumoFinanceiroPlanejamento(salario = 0) {
+  const resumo = {
+    salario: Number(salario) || 0,
+    bonificacoesPrevistas: 0,
+    bonificacoesRecebidas: 0,
+    despesasFixas: 0,
+    parcelas: 0,
+    planosAtivos: 0,
+    investimentos: 0,
+    planosAtivosQtd: 0,
+  };
+
+  if (typeof despesasFixasCarregadas !== "undefined") {
+    despesasFixasCarregadas.forEach((fixa) => {
+      if (fixa.ativo) resumo.despesasFixas += valorMonetario(fixa);
+    });
+  }
+
+  if (typeof comprasParceladasCarregadas !== "undefined") {
+    comprasParceladasCarregadas.forEach((compra) => {
+      if (compra.ativo) resumo.parcelas += valorMonetario(compra, "valor_parcela");
+    });
+  }
+
+  if (typeof planosCarregados !== "undefined") {
+    planosCarregados.forEach((plano) => {
+      if (plano.status !== "ativo") return;
+      const parcelaMensal = valorMonetario(plano, "parcela_mensal");
+      if (parcelaMensal <= 0) return;
+      resumo.planosAtivos += parcelaMensal;
+      resumo.planosAtivosQtd += 1;
+      if (plano.tipo === "investimento") resumo.investimentos += parcelaMensal;
+    });
+  }
+
+  if (
+    typeof bonificacoesCarregadas !== "undefined" &&
+    typeof contarOcorrenciasBonificacao === "function" &&
+    typeof obterAnoMesDashboard === "function"
+  ) {
+    const { ano, mes } = obterAnoMesDashboard();
+    bonificacoesCarregadas.forEach((recorrente) => {
+      if (recorrente.ativo) {
+        resumo.bonificacoesPrevistas += contarOcorrenciasBonificacao(recorrente, ano, mes) * valorMonetario(recorrente);
+      }
+    });
+  }
+
+  if (typeof ultimoLoteLancamentos !== "undefined") {
+    resumo.bonificacoesRecebidas = ultimoLoteLancamentos
+      .filter((lancamento) => lancamento.tipo === "receita" && String(lancamento.categoria || "").toLowerCase() === "bonificação" && lancamento.status === "pago")
+      .reduce((total, lancamento) => total + valorMonetario(lancamento), 0);
+  }
+
+  resumo.receitaPlanejada = resumo.salario + resumo.bonificacoesPrevistas;
+  resumo.compromissos = resumo.despesasFixas + resumo.parcelas;
+  resumo.reservasPlanejadas = resumo.planosAtivos;
+  resumo.saldoPrevisto = resumo.receitaPlanejada - resumo.compromissos - resumo.reservasPlanejadas;
+  resumo.capacidadeLivre = Math.max(0, resumo.saldoPrevisto);
+  resumo.totalProtegido = Math.max(0, resumo.saldoPrevisto) + resumo.reservasPlanejadas;
+
+  return resumo;
+}
+
+function obterValorLimiteOrcamento(orcamento) {
+  return valorMonetario(orcamento, "valor_limite") || valorMonetario(orcamento);
+}
+
+function obterGastoAtualOrcamento(orcamento) {
+  return valorMonetario(orcamento, "gasto_atual") || valorMonetario(orcamento, "total_gasto");
+}
+
 function renderizarGuardaPlano(salario) {
   const cardGuarda = document.getElementById("plano-card-guarda");
   const guardaValor = document.getElementById("plano-guarda-valor");
   const guardaDetalhe = document.getElementById("plano-guarda-detalhe");
+  const resumo = obterResumoFinanceiroPlanejamento(salario);
 
-  if (salario > 0 && cardGuarda) {
-    let totalFixas = 0;
-    let totalParcelas = 0;
-
-    if (typeof despesasFixasCarregadas !== "undefined") {
-      despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
-    }
-    if (typeof comprasParceladasCarregadas !== "undefined") {
-      comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
-    }
-
-    const sobra = salario - totalFixas - totalParcelas;
+  if (resumo.receitaPlanejada > 0 && cardGuarda) {
+    const totalFixas = resumo.despesasFixas;
+    const totalParcelas = resumo.parcelas;
+    const sobra = resumo.saldoPrevisto;
     const sobraPositiva = Math.max(0, sobra);
     const guardaSemanal = Math.round(sobraPositiva / 4);
 
@@ -26,12 +91,12 @@ function renderizarGuardaPlano(salario) {
     guardaValor.style.color = sobra >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)";
 
     if (sobra <= 0) {
-      guardaDetalhe.textContent = "Suas fixas e parcelas consomem todo o salário.";
+      guardaDetalhe.textContent = "Compromissos e planos consomem toda a renda planejada.";
     } else {
       guardaDetalhe.textContent = `Dá pra guardar ~${formatadorBRL.format(guardaSemanal)}/semana.`;
     }
 
-    const maxValor = Math.max(salario, 1);
+    const maxValor = Math.max(resumo.receitaPlanejada, 1);
     const el = (id) => document.getElementById(id);
     if (el("plano-barra-fixas")) el("plano-barra-fixas").style.width = `${Math.round((totalFixas / maxValor) * 100)}%`;
     if (el("plano-barra-parcelas")) el("plano-barra-parcelas").style.width = `${Math.round((totalParcelas / maxValor) * 100)}%`;
@@ -48,28 +113,25 @@ function renderizarDistribuicaoPlano(salario) {
   const container = document.getElementById("plano-distribuicao");
   if (!container) return;
 
-  if (salario <= 0) {
-    container.innerHTML = '<div class="plano-vazio">Defina o salário para ver a distribuição.</div>';
+  const resumo = obterResumoFinanceiroPlanejamento(salario);
+  if (resumo.receitaPlanejada <= 0) {
+    container.innerHTML = '<div class="plano-vazio">Defina o salário ou uma bonificação para ver a distribuição.</div>';
     return;
   }
 
-  let totalFixas = 0;
-  let totalParcelas = 0;
-  let totalPlanos = 0;
-
-  if (typeof despesasFixasCarregadas !== "undefined") {
-    despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
-  }
-  if (typeof comprasParceladasCarregadas !== "undefined") {
-    comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
-  }
-
-  planosCarregados.forEach((p) => {
-    if (p.status === "ativo" && p.parcela_mensal) totalPlanos += p.parcela_mensal;
-  });
-
-  const sobra = Math.max(0, salario - totalFixas - totalParcelas - totalPlanos);
+  const totalFixas = resumo.despesasFixas;
+  const totalParcelas = resumo.parcelas;
+  const totalPlanos = resumo.planosAtivos;
+  const sobra = resumo.capacidadeLivre;
   const itens = [];
+
+  if (resumo.bonificacoesPrevistas > 0) {
+    itens.push(`<div class="plano-dist-item plano-dist-receita">
+      <span class="plano-dist-icone">✦</span>
+      <div class="plano-dist-info"><div class="plano-dist-nome">Bonificações previstas</div><div class="plano-dist-detalhe">No período selecionado</div></div>
+      <span class="plano-dist-restante">+${formatadorBRL.format(resumo.bonificacoesPrevistas)}</span>
+    </div>`);
+  }
 
   if (totalFixas > 0) {
     itens.push(`<div class="plano-dist-item">
@@ -90,7 +152,7 @@ function renderizarDistribuicaoPlano(salario) {
   if (totalPlanos > 0) {
     itens.push(`<div class="plano-dist-item">
       <span class="plano-dist-icone">🎯</span>
-      <div class="plano-dist-info"><div class="plano-dist-nome">Planos ativos</div><div class="plano-dist-detalhe">${planosCarregados.filter((p) => p.status === "ativo" && p.parcela_mensal).length} plano(s)</div></div>
+      <div class="plano-dist-info"><div class="plano-dist-nome">Planos ativos</div><div class="plano-dist-detalhe">${resumo.planosAtivosQtd} plano(s)</div></div>
       <span class="plano-dist-valor">-${formatadorBRL.format(totalPlanos)}</span>
     </div>`);
   }
@@ -107,21 +169,18 @@ function renderizarDistribuicaoPlano(salario) {
 // --- KPIs DO PLANEJAMENTO ---
 function renderizarKPIsPlano(salario) {
   const el = (id) => document.getElementById(id);
-  let totalFixas = 0, totalParcelas = 0;
-  if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
-  if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
+  const resumo = obterResumoFinanceiroPlanejamento(salario);
+  const economia = Math.max(0, resumo.totalProtegido);
+  const pct = resumo.receitaPlanejada > 0 ? ((economia / resumo.receitaPlanejada) * 100).toFixed(1) : "0";
 
-  const despesasPlanejadas = totalFixas + totalParcelas;
-  const economia = Math.max(0, salario - despesasPlanejadas);
-  const pct = salario > 0 ? ((economia / salario) * 100).toFixed(1) : "0";
-
-  if (el("plano-kpi-receita")) el("plano-kpi-receita").textContent = formatadorBRL.format(salario);
-  if (el("plano-kpi-despesas")) el("plano-kpi-despesas").textContent = formatadorBRL.format(despesasPlanejadas);
+  if (el("plano-kpi-receita")) el("plano-kpi-receita").textContent = formatadorBRL.format(resumo.receitaPlanejada);
+  if (el("plano-kpi-despesas")) el("plano-kpi-despesas").textContent = formatadorBRL.format(resumo.compromissos);
+  if (el("plano-kpi-invest")) el("plano-kpi-invest").textContent = formatadorBRL.format(resumo.investimentos);
   if (el("plano-kpi-economia")) el("plano-kpi-economia").textContent = formatadorBRL.format(economia);
   if (el("plano-kpi-pct")) el("plano-kpi-pct").textContent = `${pct}%`;
   if (el("plano-kpi-saldo")) {
-    el("plano-kpi-saldo").textContent = formatadorBRL.format(economia);
-    el("plano-kpi-saldo").style.color = economia >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)";
+    el("plano-kpi-saldo").textContent = formatadorBRL.format(resumo.saldoPrevisto);
+    el("plano-kpi-saldo").style.color = resumo.saldoPrevisto >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)";
   }
 }
 
@@ -131,29 +190,14 @@ function atualizarResumoPlanejamento(salario) {
   const acaoEl = document.getElementById("plano-resumo-acao");
   if (!saudeEl || !comprometidoEl || !acaoEl) return;
 
-  let totalFixas = 0;
-  let totalParcelas = 0;
-  let totalPlanosAtivos = 0;
+  const resumo = obterResumoFinanceiroPlanejamento(salario);
+  const comprometido = resumo.compromissos + resumo.reservasPlanejadas;
+  const percentual = resumo.receitaPlanejada > 0 ? Math.round((comprometido / resumo.receitaPlanejada) * 100) : 0;
+  const sobra = resumo.saldoPrevisto;
 
-  if (typeof despesasFixasCarregadas !== "undefined") {
-    despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
-  }
-  if (typeof comprasParceladasCarregadas !== "undefined") {
-    comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
-  }
-  if (typeof planosCarregados !== "undefined") {
-    planosCarregados.forEach((p) => {
-      if (p.status === "ativo" && p.parcela_mensal) totalPlanosAtivos += valorMonetario(p, "parcela_mensal");
-    });
-  }
+  comprometidoEl.textContent = resumo.receitaPlanejada > 0 ? `${percentual}%` : "—";
 
-  const comprometido = totalFixas + totalParcelas + totalPlanosAtivos;
-  const percentual = salario > 0 ? Math.round((comprometido / salario) * 100) : 0;
-  const sobra = salario - comprometido;
-
-  comprometidoEl.textContent = salario > 0 ? `${percentual}%` : "—";
-
-  if (salario <= 0) {
+  if (resumo.receitaPlanejada <= 0) {
     saudeEl.textContent = "Pendente";
     saudeEl.style.color = "var(--cor-pendente)";
     acaoEl.textContent = "Definir salário";
@@ -168,7 +212,7 @@ function atualizarResumoPlanejamento(salario) {
     saudeEl.textContent = "No limite";
     saudeEl.style.color = "var(--cor-pendente)";
     acaoEl.textContent = "Rever orçamento";
-  } else if (totalPlanosAtivos === 0) {
+  } else if (resumo.planosAtivos === 0) {
     saudeEl.textContent = "Saudável";
     saudeEl.style.color = "var(--cor-receita)";
     acaoEl.textContent = "Criar meta";
@@ -184,23 +228,18 @@ function renderizarIndicadoresPlano(salario) {
   const container = document.getElementById("plano-indicadores");
   if (!container) return;
 
-  let totalFixas = 0, totalParcelas = 0;
-  if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
-  if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
-
-  const despesasFixas = totalFixas;
-  const despesasVar = totalParcelas;
-  const comprometido = despesasFixas + despesasVar;
-  const pctComprometido = salario > 0 ? ((comprometido / salario) * 100).toFixed(1) : "0";
-  const capacidadeInvest = Math.max(0, salario - comprometido);
+  const resumo = obterResumoFinanceiroPlanejamento(salario);
+  const comprometido = resumo.compromissos + resumo.reservasPlanejadas;
+  const pctComprometido = resumo.receitaPlanejada > 0 ? ((comprometido / resumo.receitaPlanejada) * 100).toFixed(1) : "0";
 
   const itens = [
-    { nome: "Taxa de economia", valor: `${salario > 0 ? (((salario - comprometido) / salario) * 100).toFixed(0) : 0}%`, cor: "var(--cor-receita)", bg: "color-mix(in srgb, var(--cor-receita) 10%, transparent)" },
+    { nome: "Taxa de economia", valor: `${resumo.receitaPlanejada > 0 ? ((resumo.totalProtegido / resumo.receitaPlanejada) * 100).toFixed(0) : 0}%`, cor: "var(--cor-receita)", bg: "color-mix(in srgb, var(--cor-receita) 10%, transparent)" },
     { nome: "Renda comprometida", valor: `${pctComprometido}%`, cor: "var(--cor-despesa)", bg: "color-mix(in srgb, var(--cor-despesa) 10%, transparent)" },
-    { nome: "Investimentos", valor: formatadorBRL.format(planosCarregados.filter((p) => p.status === "ativo" && p.tipo === "investimento").reduce((s, p) => s + (p.parcela_mensal || 0), 0)), cor: "var(--cor-marca)", bg: "color-mix(in srgb, var(--cor-marca) 10%, transparent)" },
-    { nome: "Despesas fixas", valor: formatadorBRL.format(despesasFixas), cor: "var(--cor-texto)", bg: "var(--cor-fundo)" },
-    { nome: "Despesas variáveis", valor: formatadorBRL.format(despesasVar), cor: "var(--cor-texto)", bg: "var(--cor-fundo)" },
-    { nome: "Capacidade de invest.", valor: formatadorBRL.format(capacidadeInvest), cor: "var(--cor-receita)", bg: "color-mix(in srgb, var(--cor-receita) 10%, transparent)" },
+    { nome: "Bonificações", valor: formatadorBRL.format(resumo.bonificacoesPrevistas), cor: "var(--cor-receita)", bg: "color-mix(in srgb, var(--cor-receita) 10%, transparent)" },
+    { nome: "Planos ativos", valor: formatadorBRL.format(resumo.reservasPlanejadas), cor: "var(--cor-marca)", bg: "color-mix(in srgb, var(--cor-marca) 10%, transparent)" },
+    { nome: "Despesas fixas", valor: formatadorBRL.format(resumo.despesasFixas), cor: "var(--cor-texto)", bg: "var(--cor-fundo)" },
+    { nome: "Parcelas", valor: formatadorBRL.format(resumo.parcelas), cor: "var(--cor-texto)", bg: "var(--cor-fundo)" },
+    { nome: "Livre no mês", valor: formatadorBRL.format(resumo.capacidadeLivre), cor: "var(--cor-receita)", bg: "color-mix(in srgb, var(--cor-receita) 10%, transparent)" },
   ];
 
   container.innerHTML = itens.map((item) => `
@@ -231,16 +270,22 @@ function renderizarAlertasPlano(salario) {
   if (!card || !container) return;
 
   const alertas = [];
-  let totalFixas = 0, totalParcelas = 0;
-  if (typeof despesasFixasCarregadas !== "undefined") despesasFixasCarregadas.forEach((f) => { if (f.ativo) totalFixas += valorMonetario(f); });
-  if (typeof comprasParceladasCarregadas !== "undefined") comprasParceladasCarregadas.forEach((c) => { if (c.ativo) totalParcelas += valorMonetario(c, "valor_parcela"); });
+  const resumo = obterResumoFinanceiroPlanejamento(salario);
 
-  const comprometido = totalFixas + totalParcelas;
-  const pct = salario > 0 ? (comprometido / salario) * 100 : 0;
+  const comprometido = resumo.compromissos + resumo.reservasPlanejadas;
+  const pct = resumo.receitaPlanejada > 0 ? (comprometido / resumo.receitaPlanejada) * 100 : 0;
+
+  if (planejamentoDependenciasComErro) {
+    alertas.push({ tipo: "aviso", texto: "Alguns dados não foram carregados. Confira sua conexão e atualize o período se algo parecer incompleto." });
+  }
 
   if (pct > 90) alertas.push({ tipo: "erro", texto: `Seu orçamento está ${pct.toFixed(0)}% comprometido. Considere reduzir gastos.` });
   else if (pct > 70) alertas.push({ tipo: "aviso", texto: `Seu orçamento está ${pct.toFixed(0)}% comprometido. Atenção aos gastos.` });
-  else if (salario > 0) alertas.push({ tipo: "ok", texto: `Parabéns! Apenas ${pct.toFixed(0)}% da renda está comprometida.` });
+  else if (resumo.receitaPlanejada > 0) alertas.push({ tipo: "ok", texto: `Parabéns! Apenas ${pct.toFixed(0)}% da renda planejada está comprometida.` });
+
+  if (resumo.bonificacoesPrevistas > 0 && resumo.bonificacoesRecebidas < resumo.bonificacoesPrevistas) {
+    alertas.push({ tipo: "aviso", texto: `Bonificações previstas: ${formatadorBRL.format(resumo.bonificacoesPrevistas)}. Já recebido: ${formatadorBRL.format(resumo.bonificacoesRecebidas)}.` });
+  }
 
   if (typeof ultimoLoteLancamentos !== "undefined") {
     const atrasados = ultimoLoteLancamentos.filter(lancamentoPendenteAtrasadoPlano);
@@ -263,19 +308,19 @@ function renderizarOrcamentosPlano() {
   }
 
   container.innerHTML = orcamentosCarregados.map((o) => {
-    const gasto = valorMonetario(o, "gasto_atual");
-    const limite = valorMonetario(o, "valor_limite");
+    const gasto = obterGastoAtualOrcamento(o);
+    const limite = obterValorLimiteOrcamento(o);
     const pct = limite > 0 ? Math.min((gasto / limite) * 100, 100) : 0;
     const cor = pct >= 90 ? "var(--cor-despesa)" : pct >= 70 ? "var(--cor-pendente)" : "var(--cor-receita)";
     return `
-      <div class="plano-lista-item">
+      <div class="plano-lista-item plano-lista-item-com-progresso">
         <div class="plano-lista-info">
           <div class="plano-lista-nome">${escaparHtml(o.categoria)}</div>
-          <div style="display:flex;align-items:center;gap:8px;margin-top:4px">
-            <div style="flex:1;height:6px;background:var(--cor-pauta-forte);border-radius:3px;overflow:hidden">
-              <div style="height:100%;width:${pct}%;background:${cor};border-radius:3px"></div>
+          <div class="plano-lista-progresso">
+            <div class="plano-lista-progresso-trilho">
+              <div class="plano-lista-progresso-fill" style="width:${pct}%;background:${cor}"></div>
             </div>
-            <span style="font-size:0.7rem;color:${cor}">${pct.toFixed(0)}%</span>
+            <span style="color:${cor}">${pct.toFixed(0)}%</span>
           </div>
         </div>
         <div class="plano-lista-valor" style="color:${cor}">${formatadorBRL.format(gasto)} / ${formatadorBRL.format(limite)}</div>
@@ -294,8 +339,11 @@ function renderizarReceitasPlano() {
   }
 
   const receitas = ultimoLoteLancamentos.filter((l) => l.tipo === "receita");
+  const resumo = obterResumoFinanceiroPlanejamento(obterUsuarioLogado().salario || 0);
   if (receitas.length === 0) {
-    container.innerHTML = '<div class="plano-vazio">Nenhuma receita registrada neste período.</div>';
+    container.innerHTML = resumo.bonificacoesPrevistas > 0
+      ? `<div class="plano-vazio">Sem receitas lançadas ainda. Há ${formatadorBRL.format(resumo.bonificacoesPrevistas)} em bonificações previstas para este período.</div>`
+      : '<div class="plano-vazio">Nenhuma receita registrada neste período.</div>';
     return;
   }
 
@@ -330,9 +378,14 @@ function renderizarDespesasPlano() {
       itens.push({ nome: c.descricao, valor: valorMonetario(c, "valor_parcela"), cat: c.categoria, freq: `Parcela ${c.parcela_atual || 1}/${c.total_parcelas}`, tipo: "parcela" });
     });
   }
+  if (typeof planosCarregados !== "undefined") {
+    planosCarregados.filter((p) => p.status === "ativo" && valorMonetario(p, "parcela_mensal") > 0).forEach((p) => {
+      itens.push({ nome: p.nome, valor: valorMonetario(p, "parcela_mensal"), cat: p.tipo === "investimento" ? "Investimento" : "Plano", freq: "Reserva mensal", tipo: "plano" });
+    });
+  }
 
   if (itens.length === 0) {
-    container.innerHTML = '<div class="plano-vazio">Nenhuma despesa fixa ou parcelada ativa.</div>';
+    container.innerHTML = '<div class="plano-vazio">Nenhum compromisso fixo, parcelado ou plano ativo neste período.</div>';
     return;
   }
 
@@ -360,8 +413,8 @@ function renderizarComparacaoPlano() {
   const header = `<div class="plano-comp-linha plano-comp-header"><span>Categoria</span><span style="text-align:right">Planejado</span><span style="text-align:right">Real</span><span style="text-align:right">Diferença</span></div>`;
 
   const linhas = orcamentosCarregados.map((o) => {
-    const real = valorMonetario(o, "gasto_atual");
-    const limite = valorMonetario(o, "valor_limite");
+    const real = obterGastoAtualOrcamento(o);
+    const limite = obterValorLimiteOrcamento(o);
     const diff = real - limite;
     const diffLabel = diff > 0 ? `+${formatadorBRL.format(diff)}` : diff < 0 ? formatadorBRL.format(diff) : "—";
     const cls = diff > 0 ? "positivo" : diff < 0 ? "negativo" : "";
@@ -369,6 +422,90 @@ function renderizarComparacaoPlano() {
   }).join("");
 
   container.innerHTML = header + linhas;
+}
+
+function renderizarRecomendacoesPlano(salario) {
+  const container = document.getElementById("plano-recomendacoes");
+  if (!container) return;
+
+  const resumo = obterResumoFinanceiroPlanejamento(salario);
+  const recomendacoes = [];
+  const percentualComprometido = resumo.receitaPlanejada > 0
+    ? Math.round(((resumo.compromissos + resumo.reservasPlanejadas) / resumo.receitaPlanejada) * 100)
+    : 0;
+
+  if (resumo.receitaPlanejada <= 0) {
+    recomendacoes.push({
+      tipo: "aviso",
+      titulo: "Defina uma renda base",
+      texto: "Informe o salário ou cadastre bonificações para o planejamento conseguir calcular sobras e compromissos.",
+    });
+  } else if (resumo.saldoPrevisto < 0) {
+    recomendacoes.push({
+      tipo: "erro",
+      titulo: "Plano acima da renda",
+      texto: `Os compromissos passam da renda planejada em ${formatadorBRL.format(Math.abs(resumo.saldoPrevisto))}.`,
+    });
+  } else if (percentualComprometido >= 70) {
+    recomendacoes.push({
+      tipo: "aviso",
+      titulo: "Renda bem comprometida",
+      texto: `${percentualComprometido}% da renda planejada já está comprometida. Revise fixas, parcelas ou metas antes de assumir novos gastos.`,
+    });
+  } else {
+    recomendacoes.push({
+      tipo: "ok",
+      titulo: "Plano equilibrado",
+      texto: `Você ainda tem ${formatadorBRL.format(resumo.capacidadeLivre)} livre no período depois dos compromissos planejados.`,
+    });
+  }
+
+  if (Array.isArray(orcamentosCarregados) && orcamentosCarregados.length > 0) {
+    const orcamentosCriticos = orcamentosCarregados.filter((orcamento) => {
+      const limite = obterValorLimiteOrcamento(orcamento);
+      const gasto = obterGastoAtualOrcamento(orcamento);
+      return limite > 0 && gasto / limite >= 0.9;
+    });
+    if (orcamentosCriticos.length > 0) {
+      recomendacoes.push({
+        tipo: "erro",
+        titulo: "Orçamento no limite",
+        texto: `${orcamentosCriticos.length} categoria(s) estão com 90% ou mais do limite usado.`,
+      });
+    }
+  } else {
+    recomendacoes.push({
+      tipo: "info",
+      titulo: "Orçamento ainda vazio",
+      texto: "Crie orçamentos por categoria para comparar o planejado com o real dentro do mês selecionado.",
+    });
+  }
+
+  if (Array.isArray(metasCarregadas) && metasCarregadas.length === 0) {
+    recomendacoes.push({
+      tipo: "info",
+      titulo: "Metas dão direção",
+      texto: "Cadastre uma meta para transformar a sobra do mês em um objetivo concreto.",
+    });
+  }
+
+  if (typeof ultimoLoteLancamentos !== "undefined") {
+    const atrasados = ultimoLoteLancamentos.filter(lancamentoPendenteAtrasadoPlano);
+    if (atrasados.length > 0) {
+      recomendacoes.push({
+        tipo: "erro",
+        titulo: "Pendências atrasadas",
+        texto: `Existem ${atrasados.length} lançamento(s) atrasado(s) no período/carteira selecionados.`,
+      });
+    }
+  }
+
+  container.innerHTML = recomendacoes.map((item) => `
+    <div class="plano-recomendacao-item plano-recomendacao-${item.tipo}">
+      <strong>${escaparHtml(item.titulo)}</strong>
+      <span>${escaparHtml(item.texto)}</span>
+    </div>
+  `).join("");
 }
 
 // --- SIMULAÇÃO ---

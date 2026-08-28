@@ -247,6 +247,10 @@
   min-width: 0;
 }
 
+.plano-lista-item-com-progresso {
+  align-items: stretch;
+}
+
 .plano-lista-item:last-child { margin-bottom: 0; }
 
 .plano-lista-info {
@@ -263,6 +267,36 @@
 .plano-lista-detalhe {
   font-size: 0.72rem;
   color: var(--cor-texto-suave, #888);
+}
+
+.plano-lista-progresso {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 6px;
+}
+
+.plano-lista-progresso-trilho {
+  flex: 1;
+  min-width: 80px;
+  height: 6px;
+  border-radius: 999px;
+  overflow: hidden;
+  background: var(--cor-pauta-forte);
+}
+
+.plano-lista-progresso-fill {
+  height: 100%;
+  border-radius: inherit;
+  transition: width 0.45s ease;
+}
+
+.plano-lista-progresso span {
+  min-width: 34px;
+  font-family: var(--fonte-mono);
+  font-size: 0.7rem;
+  font-weight: 700;
+  text-align: right;
 }
 
 .plano-lista-valor {
@@ -282,6 +316,40 @@
 
 .plano-status-recebido { background: color-mix(in srgb, var(--cor-receita) 10%, transparent); color: var(--cor-receita); }
 .plano-status-pendente { background: color-mix(in srgb, var(--cor-pendente) 10%, transparent); color: var(--cor-pendente); }
+
+/* ==========================================
+   PLANEJAMENTO — RECOMENDAÇÕES
+   ========================================== */
+.plano-recomendacao-item {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, currentColor 18%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, currentColor 7%, transparent);
+  color: var(--cor-texto-suave);
+  margin-bottom: 8px;
+}
+
+.plano-recomendacao-item:last-child {
+  margin-bottom: 0;
+}
+
+.plano-recomendacao-item strong {
+  color: var(--cor-texto);
+  font-size: 0.86rem;
+}
+
+.plano-recomendacao-item span {
+  font-size: 0.78rem;
+  line-height: 1.4;
+}
+
+.plano-recomendacao-ok { color: var(--cor-receita); }
+.plano-recomendacao-aviso,
+.plano-recomendacao-info { color: var(--cor-pendente); }
+.plano-recomendacao-erro { color: var(--cor-despesa); }
 
 @media (max-width: 700px) {
   .plano-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
@@ -332,6 +400,10 @@
     width: 100%;
     text-align: left;
     overflow-wrap: anywhere;
+  }
+
+  .plano-lista-progresso {
+    width: 100%;
   }
 
   .plano-comp-linha {

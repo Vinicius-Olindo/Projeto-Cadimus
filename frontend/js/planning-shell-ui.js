@@ -4,6 +4,7 @@
 // --- PLANEJAMENTO ---
 let planosCarregados = [];
 let ultimaAtualizacaoPlanejamento = 0;
+let planejamentoDependenciasComErro = false;
 
 // ==========================================
 // [28] PLANEJAMENTO: Planos Financeiros
@@ -31,6 +32,7 @@ function configurarPlano() {
   });
 
   configurarTabsPlano();
+  configurarAtalhosAcoesPlanejamento();
   configurarSalarioPlano();
   configurarMetaPlano();
   configurarModalPlano();
@@ -46,6 +48,7 @@ function mostrarPlanejamentoCarregando() {
   const saudeEl = document.getElementById("plano-resumo-saude");
   const comprometidoEl = document.getElementById("plano-resumo-comprometido");
   const acaoEl = document.getElementById("plano-resumo-acao");
+  const conteudoCarregando = '<div class="plano-vazio plano-vazio-carregando"><span class="spinner"></span><span>Atualizando dados do período...</span></div>';
 
   if (saudeEl) {
     saudeEl.textContent = "Atualizando";
@@ -53,6 +56,19 @@ function mostrarPlanejamentoCarregando() {
   }
   if (comprometidoEl) comprometidoEl.textContent = "—";
   if (acaoEl) acaoEl.textContent = "Carregando dados";
+
+  [
+    "plano-indicadores",
+    "plano-lista-orcamentos",
+    "plano-lista-metas",
+    "plano-lista-receitas",
+    "plano-lista-despesas",
+    "plano-comparacao",
+    "plano-recomendacoes",
+  ].forEach((id) => {
+    const container = document.getElementById(id);
+    if (container) container.innerHTML = conteudoCarregando;
+  });
 }
 
 function limparEstadoPlanejamentoDependencias() {
@@ -85,6 +101,7 @@ async function carregarLancamentosPlanejamento() {
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) {
       if (typeof ultimoLoteLancamentos !== "undefined") ultimoLoteLancamentos = [];
+      planejamentoDependenciasComErro = true;
       return;
     }
 
@@ -95,6 +112,7 @@ async function carregarLancamentosPlanejamento() {
   } catch (erro) {
     console.error("Erro ao carregar lançamentos do planejamento:", erro);
     if (typeof ultimoLoteLancamentos !== "undefined") ultimoLoteLancamentos = [];
+    planejamentoDependenciasComErro = true;
   }
 }
 
@@ -102,6 +120,7 @@ async function carregarDependenciasPlanejamento() {
   const tarefas = [];
 
   limparEstadoPlanejamentoDependencias();
+  planejamentoDependenciasComErro = false;
 
   if (typeof CadimusEntriesApi !== "undefined") {
     await carregarLancamentosPlanejamento();
@@ -114,7 +133,10 @@ async function carregarDependenciasPlanejamento() {
   if (typeof carregarMetas === "function") tarefas.push(carregarMetas());
   if (typeof carregarPlanos === "function") tarefas.push(carregarPlanos());
 
-  await Promise.allSettled(tarefas);
+  const resultados = await Promise.allSettled(tarefas);
+  if (resultados.some((resultado) => resultado.status === "rejected")) {
+    planejamentoDependenciasComErro = true;
+  }
 }
 
 async function atualizarPlanejamentoVisivel({ forcarRender = false } = {}) {
@@ -167,6 +189,31 @@ function configurarTabsPlano() {
         carregarPlanosCompartilhados();
       }
     });
+  });
+}
+
+async function abrirLancamentoPeloPlanejamento(tipo) {
+  if (typeof abrirModalNovoLancamento !== "function") return;
+
+  await abrirModalNovoLancamento();
+  const selectTipo = document.getElementById("tipo-gasto");
+  if (selectTipo) {
+    selectTipo.value = tipo;
+    selectTipo.dispatchEvent(new Event("change"));
+  }
+}
+
+function configurarAtalhosAcoesPlanejamento() {
+  document.getElementById("btn-novo-orcamento-plano")?.addEventListener("click", () => {
+    if (typeof window.abrirModalOrcamento === "function") window.abrirModalOrcamento();
+  });
+
+  document.getElementById("btn-nova-receita-plano")?.addEventListener("click", () => {
+    abrirLancamentoPeloPlanejamento("receita");
+  });
+
+  document.getElementById("btn-nova-despesa-plano")?.addEventListener("click", () => {
+    abrirLancamentoPeloPlanejamento("despesa");
   });
 }
 
@@ -313,6 +360,7 @@ function renderizarPlano() {
   renderizarReceitasPlano();
   renderizarDespesasPlano();
   renderizarComparacaoPlano();
+  renderizarRecomendacoesPlano(salario);
   configurarSimulacaoPlano();
 }
 
