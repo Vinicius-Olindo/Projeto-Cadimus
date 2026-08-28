@@ -14,8 +14,18 @@ async function erroJson(erro) {
   }
 }
 
-test("erroFinanceiro transforma campo obrigatório ausente em erro útil", async () => {
+test("erroFinanceiro transforma campo obrigatório conhecido em erro específico", async () => {
   const resultado = await erroJson(new Error("NOT NULL constraint failed: lancamentos.descricao"));
+
+  assert.equal(resultado.status, 400);
+  assert.deepEqual(resultado.dados, {
+    erro: "Informe uma descrição.",
+    codigo: "descricao_obrigatoria",
+  });
+});
+
+test("erroFinanceiro transforma campo obrigatório desconhecido em erro útil", async () => {
+  const resultado = await erroJson(new Error("NOT NULL constraint failed: tabela.campo_novo"));
 
   assert.equal(resultado.status, 400);
   assert.deepEqual(resultado.dados, {
@@ -24,7 +34,7 @@ test("erroFinanceiro transforma campo obrigatório ausente em erro útil", async
   });
 });
 
-test("erroFinanceiro transforma referência inválida em erro seguro", async () => {
+test("erroFinanceiro transforma referência inválida genérica em erro seguro", async () => {
   const resultado = await erroJson(new Error("FOREIGN KEY constraint failed"));
 
   assert.equal(resultado.status, 400);
@@ -34,13 +44,33 @@ test("erroFinanceiro transforma referência inválida em erro seguro", async () 
   });
 });
 
-test("erroFinanceiro transforma regra bloqueada em erro de domínio", async () => {
+test("erroFinanceiro transforma referência inválida conhecida em erro específico", async () => {
+  const resultado = await erroJson(new Error("FOREIGN KEY constraint failed: cartoes_credito"));
+
+  assert.equal(resultado.status, 400);
+  assert.deepEqual(resultado.dados, {
+    erro: "Cartão de crédito inválido para esta carteira.",
+    codigo: "cartao_credito_invalido",
+  });
+});
+
+test("erroFinanceiro transforma regra financeira bloqueada em erro específico", async () => {
   const resultado = await erroJson(new Error("CHECK constraint failed: valor_centavos > 0"));
 
   assert.equal(resultado.status, 400);
   assert.deepEqual(resultado.dados, {
-    erro: "Regra financeira bloqueada para esta operação.",
-    codigo: "regra_financeira_bloqueada",
+    erro: "Regra financeira bloqueada: confira os valores informados.",
+    codigo: "valor_financeiro_invalido",
+  });
+});
+
+test("erroFinanceiro transforma regra de frequência/data em erro específico", async () => {
+  const resultado = await erroJson(new Error("CHECK constraint failed: frequencia IN ('diaria','semanal')"));
+
+  assert.equal(resultado.status, 400);
+  assert.deepEqual(resultado.dados, {
+    erro: "Frequência inválida.",
+    codigo: "frequencia_invalida",
   });
 });
 
