@@ -19,6 +19,7 @@ test("normalizarCartaoCreditoId aceita apenas inteiro positivo", () => {
 test("deveVincularCartaoCredito somente para crédito que não seja receita", () => {
   assert.equal(deveVincularCartaoCredito({ tipo: "despesa", meio_pagamento: "credito" }), true);
   assert.equal(deveVincularCartaoCredito({ tipo: "despesa", meio_pagamento: "Credito" }), true);
+  assert.equal(deveVincularCartaoCredito({ tipo: "despesa", meio_pagamento: "cartao_credito" }), true);
   assert.equal(deveVincularCartaoCredito({ tipo: "receita", meio_pagamento: "credito" }), false);
   assert.equal(deveVincularCartaoCredito({ tipo: "despesa", meio_pagamento: "pix" }), false);
   assert.equal(deveVincularCartaoCredito(null), false);

@@ -1,4 +1,5 @@
 import type { CadimusEnv, IdEntrada, MeioPagamento, TipoLancamento } from "../types.js";
+import { normalizarMeioPagamento, normalizarTipoLancamento } from "../domain.ts";
 
 /**
  * Entrada aceita para IDs de cartão vindos de forms, JSON ou banco.
@@ -9,8 +10,8 @@ export type CartaoCreditoIdEntrada = IdEntrada | null | undefined;
  * Payload mínimo usado para decidir vínculo com cartão.
  */
 export interface DadosPagamento {
-  tipo?: TipoLancamento | string;
-  meio_pagamento?: MeioPagamento | string;
+  tipo?: TipoLancamento | string | null;
+  meio_pagamento?: MeioPagamento | string | null;
 }
 
 /**
@@ -26,7 +27,10 @@ export function normalizarCartaoCreditoId(valor: CartaoCreditoIdEntrada): number
  * e o meio de pagamento é crédito.
  */
 export function deveVincularCartaoCredito(dados: DadosPagamento | null | undefined): boolean {
-  return dados?.tipo !== "receita" && String(dados?.meio_pagamento || "").toLowerCase() === "credito";
+  const tipo = normalizarTipoLancamento(dados?.tipo);
+  const meioPagamento = normalizarMeioPagamento(dados?.meio_pagamento);
+
+  return tipo !== "receita" && (meioPagamento === "credito" || meioPagamento === "cartao_credito");
 }
 
 /**
