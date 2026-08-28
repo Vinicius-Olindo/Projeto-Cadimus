@@ -922,3 +922,200 @@
     transform: none;
   }
 }
+
+/* REVISÃO MOBILE EM NAVEGADOR REAL */
+@media (max-width: 720px) {
+  html,
+  body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+
+  .app-container {
+    width: 100%;
+    max-width: 100vw;
+  }
+
+  :where(
+    .top-bar,
+    .card,
+    .stat-card,
+    .area-controle,
+    .area-lancamentos,
+    .card-lancamentos-bloco,
+    .plano-overview,
+    .plano-container,
+    .modal-content,
+    .dropdown-avatar
+  ) {
+    min-width: 0;
+  }
+
+  .area-controle {
+    position: static;
+    width: 100%;
+  }
+
+  :where(
+    .top-bar h2,
+    .plano-overview h3,
+    .lancamentos-cabecalho h3,
+    .cartao-item-info,
+    .linha-descricao,
+    .plano-lista-info,
+    .plano-card-detalhe
+  ) {
+    overflow-wrap: anywhere;
+  }
+
+  :where(
+    .acoes-topo,
+    .user-controls,
+    .carteira-tabs,
+    .plano-tabs,
+    .plano-sub-tabs,
+    .lancamentos-paginacao-botoes
+  ) {
+    overscroll-behavior-inline: contain;
+    scroll-padding-inline: 10px;
+  }
+
+  :where(.acoes-topo-grupo, .tab-carteira-wrapper, .tab-carteira, .plano-tab, .plano-sub-tab) {
+    scroll-snap-align: start;
+  }
+
+  .comparativo-periodo-conteudo {
+    grid-template-columns: 1fr;
+  }
+
+  .periodo-seta {
+    min-height: 18px;
+    transform: rotate(90deg);
+  }
+
+  .periodo-variacao {
+    min-width: 0;
+  }
+
+  :where(
+    .cartao-item-header,
+    .cartao-item-datas,
+    .cartao-limite-texto,
+    .cartao-limite-disponivel,
+    .plano-comp-linha
+  ) {
+    gap: 8px;
+  }
+
+  .modal-overlay {
+    align-items: flex-start;
+    overflow-y: auto;
+    padding:
+      max(10px, env(safe-area-inset-top))
+      max(10px, env(safe-area-inset-right))
+      max(10px, env(safe-area-inset-bottom))
+      max(10px, env(safe-area-inset-left));
+  }
+
+  .modal-content {
+    max-height: calc(100svh - 20px - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+
+  .dropdown-avatar {
+    max-height: calc(100svh - 20px - env(safe-area-inset-bottom));
+    overflow-y: auto;
+  }
+}
+
+@media (max-width: 520px) {
+  .comparativo-periodo-header {
+    align-items: stretch;
+  }
+
+  .comparativo-periodo-seletor {
+    width: 100%;
+  }
+
+  .periodo-btn {
+    flex: 1;
+  }
+
+  :where(.cartao-item-header, .cartao-item-datas, .cartao-limite-texto, .cartao-limite-disponivel) {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .cartao-item-acoes {
+    align-self: flex-end;
+  }
+
+  .plano-comp-linha {
+    grid-template-columns: 1fr;
+  }
+
+  .plano-comp-header {
+    display: none;
+  }
+
+  .plano-comp-valor,
+  .plano-comp-diferenca {
+    text-align: left !important;
+  }
+
+  .filtros-lancamentos :where(select, input) {
+    min-width: 0;
+  }
+}
+
+@media (max-width: 390px) {
+  .app-container {
+    padding-inline: 8px;
+  }
+
+  .top-bar {
+    margin-bottom: 10px;
+  }
+
+  .modal-content {
+    padding: 18px 14px;
+    border-radius: 18px;
+  }
+
+  .modal-content h3 {
+    font-size: 1.25rem;
+  }
+
+  .lancamento-tipo-rapido button {
+    min-height: 64px;
+    padding: 10px;
+  }
+
+  .linha-item {
+    padding: 10px 8px;
+  }
+
+  .item-valor-acoes {
+    gap: 6px;
+  }
+
+  :where(.btn-editar, .btn-excluir) {
+    width: 32px;
+    height: 32px;
+  }
+
+  .stat-card {
+    padding: 12px;
+  }
+
+  .stat-valor {
+    white-space: normal;
+  }
+}
+
+@media (max-width: 720px) and (orientation: landscape) {
+  .modal-content,
+  .dropdown-avatar {
+    max-height: calc(100svh - 12px);
+  }
+}
