@@ -7,7 +7,7 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { normalizarId, normalizarMeioPagamento } from "../domain.ts";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
-import { validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
+import { normalizarCartaoCreditoId, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface CompraParceladaPayload {
@@ -172,7 +172,10 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
         return erroCliente("Meio de pagamento inválido.", 400, "meio_pagamento_invalido");
       }
       let cartaoCreditoId: number | null = null;
-      if (meioPagamento === "credito" && dados.cartao_credito_id) {
+      if (meioPagamento === "credito" || meioPagamento === "cartao_credito") {
+        if (!normalizarCartaoCreditoId(dados.cartao_credito_id)) {
+          return erroCliente("Selecione o cartão de crédito usado nesta compra parcelada.", 400, "cartao_credito_obrigatorio");
+        }
         const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, carteiraIdNormalizada);
         if (cartaoValido === false) {
           return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
@@ -279,7 +282,8 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
         campos.push("meio_pagamento = ?");
         valores.push(meioPagamento);
       }
-      const vaiUsarCartaoInformado = String(dados.meio_pagamento ?? alvo[0].meio_pagamento).toLowerCase() === "credito" && Boolean(dados.cartao_credito_id);
+      const meioPagamentoAtualizadoParaDia = normalizarMeioPagamento(dados.meio_pagamento ?? alvo[0].meio_pagamento);
+      const vaiUsarCartaoInformado = (meioPagamentoAtualizadoParaDia === "credito" || meioPagamentoAtualizadoParaDia === "cartao_credito") && Boolean(dados.cartao_credito_id);
 
       if (dados.dia_vencimento !== undefined && !vaiUsarCartaoInformado) {
         const dia = normalizarDiaVencimentoSeguro(dados.dia_vencimento);
@@ -294,9 +298,12 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
         valores.push(dados.ativo ? 1 : 0);
       }
       if (dados.cartao_credito_id !== undefined || dados.meio_pagamento !== undefined) {
-        const meioPagamento = dados.meio_pagamento ?? alvo[0].meio_pagamento;
+        const meioPagamento = normalizarMeioPagamento(dados.meio_pagamento ?? alvo[0].meio_pagamento);
         let cartaoCreditoId: number | null = null;
-        if (String(meioPagamento).toLowerCase() === "credito" && dados.cartao_credito_id) {
+        if (meioPagamento === "credito" || meioPagamento === "cartao_credito") {
+          if (!normalizarCartaoCreditoId(dados.cartao_credito_id)) {
+            return erroCliente("Selecione o cartão de crédito usado nesta compra parcelada.", 400, "cartao_credito_obrigatorio");
+          }
           const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, alvo[0].carteira_id);
           if (cartaoValido === false) {
             return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");

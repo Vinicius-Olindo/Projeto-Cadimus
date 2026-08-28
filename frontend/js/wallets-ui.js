@@ -568,8 +568,25 @@ function configurarCampoCartaoCredito({ campoId, selectId, meioId, tipoId }) {
   atualizar();
 }
 
+function validarCartaoCreditoObrigatorio({ meioId, selectId, tipoId, mensagem = "Selecione o cartão de crédito usado nesta despesa." }) {
+  const meio = document.getElementById(meioId);
+  const select = document.getElementById(selectId);
+  const tipo = tipoId ? document.getElementById(tipoId) : null;
+  const usaCredito = String(meio?.value || "").toLowerCase() === "credito";
+  const ehDespesa = !tipo || tipo.value !== "receita";
+
+  if (!usaCredito || !ehDespesa || !select || select.value) return true;
+
+  select.setCustomValidity(mensagem);
+  select.reportValidity();
+  select.focus();
+  setTimeout(() => select.setCustomValidity(""), 1200);
+  return false;
+}
+
 window.popularSelectCartoesCredito = popularSelectCartoesCredito;
 window.configurarCampoCartaoCredito = configurarCampoCartaoCredito;
+window.validarCartaoCreditoObrigatorio = validarCartaoCreditoObrigatorio;
 
 function configurarModalCartaoCredito() {
   const modal = document.getElementById("modal-cartao-credito");

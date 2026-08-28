@@ -17,12 +17,14 @@ function sincronizarVencimentoParceladaComCartao() {
 
   const opcaoSelecionada = selectCartao.selectedOptions?.[0];
   const diaVencimento = opcaoSelecionada?.dataset?.diaVencimento || "";
+  document.getElementById("parcelada-dia-cartao-dica")?.remove();
 
   if (selectCartao.value && diaVencimento) {
     campoDia.value = diaVencimento;
     campoDia.readOnly = true;
     campoDia.classList.add("campo-bloqueado-cartao");
     campoDia.title = "Vencimento definido pelo cartão selecionado.";
+    campoDia.insertAdjacentHTML("afterend", '<span class="dica-campo dica-cartao-vencimento" id="parcelada-dia-cartao-dica">Vencimento definido pelo cartão selecionado.</span>');
   } else {
     campoDia.readOnly = false;
     campoDia.classList.remove("campo-bloqueado-cartao");
@@ -161,6 +163,16 @@ function configurarModalComprasParceladas() {
         meio_pagamento: document.getElementById("parcelada-meio-pagamento").value,
         cartao_credito_id: document.getElementById("parcelada-cartao-credito")?.value || null,
       };
+
+      if (typeof validarCartaoCreditoObrigatorio === "function" && !validarCartaoCreditoObrigatorio({
+        meioId: "parcelada-meio-pagamento",
+        selectId: "parcelada-cartao-credito",
+        mensagem: "Selecione o cartão usado nesta compra parcelada.",
+      })) {
+        btnSalvar.innerText = "Salvar";
+        btnSalvar.disabled = false;
+        return;
+      }
 
       const resposta = await CadimusScheduledApi.criarParcelada(corpo);
 

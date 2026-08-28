@@ -35,6 +35,19 @@ input.campo-bloqueado-cartao {
   cursor: not-allowed;
 }
 
+.dica-cartao-vencimento {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  margin-top: 6px;
+  color: var(--cor-marca-forte);
+}
+
+.dica-cartao-vencimento::before {
+  content: "↳";
+  color: var(--cor-marca);
+}
+
 label {
   display: block;
   font-size: 0.7rem;

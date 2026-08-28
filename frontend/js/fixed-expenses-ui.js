@@ -14,16 +14,19 @@ function sincronizarVencimentoFixaComCartao() {
 
   const opcaoSelecionada = selectCartao.selectedOptions?.[0];
   const diaVencimento = opcaoSelecionada?.dataset?.diaVencimento || "";
+  document.getElementById("fixa-dia-cartao-dica")?.remove();
 
   if (selectCartao.value && diaVencimento) {
     campoDia.value = diaVencimento;
     campoDia.readOnly = true;
     campoDia.classList.add("campo-bloqueado-cartao");
     campoDia.title = "Vencimento definido pelo cartão selecionado.";
+    campoDia.insertAdjacentHTML("afterend", '<span class="dica-campo dica-cartao-vencimento" id="fixa-dia-cartao-dica">Vencimento definido pelo cartão selecionado.</span>');
   } else {
     campoDia.readOnly = false;
     campoDia.classList.remove("campo-bloqueado-cartao");
     campoDia.title = "";
+    document.getElementById("fixa-dia-cartao-dica")?.remove();
   }
 }
 
@@ -140,6 +143,17 @@ function configurarModalDespesasFixas() {
         cartao_credito_id: document.getElementById("fixa-cartao-credito")?.value || null,
       };
       if (!idEdicao) corpo.carteira_id = carteiraId; // carteira só é definida na criação, não muda na edição
+
+      if (typeof validarCartaoCreditoObrigatorio === "function" && !validarCartaoCreditoObrigatorio({
+        meioId: "fixa-meio-pagamento",
+        tipoId: "fixa-tipo",
+        selectId: "fixa-cartao-credito",
+        mensagem: "Selecione o cartão usado nesta despesa fixa.",
+      })) {
+        btnSalvar.innerText = idEdicao ? "Salvar edição" : "Salvar";
+        btnSalvar.disabled = false;
+        return;
+      }
 
       const resposta = await CadimusScheduledApi.salvarFixa(corpo, idEdicao || null);
 

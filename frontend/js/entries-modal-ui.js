@@ -311,6 +311,17 @@ function configurarModal() {
         cartao_credito_id: document.getElementById("cartao-credito-lancamento")?.value || null,
       };
 
+      if (typeof validarCartaoCreditoObrigatorio === "function" && !validarCartaoCreditoObrigatorio({
+        meioId: "meio-pagamento",
+        tipoId: "tipo-gasto",
+        selectId: "cartao-credito-lancamento",
+        mensagem: "Selecione o cartão usado neste lançamento.",
+      })) {
+        btnSalvar.innerText = idEdicao ? "Salvar edição" : "Salvar";
+        btnSalvar.disabled = false;
+        return;
+      }
+
       // Verificar orçamento antes de salvar (apenas para despesas novas)
       if (!idEdicao && pacoteDados.tipo === "despesa" && pacoteDados.status === "pago") {
         const orcamento = orcamentosCarregados.find(

@@ -17,7 +17,7 @@ import { gerarLancamentosParceladosDoMes } from "../utils/comprasParceladas.ts";
 import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrentes.ts";
 import { registrarAuditoria } from "../utils/auditoria.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
-import { deveVincularCartaoCredito, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
+import { deveVincularCartaoCredito, normalizarCartaoCreditoId, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface LancamentoPayload {
@@ -307,7 +307,10 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
       }
       const valor = centavosParaReais(valorCentavos);
       let cartaoCreditoId: number | null = null;
-      if (deveVincularCartaoCredito({ ...dados, tipo: tipoNormalizado, meio_pagamento: meioPagamentoNormalizado }) && dados.cartao_credito_id) {
+      if (deveVincularCartaoCredito({ ...dados, tipo: tipoNormalizado, meio_pagamento: meioPagamentoNormalizado })) {
+        if (!normalizarCartaoCreditoId(dados.cartao_credito_id)) {
+          return erroCliente("Selecione o cartão de crédito usado nesta despesa.", 400, "cartao_credito_obrigatorio");
+        }
         const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, carteiraIdNormalizada);
         if (cartaoValido === false) {
           return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");
@@ -415,7 +418,10 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
           cartao_credito_id: dados.cartao_credito_id,
         };
         let cartaoCreditoId: number | null = null;
-        if (deveVincularCartaoCredito(dadosCartao) && dados.cartao_credito_id) {
+        if (deveVincularCartaoCredito(dadosCartao)) {
+          if (!normalizarCartaoCreditoId(dados.cartao_credito_id)) {
+            return erroCliente("Selecione o cartão de crédito usado nesta despesa.", 400, "cartao_credito_obrigatorio");
+          }
           const cartaoValido = await validarCartaoCreditoDaCarteira(env, dados.cartao_credito_id, alvo[0].carteira_id);
           if (cartaoValido === false) {
             return erroCliente("Cartão de crédito inválido para esta carteira.", 400, "cartao_credito_invalido");

@@ -300,6 +300,43 @@ test("compra parcelada com cartão usa vencimento do cartão selecionado", async
   assert.equal(insertCompra.args[13], 55);
 });
 
+test("compra parcelada no crédito exige cartão selecionado", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "run",
+      match: "INSERT INTO compras_parceladas",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarComprasParceladas(
+    request("POST", "https://cadimus.test/api/compras-parceladas", {
+      carteira_id: 10,
+      descricao: "Notebook",
+      valor_total_centavos: 300000,
+      dia_vencimento: 10,
+      total_parcelas: 3,
+      ano_inicio: 2026,
+      mes_inicio: 8,
+      categoria: "Tecnologia",
+      meio_pagamento: "credito",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), {
+    erro: "Selecione o cartão de crédito usado nesta compra parcelada.",
+    codigo: "cartao_credito_obrigatorio",
+  });
+  assert.equal(inserts.length, 0);
+});
+
 test("despesas fixas geradas usam centavos como fonte do valor", async () => {
   const lancamentos = [];
   const db = new FakeD1([
@@ -430,6 +467,41 @@ test("despesa fixa com cartão usa vencimento do cartão selecionado", async () 
   assert.equal(res.status, 201);
   assert.equal(insertFixa.args[7], 30);
   assert.equal(insertFixa.args[9], 55);
+});
+
+test("despesa fixa no crédito exige cartão selecionado", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "run",
+      match: "INSERT INTO despesas_fixas",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarDespesasFixas(
+    request("POST", "https://cadimus.test/api/despesas-fixas", {
+      carteira_id: 10,
+      descricao: "Assinatura",
+      valor_centavos: 4990,
+      tipo: "despesa",
+      categoria: "Serviços",
+      meio_pagamento: "credito",
+      dia_vencimento: 10,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), {
+    erro: "Selecione o cartão de crédito usado nesta despesa fixa.",
+    codigo: "cartao_credito_obrigatorio",
+  });
+  assert.equal(inserts.length, 0);
 });
 
 test("recorrências semanais geram ocorrências do mês sem duplicar", async () => {
@@ -802,6 +874,47 @@ test("criação de lançamento comum com cartão preserva vínculo do cartão", 
 
   assert.equal(res.status, 201);
   assert.equal(insertLancamento.args[11], 55);
+});
+
+test("criação de lançamento comum no crédito exige cartão selecionado", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT id FROM categorias WHERE LOWER(nome) = LOWER(?)",
+      reply: () => [{ id: 1 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarLancamentos(
+    request("POST", "https://cadimus.test/api/lancamentos", {
+      descricao: "Mercado",
+      valor_centavos: 12345,
+      data_compra: "2026-08-14",
+      tipo: "despesa",
+      categoria: "Casa",
+      meio_pagamento: "credito",
+      status: "pendente",
+      carteira_id: 10,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), {
+    erro: "Selecione o cartão de crédito usado nesta despesa.",
+    codigo: "cartao_credito_obrigatorio",
+  });
+  assert.equal(inserts.length, 0);
 });
 
 test("criação de lançamento retorna erro claro quando descrição está ausente", async () => {
