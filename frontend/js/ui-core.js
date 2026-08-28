@@ -223,6 +223,7 @@ document.addEventListener("DOMContentLoaded", () => {
   configurarLote();
   configurarPopupNota();
   configurarComparativoPeriodo();
+  configurarBuscaGlobal();
   configurarModal();
   configurarModalCarteira();
   configurarModalGerenciarMembros();
