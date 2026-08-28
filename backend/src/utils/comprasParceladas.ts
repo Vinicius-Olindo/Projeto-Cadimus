@@ -3,6 +3,7 @@
 // ==========================================
 
 import type { CadimusEnv, CompraParcelada, IdEntrada } from "../types.js";
+import { diaSeguroNoMes } from "./datas.ts";
 import { centavosParaReais, reaisParaCentavos } from "./dinheiro.ts";
 
 /**
@@ -42,7 +43,6 @@ export async function gerarTodasParcelasDaCompra(env: CadimusEnv, compraId: IdEn
   if (results.length === 0) return;
 
   const compra = results[0];
-  const diaSeguro = Math.min(Math.max(compra.dia_vencimento, 1), 28);
 
   for (let numeroParcela = 1; numeroParcela <= compra.total_parcelas; numeroParcela++) {
     const { results: existente } = await env.DB.prepare(`SELECT id FROM lancamentos WHERE compra_parcelada_id = ? AND numero_parcela = ?`)
@@ -58,6 +58,7 @@ export async function gerarTodasParcelasDaCompra(env: CadimusEnv, compraId: IdEn
       ano += 1;
     }
 
+    const diaSeguro = diaSeguroNoMes(ano, mes, compra.dia_vencimento);
     const dataCompra = `${ano}-${String(mes).padStart(2, "0")}-${String(diaSeguro).padStart(2, "0")}`;
     const descricaoComParcela = `${compra.descricao} (${numeroParcela}/${compra.total_parcelas})`;
     const valorCentavos = calcularValorParcelaCentavos(compra, numeroParcela);
@@ -114,7 +115,7 @@ export async function gerarLancamentosParceladosDoMes(env: CadimusEnv, carteiraI
 
     if (existente.length > 0) continue;
 
-    const diaSeguro = Math.min(Math.max(compraParcelada.dia_vencimento, 1), 28);
+    const diaSeguro = diaSeguroNoMes(anoNum, mesNum, compraParcelada.dia_vencimento);
     const dataCompra = `${chaveMes}-${String(diaSeguro).padStart(2, "0")}`;
     const descricaoComParcela = `${compraParcelada.descricao} (${numeroParcela}/${compraParcelada.total_parcelas})`;
     const valorCentavos = calcularValorParcelaCentavos(compraParcelada, numeroParcela);

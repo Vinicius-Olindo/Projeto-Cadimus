@@ -3,6 +3,7 @@
 // ==========================================
 
 import type { CadimusEnv, DespesaFixa, IdEntrada } from "../types.js";
+import { diaSeguroNoMes } from "./datas.ts";
 import { centavosParaReais, reaisParaCentavos } from "./dinheiro.ts";
 
 /**
@@ -36,8 +37,7 @@ export async function gerarLancamentosFixosDoMes(env: CadimusEnv, carteiraIds: I
 
     if (existente.length > 0) continue;
 
-    // Trava entre 1 e 28 (a validação no cadastro já garante isso, aqui é só uma segunda camada de segurança)
-    const diaSeguro = Math.min(Math.max(despesaFixa.dia_vencimento, 1), 28);
+    const diaSeguro = diaSeguroNoMes(anoNum, mesNum, despesaFixa.dia_vencimento);
     const dataCompra = `${chaveMes}-${String(diaSeguro).padStart(2, "0")}`;
     const valorCentavos = despesaFixa.valor_centavos ?? reaisParaCentavos(despesaFixa.valor);
     const valor = centavosParaReais(valorCentavos);

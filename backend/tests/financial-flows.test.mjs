@@ -165,6 +165,54 @@ test("calcularValorParcelaCentavos joga sobra de centavos na última parcela", (
   );
 });
 
+test("compras parceladas com vencimento no fim do mês usam o último dia real", async () => {
+  const lancamentos = [];
+  const db = new FakeD1([
+    {
+      type: "all",
+      match: "SELECT * FROM compras_parceladas WHERE id = ?",
+      reply: () => [{
+        id: 8,
+        descricao: "Compra no cartão",
+        valor_total_centavos: 30000,
+        total_parcelas: 3,
+        dia_vencimento: 31,
+        mes_inicio: 8,
+        ano_inicio: 2026,
+        categoria: "Casa",
+        meio_pagamento: "credito",
+        carteira_id: 10,
+        criado_por: 1,
+        cartao_credito_id: 55,
+      }],
+    },
+    {
+      type: "all",
+      match: "SELECT id FROM lancamentos WHERE compra_parcelada_id = ? AND numero_parcela = ?",
+      reply: () => [],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ args }) => {
+        lancamentos.push({
+          data_compra: args[3],
+          cartao_credito_id: args[10],
+        });
+        return { meta: { last_row_id: lancamentos.length } };
+      },
+    },
+  ]);
+
+  await gerarTodasParcelasDaCompra({ DB: db }, 8);
+
+  assert.deepEqual(lancamentos, [
+    { data_compra: "2026-08-31", cartao_credito_id: 55 },
+    { data_compra: "2026-09-30", cartao_credito_id: 55 },
+    { data_compra: "2026-10-31", cartao_credito_id: 55 },
+  ]);
+});
+
 test("criação de compra parcelada retorna erro claro quando valor é inválido", async () => {
   const inserts = [];
   const db = new FakeD1(handlersAutenticados([
@@ -335,7 +383,7 @@ test("despesas fixas geradas preservam vínculo com cartão de crédito", async 
   await gerarLancamentosFixosDoMes({ DB: db }, [10], "2026", "08");
 
   assert.deepEqual(lancamentos, [{
-    data_compra: "2026-08-28",
+    data_compra: "2026-08-31",
     despesa_fixa_id: 4,
     cartao_credito_id: 55,
   }]);
