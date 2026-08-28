@@ -180,6 +180,7 @@ function renderizarRelatorioCompleto() {
   renderizarIndicadoresFinanceiros(lancamentos, periodo);
   renderizarEvolucaoCategorias(lancamentos, periodo);
   renderizarRankingCategorias(lancamentos);
+  renderizarComparativoCarteiras(lancamentos);
   renderizarTabelaContas(lancamentos);
   renderizarTabelaFormasPagamento(lancamentos);
   renderizarMaioresDespesas(lancamentos);

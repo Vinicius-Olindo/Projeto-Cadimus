@@ -181,6 +181,146 @@
 .rel-tabela .tipo-despesa { color: var(--cor-despesa); }
 .rel-tabela .tipo-transferencia { color: var(--cor-pendente); }
 
+/* Comparativo por carteira */
+.rel-carteiras-resumo {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-bottom: 14px;
+}
+
+.rel-carteiras-resumo div {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 12px;
+  background: var(--cor-fundo);
+}
+
+.rel-carteiras-resumo span,
+.rel-carteira-topo span,
+.rel-carteira-metricas span {
+  display: block;
+  color: var(--cor-texto-suave);
+  font-size: 0.7rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.rel-carteiras-resumo strong {
+  display: block;
+  margin-top: 5px;
+  color: var(--cor-texto);
+  font-size: 0.92rem;
+  overflow-wrap: anywhere;
+}
+
+.rel-carteiras-resumo small {
+  display: block;
+  margin-top: 3px;
+  color: var(--cor-texto-suave);
+  font-family: var(--fonte-mono);
+  font-size: 0.8rem;
+}
+
+.rel-carteiras-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  gap: 12px;
+}
+
+.rel-carteira-card {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 7%, transparent), transparent 52%),
+    var(--cor-fundo);
+}
+
+.rel-carteira-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 10px;
+}
+
+.rel-carteira-topo strong {
+  display: block;
+  color: var(--cor-texto);
+  font-size: 0.95rem;
+  overflow-wrap: anywhere;
+}
+
+.rel-carteira-topo em {
+  flex: 0 0 auto;
+  padding: 4px 8px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+  color: var(--cor-marca-forte);
+  font-size: 0.68rem;
+  font-style: normal;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.rel-carteira-barra {
+  height: 7px;
+  margin: 12px 0;
+  overflow: hidden;
+  border-radius: 999px;
+  background: var(--cor-pauta-forte);
+}
+
+.rel-carteira-barra-fill {
+  height: 100%;
+  border-radius: inherit;
+  background: var(--cor-marca);
+  transition: width 0.35s ease;
+}
+
+.rel-carteira-metricas {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.rel-carteira-metricas div {
+  min-width: 0;
+  padding: 9px;
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--cor-superficie) 72%, transparent);
+}
+
+.rel-carteira-metricas strong {
+  display: block;
+  margin-top: 4px;
+  color: var(--cor-texto);
+  font-family: var(--fonte-mono);
+  font-size: 0.86rem;
+  overflow-wrap: anywhere;
+}
+
+.rel-carteira-metricas .tipo-receita { color: var(--cor-receita); }
+.rel-carteira-metricas .tipo-despesa { color: var(--cor-despesa); }
+
+.rel-carteira-detalhes {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin-top: 12px;
+  color: var(--cor-texto-suave);
+  font-size: 0.76rem;
+  line-height: 1.35;
+}
+
+.rel-carteira-detalhes strong {
+  color: var(--cor-texto);
+  font-weight: 700;
+}
+
 /* Barras de progresso em tabelas */
 .rel-barra-progresso {
   display: flex;
@@ -404,6 +544,7 @@
   .rel-donut-area { flex-direction: column; align-items: center; }
   .rel-comp-linha { grid-template-columns: 1fr 1fr 1fr 1fr; font-size: 0.75rem; }
   .rel-indicadores-grid { grid-template-columns: 1fr; }
+  .rel-carteiras-resumo { grid-template-columns: 1fr; }
   .relatorio-tabs { padding: 0 10px; }
   .relatorio-tab { padding: 8px 12px; font-size: 0.8rem; }
   .relatorio-container { padding: 12px 14px 24px; }
@@ -411,5 +552,8 @@
 @media (max-width: 480px) {
   .rel-kpi-grid { grid-template-columns: 1fr; }
   .rel-comp-linha { grid-template-columns: 1fr 1fr; gap: 4px; }
+  .rel-carteira-topo { flex-direction: column; }
+  .rel-carteira-topo em { white-space: normal; }
+  .rel-carteira-metricas { grid-template-columns: 1fr; }
 }
 

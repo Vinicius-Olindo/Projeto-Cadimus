@@ -48,6 +48,145 @@ function renderizarTabelaFormasPagamento(lancamentos) {
   }</tbody></table>`;
 }
 
+function obterCarteiraRelatorio(carteiraId) {
+  const idTexto = String(carteiraId || "");
+  const carteira = typeof carteirasCarregadas !== "undefined" && Array.isArray(carteirasCarregadas)
+    ? carteirasCarregadas.find((item) => String(item.id) === idTexto)
+    : null;
+
+  return {
+    id: idTexto || "sem-carteira",
+    nome: carteira?.nome || (carteiraId ? `Carteira ${carteiraId}` : "Sem carteira"),
+    tipo: carteira?.tipo || "",
+  };
+}
+
+function obterFormaPagamentoRelatorio(lancamento) {
+  return lancamento.forma_pagamento || lancamento.meio_pagamento || "Não informado";
+}
+
+function criarMapaComparativoCarteiras(lancamentos) {
+  const mapa = new Map();
+
+  lancamentos.forEach((lancamento) => {
+    const carteira = obterCarteiraRelatorio(lancamento.carteira_id);
+    if (!mapa.has(carteira.id)) {
+      mapa.set(carteira.id, {
+        ...carteira,
+        receitas: 0,
+        despesas: 0,
+        pendentes: 0,
+        transacoes: 0,
+        despesasCartao: 0,
+        categorias: {},
+        formas: {},
+      });
+    }
+
+    const item = mapa.get(carteira.id);
+    const valor = valorMonetario(lancamento);
+    item.transacoes += 1;
+
+    if (lancamento.tipo === "receita") {
+      item.receitas += valor;
+      return;
+    }
+
+    if (lancamento.tipo === "despesa") {
+      item.despesas += valor;
+      if (lancamento.status !== "pago") item.pendentes += valor;
+      if (lancamento.cartao_credito_id || lancamento.meio_pagamento === "credito") item.despesasCartao += valor;
+      const categoria = lancamento.categoria || "Sem categoria";
+      const forma = obterFormaPagamentoRelatorio(lancamento);
+      item.categorias[categoria] = (item.categorias[categoria] || 0) + valor;
+      item.formas[forma] = (item.formas[forma] || 0) + valor;
+    }
+  });
+
+  return [...mapa.values()].map((item) => ({
+    ...item,
+    saldo: item.receitas - item.despesas,
+    maiorCategoria: Object.entries(item.categorias).sort((a, b) => b[1] - a[1])[0] || null,
+    maiorForma: Object.entries(item.formas).sort((a, b) => b[1] - a[1])[0] || null,
+  }));
+}
+
+function renderizarComparativoCarteiras(lancamentos) {
+  const container = document.getElementById("rel-comparativo-carteiras");
+  if (!container) return;
+
+  const carteiras = criarMapaComparativoCarteiras(lancamentos)
+    .sort((a, b) => b.despesas - a.despesas || b.receitas - a.receitas);
+
+  if (carteiras.length === 0) {
+    container.innerHTML = '<div class="plano-vazio">Sem dados de carteiras neste período.</div>';
+    return;
+  }
+
+  const totalDespesas = carteiras.reduce((total, carteira) => total + carteira.despesas, 0);
+  const maiorDespesa = carteiras[0];
+  const melhorSaldo = [...carteiras].sort((a, b) => b.saldo - a.saldo)[0];
+
+  container.innerHTML = `
+    <div class="rel-carteiras-resumo">
+      <div>
+        <span>Maior saída</span>
+        <strong>${escaparHtml(maiorDespesa.nome)}</strong>
+        <small>${formatadorBRL.format(maiorDespesa.despesas)}</small>
+      </div>
+      <div>
+        <span>Melhor saldo</span>
+        <strong>${escaparHtml(melhorSaldo.nome)}</strong>
+        <small style="color:${melhorSaldo.saldo >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)"}">${formatadorBRL.format(melhorSaldo.saldo)}</small>
+      </div>
+      <div>
+        <span>Carteiras no período</span>
+        <strong>${carteiras.length}</strong>
+        <small>${lancamentos.length} transação(ões)</small>
+      </div>
+    </div>
+    <div class="rel-carteiras-grid">
+      ${carteiras.map((carteira) => {
+        const pctDespesas = totalDespesas > 0 ? Math.round((carteira.despesas / totalDespesas) * 100) : 0;
+        const corSaldo = carteira.saldo >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)";
+        const tipo = carteira.tipo ? carteira.tipo.replace(/_/g, " ") : "carteira";
+        const maiorCategoria = carteira.maiorCategoria
+          ? `${carteira.maiorCategoria[0]} · ${formatadorBRL.format(carteira.maiorCategoria[1])}`
+          : "Sem despesas categorizadas";
+        const maiorForma = carteira.maiorForma
+          ? `${carteira.maiorForma[0]} · ${formatadorBRL.format(carteira.maiorForma[1])}`
+          : "Sem forma de pagamento";
+
+        return `
+          <article class="rel-carteira-card">
+            <div class="rel-carteira-topo">
+              <div>
+                <strong>${escaparHtml(carteira.nome)}</strong>
+                <span>${escaparHtml(tipo)}</span>
+              </div>
+              <em>${pctDespesas}% das saídas</em>
+            </div>
+            <div class="rel-carteira-barra">
+              <div class="rel-carteira-barra-fill" style="width:${pctDespesas}%;"></div>
+            </div>
+            <div class="rel-carteira-metricas">
+              <div><span>Receitas</span><strong class="tipo-receita">${formatadorBRL.format(carteira.receitas)}</strong></div>
+              <div><span>Despesas</span><strong class="tipo-despesa">${formatadorBRL.format(carteira.despesas)}</strong></div>
+              <div><span>Saldo</span><strong style="color:${corSaldo}">${formatadorBRL.format(carteira.saldo)}</strong></div>
+              <div><span>Pendente</span><strong>${formatadorBRL.format(carteira.pendentes)}</strong></div>
+            </div>
+            <div class="rel-carteira-detalhes">
+              <span>Maior categoria: <strong>${escaparHtml(maiorCategoria)}</strong></span>
+              <span>Principal forma: <strong>${escaparHtml(maiorForma)}</strong></span>
+              ${carteira.despesasCartao > 0 ? `<span>Cartão: <strong>${formatadorBRL.format(carteira.despesasCartao)}</strong></span>` : ""}
+            </div>
+          </article>
+        `;
+      }).join("")}
+    </div>
+  `;
+}
+
 function renderizarMaioresDespesas(lancamentos) {
   const container = document.getElementById("rel-tabela-maiores-despesas");
   if (!container) return;
