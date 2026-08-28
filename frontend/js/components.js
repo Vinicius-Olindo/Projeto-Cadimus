@@ -16,6 +16,19 @@ const ICONE_LIXEIRA =
   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
 const ICONE_DUPLICAR =
   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>';
+const ICONE_ANEXO =
+  '<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M21.4 11.6 12 21a6 6 0 0 1-8.5-8.5l9.9-9.9a4 4 0 0 1 5.7 5.7L9.2 18.2a2 2 0 0 1-2.8-2.8l9.2-9.2"/></svg>';
+
+function sanitizarUrlAnexo(url) {
+  const texto = String(url || "").trim();
+  if (!texto) return "";
+  try {
+    const normalizada = new URL(texto);
+    return normalizada.protocol === "https:" ? normalizada.href : "";
+  } catch {
+    return "";
+  }
+}
 
 /**
  * Cria o HTML de uma linha de lançamento (despesa ou receita)
@@ -90,6 +103,14 @@ function criarLinhaLancamento(lancamento) {
         <span class="item-nota-preview">${escaparHtml(notaResumo)}</span>
       </button>`
     : "";
+  const anexoUrlSegura = sanitizarUrlAnexo(lancamento.anexo_url);
+  const anexoTitulo = lancamento.anexo_nome || "Comprovante";
+  const anexoHtml = anexoUrlSegura
+    ? `<a class="item-anexo-link" href="${escaparHtml(anexoUrlSegura)}" target="_blank" rel="noopener noreferrer" title="${escaparHtml(anexoTitulo)}">
+        ${ICONE_ANEXO}
+        <span>${escaparHtml(anexoTitulo)}</span>
+      </a>`
+    : "";
 
   // Estrutura da linha: etiqueta de data compacta + corpo do lançamento —
   // lista de transações, não mais uma página de livro-caixa
@@ -111,6 +132,7 @@ function criarLinhaLancamento(lancamento) {
                   <span class="item-tipo ${classeTipo}">${tipoTexto}</span>
                 </div>
                 ${notaHtml}
+                ${anexoHtml}
             </div>
             <div class="item-valores">
               <div class="item-chips">

@@ -209,6 +209,16 @@ function obterDataLocalISOHoje() {
   ].join("-");
 }
 
+function validarAnexoLancamentoNoCliente(url) {
+  const texto = String(url || "").trim();
+  if (!texto) return true;
+  try {
+    return new URL(texto).protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 async function preencherModalLancamento(lancamento, { modo = "editar" } = {}) {
   await popularSelectCategorias(document.getElementById("categoria"));
   adicionarCategoriaAoSelect(lancamento.categoria);
@@ -224,6 +234,8 @@ async function preencherModalLancamento(lancamento, { modo = "editar" } = {}) {
   document.getElementById("meio-pagamento").value = lancamento.meio_pagamento;
   document.getElementById("status-pagamento").value = lancamento.status;
   document.getElementById("nota-lancamento").value = lancamento.nota || "";
+  document.getElementById("anexo-url-lancamento").value = lancamento.anexo_url || "";
+  document.getElementById("anexo-nome-lancamento").value = lancamento.anexo_nome || "";
   await popularSelectCartoesCredito?.(document.getElementById("cartao-credito-lancamento"), lancamento.carteira_id, lancamento.cartao_credito_id || "");
   document.getElementById("cartao-credito-lancamento").value = lancamento.cartao_credito_id || "";
   document.getElementById("meio-pagamento")?.dispatchEvent(new Event("change"));
@@ -335,8 +347,17 @@ function configurarModal() {
         status: document.getElementById("status-pagamento").value,
         carteira_id: carteiraId,
         nota: document.getElementById("nota-lancamento").value.trim(),
+        anexo_url: document.getElementById("anexo-url-lancamento")?.value.trim() || null,
+        anexo_nome: document.getElementById("anexo-nome-lancamento")?.value.trim() || null,
         cartao_credito_id: document.getElementById("cartao-credito-lancamento")?.value || null,
       };
+
+      if (!validarAnexoLancamentoNoCliente(pacoteDados.anexo_url)) {
+        await mostrarAviso("O link do anexo precisa ser uma URL válida começando com https://.");
+        btnSalvar.innerText = idEdicao ? "Salvar edição" : "Salvar";
+        btnSalvar.disabled = false;
+        return;
+      }
 
       if (typeof validarCartaoCreditoObrigatorio === "function" && !validarCartaoCreditoObrigatorio({
         meioId: "meio-pagamento",

@@ -79,6 +79,8 @@ export interface Lancamento {
   cartao_credito_id?: Id | null;
   numero_parcela?: number | null;
   nota?: string | null;
+  anexo_url?: string | null;
+  anexo_nome?: string | null;
   criado_em?: string;
 }
 

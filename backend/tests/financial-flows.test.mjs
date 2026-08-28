@@ -828,6 +828,95 @@ test("criação de lançamento faz escrita dupla em reais e centavos", async () 
   assert.equal(auditLogs.length, 1);
 });
 
+test("criação de lançamento preserva link de anexo seguro", async () => {
+  let insertLancamento;
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT id FROM categorias WHERE LOWER(nome) = LOWER(?)",
+      reply: () => [{ id: 1 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ sql, args }) => {
+        insertLancamento = { sql, args };
+        return { meta: { last_row_id: 79 } };
+      },
+    },
+    {
+      type: "run",
+      match: "INSERT INTO audit_logs",
+      reply: () => ({ meta: { last_row_id: 1 } }),
+    },
+  ]));
+
+  const res = await processarLancamentos(
+    request("POST", "https://cadimus.test/api/lancamentos", {
+      descricao: "Nota fiscal",
+      valor_centavos: 4590,
+      data_compra: "2026-08-14",
+      tipo: "despesa",
+      categoria: "Casa",
+      meio_pagamento: "pix",
+      status: "pago",
+      carteira_id: 10,
+      anexo_url: "https://drive.google.com/file/d/comprovante",
+      anexo_nome: "Comprovante do mercado",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 201);
+  assert.match(insertLancamento.sql, /anexo_url/);
+  assert.match(insertLancamento.sql, /anexo_nome/);
+  assert.equal(insertLancamento.args[12], "https://drive.google.com/file/d/comprovante");
+  assert.equal(insertLancamento.args[13], "Comprovante do mercado");
+});
+
+test("criação de lançamento recusa link de anexo sem https", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "all",
+      match: "SELECT id FROM categorias WHERE LOWER(nome) = LOWER(?)",
+      reply: () => [{ id: 1 }],
+    },
+    {
+      type: "run",
+      match: "INSERT INTO lancamentos",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: inserts.length } };
+      },
+    },
+  ]));
+
+  const res = await processarLancamentos(
+    request("POST", "https://cadimus.test/api/lancamentos", {
+      descricao: "Nota fiscal",
+      valor_centavos: 4590,
+      data_compra: "2026-08-14",
+      tipo: "despesa",
+      categoria: "Casa",
+      meio_pagamento: "pix",
+      status: "pago",
+      carteira_id: 10,
+      anexo_url: "http://exemplo.test/comprovante.pdf",
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 400);
+  assert.deepEqual(await res.json(), {
+    erro: "O link do anexo precisa começar com https://.",
+    codigo: "anexo_url_insegura",
+  });
+  assert.equal(inserts.length, 0);
+});
+
 test("criação de lançamento comum com cartão preserva vínculo do cartão", async () => {
   let insertLancamento;
   const db = new FakeD1(handlersAutenticados([

@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=101" />
-    <link rel="stylesheet" href="css/style.css?v=150" />
+    <link rel="stylesheet" href="css/style.css?v=151" />
   </head>
   <body>
     <main class="app-container">
@@ -1627,6 +1627,17 @@
             <textarea id="nota-lancamento" rows="2" placeholder="Observações, detalhes, lembretes..."></textarea>
           </div>
 
+          <div class="linha-form-dupla">
+            <div class="campo">
+              <label for="anexo-nome-lancamento">Nome do anexo <span class="campo-optional">(opcional)</span></label>
+              <input type="text" id="anexo-nome-lancamento" maxlength="120" placeholder="Ex: Comprovante Pix" />
+            </div>
+            <div class="campo">
+              <label for="anexo-url-lancamento">Link do anexo <span class="campo-optional">(https)</span></label>
+              <input type="url" id="anexo-url-lancamento" maxlength="2048" placeholder="https://..." />
+            </div>
+          </div>
+
           <button type="submit" id="btn-salvar-lancamento">Salvar</button>
           <button type="button" id="btn-fechar-modal">Cancelar</button>
         </form>
@@ -2549,12 +2560,12 @@
     <script src="js/ui-formatters.js?v=100"></script>
     <script src="js/money-utils.js?v=100"></script>
     <script src="js/money-ui.js?v=100"></script>
-    <script src="js/components.js?v=102"></script>
+    <script src="js/components.js?v=103"></script>
     <script src="js/ui-core.js?v=102"></script>
     <script src="js/dashboard-layout-ui.js?v=103"></script>
     <script src="js/wallets-ui.js?v=107"></script>
     <script src="js/categories-ui.js?v=100"></script>
-    <script src="js/entries-modal-ui.js?v=113"></script>
+    <script src="js/entries-modal-ui.js?v=114"></script>
     <script src="js/entries-list-ui.js?v=110"></script>
     <script src="js/notifications-ui.js?v=100"></script>
     <script src="js/batch-note-ui.js?v=100"></script>

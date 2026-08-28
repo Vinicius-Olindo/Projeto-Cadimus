@@ -18,6 +18,11 @@ const recurringLinkMigration = readFileSync(
   "utf8",
 );
 
+const attachmentsLinkMigration = readFileSync(
+  resolve("../database/migrations/0039_lancamentos_anexos_link.sql"),
+  "utf8",
+);
+
 test("migration 0032 adiciona colunas de centavos para todos os campos monetários críticos", () => {
   const colunasEsperadas = [
     "lancamentos ADD COLUMN valor_centavos INTEGER",
@@ -113,4 +118,9 @@ test("migration 0033 cria gatilhos para manter compatibilidade REAL apos escrita
 
 test("migration 0037 adiciona vínculo entre lançamento e recorrência", () => {
   assert.match(recurringLinkMigration, /ALTER TABLE lancamentos ADD COLUMN recorrencia_id INTEGER REFERENCES lancamentos_recorrentes\(id\)/);
+});
+
+test("migration 0039 adiciona campos de anexo por link aos lançamentos", () => {
+  assert.match(attachmentsLinkMigration, /ALTER TABLE lancamentos ADD COLUMN anexo_url TEXT/);
+  assert.match(attachmentsLinkMigration, /ALTER TABLE lancamentos ADD COLUMN anexo_nome TEXT/);
 });

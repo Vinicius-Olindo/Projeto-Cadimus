@@ -756,6 +756,35 @@ button.item-status:active {
   color: var(--cor-marca-forte);
 }
 
+.item-anexo-link {
+  width: fit-content;
+  max-width: 100%;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-top: 6px;
+  padding: 4px 8px;
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 22%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-marca) 8%, transparent);
+  color: var(--cor-marca-forte);
+  font-size: 0.72rem;
+  font-weight: 700;
+  text-decoration: none;
+}
+
+.item-anexo-link:hover {
+  border-color: var(--cor-marca);
+  background: color-mix(in srgb, var(--cor-marca) 14%, transparent);
+}
+
+.item-anexo-link span {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
 @media (max-width: 640px) {
   .grupo-data-header {
     padding-inline: 2px;

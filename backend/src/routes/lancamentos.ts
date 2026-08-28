@@ -33,6 +33,8 @@ interface LancamentoPayload {
   status?: StatusLancamento | string;
   nota?: string | null;
   cartao_credito_id?: IdEntrada | null;
+  anexo_url?: string | null;
+  anexo_nome?: string | null;
 }
 
 interface LancamentoAlvoRow {
@@ -64,6 +66,62 @@ interface LoteLancamentoPayload {
 
 function dataISOValida(valor: unknown): valor is string {
   return typeof valor === "string" && /^\d{4}-\d{2}-\d{2}$/.test(valor);
+}
+
+function validarUrlAnexo(valor: string | null): { ok: true; valor: string | null } | { ok: false; mensagem: string; codigo: string } {
+  if (!valor) return { ok: true, valor: null };
+  if (valor.length > 2048) {
+    return { ok: false, mensagem: "O link do anexo é muito longo.", codigo: "anexo_url_longa" };
+  }
+
+  let url: URL;
+  try {
+    url = new URL(valor);
+  } catch {
+    return { ok: false, mensagem: "Informe um link de anexo válido.", codigo: "anexo_url_invalida" };
+  }
+
+  if (url.protocol !== "https:") {
+    return { ok: false, mensagem: "O link do anexo precisa começar com https://.", codigo: "anexo_url_insegura" };
+  }
+
+  return { ok: true, valor };
+}
+
+function obterCamposAnexo(payload: Record<string, unknown>) {
+  const anexoUrlValidado = campoTexto(payload, "anexo_url", {
+    limite: 2048,
+    mensagemLongo: "O link do anexo é muito longo.",
+    codigoLongo: "anexo_url_longa",
+  });
+  if (!anexoUrlValidado.ok) return anexoUrlValidado;
+
+  const anexoUrl = validarUrlAnexo(anexoUrlValidado.valor);
+  if (!anexoUrl.ok) {
+    return {
+      ok: false as const,
+      erro: {
+        mensagem: anexoUrl.mensagem,
+        codigo: anexoUrl.codigo,
+        status: 400,
+      },
+    };
+  }
+
+  const anexoNomeValidado = campoTexto(payload, "anexo_nome", {
+    limite: 120,
+    mensagemLongo: "O nome do anexo é muito longo.",
+    codigoLongo: "anexo_nome_longo",
+  });
+  if (!anexoNomeValidado.ok) return anexoNomeValidado;
+
+  return {
+    ok: true as const,
+    valor: {
+      anexoUrl: anexoUrl.valor,
+      anexoNome: anexoNomeValidado.valor,
+    },
+  };
 }
 
 async function gerarLancamentosDoPeriodo(env: CadimusEnv, carteirasAlvo: number[], dataInicio: string, dataFim: string): Promise<void> {
@@ -283,6 +341,9 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
       if (!categoriaValidada.ok) return erroCliente(categoriaValidada.erro.mensagem, categoriaValidada.erro.status, categoriaValidada.erro.codigo);
       const categoria = categoriaValidada.valor;
 
+      const anexoValidado = obterCamposAnexo(payload);
+      if (!anexoValidado.ok) return erroCliente(anexoValidado.erro.mensagem, anexoValidado.erro.status, anexoValidado.erro.codigo);
+
       const tipoNormalizado = normalizarTipoLancamento(dados.tipo);
       const statusNormalizado = normalizarStatusLancamento(dados.status);
       const meioPagamentoNormalizado = normalizarMeioPagamento(dados.meio_pagamento);
@@ -336,8 +397,8 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
 
       const query = `
                 INSERT INTO lancamentos 
-                (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, nota, cartao_credito_id)
-                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+                (descricao, valor, valor_centavos, data_compra, tipo, categoria, meio_pagamento, status, carteira_id, criado_por, nota, cartao_credito_id, anexo_url, anexo_nome)
+                VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
             `;
       const insertResult = await env.DB.prepare(query)
         .bind(
@@ -353,6 +414,8 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
           usuarioLogado.id, // criado_por vem da sessão, nunca do corpo enviado pelo cliente
           dados.nota || "",
           cartaoCreditoId,
+          anexoValidado.valor.anexoUrl,
+          anexoValidado.valor.anexoNome,
         )
         .run();
 
@@ -397,7 +460,7 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
       if (!dados) {
         return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
       }
-      const camposPermitidos = ["descricao", "valor", "valor_centavos", "data_compra", "tipo", "categoria", "meio_pagamento", "status", "nota", "cartao_credito_id"];
+      const camposPermitidos = ["descricao", "valor", "valor_centavos", "data_compra", "tipo", "categoria", "meio_pagamento", "status", "nota", "cartao_credito_id", "anexo_url", "anexo_nome"];
       const camposEnviados = Object.keys(dados).filter((campo) => camposPermitidos.includes(campo));
 
       // Marcar pago/pendente é livre pra quem acessa a carteira. Editar os detalhes
@@ -451,8 +514,21 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
         valores.push(cartaoCreditoId);
       }
 
+      if (dados.anexo_url !== undefined || dados.anexo_nome !== undefined) {
+        const anexoValidado = obterCamposAnexo(dados as Record<string, unknown>);
+        if (!anexoValidado.ok) return erroCliente(anexoValidado.erro.mensagem, anexoValidado.erro.status, anexoValidado.erro.codigo);
+        if (dados.anexo_url !== undefined) {
+          campos.push("anexo_url = ?");
+          valores.push(anexoValidado.valor.anexoUrl);
+        }
+        if (dados.anexo_nome !== undefined) {
+          campos.push("anexo_nome = ?");
+          valores.push(anexoValidado.valor.anexoNome);
+        }
+      }
+
       for (const campo of camposEnviados) {
-        if (campo === "valor" || campo === "valor_centavos" || campo === "cartao_credito_id") continue;
+        if (campo === "valor" || campo === "valor_centavos" || campo === "cartao_credito_id" || campo === "anexo_url" || campo === "anexo_nome") continue;
 
         if (campo === "status" && !isStatusLancamento(dados.status)) {
           return erroCliente("Status inválido.", 400, "status_invalido");
