@@ -90,6 +90,138 @@
 }
 
 /* ==========================================
+   PLANEJAMENTO — PREVISÃO DE SALDO FUTURO
+   ========================================== */
+.plano-card-previsao {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.plano-previsao-cabecalho {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+}
+
+.plano-previsao-cabecalho .plano-eyebrow {
+  margin-bottom: 4px;
+}
+
+.plano-previsao-periodo {
+  flex: 0 0 auto;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
+  color: var(--cor-marca-forte);
+  font-family: var(--fonte-mono);
+  font-size: 0.68rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.plano-previsao-desc {
+  margin: -4px 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.plano-previsao-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.plano-previsao-item {
+  min-width: 0;
+  padding: 12px;
+  border: 1px solid var(--cor-pauta-fraca);
+  border-radius: 14px;
+  background:
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 7%, transparent), transparent 56%),
+    var(--cor-fundo);
+}
+
+.plano-previsao-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+}
+
+.plano-previsao-dias {
+  color: var(--cor-texto);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.plano-previsao-data {
+  color: var(--cor-texto-suave);
+  font-size: 0.68rem;
+  white-space: nowrap;
+}
+
+.plano-previsao-valor {
+  display: block;
+  font-family: var(--fonte-mono);
+  font-size: 1.08rem;
+  line-height: 1.2;
+  overflow-wrap: anywhere;
+}
+
+.plano-previsao-detalhe {
+  display: block;
+  margin-top: 6px;
+  color: var(--cor-texto-suave);
+  font-size: 0.7rem;
+  line-height: 1.35;
+}
+
+.plano-previsao-compromissos {
+  grid-column: 1 / -1;
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  padding: 12px;
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-pendente) 7%, transparent);
+}
+
+.plano-previsao-compromissos > span {
+  color: var(--cor-texto-suave);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.plano-previsao-compromisso {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  min-width: 0;
+  color: var(--cor-texto);
+  font-size: 0.78rem;
+}
+
+.plano-previsao-compromisso span {
+  min-width: 0;
+  overflow-wrap: anywhere;
+}
+
+.plano-previsao-compromisso strong {
+  flex: 0 0 auto;
+  color: var(--cor-despesa);
+  font-family: var(--fonte-mono);
+  font-size: 0.78rem;
+}
+
+/* ==========================================
    PLANEJAMENTO — ALERTAS
    ========================================== */
 #plano-card-alertas {
@@ -354,6 +486,7 @@
 @media (max-width: 700px) {
   .plano-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
   .plano-indicadores { grid-template-columns: 1fr; }
+  .plano-previsao-grid { grid-template-columns: 1fr; }
   .plano-simulacao-form {
     align-items: stretch;
     flex-direction: column;
@@ -424,6 +557,16 @@
   .plano-alerta-item {
     padding: 9px;
     font-size: 0.78rem;
+  }
+
+  .plano-previsao-cabecalho,
+  .plano-previsao-compromisso {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .plano-previsao-periodo {
+    white-space: normal;
   }
 
   .plano-ind-item {

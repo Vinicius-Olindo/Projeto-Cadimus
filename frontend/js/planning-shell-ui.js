@@ -5,6 +5,7 @@
 let planosCarregados = [];
 let ultimaAtualizacaoPlanejamento = 0;
 let planejamentoDependenciasComErro = false;
+let previsaoSaldoFuturo = { carregando: false, erro: false, lancamentos: [], inicio: null, fim: null };
 
 // ==========================================
 // [28] PLANEJAMENTO: Planos Financeiros
@@ -65,6 +66,7 @@ function mostrarPlanejamentoCarregando() {
     "plano-lista-despesas",
     "plano-comparacao",
     "plano-recomendacoes",
+    "plano-previsao-saldo",
   ].forEach((id) => {
     const container = document.getElementById(id);
     if (container) container.innerHTML = conteudoCarregando;
@@ -79,6 +81,7 @@ function limparEstadoPlanejamentoDependencias() {
   if (typeof orcamentosCarregados !== "undefined") orcamentosCarregados = [];
   if (typeof metasCarregadas !== "undefined") metasCarregadas = [];
   if (typeof planosCarregados !== "undefined") planosCarregados = [];
+  previsaoSaldoFuturo = { carregando: false, erro: false, lancamentos: [], inicio: null, fim: null };
 }
 
 async function carregarLancamentosPlanejamento() {
@@ -116,6 +119,59 @@ async function carregarLancamentosPlanejamento() {
   }
 }
 
+function dataISOPlanejamento(data) {
+  const ano = data.getFullYear();
+  const mes = String(data.getMonth() + 1).padStart(2, "0");
+  const dia = String(data.getDate()).padStart(2, "0");
+  return `${ano}-${mes}-${dia}`;
+}
+
+async function carregarPrevisaoSaldoFuturo() {
+  if (typeof CadimusEntriesApi === "undefined") return;
+
+  const carteiraId = document.getElementById("seletor-carteira")?.value;
+  if (!carteiraId) return;
+
+  const hoje = new Date();
+  hoje.setHours(12, 0, 0, 0);
+  const fim = new Date(hoje);
+  fim.setDate(fim.getDate() + 90);
+
+  previsaoSaldoFuturo = {
+    carregando: true,
+    erro: false,
+    lancamentos: [],
+    inicio: dataISOPlanejamento(hoje),
+    fim: dataISOPlanejamento(fim),
+  };
+
+  try {
+    const resposta = await CadimusEntriesApi.listarResposta({
+      carteira_id: carteiraId,
+      data_inicio: previsaoSaldoFuturo.inicio,
+      data_fim: previsaoSaldoFuturo.fim,
+    });
+    if (tratarSessaoExpirada(resposta)) return;
+    if (!resposta.ok) {
+      previsaoSaldoFuturo = { ...previsaoSaldoFuturo, carregando: false, erro: true, lancamentos: [] };
+      planejamentoDependenciasComErro = true;
+      return;
+    }
+
+    const dados = await resposta.json();
+    previsaoSaldoFuturo = {
+      ...previsaoSaldoFuturo,
+      carregando: false,
+      erro: false,
+      lancamentos: Array.isArray(dados) ? dados : [],
+    };
+  } catch (erro) {
+    console.error("Erro ao carregar previsão de saldo futuro:", erro);
+    previsaoSaldoFuturo = { ...previsaoSaldoFuturo, carregando: false, erro: true, lancamentos: [] };
+    planejamentoDependenciasComErro = true;
+  }
+}
+
 async function carregarDependenciasPlanejamento() {
   const tarefas = [];
 
@@ -132,6 +188,7 @@ async function carregarDependenciasPlanejamento() {
   if (typeof carregarOrcamentos === "function") tarefas.push(carregarOrcamentos());
   if (typeof carregarMetas === "function") tarefas.push(carregarMetas());
   if (typeof carregarPlanos === "function") tarefas.push(carregarPlanos());
+  tarefas.push(carregarPrevisaoSaldoFuturo());
 
   const resultados = await Promise.allSettled(tarefas);
   if (resultados.some((resultado) => resultado.status === "rejected")) {
@@ -395,6 +452,7 @@ function renderizarPlano() {
   atualizarResumoPlanejamento(salario);
   renderizarIndicadoresPlano(salario);
   renderizarAlertasPlano(salario);
+  renderizarPrevisaoSaldoFuturo();
   renderizarOrcamentosPlano();
   renderizarMetasPlano();
   renderizarReceitasPlano();

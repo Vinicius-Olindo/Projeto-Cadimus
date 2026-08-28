@@ -286,6 +286,148 @@ function renderizarIndicadoresPlano(salario) {
   `).join("");
 }
 
+// --- PREVISÃO DE SALDO FUTURO ---
+function somarReservasPlanejadasMensais() {
+  if (typeof planosCarregados === "undefined") return 0;
+  return planosCarregados
+    .filter((plano) => plano.status === "ativo")
+    .reduce((total, plano) => total + valorMonetario(plano, "parcela_mensal"), 0);
+}
+
+function obterDataFinalPrevisao(inicioISO, dias) {
+  const data = new Date(`${inicioISO}T12:00:00`);
+  data.setDate(data.getDate() + dias);
+  return dataISOPlanejamento(data);
+}
+
+function formatarDataCurtaPrevisao(dataISO) {
+  const data = new Date(`${dataISO}T12:00:00`);
+  if (Number.isNaN(data.getTime())) return dataISO || "—";
+  return data.toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" });
+}
+
+function calcularResumoPrevisaoSaldo(dias, salario = 0) {
+  const estado = typeof previsaoSaldoFuturo !== "undefined" ? previsaoSaldoFuturo : null;
+  const inicio = estado?.inicio || dataISOPlanejamento(new Date());
+  const fim = obterDataFinalPrevisao(inicio, dias);
+  const mesesProjetados = Math.ceil(dias / 30);
+  const rendaBase = Math.max(0, Number(salario) || 0) * mesesProjetados;
+  const reservas = somarReservasPlanejadasMensais() * mesesProjetados;
+  const lancamentos = Array.isArray(estado?.lancamentos) ? estado.lancamentos : [];
+
+  const dentroDoPeriodo = lancamentos.filter((lancamento) => {
+    const data = lancamento.data_compra;
+    return data && data >= inicio && data <= fim;
+  });
+
+  const receitas = dentroDoPeriodo
+    .filter((lancamento) => lancamento.tipo === "receita")
+    .reduce((total, lancamento) => total + valorMonetario(lancamento), 0);
+  const despesas = dentroDoPeriodo
+    .filter((lancamento) => lancamento.tipo === "despesa")
+    .reduce((total, lancamento) => total + valorMonetario(lancamento), 0);
+  const saldo = rendaBase + receitas - despesas - reservas;
+
+  return {
+    dias,
+    inicio,
+    fim,
+    mesesProjetados,
+    rendaBase,
+    receitas,
+    despesas,
+    reservas,
+    saldo,
+    lancamentos: dentroDoPeriodo,
+  };
+}
+
+function renderizarResumoPrevisaoSaldo(resumo) {
+  const corSaldo = resumo.saldo >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)";
+  const movimento = resumo.receitas + resumo.despesas + resumo.rendaBase + resumo.reservas;
+  const detalhe = movimento > 0
+    ? `Entradas ${formatadorBRL.format(resumo.rendaBase + resumo.receitas)} · saídas ${formatadorBRL.format(resumo.despesas + resumo.reservas)}`
+    : "Sem movimentos programados nesse horizonte.";
+
+  return `
+    <div class="plano-previsao-item">
+      <div class="plano-previsao-topo">
+        <span class="plano-previsao-dias">${resumo.dias} dias</span>
+        <span class="plano-previsao-data">até ${formatarDataCurtaPrevisao(resumo.fim)}</span>
+      </div>
+      <strong class="plano-previsao-valor" style="color:${corSaldo}">${formatadorBRL.format(resumo.saldo)}</strong>
+      <span class="plano-previsao-detalhe">${detalhe}</span>
+    </div>
+  `;
+}
+
+function obterProximosCompromissosPrevisao() {
+  const estado = typeof previsaoSaldoFuturo !== "undefined" ? previsaoSaldoFuturo : null;
+  const lancamentos = Array.isArray(estado?.lancamentos) ? estado.lancamentos : [];
+
+  return lancamentos
+    .filter((lancamento) => lancamento.tipo === "despesa" && lancamento.data_compra)
+    .sort((a, b) => String(a.data_compra).localeCompare(String(b.data_compra)))
+    .slice(0, 3);
+}
+
+function renderizarPrevisaoSaldoFuturo() {
+  const card = document.getElementById("plano-card-previsao-saldo");
+  const container = document.getElementById("plano-previsao-saldo");
+  const periodo = document.getElementById("plano-previsao-periodo");
+  const descricao = document.getElementById("plano-previsao-desc");
+  if (!card || !container) return;
+
+  const estado = typeof previsaoSaldoFuturo !== "undefined" ? previsaoSaldoFuturo : null;
+  if (!estado || estado.carregando) {
+    container.innerHTML = '<div class="plano-vazio plano-vazio-carregando"><span class="spinner"></span><span>Calculando previsão...</span></div>';
+    return;
+  }
+
+  if (estado.erro) {
+    container.innerHTML = '<div class="plano-vazio">Não foi possível calcular a previsão agora. Atualize o período e tente novamente.</div>';
+    return;
+  }
+
+  const usuario = obterUsuarioLogado();
+  const salario = usuario.salario || 0;
+  const resumos = [30, 60, 90].map((dias) => calcularResumoPrevisaoSaldo(dias, salario));
+  const compromissos = obterProximosCompromissosPrevisao();
+  const temMovimento = resumos.some((resumo) => resumo.receitas + resumo.despesas + resumo.rendaBase + resumo.reservas > 0);
+
+  if (periodo && estado.inicio && estado.fim) {
+    periodo.textContent = `${formatarDataCurtaPrevisao(estado.inicio)} a ${formatarDataCurtaPrevisao(estado.fim)}`;
+  }
+
+  if (descricao) {
+    descricao.textContent = salario > 0
+      ? "Inclui salário mensal cadastrado, receitas futuras, fixas, parcelas, recorrências e reservas de planos ativos."
+      : "Inclui receitas futuras, fixas, parcelas, recorrências e reservas de planos ativos. Cadastre o salário para uma projeção mais completa.";
+  }
+
+  if (!temMovimento) {
+    container.innerHTML = '<div class="plano-vazio">Sem receitas ou compromissos programados para os próximos 90 dias.</div>';
+    return;
+  }
+
+  const listaCompromissos = compromissos.length > 0
+    ? `<div class="plano-previsao-compromissos">
+        <span>Próximos compromissos</span>
+        ${compromissos.map((lancamento) => `
+          <div class="plano-previsao-compromisso">
+            <span>${formatarDataCurtaPrevisao(lancamento.data_compra)} · ${escaparHtml(lancamento.descricao || lancamento.categoria || "Despesa")}</span>
+            <strong>-${formatadorBRL.format(valorMonetario(lancamento))}</strong>
+          </div>
+        `).join("")}
+      </div>`
+    : "";
+
+  container.innerHTML = `
+    ${resumos.map(renderizarResumoPrevisaoSaldo).join("")}
+    ${listaCompromissos}
+  `;
+}
+
 // --- ALERTAS ---
 function lancamentoPendenteAtrasadoPlano(lancamento) {
   if (!lancamento || lancamento.status === "pago") return false;
