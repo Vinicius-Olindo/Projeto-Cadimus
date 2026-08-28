@@ -20,7 +20,7 @@ import {
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
-import { lerJsonObjeto } from "../utils/requisicao.ts";
+import { campoCentavosObrigatorio, campoDataISOObrigatoria, campoTexto, lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroFinanceiro, erroInterno } from "../utils/respostas.ts";
 
 interface RecorrenciaPayload {
@@ -128,42 +128,48 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const descricao = (dados.descricao || "").trim();
-      if (dados.valor === undefined && dados.valor_centavos === undefined) {
-        return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
-      }
-      let valorCentavos: number;
-      try {
-        valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
-      } catch {
-        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
-      }
+      const payload = dados as Record<string, unknown>;
+      const descricaoValidada = campoTexto(payload, "descricao", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Informe uma descrição.",
+        codigoObrigatorio: "descricao_obrigatoria",
+      });
+      if (!descricaoValidada.ok) return erroCliente(descricaoValidada.erro.mensagem, descricaoValidada.erro.status, descricaoValidada.erro.codigo);
+      const descricao = descricaoValidada.valor;
+
+      const valorValidado = campoCentavosObrigatorio(
+        payload,
+        "valor",
+        "valor_centavos",
+        "Informe um valor válido.",
+        "valor_obrigatorio",
+        "Informe um valor válido.",
+        "valor_invalido",
+      );
+      if (!valorValidado.ok) return erroCliente(valorValidado.erro.mensagem, valorValidado.erro.status, valorValidado.erro.codigo);
+      const valorCentavos = valorValidado.valor;
       const valor = centavosParaReais(valorCentavos);
-      const categoria = String(dados.categoria || "").trim();
+      const categoriaValidada = campoTexto(payload, "categoria", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Escolha uma categoria.",
+        codigoObrigatorio: "categoria_obrigatoria",
+      });
+      if (!categoriaValidada.ok) return erroCliente(categoriaValidada.erro.mensagem, categoriaValidada.erro.status, categoriaValidada.erro.codigo);
+      const categoria = categoriaValidada.valor ?? "";
       const ehBonificacao = categoria.toLowerCase() === "bonificação";
       if (!ehBonificacao && dados.tipo !== undefined && !isTipoLancamento(dados.tipo)) {
         return erroCliente("Tipo inválido.", 400, "tipo_invalido");
       }
       const tipo = ehBonificacao ? "receita" : dados.tipo === "receita" ? "receita" : "despesa";
       const frequencia = normalizarFrequenciaRecorrencia(dados.frequencia);
-      const dataInicio = dados.data_inicio;
+      const dataInicioValidada = campoDataISOObrigatoria(payload, "data_inicio", "Informe a data de início.", "data_inicio_obrigatoria");
+      if (!dataInicioValidada.ok) return erroCliente(dataInicioValidada.erro.mensagem, dataInicioValidada.erro.status, dataInicioValidada.erro.codigo);
+      const dataInicio = dataInicioValidada.valor;
       const diaSemana = normalizarDiaSemana(dados.dia_semana ?? 0);
       const diaMes = normalizarDiaMesSeguro(dados.dia_mes ?? 1);
 
-      if (!descricao) {
-        return erroCliente("Informe uma descrição.", 400, "descricao_obrigatoria");
-      }
-      if (valorCentavos <= 0) {
-        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
-      }
       if (!frequencia) {
         return erroCliente("Frequência inválida.", 400, "frequencia_invalida");
-      }
-      if (!dataInicio) {
-        return erroCliente("Informe a data de início.", 400, "data_inicio_obrigatoria");
-      }
-      if (!categoria) {
-        return erroCliente("Escolha uma categoria.", 400, "categoria_obrigatoria");
       }
       if (!dados.meio_pagamento) {
         return erroCliente("Escolha um meio de pagamento.", 400, "meio_pagamento_obrigatorio");

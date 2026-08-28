@@ -5,8 +5,8 @@ import type { CadimusEnv, IdEntrada, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { registrarAuditoria } from "../utils/auditoria.ts";
-import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
-import { lerJsonObjeto } from "../utils/requisicao.ts";
+import { centavosParaReais, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
+import { campoCentavosObrigatorio, lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 interface TransferenciaPayload {
@@ -168,15 +168,20 @@ export async function processarTransferencias(request: Request, env: CadimusEnv,
         return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
       }
       const idempotencyKey = typeof dados.idempotency_key === "string" ? dados.idempotency_key.trim() : "";
-      if (dados.valor === undefined && dados.valor_centavos === undefined) {
-        return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
-      }
-      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const payload = dados as Record<string, unknown>;
+      const valorValidado = campoCentavosObrigatorio(
+        payload,
+        "valor",
+        "valor_centavos",
+        "Informe um valor válido.",
+        "valor_obrigatorio",
+        "Informe um valor maior que zero.",
+        "valor_invalido",
+      );
+      if (!valorValidado.ok) return erroCliente(valorValidado.erro.mensagem, valorValidado.erro.status, valorValidado.erro.codigo);
+      const valorCentavos = valorValidado.valor;
       const valor = centavosParaReais(valorCentavos);
 
-      if (valorCentavos <= 0) {
-        return erroCliente("Informe um valor maior que zero.", 400, "valor_invalido");
-      }
       if (!dados.carteira_origem_id || !dados.carteira_destino_id) {
         return erroCliente("Selecione as carteiras de origem e destino.", 400, "carteiras_obrigatorias");
       }

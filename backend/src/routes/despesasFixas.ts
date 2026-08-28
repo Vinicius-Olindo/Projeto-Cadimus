@@ -15,7 +15,7 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { isTipoLancamento, normalizarId, normalizarMeioPagamento, normalizarTipoLancamento } from "../domain.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, normalizarCartaoCreditoId, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
-import { lerJsonObjeto } from "../utils/requisicao.ts";
+import { campoCentavosObrigatorio, campoTexto, lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface DespesaFixaPayload {
@@ -118,29 +118,37 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const descricao = (dados.descricao || "").trim();
-      if (dados.valor === undefined && dados.valor_centavos === undefined) {
-        return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
-      }
-      let valorCentavos: number;
-      try {
-        valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
-      } catch {
-        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
-      }
+      const payload = dados as Record<string, unknown>;
+      const descricaoValidada = campoTexto(payload, "descricao", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Informe uma descrição.",
+        codigoObrigatorio: "descricao_obrigatoria",
+      });
+      if (!descricaoValidada.ok) return erroCliente(descricaoValidada.erro.mensagem, descricaoValidada.erro.status, descricaoValidada.erro.codigo);
+      const descricao = descricaoValidada.valor;
+
+      const valorValidado = campoCentavosObrigatorio(
+        payload,
+        "valor",
+        "valor_centavos",
+        "Informe um valor válido.",
+        "valor_obrigatorio",
+        "Informe um valor válido.",
+        "valor_invalido",
+      );
+      if (!valorValidado.ok) return erroCliente(valorValidado.erro.mensagem, valorValidado.erro.status, valorValidado.erro.codigo);
+      const valorCentavos = valorValidado.valor;
       const valor = centavosParaReais(valorCentavos);
       let diaVencimento = normalizarDiaVencimentoSeguro(dados.dia_vencimento);
       const tipo = dados.tipo === "receita" ? "receita" : "despesa";
 
-      if (!descricao) {
-        return erroCliente("Informe uma descrição.", 400, "descricao_obrigatoria");
-      }
-      if (valorCentavos <= 0) {
-        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
-      }
-      if (!dados.categoria) {
-        return erroCliente("Escolha uma categoria.", 400, "categoria_obrigatoria");
-      }
+      const categoriaValidada = campoTexto(payload, "categoria", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Escolha uma categoria.",
+        codigoObrigatorio: "categoria_obrigatoria",
+      });
+      if (!categoriaValidada.ok) return erroCliente(categoriaValidada.erro.mensagem, categoriaValidada.erro.status, categoriaValidada.erro.codigo);
+      const categoria = categoriaValidada.valor;
       if (!dados.meio_pagamento) {
         return erroCliente("Escolha um meio de pagamento.", 400, "meio_pagamento_obrigatorio");
       }
@@ -171,7 +179,7 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
         `INSERT INTO despesas_fixas (carteira_id, descricao, valor, valor_centavos, tipo, categoria, meio_pagamento, dia_vencimento, criado_por, cartao_credito_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-        .bind(carteiraIdNormalizada, descricao, valor, valorCentavos, tipo, dados.categoria, meioPagamento, diaVencimento, usuarioLogado.id, cartaoCreditoId)
+        .bind(carteiraIdNormalizada, descricao, valor, valorCentavos, tipo, categoria, meioPagamento, diaVencimento, usuarioLogado.id, cartaoCreditoId)
         .run();
 
       return json({ id: resultado.meta?.last_row_id ?? null, mensagem: "Despesa fixa cadastrada!" }, 201);

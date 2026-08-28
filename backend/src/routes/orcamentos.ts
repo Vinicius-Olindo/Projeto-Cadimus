@@ -4,8 +4,8 @@
 import type { CadimusEnv, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
-import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
-import { lerJsonObjeto } from "../utils/requisicao.ts";
+import { centavosParaReais } from "../utils/dinheiro.ts";
+import { campoCentavosObrigatorio, campoTexto, lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 import { normalizarId, normalizarMesReferencia } from "../domain.ts";
 
@@ -143,7 +143,16 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
         return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
       }
 
-      if (!dados.categoria || (dados.valor === undefined && dados.valor_centavos === undefined) || !dados.mes || !dados.ano || !dados.carteira_id) {
+      const payload = dados as Record<string, unknown>;
+      const categoriaValidada = campoTexto(payload, "categoria", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Categoria, valor, mês, ano e carteira são obrigatórios.",
+        codigoObrigatorio: "orcamento_campos_obrigatorios",
+      });
+      if (!categoriaValidada.ok) return erroCliente(categoriaValidada.erro.mensagem, categoriaValidada.erro.status, categoriaValidada.erro.codigo);
+      const categoria = categoriaValidada.valor ?? "";
+
+      if ((dados.valor === undefined && dados.valor_centavos === undefined) || !dados.mes || !dados.ano || !dados.carteira_id) {
         return erroCliente("Categoria, valor, mês, ano e carteira são obrigatórios.", 400, "orcamento_campos_obrigatorios");
       }
       const mesNormalizado = normalizarMesReferencia(dados.mes);
@@ -155,7 +164,18 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
         return erroCliente("Carteira inválida.", 400, "carteira_invalida");
       }
 
-      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const valorValidado = campoCentavosObrigatorio(
+        payload,
+        "valor",
+        "valor_centavos",
+        "Categoria, valor, mês, ano e carteira são obrigatórios.",
+        "orcamento_campos_obrigatorios",
+        "Valor não pode ser negativo.",
+        "valor_negativo",
+        { permitirNegativo: true },
+      );
+      if (!valorValidado.ok) return erroCliente(valorValidado.erro.mensagem, valorValidado.erro.status, valorValidado.erro.codigo);
+      const valorCentavos = valorValidado.valor;
       const valor = centavosParaReais(valorCentavos);
 
       if (valorCentavos < 0) {
@@ -175,7 +195,7 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
       `;
       await env.DB.prepare(query)
         .bind(
-          dados.categoria.toLowerCase(),
+          categoria.toLowerCase(),
           valor,
           valorCentavos,
           carteiraIdNormalizada,

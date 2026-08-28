@@ -4,7 +4,7 @@
 import type { CadimusEnv, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
-import { lerJsonObjeto } from "../utils/requisicao.ts";
+import { campoCentavosObrigatorio, campoTexto, lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 interface PlanoPayload {
@@ -191,25 +191,32 @@ export async function processarPlanos(request: Request, env: CadimusEnv, ctx: Wo
       if (!dados) {
         return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
       }
-      const nome = (dados.nome || "").trim();
+      const payload = dados as Record<string, unknown>;
+      const nomeValidado = campoTexto(payload, "nome", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Nome do plano é obrigatório.",
+        codigoObrigatorio: "nome_obrigatorio",
+      });
+      if (!nomeValidado.ok) return erroCliente(nomeValidado.erro.mensagem, nomeValidado.erro.status, nomeValidado.erro.codigo);
+      const nome = nomeValidado.valor;
       const descricao = (dados.descricao || "").trim();
-      if (dados.valor_alvo === undefined && dados.valor_alvo_centavos === undefined) {
-        return erroCliente("Informe um valor alvo válido.", 400, "valor_alvo_obrigatorio");
-      }
-      const valorAlvoCentavos = normalizarCentavos(dados.valor_alvo, dados.valor_alvo_centavos);
+      const valorValidado = campoCentavosObrigatorio(
+        payload,
+        "valor_alvo",
+        "valor_alvo_centavos",
+        "Informe um valor alvo válido.",
+        "valor_alvo_obrigatorio",
+        "Informe um valor alvo válido.",
+        "valor_alvo_invalido",
+      );
+      if (!valorValidado.ok) return erroCliente(valorValidado.erro.mensagem, valorValidado.erro.status, valorValidado.erro.codigo);
+      const valorAlvoCentavos = valorValidado.valor;
       const valorAlvo = centavosParaReais(valorAlvoCentavos);
       const dataLimite = dados.data_limite || null;
       const prioridade = dados.prioridade || "media";
       const icone = dados.icone || "🎯";
       const cor = dados.cor || "#6366f1";
       const compartilhado = dados.compartilhado ? 1 : 0;
-
-      if (!nome) {
-        return erroCliente("Nome do plano é obrigatório.", 400, "nome_obrigatorio");
-      }
-      if (valorAlvoCentavos <= 0) {
-        return erroCliente("Informe um valor alvo válido.", 400, "valor_alvo_invalido");
-      }
 
       const resultado = await env.DB.prepare(
         `INSERT INTO planos (usuario_id, nome, descricao, valor_alvo, valor_alvo_centavos, data_limite, prioridade, icone, cor, compartilhado)
@@ -356,20 +363,24 @@ export async function processarPlanoDepositos(request: Request, env: CadimusEnv,
         return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
       }
       const planoId = dados.plano_id;
-      if (dados.valor === undefined && dados.valor_centavos === undefined) {
-        return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
-      }
-      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const payload = dados as Record<string, unknown>;
+      const valorValidado = campoCentavosObrigatorio(
+        payload,
+        "valor",
+        "valor_centavos",
+        "Informe um valor válido.",
+        "valor_obrigatorio",
+        "Informe um valor válido.",
+        "valor_invalido",
+      );
+      if (!valorValidado.ok) return erroCliente(valorValidado.erro.mensagem, valorValidado.erro.status, valorValidado.erro.codigo);
+      const valorCentavos = valorValidado.valor;
       const valor = centavosParaReais(valorCentavos);
       const descricao = (dados.descricao || "").trim();
 
       if (!planoId) {
         return erroCliente("plano_id não fornecido.", 400, "plano_id_obrigatorio");
       }
-      if (valorCentavos <= 0) {
-        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
-      }
-
       const { results: plano } = await env.DB.prepare(`SELECT usuario_id FROM planos WHERE id = ?`).bind(planoId).all<PlanoDonoRow>();
       if (plano.length === 0 || plano[0].usuario_id !== usuarioLogado.id) {
         return erroCliente("Acesso negado.", 403, "acesso_negado");

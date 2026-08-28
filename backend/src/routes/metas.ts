@@ -5,8 +5,8 @@ import type { CadimusEnv, IdEntrada, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { registrarAuditoria } from "../utils/auditoria.ts";
-import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
-import { lerJsonObjeto } from "../utils/requisicao.ts";
+import { centavosParaReais, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
+import { campoCentavosObrigatorio, campoTexto, lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 interface MetaPayload {
@@ -188,20 +188,28 @@ export async function processarMetas(request: Request, env: CadimusEnv, ctx: Wor
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const categoria = (dados.categoria || "").trim();
-      if (dados.valor_limite === undefined && dados.valor_limite_centavos === undefined) {
-        return erroCliente("Informe um valor de meta válido.", 400, "valor_meta_obrigatorio");
-      }
-      const valorLimiteCentavos = normalizarCentavos(dados.valor_limite, dados.valor_limite_centavos);
+      const payload = dados as Record<string, unknown>;
+      const categoriaValidada = campoTexto(payload, "categoria", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Categoria não informada.",
+        codigoObrigatorio: "categoria_obrigatoria",
+      });
+      if (!categoriaValidada.ok) return erroCliente(categoriaValidada.erro.mensagem, categoriaValidada.erro.status, categoriaValidada.erro.codigo);
+      const categoria = categoriaValidada.valor;
+
+      const valorValidado = campoCentavosObrigatorio(
+        payload,
+        "valor_limite",
+        "valor_limite_centavos",
+        "Informe um valor de meta válido.",
+        "valor_meta_obrigatorio",
+        "Informe um valor de meta válido.",
+        "valor_meta_invalido",
+      );
+      if (!valorValidado.ok) return erroCliente(valorValidado.erro.mensagem, valorValidado.erro.status, valorValidado.erro.codigo);
+      const valorLimiteCentavos = valorValidado.valor;
       const valorLimite = centavosParaReais(valorLimiteCentavos);
       const dataLimite = dados.data_limite || null;
-
-      if (!categoria) {
-        return erroCliente("Categoria não informada.", 400, "categoria_obrigatoria");
-      }
-      if (valorLimiteCentavos <= 0) {
-        return erroCliente("Informe um valor de meta válido.", 400, "valor_meta_invalido");
-      }
 
       const resultado = await env.DB.prepare(
         `INSERT INTO metas_categoria (carteira_id, categoria, valor_limite, valor_limite_centavos, data_limite, criado_por)
@@ -331,20 +339,24 @@ export async function processarMetaDepositos(request: Request, env: CadimusEnv, 
         return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
       }
       const metaId = dados.meta_id;
-      if (dados.valor === undefined && dados.valor_centavos === undefined) {
-        return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
-      }
-      const valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
+      const payload = dados as Record<string, unknown>;
+      const valorValidado = campoCentavosObrigatorio(
+        payload,
+        "valor",
+        "valor_centavos",
+        "Informe um valor válido.",
+        "valor_obrigatorio",
+        "Informe um valor válido.",
+        "valor_invalido",
+      );
+      if (!valorValidado.ok) return erroCliente(valorValidado.erro.mensagem, valorValidado.erro.status, valorValidado.erro.codigo);
+      const valorCentavos = valorValidado.valor;
       const valor = centavosParaReais(valorCentavos);
       const descricao = (dados.descricao || "").trim();
 
       if (!metaId) {
         return erroCliente("meta_id não fornecido.", 400, "meta_id_obrigatorio");
       }
-      if (valorCentavos <= 0) {
-        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
-      }
-
       const { results: meta } = await env.DB.prepare(`SELECT carteira_id FROM metas_categoria WHERE id = ?`).bind(metaId).all<MetaCarteiraRow>();
       if (meta.length === 0) {
         return erroCliente("Meta não encontrada.", 404, "meta_nao_encontrada");

@@ -18,7 +18,7 @@ import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrente
 import { registrarAuditoria } from "../utils/auditoria.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, normalizarCartaoCreditoId, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
-import { lerJsonObjeto } from "../utils/requisicao.ts";
+import { campoCentavosObrigatorio, campoDataISOObrigatoria, campoTexto, lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface LancamentoPayload {
@@ -257,22 +257,31 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const descricao = String(dados.descricao || "").trim();
-      const dataCompra = String(dados.data_compra || "").trim();
-      const categoria = String(dados.categoria || "").trim();
+      const payload = dados as Record<string, unknown>;
+      const descricaoValidada = campoTexto(payload, "descricao", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Informe uma descrição para o lançamento.",
+        codigoObrigatorio: "descricao_obrigatoria",
+      });
+      if (!descricaoValidada.ok) return erroCliente(descricaoValidada.erro.mensagem, descricaoValidada.erro.status, descricaoValidada.erro.codigo);
+      const descricao = descricaoValidada.valor;
 
-      if (!descricao) {
-        return erroCliente("Informe uma descrição para o lançamento.", 400, "descricao_obrigatoria");
-      }
-      if (dados.valor === undefined && dados.valor_centavos === undefined) {
-        return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");
-      }
-      if (!dataCompra || Number.isNaN(Date.parse(`${dataCompra}T12:00:00`))) {
-        return erroCliente("Informe uma data válida para o lançamento.", 400, "data_compra_invalida");
-      }
-      if (!categoria) {
-        return erroCliente("Escolha uma categoria.", 400, "categoria_obrigatoria");
-      }
+      const dataCompraValidada = campoDataISOObrigatoria(
+        payload,
+        "data_compra",
+        "Informe uma data válida para o lançamento.",
+        "data_compra_invalida",
+      );
+      if (!dataCompraValidada.ok) return erroCliente(dataCompraValidada.erro.mensagem, dataCompraValidada.erro.status, dataCompraValidada.erro.codigo);
+      const dataCompra = dataCompraValidada.valor;
+
+      const categoriaValidada = campoTexto(payload, "categoria", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Escolha uma categoria.",
+        codigoObrigatorio: "categoria_obrigatoria",
+      });
+      if (!categoriaValidada.ok) return erroCliente(categoriaValidada.erro.mensagem, categoriaValidada.erro.status, categoriaValidada.erro.codigo);
+      const categoria = categoriaValidada.valor;
 
       const tipoNormalizado = normalizarTipoLancamento(dados.tipo);
       const statusNormalizado = normalizarStatusLancamento(dados.status);
@@ -300,15 +309,18 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
         }
       }
 
-      let valorCentavos: number;
-      try {
-        valorCentavos = normalizarCentavos(dados.valor, dados.valor_centavos);
-      } catch {
-        return erroCliente("Informe um valor válido.", 400, "valor_invalido");
-      }
-      if (valorCentavos <= 0) {
-        return erroCliente("Informe um valor maior que zero.", 400, "valor_invalido");
-      }
+      const valorValidado = campoCentavosObrigatorio(
+        payload,
+        "valor",
+        "valor_centavos",
+        "Informe um valor válido.",
+        "valor_obrigatorio",
+        "Informe um valor válido.",
+        "valor_invalido",
+        { mensagemNaoPositivo: "Informe um valor maior que zero." },
+      );
+      if (!valorValidado.ok) return erroCliente(valorValidado.erro.mensagem, valorValidado.erro.status, valorValidado.erro.codigo);
+      const valorCentavos = valorValidado.valor;
       const valor = centavosParaReais(valorCentavos);
       let cartaoCreditoId: number | null = null;
       if (deveVincularCartaoCredito({ ...dados, tipo: tipoNormalizado, meio_pagamento: meioPagamentoNormalizado })) {

@@ -8,7 +8,7 @@ import { normalizarId, normalizarMeioPagamento } from "../domain.ts";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { normalizarCartaoCreditoId, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
-import { lerJsonObjeto } from "../utils/requisicao.ts";
+import { campoCentavosObrigatorio, campoTexto, lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface CompraParceladaPayload {
@@ -118,23 +118,19 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const descricao = (dados.descricao || "").trim();
+      const payload = dados as Record<string, unknown>;
+      const descricaoValidada = campoTexto(payload, "descricao", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Informe uma descrição.",
+        codigoObrigatorio: "descricao_obrigatoria",
+      });
+      if (!descricaoValidada.ok) return erroCliente(descricaoValidada.erro.mensagem, descricaoValidada.erro.status, descricaoValidada.erro.codigo);
+      const descricao = descricaoValidada.valor;
       let diaVencimento = normalizarDiaVencimentoSeguro(dados.dia_vencimento);
       const totalParcelas = Number(dados.total_parcelas);
       const anoInicio = Number(dados.ano_inicio);
       const mesInicio = Number(dados.mes_inicio);
-      if (
-        dados.valor_total === undefined &&
-        dados.valor_total_centavos === undefined &&
-        dados.valor_parcela === undefined &&
-        dados.valor_parcela_centavos === undefined
-      ) {
-        return erroCliente("Informe o valor total da compra.", 400, "valor_total_obrigatorio");
-      }
 
-      if (!descricao) {
-        return erroCliente("Informe uma descrição.", 400, "descricao_obrigatoria");
-      }
       if (!Number.isInteger(totalParcelas) || totalParcelas < 2) {
         return erroCliente("Uma compra parcelada precisa de pelo menos 2 parcelas (pra 1x, lance como despesa comum).", 400, "total_parcelas_invalido");
       }
@@ -145,29 +141,29 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
         return erroCliente("Informe o mês da primeira parcela.", 400, "periodo_inicio_invalido");
       }
 
-      let valorTotalCentavos: number;
-      try {
-        valorTotalCentavos = dados.valor_total !== undefined || dados.valor_total_centavos !== undefined
-          ? normalizarCentavos(dados.valor_total, dados.valor_total_centavos)
-          : normalizarCentavos(dados.valor_parcela, dados.valor_parcela_centavos) * totalParcelas;
-      } catch {
-        return erroCliente("Informe o valor total da compra.", 400, "valor_total_invalido");
-      }
+      const valorValidado = dados.valor_total !== undefined || dados.valor_total_centavos !== undefined
+        ? campoCentavosObrigatorio(payload, "valor_total", "valor_total_centavos", "Informe o valor total da compra.", "valor_total_obrigatorio", "Informe o valor total da compra.", "valor_total_invalido")
+        : campoCentavosObrigatorio(payload, "valor_parcela", "valor_parcela_centavos", "Informe o valor total da compra.", "valor_total_obrigatorio", "Informe o valor total da compra.", "valor_total_invalido");
+      if (!valorValidado.ok) return erroCliente(valorValidado.erro.mensagem, valorValidado.erro.status, valorValidado.erro.codigo);
+      const valorTotalCentavos = dados.valor_total !== undefined || dados.valor_total_centavos !== undefined
+        ? valorValidado.valor
+        : valorValidado.valor * totalParcelas;
       const valorTotal = centavosParaReais(valorTotalCentavos);
       const valorParcelaCentavos = Number.isInteger(totalParcelas) && totalParcelas > 0
         ? Math.floor(valorTotalCentavos / totalParcelas)
         : 0;
       const valorParcela = centavosParaReais(valorParcelaCentavos);
 
-      if (valorTotalCentavos <= 0) {
-        return erroCliente("Informe o valor total da compra.", 400, "valor_total_invalido");
-      }
       if (valorParcelaCentavos <= 0) {
         return erroCliente("Valor de parcela inválido.", 400, "valor_parcela_invalido");
       }
-      if (!dados.categoria) {
-        return erroCliente("Escolha uma categoria.", 400, "categoria_obrigatoria");
-      }
+      const categoriaValidada = campoTexto(payload, "categoria", {
+        obrigatorio: true,
+        mensagemObrigatorio: "Escolha uma categoria.",
+        codigoObrigatorio: "categoria_obrigatoria",
+      });
+      if (!categoriaValidada.ok) return erroCliente(categoriaValidada.erro.mensagem, categoriaValidada.erro.status, categoriaValidada.erro.codigo);
+      const categoria = categoriaValidada.valor;
       if (!dados.meio_pagamento) {
         return erroCliente("Escolha um meio de pagamento.", 400, "meio_pagamento_obrigatorio");
       }
@@ -199,7 +195,7 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
          (carteira_id, descricao, valor_total, valor_total_centavos, valor_parcela, valor_parcela_centavos, categoria, meio_pagamento, dia_vencimento, total_parcelas, ano_inicio, mes_inicio, criado_por, cartao_credito_id)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       )
-        .bind(carteiraIdNormalizada, descricao, valorTotal, valorTotalCentavos, valorParcela, valorParcelaCentavos, dados.categoria, meioPagamento, diaVencimento, totalParcelas, anoInicio, mesInicio, usuarioLogado.id, cartaoCreditoId)
+        .bind(carteiraIdNormalizada, descricao, valorTotal, valorTotalCentavos, valorParcela, valorParcelaCentavos, categoria, meioPagamento, diaVencimento, totalParcelas, anoInicio, mesInicio, usuarioLogado.id, cartaoCreditoId)
         .run();
 
       const compraParceladaId = Number(resultado.meta?.last_row_id);
