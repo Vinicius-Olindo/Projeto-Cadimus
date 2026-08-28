@@ -6,6 +6,7 @@ import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { registrarAuditoria } from "../utils/auditoria.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 interface TransferenciaPayload {
@@ -162,7 +163,10 @@ export async function processarTransferencias(request: Request, env: CadimusEnv,
   // 2. Criar transferência
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as TransferenciaPayload;
+      const dados = await lerJsonObjeto<TransferenciaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const idempotencyKey = typeof dados.idempotency_key === "string" ? dados.idempotency_key.trim() : "";
       if (dados.valor === undefined && dados.valor_centavos === undefined) {
         return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");

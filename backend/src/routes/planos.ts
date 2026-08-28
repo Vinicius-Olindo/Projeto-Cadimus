@@ -4,6 +4,7 @@
 import type { CadimusEnv, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 interface PlanoPayload {
@@ -186,7 +187,10 @@ export async function processarPlanos(request: Request, env: CadimusEnv, ctx: Wo
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as PlanoPayload;
+      const dados = await lerJsonObjeto<PlanoPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const nome = (dados.nome || "").trim();
       const descricao = (dados.descricao || "").trim();
       if (dados.valor_alvo === undefined && dados.valor_alvo_centavos === undefined) {
@@ -225,7 +229,10 @@ export async function processarPlanos(request: Request, env: CadimusEnv, ctx: Wo
   // ==========================================
   if (metodo === "PUT") {
     try {
-      const dados = await request.json() as PlanoPayload;
+      const dados = await lerJsonObjeto<PlanoPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const id = dados.id;
       if (!id) {
         return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
@@ -344,7 +351,10 @@ export async function processarPlanoDepositos(request: Request, env: CadimusEnv,
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as PlanoDepositoPayload;
+      const dados = await lerJsonObjeto<PlanoDepositoPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const planoId = dados.plano_id;
       if (dados.valor === undefined && dados.valor_centavos === undefined) {
         return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");

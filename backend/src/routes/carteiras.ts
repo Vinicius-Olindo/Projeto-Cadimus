@@ -4,6 +4,7 @@
 import type { CadimusEnv, Carteira, PapelCarteira, TipoCarteira, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { registrarAuditoria } from "../utils/auditoria.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 interface UsuarioIdRow {
@@ -132,7 +133,10 @@ export async function processarCarteiras(request: Request, env: CadimusEnv, ctx:
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as CriarCarteiraPayload;
+      const dados = await lerJsonObjeto<CriarCarteiraPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const nome = (dados.nome || "").trim();
       const tipo: TipoCarteira = dados.tipo === "compartilhada" ? "compartilhada" : "individual";
 
@@ -210,7 +214,10 @@ export async function processarCarteiras(request: Request, env: CadimusEnv, ctx:
         return erroCliente("Só um administrador desta carteira pode gerenciar os membros.", 403, "carteira_admin_obrigatorio");
       }
 
-      const dados = await request.json() as AtualizarMembrosPayload;
+      const dados = await lerJsonObjeto<AtualizarMembrosPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const idsRecebidos = Array.isArray(dados.membros) ? dados.membros.map(Number).filter((id) => Number.isInteger(id) && id !== usuarioLogado.id) : [];
       const membrosDesejados = await idsValidosDeUsuarios(env, idsRecebidos);
 
@@ -253,7 +260,10 @@ export async function processarCarteiras(request: Request, env: CadimusEnv, ctx:
   // ==========================================
   if (metodo === "PATCH") {
     try {
-      const dados = await request.json() as ReordenarPayload;
+      const dados = await lerJsonObjeto<ReordenarPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const ordemRecebida = Array.isArray(dados.ordem) ? dados.ordem.map(Number).filter((id) => Number.isInteger(id)) : [];
       if (ordemRecebida.length === 0) {
         return erroCliente("Ordem inválida.", 400, "ordem_invalida");

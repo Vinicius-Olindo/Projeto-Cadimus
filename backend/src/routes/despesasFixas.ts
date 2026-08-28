@@ -15,6 +15,7 @@ import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { isTipoLancamento, normalizarId, normalizarMeioPagamento, normalizarTipoLancamento } from "../domain.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, normalizarCartaoCreditoId, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface DespesaFixaPayload {
@@ -107,7 +108,10 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as DespesaFixaPayload;
+      const dados = await lerJsonObjeto<DespesaFixaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
       if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
@@ -194,7 +198,10 @@ export async function processarDespesasFixas(request: Request, env: CadimusEnv, 
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const dados = await request.json() as DespesaFixaPayload;
+      const dados = await lerJsonObjeto<DespesaFixaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const campos: string[] = [];
       const valores: SqlParam[] = [];
 

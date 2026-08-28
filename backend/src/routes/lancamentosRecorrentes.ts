@@ -20,6 +20,7 @@ import {
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroFinanceiro, erroInterno } from "../utils/respostas.ts";
 
 interface RecorrenciaPayload {
@@ -117,7 +118,10 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as RecorrenciaPayload;
+      const dados = await lerJsonObjeto<RecorrenciaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
       if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
@@ -240,7 +244,10 @@ export async function processarLancamentosRecorrentes(request: Request, env: Cad
         return erroCliente("Acesso negado.", 403, "acesso_negado");
       }
 
-      const dados = await request.json() as RecorrenciaPayload;
+      const dados = await lerJsonObjeto<RecorrenciaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const campos: string[] = [];
       const valores: SqlParam[] = [];
 

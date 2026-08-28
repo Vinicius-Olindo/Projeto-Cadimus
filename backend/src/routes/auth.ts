@@ -5,6 +5,7 @@ import type { CadimusEnv, PerfilUsuario, WorkerCtx } from "../types.js";
 import { verificarSenha, hashSenha } from "../utils/crypto.ts";
 import { criarSessao, encerrarSessao } from "../utils/sessao.ts";
 import { enviarEmail, templateRecuperacaoSenha } from "../utils/email.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 const LIMITE_TENTATIVAS = 5; // por usuário, dentro dos últimos 15 minutos (ver datetime('now', '-15 minutes') abaixo)
@@ -67,7 +68,11 @@ export async function processarLogin(request: Request, env: CadimusEnv, ctx: Wor
     if (request.method !== "POST") return erroCliente("Use POST.", 405, "metodo_invalido");
 
     try {
-      const { email } = await request.json() as EsqueciSenhaPayload;
+      const dados = await lerJsonObjeto<EsqueciSenhaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
+      const { email } = dados;
       const emailNormalizado = (email || "").trim().toLowerCase();
 
       if (!emailNormalizado) {
@@ -127,7 +132,11 @@ export async function processarLogin(request: Request, env: CadimusEnv, ctx: Wor
     if (request.method !== "POST") return erroCliente("Use POST.", 405, "metodo_invalido");
 
     try {
-      const { token, novaSenha } = await request.json() as RedefinirSenhaPayload;
+      const dados = await lerJsonObjeto<RedefinirSenhaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
+      const { token, novaSenha } = dados;
 
       if (!token || !novaSenha) {
         return erroCliente("Token e nova senha são obrigatórios.", 400, "token_senha_obrigatorios");
@@ -167,7 +176,10 @@ export async function processarLogin(request: Request, env: CadimusEnv, ctx: Wor
   if (request.method !== "POST") return erroCliente("Use POST.", 405, "metodo_invalido");
 
   try {
-    const corpo = await request.json() as LoginPayload;
+    const corpo = await lerJsonObjeto<LoginPayload>(request);
+    if (!corpo) {
+      return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+    }
     const { usuario, senha } = corpo;
 
     if (!usuario || !senha) {

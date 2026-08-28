@@ -18,6 +18,7 @@ import { gerarLancamentosRecorrentesDoMes } from "../utils/lancamentosRecorrente
 import { registrarAuditoria } from "../utils/auditoria.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { deveVincularCartaoCredito, normalizarCartaoCreditoId, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface LancamentoPayload {
@@ -246,7 +247,10 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as LancamentoPayload;
+      const dados = await lerJsonObjeto<LancamentoPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
       if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
@@ -377,7 +381,10 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const dados = await request.json() as LancamentoPayload;
+      const dados = await lerJsonObjeto<LancamentoPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const camposPermitidos = ["descricao", "valor", "valor_centavos", "data_compra", "tipo", "categoria", "meio_pagamento", "status", "nota", "cartao_credito_id"];
       const camposEnviados = Object.keys(dados).filter((campo) => camposPermitidos.includes(campo));
 
@@ -531,7 +538,10 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
   // ==========================================
   if (metodo === "PATCH") {
     try {
-      const dados = await request.json() as LoteLancamentoPayload;
+      const dados = await lerJsonObjeto<LoteLancamentoPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const { ids, status, categoria } = dados;
 
       if (!ids || !Array.isArray(ids) || ids.length === 0) {

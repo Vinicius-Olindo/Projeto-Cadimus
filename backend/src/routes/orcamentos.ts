@@ -5,6 +5,7 @@ import type { CadimusEnv, SqlParam, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 import { normalizarId, normalizarMesReferencia } from "../domain.ts";
 
@@ -137,7 +138,10 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = (await request.json()) as OrcamentoPayload;
+      const dados = await lerJsonObjeto<OrcamentoPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
 
       if (!dados.categoria || (dados.valor === undefined && dados.valor_centavos === undefined) || !dados.mes || !dados.ano || !dados.carteira_id) {
         return erroCliente("Categoria, valor, mês, ano e carteira são obrigatórios.", 400, "orcamento_campos_obrigatorios");

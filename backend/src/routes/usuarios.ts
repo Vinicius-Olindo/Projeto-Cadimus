@@ -4,6 +4,7 @@
 import type { CadimusEnv, PerfilUsuario, SqlParam, UsuarioSessao, WorkerCtx } from "../types.js";
 import { hashSenha } from "../utils/crypto.ts";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 // Regra simples de formato (não valida se o e-mail existe de verdade — isso
@@ -167,7 +168,10 @@ export async function processarUsuarios(request: Request, env: CadimusEnv, ctx: 
     // PUT: editar próprio perfil (nome, email, telefone, salario, foto, senha)
     if (metodo === "PUT") {
       try {
-        const dados = await request.json() as UsuarioPayload;
+        const dados = await lerJsonObjeto<UsuarioPayload>(request);
+        if (!dados) {
+          return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+        }
         const campos: string[] = [];
         const valores: SqlParam[] = [];
 
@@ -240,7 +244,10 @@ export async function processarUsuarios(request: Request, env: CadimusEnv, ctx: 
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as UsuarioPayload;
+      const dados = await lerJsonObjeto<UsuarioPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const perfil: PerfilUsuario = dados.perfil === "superadmin" && ehSuperadminRaiz(usuarioLogado) ? "superadmin" : "comum";
 
       if (!dados.usuario || !dados.senha) {
@@ -320,7 +327,10 @@ export async function processarUsuarios(request: Request, env: CadimusEnv, ctx: 
         return erroCliente("Usuário não encontrado.", 404, "usuario_nao_encontrado");
       }
 
-      const dados = await request.json() as UsuarioPayload;
+      const dados = await lerJsonObjeto<UsuarioPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const campos: string[] = [];
       const valores: SqlParam[] = [];
 

@@ -6,6 +6,7 @@ import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { registrarAuditoria } from "../utils/auditoria.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 interface MetaPayload {
@@ -178,7 +179,10 @@ export async function processarMetas(request: Request, env: CadimusEnv, ctx: Wor
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as MetaPayload;
+      const dados = await lerJsonObjeto<MetaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
 
       if (!carteirasPermitidas.includes(Number(dados.carteira_id))) {
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
@@ -322,7 +326,10 @@ export async function processarMetaDepositos(request: Request, env: CadimusEnv, 
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as MetaDepositoPayload;
+      const dados = await lerJsonObjeto<MetaDepositoPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const metaId = dados.meta_id;
       if (dados.valor === undefined && dados.valor_centavos === undefined) {
         return erroCliente("Informe um valor válido.", 400, "valor_obrigatorio");

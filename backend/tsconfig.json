@@ -25,6 +25,7 @@
     "src/utils/comprasParceladas.ts",
     "src/utils/despesasFixas.ts",
     "src/utils/lancamentosRecorrentes.ts",
+    "src/utils/requisicao.ts",
     "src/utils/respostas.ts",
     "src/utils/sessao.ts",
     "src/routes/auth.ts",

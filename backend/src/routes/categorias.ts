@@ -3,6 +3,7 @@
 // ==========================================
 import type { CadimusEnv, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json } from "../utils/respostas.ts";
 
 interface CategoriaPayload {
@@ -35,7 +36,10 @@ export async function processarCategorias(request: Request, env: CadimusEnv, ctx
 
   if (metodo === "POST") {
     try {
-      const dados = (await request.json()) as CategoriaPayload;
+      const dados = await lerJsonObjeto<CategoriaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const nome = (dados.nome || "").trim();
 
       if (!nome) {
@@ -70,7 +74,10 @@ export async function processarCategorias(request: Request, env: CadimusEnv, ctx
         return erroCliente("ID não fornecido.", 400, "id_obrigatorio");
       }
 
-      const dados = (await request.json()) as CategoriaPayload;
+      const dados = await lerJsonObjeto<CategoriaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const novoNome = (dados.nome || "").trim();
 
       if (!novoNome) {

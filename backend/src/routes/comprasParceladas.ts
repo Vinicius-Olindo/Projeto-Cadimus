@@ -8,6 +8,7 @@ import { normalizarId, normalizarMeioPagamento } from "../domain.ts";
 import { gerarTodasParcelasDaCompra } from "../utils/comprasParceladas.ts";
 import { centavosParaReais, normalizarCentavos, type ValorMonetarioEntrada } from "../utils/dinheiro.ts";
 import { normalizarCartaoCreditoId, validarCartaoCreditoDaCarteira } from "../utils/cartoesCredito.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
 
 interface CompraParceladaPayload {
@@ -107,7 +108,10 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
   // ==========================================
   if (metodo === "POST") {
     try {
-      const dados = await request.json() as CompraParceladaPayload;
+      const dados = await lerJsonObjeto<CompraParceladaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const carteiraIdNormalizada = normalizarId(dados.carteira_id);
 
       if (!carteiraIdNormalizada || !carteirasPermitidas.includes(carteiraIdNormalizada)) {
@@ -231,7 +235,10 @@ export async function processarComprasParceladas(request: Request, env: CadimusE
         return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
       }
 
-      const dados = await request.json() as CompraParceladaPayload;
+      const dados = await lerJsonObjeto<CompraParceladaPayload>(request);
+      if (!dados) {
+        return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+      }
       const campos: string[] = [];
       const valores: SqlParam[] = [];
 

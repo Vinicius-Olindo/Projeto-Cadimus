@@ -12,6 +12,7 @@ import type {
 } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { erroCliente, erroInterno, json as responderJson } from "../utils/respostas.ts";
 
 const STATUS_VALIDOS = new Set<StatusNotificacao>(["nao_lida", "lida", "arquivada"]);
@@ -365,7 +366,7 @@ export async function processarNotificacoes(request: Request, env: CadimusEnv, c
     const carteirasPermitidas = await obterCarteirasDoUsuario(env, usuario.id);
     let dataReferencia = new Date();
     try {
-      const dados = await request.json() as GerarPayload;
+      const dados = await lerJsonObjeto<GerarPayload>(request);
       if (dados?.data_referencia) dataReferencia = new Date(`${dados.data_referencia}T12:00:00`);
     } catch {
       // Corpo opcional.
@@ -379,7 +380,10 @@ export async function processarNotificacoes(request: Request, env: CadimusEnv, c
   }
 
   if (metodo === "POST" && url.pathname.endsWith("/sincronizar")) {
-    const dados = await request.json() as SincronizarPayload;
+    const dados = await lerJsonObjeto<SincronizarPayload>(request);
+    if (!dados) {
+      return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+    }
     const recebidas = Array.isArray(dados.notificacoes) ? dados.notificacoes : [];
     const limite = recebidas.slice(0, 50);
     let salvas = 0;
@@ -416,7 +420,10 @@ export async function processarNotificacoes(request: Request, env: CadimusEnv, c
   if (metodo === "PATCH") {
     const id = Number(url.searchParams.get("id"));
     if (!id) return erroCliente("ID obrigatório.", 400, "id_obrigatorio");
-    const dados = await request.json() as AtualizarPayload;
+    const dados = await lerJsonObjeto<AtualizarPayload>(request);
+    if (!dados) {
+      return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+    }
     const status = isStatusNotificacao(dados.status) ? dados.status : "lida";
 
     try {

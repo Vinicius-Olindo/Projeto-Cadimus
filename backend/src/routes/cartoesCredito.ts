@@ -2,6 +2,7 @@ import { obterUsuarioDaSessao } from "../utils/sessao.ts";
 import { obterCarteirasDoUsuario } from "../utils/carteiras.ts";
 import { centavosParaReais, normalizarCentavos } from "../utils/dinheiro.ts";
 import { erroCliente, erroFinanceiro, erroInterno, json } from "../utils/respostas.ts";
+import { lerJsonObjeto } from "../utils/requisicao.ts";
 import { isBandeiraCartao, normalizarId } from "../domain.ts";
 import type { BandeiraCartao, CadimusEnv, CartaoCredito, IdEntrada, SqlParam, WorkerCtx } from "../types.js";
 
@@ -142,7 +143,10 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
 
   // POST /api/cartoes-credito — criar cartão
   if (method === "POST") {
-    const body = (await request.json()) as CartaoCreditoPayload;
+    const body = await lerJsonObjeto<CartaoCreditoPayload>(request);
+    if (!body) {
+      return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+    }
     const { nome, bandeira, ultimos4, dia_fechamento, dia_vencimento, limite, carteira_id } = body;
     let limiteCentavos: number;
     try {
@@ -211,7 +215,10 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
       return erroCliente("Acesso negado a esta carteira.", 403, "carteira_acesso_negado");
     }
 
-    const body = (await request.json()) as Partial<CartaoCreditoPayload>;
+    const body = await lerJsonObjeto<Partial<CartaoCreditoPayload>>(request);
+    if (!body) {
+      return erroCliente("Envie um corpo JSON válido.", 400, "corpo_json_invalido");
+    }
     const campos: string[] = [];
     const params: SqlParam[] = [];
 
