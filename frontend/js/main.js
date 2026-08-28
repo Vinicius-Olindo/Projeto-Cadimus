@@ -115,6 +115,7 @@ window.recarregarLancamentosAposMutacao = recarregarLancamentosAposMutacao;
 window.apagarLancamento = apagarLancamento;
 window.alternarStatusLancamento = alternarStatusLancamento;
 window.editarLancamento = editarLancamento;
+window.duplicarLancamento = duplicarLancamento;
 window.carregarCarteiras = carregarCarteiras;
 
 // Renomeação de categorias fica em admin-categories-ui.js.

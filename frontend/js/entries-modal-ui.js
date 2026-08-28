@@ -155,6 +155,7 @@ async function abrirModalNovoLancamento() {
   }
 
   carregarCategorias();
+  document.getElementById("form-lancamento")?.reset();
   await popularSelectCartoesCredito?.(document.getElementById("cartao-credito-lancamento"), carteiraAtual);
   document.getElementById("lancamento-editando-id").value = "";
   document.getElementById("titulo-modal-lancamento").innerText = "Novo lançamento";
@@ -196,14 +197,29 @@ async function editarLancamento(id) {
   const lancamento = ultimoLoteLancamentos.find((l) => l.id === id);
   if (!lancamento) return;
 
+  await preencherModalLancamento(lancamento, { modo: "editar" });
+}
+
+function obterDataLocalISOHoje() {
+  const hoje = new Date();
+  return [
+    hoje.getFullYear(),
+    String(hoje.getMonth() + 1).padStart(2, "0"),
+    String(hoje.getDate()).padStart(2, "0"),
+  ].join("-");
+}
+
+async function preencherModalLancamento(lancamento, { modo = "editar" } = {}) {
   await popularSelectCategorias(document.getElementById("categoria"));
   adicionarCategoriaAoSelect(lancamento.categoria);
 
-  document.getElementById("lancamento-editando-id").value = lancamento.id;
+  const duplicando = modo === "duplicar";
+  document.getElementById("form-lancamento")?.reset();
+  document.getElementById("lancamento-editando-id").value = duplicando ? "" : lancamento.id;
   document.getElementById("tipo-gasto").value = lancamento.tipo;
   document.getElementById("descricao").value = lancamento.descricao;
   definirValorInputMonetario("valor", valorMonetario(lancamento));
-  document.getElementById("data-compra").value = String(lancamento.data_compra).slice(0, 10);
+  document.getElementById("data-compra").value = duplicando ? obterDataLocalISOHoje() : String(lancamento.data_compra).slice(0, 10);
   document.getElementById("categoria").value = lancamento.categoria;
   document.getElementById("meio-pagamento").value = lancamento.meio_pagamento;
   document.getElementById("status-pagamento").value = lancamento.status;
@@ -212,11 +228,22 @@ async function editarLancamento(id) {
   document.getElementById("cartao-credito-lancamento").value = lancamento.cartao_credito_id || "";
   document.getElementById("meio-pagamento")?.dispatchEvent(new Event("change"));
 
-  document.getElementById("titulo-modal-lancamento").innerText = "Editar lançamento";
-  document.getElementById("btn-salvar-lancamento").innerText = "Salvar edição";
+  document.getElementById("titulo-modal-lancamento").innerText = duplicando ? "Duplicar lançamento" : "Editar lançamento";
+  document.getElementById("btn-salvar-lancamento").innerText = duplicando ? "Salvar cópia" : "Salvar edição";
   alternarAtalhosModalLancamento(true);
+  const subtitulo = document.getElementById("subtitulo-modal-lancamento");
+  if (subtitulo && duplicando) {
+    subtitulo.innerText = "Revise data, valor ou carteira antes de salvar a cópia.";
+  }
   document.getElementById("modal-lancamento").style.display = "flex";
   trapFoco(document.getElementById("modal-lancamento"));
+}
+
+async function duplicarLancamento(id) {
+  const lancamento = ultimoLoteLancamentos.find((l) => l.id === id);
+  if (!lancamento) return;
+
+  await preencherModalLancamento(lancamento, { modo: "duplicar" });
 }
 
 function configurarModal() {

@@ -736,7 +736,8 @@ button.item-status:active {
   color: var(--cor-despesa);
 }
 
-.btn-editar {
+.btn-editar,
+.btn-duplicar {
   background: transparent;
   display: inline-flex;
   align-items: center;
@@ -748,7 +749,8 @@ button.item-status:active {
   opacity: 1.2;
 }
 
-.btn-editar:hover {
+.btn-editar:hover,
+.btn-duplicar:hover {
   opacity: 1;
   background: color-mix(in srgb, var(--cor-marca) 14%, transparent);
   color: var(--cor-marca-forte);

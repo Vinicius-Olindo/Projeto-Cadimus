@@ -444,6 +444,7 @@ function configurarBuscaLancamentos() {
       const acao = alvo.dataset.action;
       const id = Number(alvo.dataset.id);
       if (acao === "editar") editarLancamento(id);
+      else if (acao === "duplicar") duplicarLancamento(id);
       else if (acao === "apagar") apagarLancamento(id);
       else if (acao === "status") alternarStatusLancamento(id, alvo.dataset.statusAtual);
       else if (acao === "novo-lancamento") abrirModalNovoLancamento();

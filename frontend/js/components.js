@@ -14,6 +14,8 @@ const ICONE_LAPIS =
   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 3a2.85 2.85 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z"/></svg>';
 const ICONE_LIXEIRA =
   '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M8 6V4a2 2 0 0 1 2-2h4a2 2 0 0 1 2 2v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/></svg>';
+const ICONE_DUPLICAR =
+  '<svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="8" y="8" width="12" height="12" rx="2"/><path d="M16 8V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h2"/></svg>';
 
 /**
  * Cria o HTML de uma linha de lançamento (despesa ou receita)
@@ -73,7 +75,8 @@ function criarLinhaLancamento(lancamento) {
   const carteiraCompartilhada = carteiraSelecionada && String(carteiraSelecionada.id) === String(lancamento.carteira_id) && carteiraSelecionada.tipo === "compartilhada";
   const podeGerenciar = carteiraCompartilhada || lancamento.criado_por === usuarioLogado.id || usuarioLogado.perfil === "superadmin";
   const botoesGerenciar = podeGerenciar
-    ? `<button class="btn-editar" data-action="editar" data-id="${lancamento.id}" title="Editar registro">${ICONE_LAPIS}</button>
+    ? `<button class="btn-duplicar" data-action="duplicar" data-id="${lancamento.id}" title="Duplicar lançamento">${ICONE_DUPLICAR}</button>
+       <button class="btn-editar" data-action="editar" data-id="${lancamento.id}" title="Editar registro">${ICONE_LAPIS}</button>
        <button class="btn-excluir" data-action="apagar" data-id="${lancamento.id}" title="Apagar registro">${ICONE_LIXEIRA}</button>`
     : "";
 
