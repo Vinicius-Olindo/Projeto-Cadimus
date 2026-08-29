@@ -238,6 +238,31 @@ function alternarTelas(estaLogado) {
   const sAdmin = document.getElementById("admin-section");
   const bAdmin = document.getElementById("btn-admin");
   const footer = document.getElementById("app-footer");
+  const paginaStandalone = document.body?.dataset?.cadimusPage || "";
+  const secaoStandalone = paginaStandalone ? document.getElementById(`${paginaStandalone}-section`) : null;
+
+  if (paginaStandalone) {
+    if (!estaLogado) {
+      window.location.href = "index.html";
+      return;
+    }
+
+    if (sLogin) sLogin.style.display = "none";
+    if (sDash) sDash.style.display = "none";
+    if (sAdmin) sAdmin.style.display = "none";
+    if (secaoStandalone) {
+      secaoStandalone.style.display = "flex";
+      secaoStandalone.style.flexDirection = "column";
+    }
+    if (footer) footer.style.display = "flex";
+
+    const u = obterUsuarioLogado();
+    if (bAdmin) bAdmin.style.display = u.perfil === "superadmin" ? "inline-block" : "none";
+    atualizarAvatarTopo(u);
+    window.dispatchEvent(new CustomEvent("cadimus:usuario-logado", { detail: { usuario: u } }));
+    if (window.carregarCarteiras) window.carregarCarteiras();
+    return;
+  }
 
   if (estaLogado) {
     sLogin.style.display = "none";
@@ -607,15 +632,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("dropdown-btn-relatorio")?.addEventListener("click", () => {
       dropdownAvatar.style.display = "none";
-      const secaoDash = document.getElementById("dashboard-section");
-      const secaoRel = document.getElementById("relatorios-section");
-      if (secaoDash && secaoRel) {
-        secaoDash.style.display = "none";
-        secaoRel.style.display = "flex";
-        secaoRel.style.flexDirection = "column";
-        if (window.inicializarFiltrosRelatorio) window.inicializarFiltrosRelatorio();
-        if (window.carregarDadosRelatorio) window.carregarDadosRelatorio();
-      }
+      window.location.href = "relatorios.html";
     });
 
     document.getElementById("dropdown-btn-sair")?.addEventListener("click", async () => {

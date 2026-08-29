@@ -87,14 +87,7 @@ function abrirAtalhoVisaoDashboard(atalho) {
   }
 
   if (atalho === "relatorios") {
-    const secaoDash = document.getElementById("dashboard-section");
-    const secaoRel = document.getElementById("relatorios-section");
-    if (!secaoDash || !secaoRel) return;
-    secaoDash.style.display = "none";
-    secaoRel.style.display = "flex";
-    secaoRel.style.flexDirection = "column";
-    if (typeof inicializarFiltrosRelatorio === "function") inicializarFiltrosRelatorio();
-    if (typeof carregarDadosRelatorio === "function") carregarDadosRelatorio();
+    window.location.href = "relatorios.html";
   }
 }
 

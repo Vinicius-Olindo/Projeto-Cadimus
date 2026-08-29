@@ -1,0 +1,588 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadimus • Planejamento</title>
+    <meta name="description" content="Gestor financeiro para a casa e para o seu bolso." />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#a97a2f" />
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+    <link rel="apple-touch-icon" href="assets/icon-192.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cadimus" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="css/variables.css?v=101" />
+    <link rel="stylesheet" href="css/style.css?v=168" />
+  </head>
+  <body data-cadimus-page="planejamento">
+    <main class="app-container">
+      <div class="pagina-contexto-oculto" aria-hidden="true">
+        <div id="carteira-tabs" style="display:none"></div>
+        <input type="hidden" id="seletor-carteira" value="" />
+        <input type="hidden" id="filtro-mes" value="" />
+        <button id="btn-admin" style="display:none"></button>
+        <button id="btn-importar-extrato" style="display:none"></button>
+        <button id="btn-exportar-extrato" style="display:none"></button>
+      </div>
+      <!-- SEÇÃO PLANEJAMENTO FINANCEIRO -->
+      <section id="planejamento-section" style="display: none">
+        <header class="top-bar">
+          <div class="top-bar-linha1">
+            <h2>Planejamento Financeiro</h2>
+            <div class="acoes-topo">
+              <div class="seletor-mes seletor-mes-planejamento" aria-label="Período do planejamento">
+                <span class="seletor-mes-contexto">Período do planejamento</span>
+                <button type="button" id="btn-plano-mes-anterior" aria-label="Mês anterior do planejamento">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
+                </button>
+                <span id="plano-rotulo-mes" class="seletor-mes-rotulo" title="Voltar para o mês atual"></span>
+                <button type="button" id="btn-plano-mes-seguinte" aria-label="Próximo mês do planejamento">
+                  <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
+                </button>
+              </div>
+              <button id="btn-voltar-dashboard-plano" class="btn-secundario">Voltar</button>
+            </div>
+          </div>
+        </header>
+
+        <div class="plano-overview" aria-label="Resumo do planejamento">
+          <div class="plano-overview-texto">
+            <span class="plano-eyebrow">Mapa do mês</span>
+            <h3>Planeje antes de gastar</h3>
+            <p id="plano-overview-contexto">Use este espaço para enxergar salário, compromissos, metas e simulações sem misturar com os lançamentos do dia a dia.</p>
+          </div>
+          <div class="plano-overview-kpis">
+            <div>
+              <span>Saúde do plano</span>
+              <strong id="plano-resumo-saude">—</strong>
+            </div>
+            <div>
+              <span>Comprometido</span>
+              <strong id="plano-resumo-comprometido">0%</strong>
+            </div>
+            <div>
+              <span>Próximo passo</span>
+              <strong id="plano-resumo-acao">Definir salário</strong>
+            </div>
+          </div>
+          <div class="plano-overview-acoes">
+            <button type="button" class="btn-secundario" data-plano-atalho="plano-orcamento">Rever orçamento</button>
+            <button type="button" class="btn-secundario" data-plano-atalho="plano-metas">Ver metas</button>
+            <button type="button" class="btn-secundario" data-plano-atalho="plano-simular">Simular</button>
+          </div>
+        </div>
+
+        <!-- TABS -->
+        <div class="plano-tabs" role="tablist" aria-label="Áreas do planejamento">
+          <button type="button" class="plano-tab ativo" data-painel="plano-resumo" role="tab" aria-selected="true" aria-controls="plano-resumo">Resumo</button>
+          <button type="button" class="plano-tab" data-painel="plano-orcamento" role="tab" aria-selected="false" aria-controls="plano-orcamento" tabindex="-1">Orçamento</button>
+          <button type="button" class="plano-tab" data-painel="plano-metas" role="tab" aria-selected="false" aria-controls="plano-metas" tabindex="-1">Metas</button>
+          <button type="button" class="plano-tab" data-painel="plano-receitas" role="tab" aria-selected="false" aria-controls="plano-receitas" tabindex="-1">Receitas</button>
+          <button type="button" class="plano-tab" data-painel="plano-despesas" role="tab" aria-selected="false" aria-controls="plano-despesas" tabindex="-1">Despesas</button>
+          <button type="button" class="plano-tab" data-painel="plano-comparar" role="tab" aria-selected="false" aria-controls="plano-comparar" tabindex="-1">Comparar</button>
+          <button type="button" class="plano-tab" data-painel="plano-simular" role="tab" aria-selected="false" aria-controls="plano-simular" tabindex="-1">Simular</button>
+        </div>
+
+        <!-- PAINEL: RESUMO GERAL -->
+        <div id="plano-resumo" class="plano-painel" role="tabpanel" tabindex="-1">
+          <div class="plano-container">
+            <!-- KPI Cards -->
+            <div class="plano-kpi-grid" id="plano-kpi-grid">
+              <div class="plano-kpi">
+                <span class="plano-kpi-rotulo">Receita Planejada</span>
+                <span class="plano-kpi-valor" id="plano-kpi-receita">R$ 0,00</span>
+              </div>
+              <div class="plano-kpi plano-kpi-despesa">
+                <span class="plano-kpi-rotulo">Despesas Planejadas</span>
+                <span class="plano-kpi-valor" id="plano-kpi-despesas">R$ 0,00</span>
+              </div>
+              <div class="plano-kpi plano-kpi-invest">
+                <span class="plano-kpi-rotulo">Investimentos</span>
+                <span class="plano-kpi-valor" id="plano-kpi-invest">R$ 0,00</span>
+              </div>
+              <div class="plano-kpi plano-kpi-economia">
+                <span class="plano-kpi-rotulo">Economia Prevista</span>
+                <span class="plano-kpi-valor" id="plano-kpi-economia">R$ 0,00</span>
+              </div>
+              <div class="plano-kpi">
+                <span class="plano-kpi-rotulo">Poupança</span>
+                <span class="plano-kpi-valor" id="plano-kpi-pct">0%</span>
+              </div>
+              <div class="plano-kpi">
+                <span class="plano-kpi-rotulo">Saldo Previsto</span>
+                <span class="plano-kpi-valor" id="plano-kpi-saldo">R$ 0,00</span>
+              </div>
+            </div>
+
+            <!-- Salário -->
+            <div class="card plano-card-salario">
+              <h3 class="plano-subtitulo">Salário mensal</h3>
+              <div class="plano-salario-linha">
+                <span class="plano-salario-valor" id="plano-salario-display">R$ 0,00</span>
+                <button type="button" id="btn-editar-salario" class="btn-link-adicionar">Editar</button>
+              </div>
+              <div id="plano-salario-form" style="display: none">
+                <input type="text" id="plano-salario-input" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" />
+                <div class="plano-salario-acoes">
+                  <button type="button" id="btn-salvar-salario" class="btn-primario">Salvar</button>
+                  <button type="button" id="btn-cancelar-salario" class="btn-secundario">Cancelar</button>
+                </div>
+              </div>
+            </div>
+
+            <!-- Previsão de saldo futuro -->
+            <div class="card plano-card-previsao" id="plano-card-previsao-saldo">
+              <div class="plano-previsao-cabecalho">
+                <div>
+                  <span class="plano-eyebrow">Próximos passos</span>
+                  <h3 class="plano-subtitulo">Previsão de saldo futuro</h3>
+                </div>
+                <span class="plano-previsao-periodo" id="plano-previsao-periodo">30/60/90 dias</span>
+              </div>
+              <p class="plano-previsao-desc" id="plano-previsao-desc">
+                Projeta receitas e compromissos já programados para a carteira selecionada.
+              </p>
+              <div class="plano-previsao-grid" id="plano-previsao-saldo">
+                <div class="plano-vazio plano-vazio-carregando"><span class="spinner"></span><span>Calculando previsão...</span></div>
+              </div>
+            </div>
+
+            <!-- Checklist de fechamento mensal -->
+            <div class="card plano-card-fechamento" id="plano-card-fechamento-mensal">
+              <div class="plano-fechamento-cabecalho">
+                <div>
+                  <span class="plano-eyebrow">Fechamento</span>
+                  <h3 class="plano-subtitulo">Checklist do mês</h3>
+                </div>
+                <span class="plano-fechamento-progresso" id="plano-fechamento-progresso">0/6</span>
+              </div>
+              <div class="plano-fechamento-barra">
+                <div class="plano-fechamento-barra-fill" id="plano-fechamento-barra-fill" style="width:0%"></div>
+              </div>
+              <div class="plano-fechamento-lista" id="plano-fechamento-lista"></div>
+              <div class="plano-fechamento-acoes">
+                <button type="button" class="btn-secundario" id="btn-fechamento-marcar-tudo">Marcar tudo revisado</button>
+                <button type="button" class="btn-link-adicionar" id="btn-fechamento-limpar">Limpar checklist</button>
+              </div>
+            </div>
+
+            <!-- Indicadores -->
+            <div class="card">
+              <h3 class="plano-subtitulo">Indicadores Financeiros</h3>
+              <div class="plano-indicadores" id="plano-indicadores"></div>
+            </div>
+
+            <!-- Alertas -->
+            <div class="card" id="plano-card-alertas" style="display:none">
+              <h3 class="plano-subtitulo">Alertas</h3>
+              <div id="plano-alertas"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAINEL: ORÇAMENTO POR CATEGORIA -->
+        <div id="plano-orcamento" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
+          <div class="plano-container">
+            <div class="card">
+              <div class="plano-metas-cabecalho">
+                <h3 class="plano-subtitulo">Orçamento por Categoria</h3>
+                <button type="button" id="btn-novo-orcamento-plano" class="btn-link-adicionar">+ Novo orçamento</button>
+              </div>
+              <div id="plano-lista-orcamentos"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAINEL: METAS -->
+        <div id="plano-metas" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
+          <div class="plano-container">
+            <div class="card">
+              <div class="plano-metas-cabecalho">
+                <h3 class="plano-subtitulo">Metas Financeiras</h3>
+                <button type="button" id="btn-nova-meta-plano" class="btn-link-adicionar">+ Nova meta</button>
+              </div>
+              <div id="plano-lista-metas"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAINEL: RECEITAS PLANEJADAS -->
+        <div id="plano-receitas" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
+          <div class="plano-container">
+            <div class="card">
+              <div class="plano-metas-cabecalho">
+                <h3 class="plano-subtitulo">Receitas Planejadas</h3>
+                <button type="button" id="btn-nova-receita-plano" class="btn-link-adicionar">+ Nova receita</button>
+              </div>
+              <div id="plano-lista-receitas"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAINEL: DESPESAS PLANEJADAS -->
+        <div id="plano-despesas" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
+          <div class="plano-container">
+            <div class="card">
+              <div class="plano-metas-cabecalho">
+                <h3 class="plano-subtitulo">Despesas Planejadas</h3>
+                <button type="button" id="btn-nova-despesa-plano" class="btn-link-adicionar">+ Nova despesa</button>
+              </div>
+              <div id="plano-lista-despesas"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAINEL: COMPARAR PLANEJADO × REAL -->
+        <div id="plano-comparar" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
+          <div class="plano-container">
+            <div class="card">
+              <h3 class="plano-subtitulo">Comparação: Planejado × Real</h3>
+              <div id="plano-comparacao"></div>
+            </div>
+            <div class="card">
+              <h3 class="plano-subtitulo">Recomendações</h3>
+              <div id="plano-recomendacoes"></div>
+            </div>
+          </div>
+        </div>
+
+        <!-- PAINEL: SIMULAÇÕES -->
+        <div id="plano-simular" class="plano-painel" role="tabpanel" tabindex="-1" style="display:none">
+          <div class="plano-container">
+            <div class="card">
+              <h3 class="plano-subtitulo">Simulações</h3>
+              <div class="plano-simulacao-form">
+                <div class="campo">
+                  <label for="simulacao-valor">Economizar por mês</label>
+                  <input type="text" id="simulacao-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" />
+                </div>
+                <button type="button" id="btn-simular" class="btn-primario">Simular</button>
+              </div>
+              <div id="plano-resultado-simulacao"></div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+
+    </main>
+    <div id="modal-meta" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
+      <div class="modal-content">
+        <h3>Meta de gasto</h3>
+        <p class="modal-subtitulo" id="meta-categoria-label">Categoria</p>
+        <form id="form-meta">
+          <input type="hidden" id="meta-categoria-nome" />
+          <div class="campo" id="campo-meta-categoria-select" style="display: none">
+            <label for="meta-categoria-select">Categoria</label>
+            <select id="meta-categoria-select">
+              <option value="" disabled selected>Escolher categoria</option>
+            </select>
+          </div>
+          <div class="campo">
+            <label for="meta-valor">Limite mensal</label>
+            <input type="text" id="meta-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
+          </div>
+          <div class="campo">
+            <label for="meta-data-limite">Data limite (opcional)</label>
+            <input type="date" id="meta-data-limite" />
+            <span class="dica-campo">Se definido, o app calcula quanto guardar por semana</span>
+          </div>
+          <button type="submit" id="btn-salvar-meta">Salvar meta</button>
+          <button type="button" id="btn-remover-meta" class="btn-remover-meta" style="display: none">Remover meta</button>
+          <button type="button" id="btn-fechar-modal-meta">Cancelar</button>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: DEPÓSITO EM META -->
+    <div id="modal-meta-deposito" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
+      <div class="modal-content modal-meta-deposito">
+        <h3 id="titulo-meta-deposito">Depósito na meta</h3>
+
+        <div class="meta-deposito-resumo">
+          <div>
+            <div class="meta-deposito-resumo-label">Depositado</div>
+            <div class="meta-deposito-resumo-valor" id="deposito-valor-depositado">R$ 0,00</div>
+          </div>
+          <div style="text-align: right">
+            <div class="meta-deposito-resumo-label">Meta</div>
+            <div class="meta-deposito-resumo-valor" id="deposito-valor-meta">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div class="meta-deposito-progresso">
+          <div class="meta-deposito-progresso-barra" id="deposito-barra-progresso" style="width: 0%"></div>
+        </div>
+        <div class="meta-deposito-info" id="deposito-info-progresso"></div>
+
+        <form id="form-meta-deposito">
+          <input type="hidden" id="deposito-meta-id" />
+          <div class="campo">
+            <label for="deposito-valor">Valor do depósito</label>
+            <input type="text" id="deposito-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
+          </div>
+          <div class="campo">
+            <label for="deposito-descricao">Descrição (opcional)</label>
+            <input type="text" id="deposito-descricao" placeholder="Ex: Aporte extra" />
+          </div>
+          <button type="submit" id="btn-confirmar-deposito" class="btn-meta-depositar">Depositar</button>
+        </form>
+
+        <h4 style="font-size: 0.78rem; color: var(--cor-texto-suave); margin-bottom: 8px">Histórico de depósitos</h4>
+        <div id="lista-depositos" class="historico-fixa-lista" style="max-height: 180px"></div>
+
+        <button type="button" id="btn-fechar-modal-meta-deposito">Fechar</button>
+      </div>
+    </div>
+
+    <!-- MODAL: NOTIFICAÇÕES -->
+    <div id="modal-plano" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
+      <div class="modal-content">
+        <h3 id="titulo-modal-plano">Novo plano</h3>
+        <form id="form-plano">
+          <input type="hidden" id="plano-editando-id" value="" />
+
+          <div class="campo">
+            <label for="plano-nome">Nome do plano *</label>
+            <input type="text" id="plano-nome" placeholder="Ex: Viagem para Europa" required />
+          </div>
+
+          <div class="campo">
+            <label for="plano-descricao">Descrição (opcional)</label>
+            <textarea id="plano-descricao" rows="2" placeholder="Detalhes sobre o plano..."></textarea>
+          </div>
+
+          <div class="campo">
+            <label for="plano-valor-alvo">Valor alvo (R$) *</label>
+            <input type="text" id="plano-valor-alvo" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
+          </div>
+
+          <div class="campo">
+            <label for="plano-data-limite">Data limite (opcional)</label>
+            <input type="date" id="plano-data-limite" />
+          </div>
+
+          <div class="campo">
+            <label for="plano-prioridade">Prioridade</label>
+            <select id="plano-prioridade">
+              <option value="alta">Alta</option>
+              <option value="media" selected>Média</option>
+              <option value="baixa">Baixa</option>
+            </select>
+          </div>
+
+          <div class="campo">
+            <label>Ícone</label>
+            <div class="plano-icone-selector" id="plano-icone-selector">
+              <button type="button" class="plano-icone-btn" data-icone="🎯">🎯</button>
+              <button type="button" class="plano-icone-btn" data-icone="✈️">✈️</button>
+              <button type="button" class="plano-icone-btn" data-icone="🏠">🏠</button>
+              <button type="button" class="plano-icone-btn" data-icone="🚗">🚗</button>
+              <button type="button" class="plano-icone-btn" data-icone="💻">💻</button>
+              <button type="button" class="plano-icone-btn" data-icone="📚">📚</button>
+              <button type="button" class="plano-icone-btn" data-icone="💍">💍</button>
+              <button type="button" class="plano-icone-btn" data-icone="🎮">🎮</button>
+              <button type="button" class="plano-icone-btn" data-icone="💪">💪</button>
+              <button type="button" class="plano-icone-btn" data-icone="🐕">🐕</button>
+              <button type="button" class="plano-icone-btn" data-icone="🎓">🎓</button>
+              <button type="button" class="plano-icone-btn" data-icone="🏥">🏥</button>
+              <button type="button" class="plano-icone-btn" data-icone="📱">📱</button>
+              <button type="button" class="plano-icone-btn" data-icone="🏖️">🏖️</button>
+              <button type="button" class="plano-icone-btn" data-icone="🎵">🎵</button>
+              <button type="button" class="plano-icone-btn" data-icone="⚙️">⚙️</button>
+            </div>
+            <input type="hidden" id="plano-icone" value="🎯" />
+          </div>
+
+          <div class="campo">
+            <label>Cor</label>
+            <div class="plano-cor-selector" id="plano-cor-selector">
+              <button type="button" class="plano-cor-btn" data-cor="#6366f1" style="background:#6366f1"></button>
+              <button type="button" class="plano-cor-btn" data-cor="#ec4899" style="background:#ec4899"></button>
+              <button type="button" class="plano-cor-btn" data-cor="#f59e0b" style="background:#f59e0b"></button>
+              <button type="button" class="plano-cor-btn" data-cor="#10b981" style="background:#10b981"></button>
+              <button type="button" class="plano-cor-btn" data-cor="#3b82f6" style="background:#3b82f6"></button>
+              <button type="button" class="plano-cor-btn" data-cor="#ef4444" style="background:#ef4444"></button>
+              <button type="button" class="plano-cor-btn" data-cor="#8b5cf6" style="background:#8b5cf6"></button>
+              <button type="button" class="plano-cor-btn" data-cor="#06b6d4" style="background:#06b6d4"></button>
+            </div>
+            <input type="hidden" id="plano-cor" value="#6366f1" />
+          </div>
+
+          <div class="campo">
+            <label class="plano-toggle-label">
+              <span>Compartilhar com outros usuários</span>
+              <div class="plano-toggle">
+                <input type="checkbox" id="plano-compartilhado" />
+                <span class="plano-toggle-slider"></span>
+              </div>
+            </label>
+            <span class="dica-campo">Outros usuários poderão ver este plano.</span>
+          </div>
+
+          <div class="plano-modal-botoes">
+            <button type="submit" id="btn-salvar-plano" class="btn-primario">Salvar</button>
+            <button type="button" id="btn-fechar-modal-plano" class="btn-secundario">Cancelar</button>
+          </div>
+        </form>
+      </div>
+    </div>
+
+    <!-- MODAL: DEPÓSITO EM PLANO -->
+    <div id="modal-plano-deposito" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
+      <div class="modal-content modal-plano-deposito">
+        <h3 id="titulo-plano-deposito">Depósito no plano</h3>
+
+        <div class="plano-deposito-cabecalho" id="plano-deposito-cabecalho">
+          <span class="plano-deposito-icone">🎯</span>
+          <span class="plano-deposito-nome">Plano</span>
+        </div>
+
+        <div class="meta-deposito-resumo">
+          <div>
+            <div class="meta-deposito-resumo-label">Depositado</div>
+            <div class="meta-deposito-resumo-valor" id="plano-dep-valor-depositado">R$ 0,00</div>
+          </div>
+          <div style="text-align: right">
+            <div class="meta-deposito-resumo-label">Objetivo</div>
+            <div class="meta-deposito-resumo-valor" id="plano-dep-valor-objetivo">R$ 0,00</div>
+          </div>
+        </div>
+
+        <div class="meta-deposito-progresso">
+          <div class="meta-deposito-progresso-barra" id="plano-dep-barra-progresso" style="width: 0%"></div>
+        </div>
+        <div class="meta-deposito-info" id="plano-dep-info-progresso"></div>
+
+        <form id="form-plano-deposito">
+          <input type="hidden" id="plano-dep-id" />
+          <div class="campo">
+            <label for="plano-dep-valor">Valor do depósito</label>
+            <input type="text" id="plano-dep-valor" inputmode="decimal" autocomplete="off" placeholder="R$ 0,00" required />
+          </div>
+          <div class="campo">
+            <label for="plano-dep-descricao">Descrição (opcional)</label>
+            <input type="text" id="plano-dep-descricao" placeholder="Ex: Aporte mensal" />
+          </div>
+          <button type="submit" id="btn-confirmar-plano-deposito" class="btn-meta-depositar">Depositar</button>
+        </form>
+
+        <h4 style="font-size: 0.78rem; color: var(--cor-texto-suave); margin-bottom: 8px">Histórico</h4>
+        <div id="lista-plano-depositos" class="historico-fixa-lista" style="max-height: 180px"></div>
+
+        <button type="button" id="btn-fechar-modal-plano-deposito">Fechar</button>
+      </div>
+    </div>
+
+    <!-- MODAL: RENOMEAR CATEGORIA -->
+    <div id="modal-aviso" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
+      <div class="modal-content modal-compacto">
+        <p id="aviso-texto" class="modal-aviso-texto"></p>
+        <button type="button" id="btn-aviso-ok">OK</button>
+      </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAÇÃO (substitui confirm()) -->
+    <div id="modal-confirmacao" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
+      <div class="modal-content modal-compacto">
+        <p id="confirmacao-texto" class="modal-aviso-texto"></p>
+        <div class="modal-confirmacao-acoes">
+          <button type="button" id="btn-confirmacao-confirmar">Confirmar</button>
+          <button type="button" id="btn-confirmacao-cancelar">Cancelar</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- RODAPÉ -->
+
+    <footer class="app-footer" id="app-footer">
+      <div class="footer-linha-superior"></div>
+      <div class="footer-linha1">
+        <span class="footer-brand">Cadimus &copy; 2026</span>
+        <span class="footer-sincronizado" id="footer-sincronizado">
+          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21.21 15.89A10 10 0 1 1 8 2.83"/><path d="M22 12A10 10 0 0 0 12 2v10z"/></svg>
+          <span id="footer-status-texto">Sincronizado</span>
+        </span>
+      </div>
+      <div class="footer-linha2">
+        <span>Versão 1.0.0</span>
+        <span class="footer-sep">·</span>
+        <a href="politica-privacidade.html" class="footer-link" target="_blank">Política de Privacidade</a>
+        <span class="footer-sep">·</span>
+        <a href="termos-uso.html" class="footer-link" target="_blank">Termos de Uso</a>
+        <span class="footer-sep">·</span>
+        <a href="changelog.html" class="footer-link" target="_blank">Changelog</a>
+      </div>
+      <div class="footer-linha3">
+        <span>Desenvolvimento por <a href="https://olinbytedigital.pages.dev/" target="_blank" rel="noopener" class="footer-link footer-link-destaque">Olinbyte Digital</a></span>
+      </div>
+    </footer>
+
+    <script src="js/api-client.js?v=101"></script>
+    <script src="js/auth-api.js?v=100"></script>
+    <script src="js/planning-api.js?v=100"></script>
+    <script src="js/notifications-api.js?v=100"></script>
+    <script src="js/wallets-api.js?v=100"></script>
+    <script src="js/reports-api.js?v=100"></script>
+    <script src="js/entries-api.js?v=100"></script>
+    <script src="js/admin-api.js?v=100"></script>
+    <script src="js/cards-api.js?v=100"></script>
+    <script src="js/budgets-api.js?v=100"></script>
+    <script src="js/goals-api.js?v=100"></script>
+    <script src="js/scheduled-api.js?v=100"></script>
+    <script src="js/auth.js?v=116"></script>
+    <script src="js/ui-formatters.js?v=100"></script>
+    <script src="js/money-utils.js?v=100"></script>
+    <script src="js/money-ui.js?v=100"></script>
+    <script src="js/components.js?v=104"></script>
+    <script src="js/dashboard-views-ui.js?v=105"></script>
+    <script src="js/ui-core.js?v=103"></script>
+    <script src="js/dashboard-layout-ui.js?v=109"></script>
+    <script src="js/wallets-ui.js?v=110"></script>
+    <script src="js/categories-ui.js?v=100"></script>
+    <script src="js/entries-modal-ui.js?v=118"></script>
+    <script src="js/entries-list-ui.js?v=111"></script>
+    <script src="js/notifications-ui.js?v=100"></script>
+    <script src="js/batch-note-ui.js?v=100"></script>
+    <script src="js/period-comparison-ui.js?v=103"></script>
+    <script src="js/global-search-ui.js?v=100"></script>
+    <script src="js/dashboard-summary-ui.js?v=108"></script>
+    <script src="js/entries-loader-ui.js?v=107"></script>
+    <script src="js/dashboard-insights-ui.js?v=100"></script>
+    <script src="js/dashboard-charts-ui.js?v=100"></script>
+    <script src="js/dashboard-health-ui.js?v=102"></script>
+    <script src="js/dashboard-pdf-ui.js?v=100"></script>
+    <script src="js/entries-actions-ui.js?v=100"></script>
+    <script src="js/admin-shell-ui.js?v=100"></script>
+    <script src="js/admin-settings-ui.js?v=102"></script>
+    <script src="js/profile-image-ui.js?v=100"></script>
+    <script src="js/admin-users-ui.js?v=100"></script>
+    <script src="js/admin-categories-ui.js?v=101"></script>
+    <script src="js/reports-shell-ui.js?v=102"></script>
+    <script src="js/reports-charts-ui.js?v=100"></script>
+    <script src="js/reports-tables-ui.js?v=101"></script>
+    <script src="js/reports-export-ui.js?v=100"></script>
+    <script src="js/planning-shell-ui.js?v=106"></script>
+    <script src="js/planning-dashboard-ui.js?v=104"></script>
+    <script src="js/planning-plans-ui.js?v=100"></script>
+    <script src="js/planning-goals-ui.js?v=100"></script>
+    <script src="js/fixed-expenses-ui.js?v=108"></script>
+    <script src="js/installments-ui.js?v=107"></script>
+    <script src="js/budgets-ui.js?v=102"></script>
+    <script src="js/goals-ui.js?v=101"></script>
+    <script src="js/main.js?v=100" defer></script>
+    <script src="js/importar.js?v=100" defer></script>
+    <script src="js/exportar.js?v=100" defer></script>
+    <script src="js/recorrentes.js?v=103" defer></script>
+    <script src="js/bonuses-ui.js?v=104" defer></script>
+  </body>
+</html>

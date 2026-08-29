@@ -6,30 +6,34 @@ let planosCarregados = [];
 let ultimaAtualizacaoPlanejamento = 0;
 let planejamentoDependenciasComErro = false;
 let previsaoSaldoFuturo = { carregando: false, erro: false, lancamentos: [], inicio: null, fim: null };
+let planejamentoConfigurado = false;
 
 // ==========================================
 // [28] PLANEJAMENTO: Planos Financeiros
 // ==========================================
 
 function configurarPlano() {
+  if (planejamentoConfigurado) return;
   const btnPlano = document.getElementById("btn-planejamento");
   const btnVoltar = document.getElementById("btn-voltar-dashboard-plano");
   const secaoDashboard = document.getElementById("dashboard-section");
   const secaoPlano = document.getElementById("planejamento-section");
+  const paginaPlanejamento = document.body?.dataset?.cadimusPage === "planejamento";
 
-  if (!btnPlano || !btnVoltar || !secaoDashboard || !secaoPlano) return;
-
-  btnPlano.addEventListener("click", async () => {
-    secaoDashboard.style.display = "none";
-    secaoPlano.style.display = "flex";
-    secaoPlano.style.flexDirection = "column";
-    await atualizarPlanejamentoVisivel();
+  btnPlano?.addEventListener("click", () => {
+    window.location.href = "planejamento.html";
   });
 
-  btnVoltar.addEventListener("click", () => {
-    secaoPlano.style.display = "none";
-    secaoDashboard.style.display = "block";
-    carregarLancamentos();
+  if (!secaoPlano) {
+    planejamentoConfigurado = true;
+    return;
+  }
+
+  if (!paginaPlanejamento && (!btnVoltar || !secaoDashboard)) return;
+  planejamentoConfigurado = true;
+
+  btnVoltar?.addEventListener("click", () => {
+    window.location.href = "index.html";
   });
 
   configurarTabsPlano();
@@ -38,6 +42,10 @@ function configurarPlano() {
   configurarMetaPlano();
   configurarModalPlano();
   configurarModalPlanoDeposito();
+
+  if (paginaPlanejamento) {
+    setTimeout(() => atualizarPlanejamentoVisivel(), 250);
+  }
 }
 
 function planejamentoEstaVisivel() {

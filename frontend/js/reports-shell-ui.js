@@ -5,33 +5,38 @@
 let relatorioDados = { lancamentos: [], periodo: {}, filtros: {} };
 const relatorioPagina = { atual: 1, porPagina: 20 };
 const CORES_GRAFICO = ["#2e7d32","#c62828","#1565c0","#e65100","#6a1b9a","#00838f","#4e342e","#ad1457","#827717","#00695c","#d84315","#283593"];
+let relatoriosConfigurados = false;
 
 function configurarRelatorios() {
+  if (relatoriosConfigurados) return;
   const btnRel = document.getElementById("btn-relatorios");
   const btnVoltar = document.getElementById("btn-voltar-dashboard-relatorio");
   const secaoDash = document.getElementById("dashboard-section");
   const secaoRel = document.getElementById("relatorios-section");
+  const paginaRelatorios = document.body?.dataset?.cadimusPage === "relatorios";
 
   if (btnRel) {
     btnRel.addEventListener("click", () => {
-      secaoDash.style.display = "none";
-      secaoRel.style.display = "flex";
-      secaoRel.style.flexDirection = "column";
-      inicializarFiltrosRelatorio();
-      carregarDadosRelatorio();
+      window.location.href = "relatorios.html";
     });
   }
   if (btnVoltar) {
     btnVoltar.addEventListener("click", () => {
-      secaoRel.style.display = "none";
-      secaoDash.style.display = "block";
-      carregarLancamentos();
+      window.location.href = "index.html";
     });
   }
+
+  if (!secaoRel && !paginaRelatorios) return;
+  relatoriosConfigurados = true;
 
   configurarTabsRelatorio();
   configurarPeriodoRelatorio();
   configurarExportarRelatorio();
+
+  if (paginaRelatorios) {
+    inicializarFiltrosRelatorio();
+    carregarDadosRelatorio();
+  }
 }
 
 function configurarTabsRelatorio() {
