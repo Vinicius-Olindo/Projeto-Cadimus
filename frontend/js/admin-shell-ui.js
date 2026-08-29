@@ -10,20 +10,18 @@ function configurarPainelAdmin() {
   const btnVoltar = document.getElementById("btn-voltar-dashboard");
   const secaoDashboard = document.getElementById("dashboard-section");
   const secaoAdmin = document.getElementById("admin-section");
+  const paginaConfiguracoes = document.body?.dataset?.cadimusPage === "admin";
 
-  if (!btnAdmin || !btnVoltar || !secaoDashboard || !secaoAdmin) return;
+  if (btnAdmin) {
+    btnAdmin.addEventListener("click", () => {
+      window.location.href = "configuracoes.html";
+    });
+  }
 
-  btnAdmin.addEventListener("click", () => {
-    secaoDashboard.style.display = "none";
-    secaoAdmin.style.display = "flex";
-    secaoAdmin.style.flexDirection = "column";
-    carregarUsuarios();
-  });
+  if (!secaoAdmin) return;
 
-  btnVoltar.addEventListener("click", () => {
-    secaoAdmin.style.display = "none";
-    secaoDashboard.style.display = "block";
-    carregarLancamentos();
+  btnVoltar?.addEventListener("click", () => {
+    window.location.href = "index.html";
   });
 
   configurarSubAbasAdmin();
@@ -31,4 +29,16 @@ function configurarPainelAdmin() {
   configurarSistemaConvites();
   configurarFormularioCategoria();
   configurarZonaDePerigo();
+
+  if (paginaConfiguracoes && typeof carregarUsuarios === "function") {
+    carregarUsuarios();
+    if (sessionStorage.getItem("cadimus_abrir_perfil") === "1") {
+      sessionStorage.removeItem("cadimus_abrir_perfil");
+      setTimeout(() => {
+        if (typeof abrirPerfilUsuario === "function") abrirPerfilUsuario();
+      }, 500);
+    }
+  } else if (secaoDashboard && secaoAdmin) {
+    secaoAdmin.style.display = "none";
+  }
 }

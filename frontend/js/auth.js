@@ -798,20 +798,18 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 
 function abrirConfiguracoesAdmin() {
-  const secaoDashboard = document.getElementById("dashboard-section");
-  const secaoAdmin = document.getElementById("admin-section");
-  if (!secaoDashboard || !secaoAdmin) return;
-  secaoDashboard.style.display = "none";
-  secaoAdmin.style.display = "flex";
-  secaoAdmin.style.flexDirection = "column";
-  if (typeof carregarUsuarios === "function") carregarUsuarios();
+  window.location.href = "configuracoes.html";
 }
 
 function abrirPerfilUsuario() {
   const secaoDashboard = document.getElementById("dashboard-section");
   const secaoAdmin = document.getElementById("admin-section");
-  if (!secaoDashboard || !secaoAdmin) return;
-  secaoDashboard.style.display = "none";
+  if (!secaoAdmin) {
+    sessionStorage.setItem("cadimus_abrir_perfil", "1");
+    window.location.href = "configuracoes.html";
+    return;
+  }
+  if (secaoDashboard) secaoDashboard.style.display = "none";
   secaoAdmin.style.display = "flex";
   secaoAdmin.style.flexDirection = "column";
 
