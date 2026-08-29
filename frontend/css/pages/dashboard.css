@@ -772,6 +772,17 @@ button.risco-financeiro-item:hover {
   }
 }
 
+@media (min-width: 1500px) {
+  #conteudo-periodo {
+    grid-template-columns: minmax(0, 1fr) minmax(430px, 0.36fr);
+    gap: 24px;
+  }
+
+  .area-controle {
+    gap: 18px;
+  }
+}
+
 @media (max-width: 720px) {
   .hoje-dashboard-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));

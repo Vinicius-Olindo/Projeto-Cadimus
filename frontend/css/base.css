@@ -52,21 +52,23 @@ button {
    ========================================== */
 .app-container {
   --app-padding-vertical: 48px;
+  width: 100%;
+  max-width: 100%;
   padding: 28px clamp(16px, 2vw, 32px) 20px;
   flex: 1;
 }
 
 /* Dashboard é o painel de controle de verdade — precisa de espaço pra duas colunas */
-#dashboard-section {
-  width: 100%;
-  max-width: 1360px;
+#dashboard-section,
+#planejamento-section,
+#relatorios-section {
+  width: min(100%, 1760px);
   margin: 0 auto;
 }
 
 #admin-section {
-  max-width: 1180px;
+  width: min(100%, 1360px);
   margin: 0 auto;
-  width: 100%;
 }
 
 /* ==========================================

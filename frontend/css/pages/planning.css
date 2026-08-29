@@ -67,7 +67,7 @@
 }
 
 .plano-container {
-  max-width: 700px;
+  width: min(100%, 1180px);
   margin: 0 auto;
   padding: 1.5rem;
   display: flex;
@@ -76,7 +76,7 @@
 }
 
 .plano-overview {
-  width: min(100% - 48px, 1120px);
+  width: min(100% - 48px, 1380px);
   margin: 14px auto 0;
   padding: 18px;
   display: grid;
