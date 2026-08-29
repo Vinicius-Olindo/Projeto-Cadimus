@@ -265,6 +265,10 @@ function encontrarSugestaoCategoriaLancamento(descricao) {
   })[0] || null;
 }
 
+function sugestaoCategoriaPodeSerAutomatica(sugestao) {
+  return Boolean(sugestao && sugestao.usos >= 2 && sugestao.pontos >= 6);
+}
+
 function atualizarSugestaoCategoriaLancamento() {
   const campoDescricao = document.getElementById("descricao");
   const campoCategoria = document.getElementById("categoria");
@@ -276,6 +280,15 @@ function atualizarSugestaoCategoriaLancamento() {
   if (!sugestao || categoriaAtual === sugestao.categoria.toLowerCase()) {
     botao.hidden = true;
     botao.dataset.categoria = "";
+    return;
+  }
+
+  if (!categoriaAtual && sugestaoCategoriaPodeSerAutomatica(sugestao)) {
+    adicionarCategoriaAoSelect(sugestao.categoria);
+    campoCategoria.value = sugestao.categoria;
+    botao.hidden = false;
+    botao.dataset.categoria = sugestao.categoria;
+    botao.innerHTML = `Categoria aplicada: <strong>${escaparHtml(sugestao.categoria)}</strong> <span>Alterar se precisar</span>`;
     return;
   }
 
