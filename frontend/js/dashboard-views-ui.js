@@ -6,12 +6,22 @@ const DASHBOARD_VISAO_STORAGE = "cadimus_dashboard_visao";
 const DASHBOARD_VISOES = {
   hoje: {
     titulo: "Lançamentos",
-    cards: ["area-resumo", "card-hoje-dashboard", "card-lancamentos", "card-modelos-lancamento"],
+    cards: [
+      "area-resumo",
+      "card-hoje-dashboard",
+      "card-lancamentos",
+      "card-modelos-lancamento",
+      "card-despesas-fixas",
+      "card-compras-parceladas",
+      "card-bonificacoes",
+    ],
   },
   dashboard: {
     titulo: "Dashboard",
     cards: [
       "area-resumo",
+      "card-score",
+      "card-riscos-financeiros",
       "card-calendario-financeiro",
       "card-comparativo-periodo",
       "resumo-categorias",
@@ -21,17 +31,7 @@ const DASHBOARD_VISOES = {
       "card-metas-mes-dashboard",
       "card-orcamentos",
       "card-cartoes-credito",
-    ],
-  },
-  central: {
-    titulo: "Central financeira",
-    cards: [
-      "card-score",
-      "card-riscos-financeiros",
       "card-assinaturas",
-      "card-despesas-fixas",
-      "card-compras-parceladas",
-      "card-bonificacoes",
     ],
   },
 };
@@ -114,6 +114,6 @@ function configurarVisoesDashboard() {
   });
 
   const visaoSalva = lerLocalStorageSeguro(DASHBOARD_VISAO_STORAGE) || "hoje";
-  const visaoInicial = visaoSalva === "lancamentos" ? "hoje" : visaoSalva;
+  const visaoInicial = ["lancamentos", "central"].includes(visaoSalva) ? "hoje" : visaoSalva;
   ativarVisaoDashboard(DASHBOARD_VISOES[visaoInicial] ? visaoInicial : "hoje", { salvar: false });
 }
