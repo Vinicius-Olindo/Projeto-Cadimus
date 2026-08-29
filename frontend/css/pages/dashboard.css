@@ -798,8 +798,7 @@ button.risco-financeiro-item:hover {
     align-items: start;
   }
 
-  #conteudo-periodo[data-dashboard-visao-atual="hoje"],
-  #conteudo-periodo[data-dashboard-visao-atual="lancamentos"] {
+  #conteudo-periodo[data-dashboard-visao-atual="hoje"] {
     grid-template-columns: minmax(0, 1fr);
   }
 
@@ -810,10 +809,6 @@ button.risco-financeiro-item:hover {
   #conteudo-periodo[data-dashboard-visao-atual="central"] .area-controle {
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    position: static;
-  }
-
-  #conteudo-periodo[data-dashboard-visao-atual="lancamentos"] .area-controle {
     position: static;
   }
 
@@ -835,10 +830,25 @@ button.risco-financeiro-item:hover {
   }
 
   #conteudo-periodo[data-dashboard-visao-atual="hoje"] .area-lancamentos,
-  #conteudo-periodo[data-dashboard-visao-atual="lancamentos"] .area-lancamentos,
-  #conteudo-periodo[data-dashboard-visao-atual="lancamentos"] .area-controle,
+  #conteudo-periodo[data-dashboard-visao-atual="hoje"] .area-controle,
   #conteudo-periodo[data-dashboard-visao-atual="central"] .area-controle {
     grid-column: 1 / -1;
+  }
+}
+
+@media (min-width: 1180px) {
+  #conteudo-periodo[data-dashboard-visao-atual="hoje"] {
+    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.28fr);
+  }
+
+  #conteudo-periodo[data-dashboard-visao-atual="hoje"] .area-lancamentos {
+    grid-column: 1;
+  }
+
+  #conteudo-periodo[data-dashboard-visao-atual="hoje"] .area-controle {
+    grid-column: 2;
+    position: sticky;
+    top: 20px;
   }
 }
 
