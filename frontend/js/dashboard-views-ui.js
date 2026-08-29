@@ -5,7 +5,7 @@
 const DASHBOARD_VISAO_STORAGE = "cadimus_dashboard_visao";
 const DASHBOARD_VISOES = {
   hoje: {
-    titulo: "Hoje",
+    titulo: "Lançamentos",
     cards: ["area-resumo", "card-hoje-dashboard", "card-lancamentos", "card-modelos-lancamento"],
   },
   dashboard: {
