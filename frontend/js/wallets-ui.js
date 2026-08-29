@@ -12,6 +12,12 @@
 let carteirasDoUsuario = [];
 let ultimaRequisicaoCarteiras = 0;
 
+function obterNomeCarteiraExibicao(carteira) {
+  const nome = String(carteira?.nome || "Carteira").trim();
+  if (carteira?.tipo !== "compartilhada") return nome;
+  return nome.replace(/\s*\((compartilhada|compartilhado)\)\s*$/i, "").trim() || nome;
+}
+
 async function carregarCarteiras() {
   const container = document.getElementById("carteira-tabs");
   const inputOculto = document.getElementById("seletor-carteira");
@@ -45,6 +51,7 @@ function renderizarTabsCarteira() {
   container.innerHTML = "";
 
   carteirasDoUsuario.forEach((carteira, indice) => {
+    const nomeExibicao = obterNomeCarteiraExibicao(carteira);
     const wrapper = document.createElement("div");
     wrapper.className = "tab-carteira-wrapper";
     wrapper.draggable = true;
@@ -83,7 +90,7 @@ function renderizarTabsCarteira() {
     btn.type = "button";
     btn.className = "tab-carteira";
     btn.dataset.valor = carteira.id;
-    btn.title = carteira.tipo === "compartilhada" ? `${carteira.nome} · compartilhada` : `${carteira.nome} · só sua`;
+    btn.title = carteira.tipo === "compartilhada" ? `${nomeExibicao} · compartilhada` : `${nomeExibicao} · só sua`;
     if (aindaExiste && String(carteira.id) === String(valorAtual)) {
       btn.classList.add("ativo");
     }
@@ -96,7 +103,13 @@ function renderizarTabsCarteira() {
       ? `<svg class="tab-carteira-icone" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`
       : `<svg class="tab-carteira-icone" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>`;
 
-    btn.innerHTML = svgIcone + `<span class="tab-carteira-nome">${escaparHtml(carteira.nome)}</span>`;
+    btn.innerHTML = `
+      ${svgIcone}
+      <span class="tab-carteira-texto">
+        <span class="tab-carteira-nome">${escaparHtml(nomeExibicao)}</span>
+        ${carteira.tipo === "compartilhada" ? '<span class="tab-carteira-tipo">Compartilhada</span>' : ""}
+      </span>
+    `;
     btn.addEventListener("click", () => selecionarCarteira(carteira.id));
     wrapper.appendChild(btn);
 

@@ -4,15 +4,16 @@
 .carteira-tabs {
   display: inline-flex;
   align-items: center;
-  gap: 4px;
-  padding: 4px;
-  background: color-mix(in srgb, var(--cor-fundo-card) 88%, var(--cor-superficie));
-  border: 1px solid var(--cor-pauta-fraca);
-  border-radius: 999px;
+  gap: 6px;
+  padding: 5px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 82%, var(--cor-superficie));
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 84%, transparent);
+  border-radius: 18px;
   overflow-x: auto;
   max-width: 100%;
   scrollbar-width: none;
   min-width: 0;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--cor-sombra) 20%, transparent);
 }
 
 .carteira-tabs::-webkit-scrollbar {
@@ -20,11 +21,12 @@
 }
 
 .tab-carteira {
-  background: color-mix(in srgb, var(--cor-superficie-alta) 72%, transparent);
+  min-height: 34px;
+  background: transparent;
   color: color-mix(in srgb, var(--cor-texto) 78%, var(--cor-texto-suave));
   border: 1px solid transparent;
-  padding: 6px 11px;
-  border-radius: 999px;
+  padding: 6px 10px;
+  border-radius: 14px;
   font-size: 0.78rem;
   font-weight: 600;
   white-space: nowrap;
@@ -41,11 +43,29 @@
   transition: opacity 0.12s;
 }
 
+.tab-carteira-texto {
+  display: inline-flex;
+  align-items: baseline;
+  gap: 6px;
+  min-width: 0;
+}
+
 .tab-carteira-nome {
   line-height: 1;
   min-width: 0;
   overflow: hidden;
   text-overflow: ellipsis;
+}
+
+.tab-carteira-tipo {
+  padding: 2px 5px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-marca) 11%, transparent);
+  color: var(--cor-marca-forte);
+  font-size: 0.58rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
 }
 
 .tab-carteira.ativo {
@@ -58,6 +78,11 @@
 .tab-carteira.ativo .tab-carteira-icone {
   opacity: 0.75;
   stroke: var(--cor-superficie-alta);
+}
+
+.tab-carteira.ativo .tab-carteira-tipo {
+  background: color-mix(in srgb, var(--cor-superficie-alta) 18%, transparent);
+  color: var(--cor-superficie-alta);
 }
 
 /* Carteira compartilhada usa o mesmo padrão de cor; o tipo é indicado pelo ícone. */
@@ -89,19 +114,21 @@
 /* Separador entre carteiras e o botão + */
 .tab-carteira-separador {
   width: 1px;
-  height: 16px;
+  height: 20px;
   background: color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent);
   flex-shrink: 0;
-  margin: 0 1px;
+  margin: 0 2px;
 }
 
 /* Botão + para nova carteira: ícone sem label, compacto */
 .tab-carteira-add {
-  background: color-mix(in srgb, var(--cor-marca) 8%, transparent);
+  min-width: 34px;
+  min-height: 34px;
+  background: color-mix(in srgb, var(--cor-marca) 10%, transparent);
   border: 1px solid transparent;
   color: var(--cor-marca);
-  padding: 6px 9px;
-  border-radius: 999px;
+  padding: 0;
+  border-radius: 13px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -119,12 +146,19 @@
 .tab-carteira-wrapper {
   display: inline-flex;
   align-items: center;
-  gap: 3px;
+  gap: 2px;
   flex-shrink: 0;
-  padding-right: 2px;
+  padding: 2px;
   cursor: grab;
-  border-radius: 999px;
-  transition: opacity 0.12s, box-shadow 0.12s;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 74%, transparent);
+  border-radius: 16px;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 54%, transparent);
+  transition: opacity 0.12s, box-shadow 0.12s, border-color 0.12s, background-color 0.12s;
+}
+
+.tab-carteira-wrapper:has(.tab-carteira.ativo) {
+  border-color: color-mix(in srgb, var(--cor-texto) 18%, transparent);
+  background: color-mix(in srgb, var(--cor-texto) 5%, transparent);
 }
 
 .tab-carteira-wrapper.arrastando {
@@ -136,18 +170,18 @@
 }
 
 .btn-gerenciar-membros {
-  background: color-mix(in srgb, var(--cor-superficie-alta) 68%, transparent);
+  background: transparent;
   border: 1px solid transparent;
   color: var(--cor-texto-suave);
   font-size: 0.7rem;
   padding: 4px;
-  border-radius: 999px;
+  border-radius: 12px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
   flex-shrink: 0;
-  width: 21px;
-  height: 21px;
+  width: 28px;
+  height: 28px;
 }
 
 .btn-gerenciar-membros:hover {
@@ -188,6 +222,11 @@
 .dark-mode .tab-carteira.ativo .tab-carteira-icone,
 .dark-mode .tab-carteira.tab-compartilhada.ativo .tab-carteira-icone {
   stroke: var(--cor-marca-forte);
+}
+
+.dark-mode .tab-carteira.ativo .tab-carteira-tipo,
+.dark-mode .tab-carteira.tab-compartilhada.ativo .tab-carteira-tipo {
+  color: var(--cor-marca-forte);
 }
 
 .dark-mode .tab-carteira:not(.ativo):hover,
