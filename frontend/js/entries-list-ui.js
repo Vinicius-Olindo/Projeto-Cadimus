@@ -304,7 +304,14 @@ function renderizarListaLancamentos() {
 
   const hoje = new Date();
   const filtrados = ultimoLoteLancamentos.filter((l) => {
-    if (termo && !l.descricao.toLowerCase().includes(termo) && !l.categoria.toLowerCase().includes(termo)) return false;
+    const camposBusca = [
+      l.descricao,
+      l.categoria,
+      l.data_compra,
+      l.status,
+      l.meio_pagamento,
+    ].map((valor) => String(valor || "").toLowerCase());
+    if (termo && !camposBusca.some((valor) => valor.includes(termo))) return false;
     if (tipoFiltro && l.tipo !== tipoFiltro) return false;
     if (statusFiltro) {
       const dataVenc = new Date(l.data_compra + "T23:59:59");

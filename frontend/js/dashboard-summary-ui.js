@@ -125,6 +125,114 @@ function renderizarTelaHojeDashboard(lancamentos = [], totais = {}) {
   configurarAcoesTelaHojeDashboard();
 }
 
+function obterPeriodoSelecionadoCalendario() {
+  const inputMes = document.getElementById("filtro-mes")?.value || "";
+  const [ano, mes] = inputMes.split("-").map(Number);
+  if (!ano || !mes) return null;
+  return { ano, mes, totalDias: new Date(ano, mes, 0).getDate() };
+}
+
+function segundaComoPrimeiroDiaSemana(data) {
+  const dia = data.getDay();
+  return dia === 0 ? 6 : dia - 1;
+}
+
+function renderizarCalendarioFinanceiro(lancamentos = []) {
+  const card = document.getElementById("card-calendario-financeiro");
+  const grid = document.getElementById("calendario-financeiro-grid");
+  const resumo = document.getElementById("calendario-financeiro-resumo");
+  if (!card || !grid) return;
+
+  const periodo = obterPeriodoSelecionadoCalendario();
+  const dados = Array.isArray(lancamentos) ? lancamentos : [];
+  if (!periodo) {
+    card.style.display = "none";
+    return;
+  }
+
+  const porDia = new Map();
+  dados.forEach((lancamento) => {
+    const data = String(lancamento.data_compra || "");
+    const dia = Number(data.slice(8, 10));
+    if (!dia || data.slice(0, 7) !== `${periodo.ano}-${String(periodo.mes).padStart(2, "0")}`) return;
+    const atual = porDia.get(dia) || { receitas: 0, despesas: 0, pendentes: 0, itens: 0 };
+    const valor = valorMonetario(lancamento);
+    atual.itens += 1;
+    if (lancamento.status !== "pago") atual.pendentes += valor;
+    if (lancamento.tipo === "receita") atual.receitas += valor;
+    else atual.despesas += valor;
+    porDia.set(dia, atual);
+  });
+
+  card.style.display = "flex";
+  const totalItens = dados.length;
+  const diasComMovimento = porDia.size;
+  if (resumo) {
+    resumo.textContent = totalItens > 0
+      ? `${totalItens} lançamento(s) em ${diasComMovimento} dia(s) deste mês.`
+      : "Sem lançamentos neste mês por enquanto.";
+  }
+
+  const primeiroDia = new Date(periodo.ano, periodo.mes - 1, 1);
+  const espacosAntes = segundaComoPrimeiroDiaSemana(primeiroDia);
+  const celulas = [];
+
+  for (let i = 0; i < espacosAntes; i += 1) {
+    celulas.push('<span class="calendario-dia calendario-dia-vazio" aria-hidden="true"></span>');
+  }
+
+  for (let dia = 1; dia <= periodo.totalDias; dia += 1) {
+    const info = porDia.get(dia);
+    const hojeISO = dataISOHojeDashboard();
+    const dataISO = `${periodo.ano}-${String(periodo.mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+    const classes = ["calendario-dia"];
+    if (dataISO === hojeISO) classes.push("calendario-dia-hoje");
+    if (info?.pendentes > 0) classes.push("calendario-dia-pendente");
+    if (info?.despesas > 0) classes.push("calendario-dia-despesa");
+    if (info?.receitas > 0) classes.push("calendario-dia-receita");
+
+    const saldoDia = (info?.receitas || 0) - (info?.despesas || 0);
+    const valorPrincipal = info ? formatadorBRL.format(Math.abs(saldoDia || info.pendentes || 0)) : "";
+    const titulo = info
+      ? `${dia}: ${info.itens} lançamento(s), saldo ${formatadorBRL.format(saldoDia)}, pendente ${formatadorBRL.format(info.pendentes)}`
+      : `${dia}: sem movimento`;
+
+    celulas.push(`
+      <button type="button" class="${classes.join(" ")}" title="${escaparHtml(titulo)}" data-calendario-dia="${dia}">
+        <span class="calendario-dia-numero">${dia}</span>
+        ${info ? `<span class="calendario-dia-valor">${valorPrincipal}</span>` : ""}
+        ${info ? `<span class="calendario-dia-pontos">
+          ${info.receitas > 0 ? '<i class="ponto-receita"></i>' : ""}
+          ${info.despesas > 0 ? '<i class="ponto-despesa"></i>' : ""}
+          ${info.pendentes > 0 ? '<i class="ponto-pendente"></i>' : ""}
+        </span>` : ""}
+      </button>
+    `);
+  }
+
+  grid.innerHTML = celulas.join("");
+  grid.querySelectorAll("[data-calendario-dia]").forEach((botao) => {
+    botao.onclick = () => {
+      const dia = Number(botao.dataset.calendarioDia);
+      const dataISO = `${periodo.ano}-${String(periodo.mes).padStart(2, "0")}-${String(dia).padStart(2, "0")}`;
+      const campoBusca = document.getElementById("busca-lancamento");
+      const filtroTipo = document.getElementById("filtro-tipo");
+      const filtroStatus = document.getElementById("filtro-status");
+      const filtroCategoria = document.getElementById("filtro-categoria-lancamento");
+      if (campoBusca) campoBusca.value = dataISO;
+      if (filtroTipo) filtroTipo.value = "";
+      if (filtroStatus) filtroStatus.value = "";
+      if (filtroCategoria) filtroCategoria.value = "";
+      termoBuscaAtual = dataISO;
+      if (typeof resetarPaginacaoLancamentos === "function") resetarPaginacaoLancamentos();
+      if (typeof renderizarListaLancamentos === "function") renderizarListaLancamentos();
+      document.querySelector(".lancamentos-cabecalho")?.scrollIntoView({ behavior: "smooth", block: "start" });
+      if (!porDia.has(dia)) mostrarToast("Sem lançamentos nesse dia.", "info");
+      else mostrarToast(`Mostrando lançamentos de ${String(dia).padStart(2, "0")}.`, "info");
+    };
+  });
+}
+
 // --- RAIO-X POR CATEGORIA (só despesas, é o que faz sentido controlar) ---
 function renderizarResumoCategorias(totaisPorCategoria) {
   const card = document.getElementById("resumo-categorias");

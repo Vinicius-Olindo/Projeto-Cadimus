@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=101" />
-    <link rel="stylesheet" href="css/style.css?v=154" />
+    <link rel="stylesheet" href="css/style.css?v=155" />
   </head>
   <body>
     <main class="app-container">
@@ -383,6 +383,31 @@
                 <button type="button" id="hoje-btn-novo" class="btn-hoje-primario">+ Novo lançamento</button>
                 <button type="button" id="hoje-btn-pendentes" class="btn-hoje-secundario">Ver pendências</button>
                 <button type="button" id="hoje-btn-buscar" class="btn-hoje-secundario">Buscar</button>
+              </div>
+            </div>
+
+            <div class="card card-calendario-financeiro" id="card-calendario-financeiro" style="display: none">
+              <div class="calendario-financeiro-topo">
+                <div>
+                  <span class="hoje-dashboard-eyebrow">Calendário</span>
+                  <h3>Agenda financeira</h3>
+                  <p id="calendario-financeiro-resumo">Despesas, receitas e pendências distribuídas pelo mês.</p>
+                </div>
+              </div>
+              <div class="calendario-financeiro-semana" aria-hidden="true">
+                <span>Seg</span>
+                <span>Ter</span>
+                <span>Qua</span>
+                <span>Qui</span>
+                <span>Sex</span>
+                <span>Sáb</span>
+                <span>Dom</span>
+              </div>
+              <div class="calendario-financeiro-grid" id="calendario-financeiro-grid"></div>
+              <div class="calendario-financeiro-legenda">
+                <span><i class="legenda-receita"></i> Receita</span>
+                <span><i class="legenda-despesa"></i> Despesa</span>
+                <span><i class="legenda-pendente"></i> Pendente</span>
               </div>
             </div>
 
@@ -2602,17 +2627,17 @@
     <script src="js/money-ui.js?v=100"></script>
     <script src="js/components.js?v=104"></script>
     <script src="js/ui-core.js?v=102"></script>
-    <script src="js/dashboard-layout-ui.js?v=105"></script>
+    <script src="js/dashboard-layout-ui.js?v=106"></script>
     <script src="js/wallets-ui.js?v=108"></script>
     <script src="js/categories-ui.js?v=100"></script>
     <script src="js/entries-modal-ui.js?v=115"></script>
-    <script src="js/entries-list-ui.js?v=110"></script>
+    <script src="js/entries-list-ui.js?v=111"></script>
     <script src="js/notifications-ui.js?v=100"></script>
     <script src="js/batch-note-ui.js?v=100"></script>
     <script src="js/period-comparison-ui.js?v=102"></script>
     <script src="js/global-search-ui.js?v=100"></script>
-    <script src="js/dashboard-summary-ui.js?v=105"></script>
-    <script src="js/entries-loader-ui.js?v=104"></script>
+    <script src="js/dashboard-summary-ui.js?v=106"></script>
+    <script src="js/entries-loader-ui.js?v=105"></script>
     <script src="js/dashboard-insights-ui.js?v=100"></script>
     <script src="js/dashboard-charts-ui.js?v=100"></script>
     <script src="js/dashboard-health-ui.js?v=101"></script>
