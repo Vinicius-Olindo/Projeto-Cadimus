@@ -44,7 +44,7 @@ async function renderizarComparativoPeriodo() {
     fimAtual = new Date(agora.getFullYear(), (trimestreAtual + 1) * 3, 0, 23, 59, 59);
     inicioAnterior = new Date(agora.getFullYear(), (trimestreAtual - 1) * 3, 1);
     fimAnterior = new Date(agora.getFullYear(), trimestreAtual * 3, 0, 23, 59, 59);
-    rotuloAtual = `1° Tri ${agora.getFullYear()}`;
+    rotuloAtual = `${trimestreAtual + 1}° Tri ${agora.getFullYear()}`;
     rotuloAnterior = `4° Tri ${trimestreAtual === 0 ? agora.getFullYear() - 1 : agora.getFullYear()}`;
     if (trimestreAtual === 0) {
       rotuloAnterior = `4° Tri ${agora.getFullYear() - 1}`;
@@ -136,4 +136,45 @@ async function renderizarComparativoPeriodo() {
     variacaoEl.className = `periodo-variacao-valor ${variacao >= 0 ? "positivo" : "negativo"}`;
     if (variacaoDetalheEl) variacaoDetalheEl.textContent = "vs período anterior";
   }
+
+  renderizarComparativoPeriodoVisual(rotuloAtual, rotuloAnterior);
+}
+
+function renderizarComparativoPeriodoVisual(rotuloAtual, rotuloAnterior) {
+  const container = document.getElementById("comparativo-periodo-visual");
+  if (!container) return;
+
+  const linhas = [
+    { nome: "Receitas", atual: periodoDadosAtual.receitas, anterior: periodoDadosAnterior.receitas, classe: "receita" },
+    { nome: "Despesas", atual: periodoDadosAtual.despesas, anterior: periodoDadosAnterior.despesas, classe: "despesa" },
+    { nome: "Saldo", atual: periodoDadosAtual.saldo, anterior: periodoDadosAnterior.saldo, classe: periodoDadosAtual.saldo >= periodoDadosAnterior.saldo ? "receita" : "despesa" },
+  ];
+  const maior = Math.max(...linhas.flatMap((linha) => [Math.abs(linha.atual), Math.abs(linha.anterior)]), 1);
+
+  container.innerHTML = linhas.map((linha) => {
+    const atualPct = Math.max(4, Math.round((Math.abs(linha.atual) / maior) * 100));
+    const anteriorPct = Math.max(4, Math.round((Math.abs(linha.anterior) / maior) * 100));
+    const diferenca = linha.atual - linha.anterior;
+    const classeDiferenca = diferenca >= 0 ? "positivo" : "negativo";
+    const sinal = diferenca >= 0 ? "+" : "−";
+
+    return `
+      <div class="comparativo-visual-linha">
+        <div class="comparativo-visual-topo">
+          <strong>${linha.nome}</strong>
+          <span class="${classeDiferenca}">${sinal} ${formatadorBRL.format(Math.abs(diferenca))}</span>
+        </div>
+        <div class="comparativo-visual-barras">
+          <span title="${rotuloAtual}: ${formatadorBRL.format(linha.atual)}">
+            <i class="comparativo-visual-barra comparativo-visual-${linha.classe}" style="width:${atualPct}%"></i>
+            <b>${rotuloAtual}</b>
+          </span>
+          <span title="${rotuloAnterior}: ${formatadorBRL.format(linha.anterior)}">
+            <i class="comparativo-visual-barra comparativo-visual-anterior" style="width:${anteriorPct}%"></i>
+            <b>${rotuloAnterior}</b>
+          </span>
+        </div>
+      </div>
+    `;
+  }).join("");
 }

@@ -1022,6 +1022,83 @@ button.risco-financeiro-item:hover {
   gap: 12px;
 }
 
+.comparativo-periodo-visual {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.comparativo-visual-linha {
+  min-width: 0;
+  padding: 11px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 76%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 64%, transparent);
+}
+
+.comparativo-visual-topo {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-bottom: 8px;
+  font-size: 0.74rem;
+}
+
+.comparativo-visual-topo span {
+  font-family: var(--fonte-mono);
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.comparativo-visual-topo .positivo {
+  color: var(--cor-receita);
+}
+
+.comparativo-visual-topo .negativo {
+  color: var(--cor-despesa);
+}
+
+.comparativo-visual-barras {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.comparativo-visual-barras span {
+  min-width: 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 7px;
+}
+
+.comparativo-visual-barras b {
+  color: var(--cor-texto-suave);
+  font-size: 0.62rem;
+  font-weight: 700;
+}
+
+.comparativo-visual-barra {
+  height: 8px;
+  min-width: 8px;
+  display: block;
+  border-radius: 999px;
+  background: var(--cor-marca);
+}
+
+.comparativo-visual-receita {
+  background: var(--cor-receita);
+}
+
+.comparativo-visual-despesa {
+  background: var(--cor-despesa);
+}
+
+.comparativo-visual-anterior {
+  background: color-mix(in srgb, var(--cor-texto-suave) 42%, transparent);
+}
+
 .periodo-coluna {
   min-width: 130px;
   display: flex;
@@ -1154,6 +1231,10 @@ button.risco-financeiro-item:hover {
 
 @media (max-width: 980px) {
   .comparativo-periodo-conteudo {
+    grid-template-columns: 1fr;
+  }
+
+  .comparativo-periodo-visual {
     grid-template-columns: 1fr;
   }
 
