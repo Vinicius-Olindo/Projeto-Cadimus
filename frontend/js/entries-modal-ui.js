@@ -219,6 +219,11 @@ function validarAnexoLancamentoNoCliente(url) {
   }
 }
 
+function obterDescricaoCopiaLancamento(descricao) {
+  const texto = String(descricao || "").trim();
+  return /\s-\sC[ÓO]PIA$/i.test(texto) ? texto : `${texto} - CÓPIA`;
+}
+
 async function preencherModalLancamento(lancamento, { modo = "editar" } = {}) {
   await popularSelectCategorias(document.getElementById("categoria"));
   adicionarCategoriaAoSelect(lancamento.categoria);
@@ -227,7 +232,7 @@ async function preencherModalLancamento(lancamento, { modo = "editar" } = {}) {
   document.getElementById("form-lancamento")?.reset();
   document.getElementById("lancamento-editando-id").value = duplicando ? "" : lancamento.id;
   document.getElementById("tipo-gasto").value = lancamento.tipo;
-  document.getElementById("descricao").value = lancamento.descricao;
+  document.getElementById("descricao").value = duplicando ? obterDescricaoCopiaLancamento(lancamento.descricao) : lancamento.descricao;
   definirValorInputMonetario("valor", valorMonetario(lancamento));
   document.getElementById("data-compra").value = duplicando ? obterDataLocalISOHoje() : String(lancamento.data_compra).slice(0, 10);
   document.getElementById("categoria").value = lancamento.categoria;
