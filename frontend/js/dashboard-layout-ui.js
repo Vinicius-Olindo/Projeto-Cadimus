@@ -23,6 +23,7 @@ const DASHBOARD_LAYOUT_AREAS = [
       "card-orcamentos",
       "card-cartoes-credito",
       "card-riscos-financeiros",
+      "card-modelos-lancamento",
       "card-score",
     ],
   },

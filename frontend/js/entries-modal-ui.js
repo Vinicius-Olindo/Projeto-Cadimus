@@ -256,6 +256,39 @@ async function preencherModalLancamento(lancamento, { modo = "editar" } = {}) {
   trapFoco(document.getElementById("modal-lancamento"));
 }
 
+async function abrirModalModeloLancamento(modelo = {}) {
+  const carteiraAtual = document.getElementById("seletor-carteira").value;
+  if (!carteiraAtual) {
+    await mostrarAviso("Aguarde suas carteiras carregarem antes de lançar algo.");
+    return;
+  }
+
+  await popularSelectCategorias(document.getElementById("categoria"));
+  adicionarCategoriaAoSelect(modelo.categoria);
+  document.getElementById("form-lancamento")?.reset();
+  await popularSelectCartoesCredito?.(document.getElementById("cartao-credito-lancamento"), carteiraAtual, modelo.cartao_credito_id || "");
+  document.getElementById("lancamento-editando-id").value = "";
+  document.getElementById("tipo-gasto").value = modelo.tipo || "despesa";
+  document.getElementById("descricao").value = modelo.descricao || "";
+  definirValorInputMonetario("valor", valorMonetario(modelo));
+  document.getElementById("data-compra").valueAsDate = new Date();
+  document.getElementById("categoria").value = modelo.categoria || "";
+  document.getElementById("meio-pagamento").value = modelo.meio_pagamento || "pix";
+  document.getElementById("status-pagamento").value = modelo.status || "pendente";
+  document.getElementById("nota-lancamento").value = modelo.nota || "";
+  document.getElementById("anexo-url-lancamento").value = "";
+  document.getElementById("anexo-nome-lancamento").value = "";
+  document.getElementById("cartao-credito-lancamento").value = modelo.cartao_credito_id || "";
+  document.getElementById("meio-pagamento")?.dispatchEvent(new Event("change"));
+  document.getElementById("titulo-modal-lancamento").innerText = "Novo pelo modelo";
+  document.getElementById("btn-salvar-lancamento").innerText = "Salvar lançamento";
+  alternarAtalhosModalLancamento(true);
+  const subtitulo = document.getElementById("subtitulo-modal-lancamento");
+  if (subtitulo) subtitulo.innerText = "Modelo preenchido. Revise data, valor e carteira antes de salvar.";
+  document.getElementById("modal-lancamento").style.display = "flex";
+  trapFoco(document.getElementById("modal-lancamento"));
+}
+
 async function duplicarLancamento(id) {
   const lancamento = ultimoLoteLancamentos.find((l) => l.id === id);
   if (!lancamento) return;

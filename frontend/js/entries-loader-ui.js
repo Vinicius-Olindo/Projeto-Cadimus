@@ -124,6 +124,7 @@ async function carregarLancamentos() {
       document.getElementById("saldo-total").style.color = "var(--cor-texto)";
       renderizarTelaHojeDashboard([], { saldoCalculado: 0, totalPendente: 0 });
       renderizarCalendarioFinanceiro([]);
+      renderizarModelosLancamentoDashboard([]);
       renderizarAlertasRiscoFinanceiro([], { saldoCalculado: 0, totalReceitas: 0, totalDespesas: 0, totalPendente: 0 });
       document.getElementById("resumo-categorias").style.display = "none";
       document.getElementById("resumo-pendente-item").style.display = "none";
@@ -208,6 +209,7 @@ async function carregarLancamentos() {
 
     renderizarTelaHojeDashboard(dados, { saldoCalculado, totalPendente });
     renderizarCalendarioFinanceiro(dados);
+    renderizarModelosLancamentoDashboard(dados);
     renderizarAlertasRiscoFinanceiro(dados, { saldoCalculado, totalReceitas, totalDespesas, totalPendente });
     renderizarResumoCategorias(totaisPorCategoria);
     renderizarResumoAutores(dados);

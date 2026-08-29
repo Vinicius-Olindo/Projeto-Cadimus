@@ -604,6 +604,72 @@ button.risco-financeiro-item:hover {
   color: var(--cor-receita);
 }
 
+.card-modelos-lancamento {
+  gap: 10px;
+}
+
+.modelos-lancamento-subtitulo {
+  margin: -4px 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.modelos-lancamento-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modelo-lancamento-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 78%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 68%, transparent);
+  color: var(--cor-texto);
+  text-align: left;
+}
+
+.modelo-lancamento-item:hover {
+  border-color: color-mix(in srgb, var(--cor-marca) 30%, var(--cor-pauta-fraca));
+  background: color-mix(in srgb, var(--cor-marca) 8%, var(--cor-fundo-card));
+}
+
+.modelo-lancamento-info {
+  min-width: 0;
+}
+
+.modelo-lancamento-info strong,
+.modelo-lancamento-info small {
+  display: block;
+}
+
+.modelo-lancamento-info strong {
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modelo-lancamento-info small {
+  margin-top: 2px;
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+}
+
+.modelo-lancamento-valor {
+  flex: 0 0 auto;
+  font-family: var(--fonte-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
 @media (min-width: 900px) {
   #conteudo-periodo {
     grid-template-columns: minmax(0, 1fr) minmax(380px, 0.34fr);
