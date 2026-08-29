@@ -99,18 +99,20 @@ function criarLinhaLancamento(lancamento) {
   const notaResumo = notaCompleta.length > 42 ? `${notaCompleta.slice(0, 42).trim()}…` : notaCompleta;
   const notaHtml = temNota
     ? `<button type="button" class="item-nota-texto item-nota-clique" data-nota="${escaparHtml(notaCompleta)}" data-descricao="${escaparHtml(lancamento.descricao)}" title="${escaparHtml(notaCompleta)}">
-        <span class="item-nota-label">Ver nota</span>
+        <span class="item-nota-label">Nota</span>
         <span class="item-nota-preview">${escaparHtml(notaResumo)}</span>
       </button>`
     : "";
   const anexoUrlSegura = sanitizarUrlAnexo(lancamento.anexo_url);
   const anexoTitulo = lancamento.anexo_nome || "Comprovante";
   const anexoHtml = anexoUrlSegura
-    ? `<a class="item-anexo-link" href="${escaparHtml(anexoUrlSegura)}" target="_blank" rel="noopener noreferrer" title="${escaparHtml(anexoTitulo)}">
+    ? `<a class="item-anexo-link" href="${escaparHtml(anexoUrlSegura)}" target="_blank" rel="noopener noreferrer" title="Abrir anexo: ${escaparHtml(anexoTitulo)}">
         ${ICONE_ANEXO}
+        <span class="item-anexo-label">Anexo</span>
         <span>${escaparHtml(anexoTitulo)}</span>
       </a>`
     : "";
+  const detalhesHtml = notaHtml || anexoHtml ? `<div class="item-detalhes">${notaHtml}${anexoHtml}</div>` : "";
 
   // Estrutura da linha: etiqueta de data compacta + corpo do lançamento —
   // lista de transações, não mais uma página de livro-caixa
@@ -131,8 +133,7 @@ function criarLinhaLancamento(lancamento) {
                   <span class="item-meta-separador">•</span>
                   <span class="item-tipo ${classeTipo}">${tipoTexto}</span>
                 </div>
-                ${notaHtml}
-                ${anexoHtml}
+                ${detalhesHtml}
             </div>
             <div class="item-valores">
               <div class="item-chips">
