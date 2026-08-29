@@ -19,6 +19,9 @@ async function carregarPainelRecorrentes() {
     if (!resposta.ok) return;
 
     recorrentesCarregadas = await resposta.json();
+    if (typeof renderizarResumoAssinaturasDashboard === "function") {
+      renderizarResumoAssinaturasDashboard(typeof ultimoLoteLancamentos !== "undefined" ? ultimoLoteLancamentos : []);
+    }
 
     if (badge) badge.textContent = recorrentesCarregadas.length;
 

@@ -198,6 +198,9 @@ async function carregarPainelDespesasFixas() {
     }
 
     despesasFixasCarregadas = await resposta.json();
+    if (typeof renderizarResumoAssinaturasDashboard === "function") {
+      renderizarResumoAssinaturasDashboard(typeof ultimoLoteLancamentos !== "undefined" ? ultimoLoteLancamentos : []);
+    }
 
     if (despesasFixasCarregadas.length === 0) {
       card.style.display = "none";

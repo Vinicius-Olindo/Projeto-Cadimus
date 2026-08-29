@@ -20,6 +20,7 @@ const DASHBOARD_LAYOUT_AREAS = [
       "card-despesas-fixas",
       "card-compras-parceladas",
       "card-bonificacoes",
+      "card-assinaturas",
       "card-orcamentos",
       "card-cartoes-credito",
       "card-riscos-financeiros",
