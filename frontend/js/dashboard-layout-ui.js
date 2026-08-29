@@ -438,7 +438,12 @@ function configurarDashboardLayout() {
     observer.observe(area.container, { childList: true });
   });
 
-  botao.addEventListener("click", alternarModoLayoutDashboard);
+  botao.addEventListener("click", () => {
+    if (!dashboardLayoutEditando && typeof ativarVisaoDashboard === "function") {
+      ativarVisaoDashboard("dashboard");
+    }
+    alternarModoLayoutDashboard();
+  });
   cancelar?.addEventListener("click", cancelarModoLayoutDashboard);
   resetar?.addEventListener("click", resetarLayoutDashboard);
   window.addEventListener("cadimus:usuario-logado", reaplicarLayoutDashboardSalvo);

@@ -7,6 +7,50 @@
   gap: 20px;
 }
 
+.dashboard-visoes {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  margin: -4px 0 18px;
+  padding: 5px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 82%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 74%, transparent);
+  box-shadow: 0 10px 24px color-mix(in srgb, var(--cor-sombra) 28%, transparent);
+  overflow-x: auto;
+  scrollbar-width: thin;
+}
+
+.dashboard-visao-btn {
+  flex: 0 0 auto;
+  padding: 7px 13px;
+  border: 1px solid transparent;
+  border-radius: 999px;
+  background: transparent;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  font-weight: 700;
+  cursor: pointer;
+  white-space: nowrap;
+  transition: background-color 0.18s ease, border-color 0.18s ease, color 0.18s ease;
+}
+
+.dashboard-visao-btn:hover {
+  color: var(--cor-texto);
+  background: color-mix(in srgb, var(--cor-marca) 7%, transparent);
+}
+
+.dashboard-visao-btn.ativo {
+  border-color: color-mix(in srgb, var(--cor-marca) 28%, transparent);
+  background: var(--cor-texto);
+  color: var(--cor-fundo);
+}
+
+.dashboard-visao-oculto,
+.dashboard-area-oculta {
+  display: none !important;
+}
+
 .area-resumo {
   order: 1;
 }
@@ -754,6 +798,25 @@ button.risco-financeiro-item:hover {
     align-items: start;
   }
 
+  #conteudo-periodo[data-dashboard-visao-atual="hoje"],
+  #conteudo-periodo[data-dashboard-visao-atual="lancamentos"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #conteudo-periodo[data-dashboard-visao-atual="central"] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  #conteudo-periodo[data-dashboard-visao-atual="central"] .area-controle {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    position: static;
+  }
+
+  #conteudo-periodo[data-dashboard-visao-atual="lancamentos"] .area-controle {
+    position: static;
+  }
+
   .area-resumo {
     grid-column: 1 / -1;
     order: unset;
@@ -770,12 +833,23 @@ button.risco-financeiro-item:hover {
     position: sticky;
     top: 20px;
   }
+
+  #conteudo-periodo[data-dashboard-visao-atual="hoje"] .area-lancamentos,
+  #conteudo-periodo[data-dashboard-visao-atual="lancamentos"] .area-lancamentos,
+  #conteudo-periodo[data-dashboard-visao-atual="lancamentos"] .area-controle,
+  #conteudo-periodo[data-dashboard-visao-atual="central"] .area-controle {
+    grid-column: 1 / -1;
+  }
 }
 
 @media (min-width: 1500px) {
   #conteudo-periodo {
     grid-template-columns: minmax(0, 1fr) minmax(430px, 0.36fr);
     gap: 24px;
+  }
+
+  #conteudo-periodo[data-dashboard-visao-atual="central"] .area-controle {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
   }
 
   .area-controle {
