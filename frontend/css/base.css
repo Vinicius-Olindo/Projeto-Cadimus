@@ -203,22 +203,24 @@ button {
 .seletor-mes {
   display: inline-flex;
   align-items: center;
-  gap: 6px;
-  background: var(--cor-fundo-card);
-  border: 1px solid var(--cor-pauta-fraca);
-  border-radius: 999px;
-  padding: 3px 6px;
+  gap: 5px;
+  min-height: 44px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 82%, var(--cor-superficie));
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 84%, transparent);
+  border-radius: 18px;
+  padding: 5px;
   flex-shrink: 0;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--cor-sombra) 20%, transparent);
 }
 
 .seletor-mes button {
-  background: transparent;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 54%, transparent);
   color: var(--cor-texto-suave);
-  border: none;
-  width: 24px;
-  height: 24px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 74%, transparent);
+  width: 32px;
+  height: 32px;
   padding: 0;
-  border-radius: 50%;
+  border-radius: 13px;
   display: flex;
   align-items: center;
   justify-content: center;
@@ -234,8 +236,17 @@ button {
 
 #rotulo-mes {
   font-family: var(--fonte-mono);
-  font-size: 0.76rem;
-  min-width: 104px;
+  font-size: 0.78rem;
+  font-weight: 800;
+  min-width: 128px;
+  min-height: 32px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 54%, transparent);
   text-align: center;
   color: var(--cor-texto);
   cursor: pointer;
@@ -243,6 +254,8 @@ button {
 }
 
 #rotulo-mes:hover {
+  border-color: color-mix(in srgb, var(--cor-marca) 20%, transparent);
+  background: color-mix(in srgb, var(--cor-marca) 8%, var(--cor-superficie-alta));
   color: var(--cor-marca-forte);
 }
 

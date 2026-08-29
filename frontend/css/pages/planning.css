@@ -12,9 +12,9 @@
 
 .seletor-mes-planejamento {
   flex-wrap: wrap;
-  gap: 8px;
-  padding: 6px 8px 6px 12px;
-  border-radius: 16px;
+  gap: 6px;
+  padding: 5px;
+  border-radius: 18px;
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 8%, transparent), transparent 54%),
     var(--cor-fundo-card);
@@ -33,10 +33,12 @@
 }
 
 .seletor-mes-planejamento .seletor-mes-rotulo {
-  min-width: 132px;
-  padding: 3px 10px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--cor-superficie) 74%, transparent);
+  min-width: 144px;
+  min-height: 32px;
+  padding: 0 12px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--cor-superficie-alta) 54%, transparent);
   color: var(--cor-texto);
   font-family: var(--fonte-mono);
   font-size: 0.78rem;
@@ -47,12 +49,14 @@
 }
 
 .seletor-mes-planejamento .seletor-mes-rotulo:hover {
+  border-color: color-mix(in srgb, var(--cor-marca) 20%, transparent);
+  background: color-mix(in srgb, var(--cor-marca) 8%, var(--cor-superficie-alta));
   color: var(--cor-marca-forte);
 }
 
 .seletor-mes-planejamento button {
-  border: 1px solid color-mix(in srgb, var(--cor-marca) 22%, transparent);
-  background: color-mix(in srgb, var(--cor-superficie) 68%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 74%, transparent);
+  background: color-mix(in srgb, var(--cor-superficie-alta) 54%, transparent);
 }
 
 .seletor-mes-planejamento button:hover {
