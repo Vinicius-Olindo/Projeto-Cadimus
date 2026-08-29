@@ -13,6 +13,7 @@ function fecharModalLancamento() {
   const campoCategoriaNova = document.getElementById("categoria-nova");
   const atalhos = document.getElementById("lancamento-tipo-rapido");
   const subtitulo = document.getElementById("subtitulo-modal-lancamento");
+  const sugestaoCategoria = document.getElementById("sugestao-categoria-lancamento");
 
   modal.style.display = "none";
   liberarFoco();
@@ -28,6 +29,7 @@ function fecharModalLancamento() {
   atalhos?.querySelectorAll("[data-atalho-lancamento]").forEach((btn) => {
     btn.classList.toggle("ativo", btn.dataset.atalhoLancamento === "simples");
   });
+  if (sugestaoCategoria) sugestaoCategoria.hidden = true;
   campoCategoriaNova.style.display = "none";
   campoCategoriaNova.required = false;
 }
@@ -162,6 +164,7 @@ async function abrirModalNovoLancamento() {
   document.getElementById("btn-salvar-lancamento").innerText = "Salvar";
   alternarAtalhosModalLancamento(false);
   document.getElementById("data-compra").valueAsDate = new Date();
+  atualizarSugestaoCategoriaLancamento();
   document.getElementById("modal-lancamento").style.display = "flex";
   trapFoco(document.getElementById("modal-lancamento"));
 }
@@ -224,6 +227,63 @@ function obterDescricaoCopiaLancamento(descricao) {
   return /\s-\sC[ÓO]PIA$/i.test(texto) ? texto : `${texto} - CÓPIA`;
 }
 
+function normalizarTextoSugestaoCategoria(texto) {
+  return String(texto || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .replace(/[^a-z0-9\s]/g, " ")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+function encontrarSugestaoCategoriaLancamento(descricao) {
+  const termo = normalizarTextoSugestaoCategoria(descricao);
+  if (termo.length < 3 || !Array.isArray(ultimoLoteLancamentos)) return null;
+
+  const palavras = termo.split(" ").filter((palavra) => palavra.length >= 3);
+  const candidatos = new Map();
+
+  ultimoLoteLancamentos.forEach((lancamento) => {
+    const descricaoHistorica = normalizarTextoSugestaoCategoria(lancamento.descricao);
+    const categoria = String(lancamento.categoria || "").trim();
+    if (!descricaoHistorica || !categoria) return;
+
+    const contemTexto = descricaoHistorica.includes(termo) || termo.includes(descricaoHistorica);
+    const palavrasEmComum = palavras.filter((palavra) => descricaoHistorica.includes(palavra)).length;
+    if (!contemTexto && palavrasEmComum === 0) return;
+
+    const atual = candidatos.get(categoria) || { categoria, usos: 0, pontos: 0, exemplo: lancamento.descricao || "" };
+    atual.usos += 1;
+    atual.pontos += (contemTexto ? 4 : 0) + palavrasEmComum;
+    candidatos.set(categoria, atual);
+  });
+
+  return [...candidatos.values()].sort((a, b) => {
+    if (b.pontos !== a.pontos) return b.pontos - a.pontos;
+    return b.usos - a.usos;
+  })[0] || null;
+}
+
+function atualizarSugestaoCategoriaLancamento() {
+  const campoDescricao = document.getElementById("descricao");
+  const campoCategoria = document.getElementById("categoria");
+  const botao = document.getElementById("sugestao-categoria-lancamento");
+  if (!campoDescricao || !campoCategoria || !botao) return;
+
+  const sugestao = encontrarSugestaoCategoriaLancamento(campoDescricao.value);
+  const categoriaAtual = String(campoCategoria.value || "").trim().toLowerCase();
+  if (!sugestao || categoriaAtual === sugestao.categoria.toLowerCase()) {
+    botao.hidden = true;
+    botao.dataset.categoria = "";
+    return;
+  }
+
+  botao.hidden = false;
+  botao.dataset.categoria = sugestao.categoria;
+  botao.innerHTML = `Categoria provável: <strong>${escaparHtml(sugestao.categoria)}</strong> <span>Aplicar</span>`;
+}
+
 async function preencherModalLancamento(lancamento, { modo = "editar" } = {}) {
   await popularSelectCategorias(document.getElementById("categoria"));
   adicionarCategoriaAoSelect(lancamento.categoria);
@@ -244,6 +304,7 @@ async function preencherModalLancamento(lancamento, { modo = "editar" } = {}) {
   await popularSelectCartoesCredito?.(document.getElementById("cartao-credito-lancamento"), lancamento.carteira_id, lancamento.cartao_credito_id || "");
   document.getElementById("cartao-credito-lancamento").value = lancamento.cartao_credito_id || "";
   document.getElementById("meio-pagamento")?.dispatchEvent(new Event("change"));
+  atualizarSugestaoCategoriaLancamento();
 
   document.getElementById("titulo-modal-lancamento").innerText = duplicando ? "Duplicar lançamento" : "Editar lançamento";
   document.getElementById("btn-salvar-lancamento").innerText = duplicando ? "Salvar cópia" : "Salvar edição";
@@ -280,6 +341,7 @@ async function abrirModalModeloLancamento(modelo = {}) {
   document.getElementById("anexo-nome-lancamento").value = "";
   document.getElementById("cartao-credito-lancamento").value = modelo.cartao_credito_id || "";
   document.getElementById("meio-pagamento")?.dispatchEvent(new Event("change"));
+  atualizarSugestaoCategoriaLancamento();
   document.getElementById("titulo-modal-lancamento").innerText = "Novo pelo modelo";
   document.getElementById("btn-salvar-lancamento").innerText = "Salvar lançamento";
   alternarAtalhosModalLancamento(true);
@@ -302,6 +364,8 @@ function configurarModal() {
   const btnFechar = document.getElementById("btn-fechar-modal");
   const form = document.getElementById("form-lancamento");
   const selectCategoria = document.getElementById("categoria");
+  const campoDescricao = document.getElementById("descricao");
+  const sugestaoCategoria = document.getElementById("sugestao-categoria-lancamento");
   const campoCategoriaNova = document.getElementById("categoria-nova");
   const atalhosLancamento = document.getElementById("lancamento-tipo-rapido");
 
@@ -320,6 +384,18 @@ function configurarModal() {
     campoCategoriaNova.style.display = escolheuNova ? "block" : "none";
     campoCategoriaNova.required = escolheuNova;
     if (escolheuNova) campoCategoriaNova.focus();
+    atualizarSugestaoCategoriaLancamento();
+  });
+
+  campoDescricao?.addEventListener("input", atualizarSugestaoCategoriaLancamento);
+  sugestaoCategoria?.addEventListener("click", () => {
+    const categoria = sugestaoCategoria.dataset.categoria;
+    if (!categoria) return;
+    adicionarCategoriaAoSelect(categoria);
+    selectCategoria.value = categoria;
+    campoCategoriaNova.style.display = "none";
+    campoCategoriaNova.required = false;
+    sugestaoCategoria.hidden = true;
   });
 
   btnNovo.addEventListener("click", abrirModalNovoLancamento);
