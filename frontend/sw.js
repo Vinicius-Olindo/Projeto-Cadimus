@@ -6,7 +6,7 @@
 //            cache-first para ícones e logos (raramente mudam).
 // ==========================================
 
-const CACHE_NAME = "cadimus-cache-v11";
+const CACHE_NAME = "cadimus-cache-v12";
 const CACHE_PREFIX = "cadimus-cache-";
 
 const RECURSOS_ESTATISCOS = [

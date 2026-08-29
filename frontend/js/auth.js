@@ -241,6 +241,8 @@ function alternarTelas(estaLogado) {
   const paginaStandalone = document.body?.dataset?.cadimusPage || "";
   const secaoStandalone = paginaStandalone ? document.getElementById(`${paginaStandalone}-section`) : null;
 
+  if (paginaStandalone === "cadastro") return;
+
   if (paginaStandalone) {
     if (!estaLogado) {
       window.location.href = "index.html";

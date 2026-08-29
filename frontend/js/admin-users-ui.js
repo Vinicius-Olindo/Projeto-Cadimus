@@ -146,7 +146,7 @@ function configurarSistemaConvites() {
 
       if (resposta.ok) {
         const dados = await resposta.json();
-        const linkCompleto = `${window.location.origin}?token=${dados.token}`;
+        const linkCompleto = `${window.location.origin}${window.location.pathname.replace(/[^/]*$/, "cadastro.html")}?token=${dados.token}`;
         document.getElementById("convite-link").value = linkCompleto;
         formConvite.style.display = "none";
         divResultado.style.display = "block";
@@ -183,19 +183,31 @@ function configurarSistemaConvites() {
 // --- CADASTRO POR CONVITE (página pública) ---
 function verificarCadastroConvite() {
   const token = new URLSearchParams(window.location.search).get("token");
-  if (!token) return false;
+  const paginaCadastro = document.body?.dataset?.cadimusPage === "cadastro";
+  if (!token) {
+    if (!paginaCadastro) return false;
+    const sCadastro = document.getElementById("cadastro-section");
+    const infoEl = document.getElementById("cadastro-convite-info");
+    if (sCadastro) sCadastro.style.display = "flex";
+    if (infoEl) infoEl.innerHTML = '<span class="erro-convite">Convite não informado ou link incompleto.</span>';
+    document.getElementById("form-cadastro-convite")?.style.setProperty("display", "none");
+    return true;
+  }
 
   const sLogin = document.getElementById("login-section");
   const sCadastro = document.getElementById("cadastro-section");
   const sDash = document.getElementById("dashboard-section");
   const sAdmin = document.getElementById("admin-section");
 
+  if (!sCadastro) return false;
+
   if (sLogin) sLogin.style.display = "none";
   if (sDash) sDash.style.display = "none";
   if (sAdmin) sAdmin.style.display = "none";
-  if (sCadastro) sCadastro.style.display = "flex";
+  sCadastro.style.display = "flex";
 
-  document.getElementById("cadastro-token").value = token;
+  const inputToken = document.getElementById("cadastro-token");
+  if (inputToken) inputToken.value = token;
 
   carregarInfoConvite(token);
   configurarFormularioCadastroConvite(token);

@@ -181,7 +181,7 @@ function pedirConfirmacao(mensagem, opcoes = {}) {
 // ==========================================
 // PWA - Registro do Service Worker
 // ==========================================
-const CADIMUS_CACHE_ATUAL = "cadimus-cache-v11";
+const CADIMUS_CACHE_ATUAL = "cadimus-cache-v12";
 
 function limparCachesCadimusAntigos() {
   if (!("caches" in window)) return;
