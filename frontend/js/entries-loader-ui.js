@@ -122,6 +122,7 @@ async function carregarLancamentos() {
       animarValorMonetario(document.getElementById("saldo-total"), 0);
       atualizarDescricoesResumo();
       document.getElementById("saldo-total").style.color = "var(--cor-texto)";
+      renderizarTelaHojeDashboard([], { saldoCalculado: 0, totalPendente: 0 });
       document.getElementById("resumo-categorias").style.display = "none";
       document.getElementById("resumo-pendente-item").style.display = "none";
       carregarPainelBonificacoes([]);
@@ -203,6 +204,7 @@ async function carregarLancamentos() {
       elementoSaldo.style.color = saldoCalculado >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)";
     }
 
+    renderizarTelaHojeDashboard(dados, { saldoCalculado, totalPendente });
     renderizarResumoCategorias(totaisPorCategoria);
     renderizarResumoAutores(dados);
     carregarPainelBonificacoes(dados);

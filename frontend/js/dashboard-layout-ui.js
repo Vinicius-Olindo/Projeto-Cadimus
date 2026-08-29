@@ -7,7 +7,7 @@ const DASHBOARD_LAYOUT_AREAS = [
   {
     chave: "lancamentos",
     seletor: "#dashboard-section .area-lancamentos",
-    cards: ["card-comparativo-periodo", "card-lancamentos"],
+    cards: ["card-hoje-dashboard", "card-comparativo-periodo", "card-lancamentos"],
   },
   {
     chave: "controle",
