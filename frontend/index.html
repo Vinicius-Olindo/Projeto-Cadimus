@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=101" />
-    <link rel="stylesheet" href="css/style.css?v=160" />
+    <link rel="stylesheet" href="css/style.css?v=161" />
   </head>
   <body>
     <main class="app-container">
@@ -1979,6 +1979,16 @@
         <input type="hidden" id="gerenciar-membros-carteira-id" value="" />
         <div class="campo" id="campo-gerenciar-membros">
           <label>Quem tem acesso</label>
+          <div class="modo-familia-resumo" id="modo-familia-resumo">
+            <div>
+              <strong>Admin</strong>
+              <span>Gerencia membros, edita e exclui a carteira.</span>
+            </div>
+            <div>
+              <strong>Membro</strong>
+              <span>Acompanha e movimenta a carteira compartilhada.</span>
+            </div>
+          </div>
           <div id="lista-gerenciar-membros" class="lista-membros-carteira">
             <span class="dica-campo">Carregando...</span>
           </div>
@@ -2652,7 +2662,7 @@
     <script src="js/components.js?v=104"></script>
     <script src="js/ui-core.js?v=102"></script>
     <script src="js/dashboard-layout-ui.js?v=108"></script>
-    <script src="js/wallets-ui.js?v=108"></script>
+    <script src="js/wallets-ui.js?v=109"></script>
     <script src="js/categories-ui.js?v=100"></script>
     <script src="js/entries-modal-ui.js?v=118"></script>
     <script src="js/entries-list-ui.js?v=111"></script>

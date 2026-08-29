@@ -837,10 +837,21 @@ async function abrirModalGerenciarMembros(carteira) {
       .map((colega) => {
         const jaAdmin = idsAdmins.has(colega.id);
         const marcado = idsAtuais.has(colega.id);
+        const nome = colega.nome || colega.nome_usuario || "Usuário";
+        const papel = jaAdmin ? "Admin" : marcado ? "Membro" : "Sem acesso";
+        const descricaoPapel = jaAdmin
+          ? "Controle total da carteira"
+          : marcado
+            ? "Pode acompanhar e lançar"
+            : "Marque para compartilhar";
         return `
-          <label class="opcao-membro ${jaAdmin ? "opcao-membro-desabilitada" : ""}">
+          <label class="opcao-membro opcao-membro-card ${jaAdmin ? "opcao-membro-desabilitada" : ""}">
             <input type="checkbox" class="checkbox-gerenciar-membro" value="${colega.id}" ${marcado ? "checked" : ""} ${jaAdmin ? "disabled" : ""} />
-            ${escaparHtml(colega.nome || colega.nome_usuario)}${jaAdmin ? " (admin)" : ""}
+            <span class="opcao-membro-info">
+              <strong>${escaparHtml(nome)}</strong>
+              <small>${descricaoPapel}</small>
+            </span>
+            <span class="opcao-membro-papel ${jaAdmin ? "opcao-membro-papel-admin" : marcado ? "opcao-membro-papel-membro" : ""}">${papel}</span>
           </label>
         `;
       })
