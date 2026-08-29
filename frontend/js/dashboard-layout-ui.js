@@ -22,6 +22,7 @@ const DASHBOARD_LAYOUT_AREAS = [
       "card-bonificacoes",
       "card-orcamentos",
       "card-cartoes-credito",
+      "card-riscos-financeiros",
       "card-score",
     ],
   },

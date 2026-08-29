@@ -136,6 +136,7 @@ async function carregarOrcamentos() {
 
     orcamentosCarregados = await resposta.json();
     renderizarMetasMesDashboard(orcamentosCarregados);
+    if (typeof renderizarAlertasRiscoFinanceiro === "function") renderizarAlertasRiscoFinanceiro();
 
     if (orcamentosCarregados.length === 0) {
       card.style.display = "none";
@@ -199,5 +200,6 @@ async function carregarOrcamentos() {
     orcamentosCarregados = [];
     card.style.display = "none";
     renderizarMetasMesDashboard([]);
+    if (typeof renderizarAlertasRiscoFinanceiro === "function") renderizarAlertasRiscoFinanceiro();
   }
 }

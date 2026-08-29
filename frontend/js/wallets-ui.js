@@ -685,6 +685,7 @@ async function carregarCartoesCredito() {
     if (!resposta.ok) return;
 
     cartoesCreditoCarregados = await resposta.json();
+    if (typeof renderizarAlertasRiscoFinanceiro === "function") renderizarAlertasRiscoFinanceiro();
 
     if (cartoesCreditoCarregados.length === 0) {
       card.style.display = "none";
@@ -780,6 +781,7 @@ async function carregarCartoesCredito() {
     });
   } catch (erro) {
     console.error("Erro ao carregar cartões:", erro);
+    if (typeof renderizarAlertasRiscoFinanceiro === "function") renderizarAlertasRiscoFinanceiro();
   }
 }
 

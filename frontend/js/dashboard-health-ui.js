@@ -5,6 +5,154 @@
 // [25] TAXA DE POUPANÇA
 // ==========================================
 
+let ultimoResumoRiscoFinanceiro = {
+  lancamentos: [],
+  totais: { saldoCalculado: 0, totalReceitas: 0, totalDespesas: 0, totalPendente: 0 },
+};
+
+function obterDiasDoMesSelecionadoRisco() {
+  const inputMes = document.getElementById("filtro-mes")?.value || "";
+  const [ano, mes] = inputMes.split("-").map(Number);
+  if (!ano || !mes) return { diaAtual: 1, totalDias: 30, mesAtual: false };
+
+  const hoje = new Date();
+  const mesAtual = hoje.getFullYear() === ano && hoje.getMonth() + 1 === mes;
+  const totalDias = new Date(ano, mes, 0).getDate();
+  return {
+    diaAtual: mesAtual ? Math.max(1, hoje.getDate()) : totalDias,
+    totalDias,
+    mesAtual,
+  };
+}
+
+function criarAlertaRiscoFinanceiro(tipo, titulo, detalhe, acao = "") {
+  return { tipo, titulo, detalhe, acao };
+}
+
+function renderizarAlertasRiscoFinanceiro(lancamentos, totais) {
+  const card = document.getElementById("card-riscos-financeiros");
+  const lista = document.getElementById("lista-riscos-financeiros");
+  if (!card || !lista) return;
+
+  if (Array.isArray(lancamentos)) ultimoResumoRiscoFinanceiro.lancamentos = lancamentos;
+  if (totais && typeof totais === "object") ultimoResumoRiscoFinanceiro.totais = { ...ultimoResumoRiscoFinanceiro.totais, ...totais };
+
+  const dados = ultimoResumoRiscoFinanceiro.lancamentos || [];
+  const resumo = ultimoResumoRiscoFinanceiro.totais || {};
+  const alertas = [];
+  const { diaAtual, totalDias, mesAtual } = obterDiasDoMesSelecionadoRisco();
+  const hojeISO = typeof dataISOHojeDashboard === "function" ? dataISOHojeDashboard() : "";
+
+  const atrasados = mesAtual
+    ? dados.filter((l) => l.tipo === "despesa" && l.status !== "pago" && l.data_compra && l.data_compra < hojeISO)
+    : [];
+  if (atrasados.length > 0) {
+    const totalAtrasado = atrasados.reduce((soma, item) => soma + valorMonetario(item), 0);
+    alertas.push(criarAlertaRiscoFinanceiro(
+      "erro",
+      `${atrasados.length} conta(s) atrasada(s)`,
+      `Total em atraso: ${formatadorBRL.format(totalAtrasado)}.`,
+      "ver-pendencias"
+    ));
+  }
+
+  const totalReceitas = Number(resumo.totalReceitas || 0);
+  const totalDespesas = Number(resumo.totalDespesas || 0);
+  if (mesAtual && totalReceitas > 0 && diaAtual > 0) {
+    const despesasProjetadas = (totalDespesas / diaAtual) * totalDias;
+    const saldoProjetado = totalReceitas - despesasProjetadas;
+    if (saldoProjetado < 0) {
+      alertas.push(criarAlertaRiscoFinanceiro(
+        "erro",
+        "Ritmo atual fecha negativo",
+        `Nesse ritmo, o mês pode fechar em ${formatadorBRL.format(saldoProjetado)}.`,
+        "ver-planejamento"
+      ));
+    } else if (despesasProjetadas / totalReceitas >= 0.8) {
+      alertas.push(criarAlertaRiscoFinanceiro(
+        "aviso",
+        "Gastos acima de 80% da renda",
+        `Projeção de despesas: ${formatadorBRL.format(despesasProjetadas)}.`,
+        "ver-planejamento"
+      ));
+    }
+  } else if (Number(resumo.saldoCalculado || 0) < 0) {
+    alertas.push(criarAlertaRiscoFinanceiro(
+      "erro",
+      "Mês negativo",
+      `Saldo atual: ${formatadorBRL.format(Number(resumo.saldoCalculado || 0))}.`,
+      "ver-planejamento"
+    ));
+  }
+
+  if (typeof orcamentosCarregados !== "undefined" && Array.isArray(orcamentosCarregados)) {
+    orcamentosCarregados.forEach((orcamento) => {
+      const item = typeof obterResumoOrcamentoMensal === "function" ? obterResumoOrcamentoMensal(orcamento) : null;
+      if (!item || item.limite <= 0 || item.progressoReal < 80) return;
+      const estourou = item.progressoReal >= 100 || item.status === "estourado";
+      alertas.push(criarAlertaRiscoFinanceiro(
+        estourou ? "erro" : "aviso",
+        `${item.categoria} ${estourou ? "estourou" : "passou de 80%"}`,
+        `${formatadorBRL.format(item.gasto)} de ${formatadorBRL.format(item.limite)} usados.`,
+        "ver-planejamento"
+      ));
+    });
+  }
+
+  if (typeof cartoesCreditoCarregados !== "undefined" && Array.isArray(cartoesCreditoCarregados)) {
+    cartoesCreditoCarregados.forEach((cartao) => {
+      const limite = valorMonetario(cartao, "limite");
+      const usado = valorMonetario(cartao, "gasto_atual");
+      const pct = limite > 0 ? (usado / limite) * 100 : 0;
+      if (pct < 80) return;
+      alertas.push(criarAlertaRiscoFinanceiro(
+        pct >= 100 ? "erro" : "aviso",
+        `${cartao.nome || "Cartão"} perto do limite`,
+        `${pct.toFixed(0)}% usado: ${formatadorBRL.format(usado)} de ${formatadorBRL.format(limite)}.`,
+        "ver-cartoes"
+      ));
+    });
+  }
+
+  const prioridade = { erro: 0, aviso: 1, ok: 2 };
+  const alertasVisiveis = alertas
+    .sort((a, b) => (prioridade[a.tipo] ?? 3) - (prioridade[b.tipo] ?? 3))
+    .slice(0, 4);
+
+  card.style.display = "flex";
+  if (alertasVisiveis.length === 0) {
+    lista.innerHTML = `
+      <div class="risco-financeiro-item risco-financeiro-ok">
+        <span class="risco-financeiro-icone">✓</span>
+        <span>
+          <strong>Sem risco importante agora</strong>
+          <small>Orçamentos, saldo, cartões e pendências estão sob controle neste período.</small>
+        </span>
+      </div>
+    `;
+    return;
+  }
+
+  lista.innerHTML = alertasVisiveis.map((alerta) => `
+    <button type="button" class="risco-financeiro-item risco-financeiro-${alerta.tipo}" data-risco-acao="${alerta.acao}">
+      <span class="risco-financeiro-icone">${alerta.tipo === "erro" ? "!" : "•"}</span>
+      <span>
+        <strong>${escaparHtml(alerta.titulo)}</strong>
+        <small>${escaparHtml(alerta.detalhe)}</small>
+      </span>
+    </button>
+  `).join("");
+
+  lista.querySelectorAll("[data-risco-acao]").forEach((botao) => {
+    botao.onclick = () => {
+      const acao = botao.dataset.riscoAcao;
+      if (acao === "ver-pendencias" && typeof filtrarLancamentosPendentes === "function") filtrarLancamentosPendentes();
+      if (acao === "ver-planejamento") document.getElementById("btn-planejamento")?.click();
+      if (acao === "ver-cartoes") document.getElementById("btn-cartoes-credito")?.click();
+    };
+  });
+}
+
 // --- TAXA DE POUPANÇA ---
 function calcularTaxaPoupanca(totalReceitas, totalDespesas) {
   const card = document.getElementById("card-poupanca");

@@ -390,6 +390,92 @@
   color: var(--cor-texto);
 }
 
+.card-riscos-financeiros {
+  gap: 12px;
+}
+
+.riscos-financeiros-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.risco-financeiro-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 78%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 68%, transparent);
+  color: var(--cor-texto);
+  text-align: left;
+}
+
+button.risco-financeiro-item {
+  cursor: pointer;
+}
+
+button.risco-financeiro-item:hover {
+  border-color: color-mix(in srgb, currentColor 22%, var(--cor-pauta-fraca));
+  background: color-mix(in srgb, currentColor 8%, var(--cor-fundo-card));
+}
+
+.risco-financeiro-icone {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-family: var(--fonte-mono);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.risco-financeiro-item strong,
+.risco-financeiro-item small {
+  display: block;
+}
+
+.risco-financeiro-item strong {
+  color: var(--cor-texto);
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.risco-financeiro-item small {
+  margin-top: 2px;
+  color: var(--cor-texto-suave);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.risco-financeiro-erro {
+  border-color: color-mix(in srgb, var(--cor-despesa) 24%, var(--cor-pauta-fraca));
+}
+
+.risco-financeiro-erro .risco-financeiro-icone {
+  background: color-mix(in srgb, var(--cor-despesa) 14%, transparent);
+  color: var(--cor-despesa);
+}
+
+.risco-financeiro-aviso {
+  border-color: color-mix(in srgb, var(--cor-pendente) 26%, var(--cor-pauta-fraca));
+}
+
+.risco-financeiro-aviso .risco-financeiro-icone {
+  background: color-mix(in srgb, var(--cor-pendente) 16%, transparent);
+  color: var(--cor-pendente);
+}
+
+.risco-financeiro-ok .risco-financeiro-icone {
+  background: color-mix(in srgb, var(--cor-receita) 14%, transparent);
+  color: var(--cor-receita);
+}
+
 @media (min-width: 900px) {
   #conteudo-periodo {
     grid-template-columns: minmax(0, 1fr) minmax(380px, 0.34fr);
