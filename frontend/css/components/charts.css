@@ -384,6 +384,31 @@
   color: var(--cor-superficie-alta);
 }
 
+.score-acoes {
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 18%, var(--cor-pauta-fraca));
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-marca) 7%, var(--cor-fundo-card));
+}
+
+.score-acoes strong {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--cor-texto);
+  font-size: 0.74rem;
+}
+
+.score-acoes ul {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  margin: 0;
+  padding-left: 16px;
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+  line-height: 1.35;
+}
+
 @media (max-width: 480px) {
   .score-container {
     flex-direction: column;

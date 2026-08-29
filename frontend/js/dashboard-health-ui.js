@@ -349,10 +349,38 @@ function calcularScoreSaude(totalReceitas, totalDespesas, totaisPorCategoria) {
         : "O período pede revisão de gastos e pendências.";
 
   const criteriosVisiveis = criterios.filter((c) => ["Taxa de poupança", "Controle de gastos", "Pagamentos em dia"].includes(c.nome));
+  const recomendacoes = [];
+
+  if (temAtrasado) {
+    recomendacoes.push("Quite ou reprograme os atrasados antes de assumir novos gastos.");
+  }
+  if (razaoGastos > 100) {
+    recomendacoes.push("Corte ou adie despesas variáveis: o mês está gastando mais do que entra.");
+  } else if (razaoGastos > 80) {
+    recomendacoes.push("Segure gastos novos: mais de 80% da receita já foi comprometida.");
+  }
+  if (taxaPoupanca < 10 && totalReceitas > 0) {
+    recomendacoes.push("Busque uma sobra mínima de 10% da receita para criar respiro.");
+  }
+  if (pctFixas > 50) {
+    recomendacoes.push("Revise despesas fixas: elas já passam de metade da renda cadastrada.");
+  }
+  if (concentracao >= 40 && maiorCategoria > 0) {
+    recomendacoes.push("Olhe a maior categoria do mês: ela concentra boa parte dos gastos.");
+  }
+  if (recomendacoes.length === 0) {
+    recomendacoes.push("Mantenha o ritmo e revise o orçamento antes de grandes compras.");
+  }
 
   detalhesEl.innerHTML = `
     <p class="score-diagnostico">${diagnostico}</p>
     <div class="score-pilulas"></div>
+    <div class="score-acoes">
+      <strong>Próximas ações</strong>
+      <ul>
+        ${recomendacoes.slice(0, 3).map((acao) => `<li>${escaparHtml(acao)}</li>`).join("")}
+      </ul>
+    </div>
   `;
   const pilulasEl = detalhesEl.querySelector(".score-pilulas");
 
