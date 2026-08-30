@@ -99,7 +99,9 @@ function renderizarMetasMesDashboard(orcamentos = []) {
   });
 
   if (btnPlanejamento) {
-    btnPlanejamento.onclick = () => document.getElementById("btn-planejamento")?.click();
+    btnPlanejamento.onclick = () => {
+      window.location.href = "planejamento.html";
+    };
   }
 }
 

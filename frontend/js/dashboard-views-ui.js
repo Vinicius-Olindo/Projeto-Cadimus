@@ -82,7 +82,7 @@ function ativarVisaoDashboard(visao = "hoje", opcoes = {}) {
 
 function abrirAtalhoVisaoDashboard(atalho) {
   if (atalho === "planejamento") {
-    document.getElementById("btn-planejamento")?.click();
+    window.location.href = "planejamento.html";
     return;
   }
 

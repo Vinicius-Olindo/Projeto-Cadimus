@@ -147,7 +147,7 @@ function renderizarAlertasRiscoFinanceiro(lancamentos, totais) {
     botao.onclick = () => {
       const acao = botao.dataset.riscoAcao;
       if (acao === "ver-pendencias" && typeof filtrarLancamentosPendentes === "function") filtrarLancamentosPendentes();
-      if (acao === "ver-planejamento") document.getElementById("btn-planejamento")?.click();
+      if (acao === "ver-planejamento") window.location.href = "planejamento.html";
       if (acao === "ver-cartoes") document.getElementById("btn-cartoes-credito")?.click();
     };
   });
