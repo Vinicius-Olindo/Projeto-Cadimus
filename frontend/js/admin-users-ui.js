@@ -278,7 +278,7 @@ function configurarFormularioCadastroConvite(token) {
       if (resposta.ok) {
         mostrarErro("");
         erroEl.style.display = "none";
-        form.innerHTML = `<p class="sucesso-convite">Conta criada com sucesso!<br>Seu login: <strong>${dados.usuario}</strong><br><a href="/">Fazer login</a></p>`;
+        form.innerHTML = `<p class="sucesso-convite">Conta criada com sucesso!<br>Seu login: <strong>${dados.usuario}</strong><br><a href="login.html">Fazer login</a></p>`;
       } else {
         mostrarErro(dados.erro || "Erro ao criar conta.");
       }

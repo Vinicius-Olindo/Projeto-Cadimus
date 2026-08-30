@@ -1,0 +1,115 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Login — Cadimus</title>
+    <meta name="description" content="Acesse sua conta no Cadimus." />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#a97a2f" />
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+    <link rel="apple-touch-icon" href="assets/icon-192.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cadimus" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="css/variables.css?v=101" />
+    <link rel="stylesheet" href="css/style.css?v=178" />
+  </head>
+  <body data-cadimus-page="login">
+    <main class="app-container">
+      <!-- SEÇÃO LOGIN -->
+      <section id="login-section">
+        <div class="login-box login-box-interativo login-modelo-painel" id="login-box" data-estado="idle">
+          <button type="button" class="tema-switch login-tema-switch" id="login-theme-toggle" aria-label="Alternar entre modo claro e escuro" title="Alternar tema"></button>
+          <div class="login-painel-visual" aria-hidden="true">
+            <div class="login-painel-topo">
+              <span class="login-painel-label">Acesso seguro</span>
+              <span class="login-painel-status">Online</span>
+            </div>
+            <div class="login-painel-logo">
+              <img src="assets/logo.png" alt="" />
+              <div>
+                <strong>Cadimus</strong>
+                <span>Gestor Financeiro</span>
+              </div>
+            </div>
+            <div class="login-painel-metrica">
+              <span id="login-fluxo-label">Fluxo do mês</span>
+              <strong id="login-fluxo-valor">R$ 8.420</strong>
+            </div>
+            <div class="login-painel-grafico">
+              <span style="--altura: 34%"></span>
+              <span style="--altura: 58%"></span>
+              <span style="--altura: 46%"></span>
+              <span style="--altura: 72%"></span>
+              <span style="--altura: 62%"></span>
+              <span style="--altura: 86%"></span>
+            </div>
+            <div class="login-painel-linhas">
+              <span></span>
+              <span></span>
+              <span></span>
+            </div>
+          </div>
+          <div class="login-form-panel">
+            <form id="login-form">
+              <label class="sr-only" for="usuario">Usuário</label>
+              <input type="text" id="usuario" name="username" placeholder="Usuário" autocomplete="username" autocapitalize="none" autocorrect="off" spellcheck="false" aria-describedby="login-feedback" required />
+              <div class="campo-senha-toggle">
+                <label class="sr-only" for="senha">Senha</label>
+                <input type="password" id="senha" name="password" placeholder="Senha" autocomplete="current-password" aria-describedby="login-capslock login-feedback" required />
+                <button type="button" class="btn-toggle-senha" data-alvo="senha" aria-label="Mostrar senha"></button>
+              </div>
+              <div class="login-capslock" id="login-capslock" aria-live="polite" hidden>Caps Lock ativo. Confira letras maiúsculas na senha.</div>
+              <div class="login-feedback" id="login-feedback" role="alert" aria-live="polite" hidden></div>
+              <button type="submit">Entrar</button>
+              <div class="login-social" aria-label="Outras formas de login">
+                <span>ou entre com</span>
+                <div class="login-social-acoes">
+                  <button type="button" class="login-social-btn" data-login-social="google" aria-label="Entrar com Gmail">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="#4285f4" d="M21.6 12.23c0-.78-.07-1.53-.2-2.23H12v4.22h5.38a4.6 4.6 0 0 1-2 3.02v2.5h3.24c1.9-1.75 2.98-4.33 2.98-7.51Z" />
+                      <path fill="#34a853" d="M12 22c2.7 0 4.96-.9 6.62-2.43l-3.24-2.5c-.9.6-2.04.95-3.38.95-2.6 0-4.8-1.76-5.6-4.12H3.06v2.58A10 10 0 0 0 12 22Z" />
+                      <path fill="#fbbc05" d="M6.4 13.9a6 6 0 0 1 0-3.8V7.52H3.06a10 10 0 0 0 0 8.96l3.34-2.58Z" />
+                      <path fill="#ea4335" d="M12 5.98c1.47 0 2.78.5 3.82 1.5l2.87-2.87A9.63 9.63 0 0 0 12 2 10 10 0 0 0 3.06 7.52l3.34 2.58C7.2 7.74 9.4 5.98 12 5.98Z" />
+                    </svg>
+                    Gmail
+                  </button>
+                  <button type="button" class="login-social-btn" data-login-social="apple" aria-label="Entrar com Apple">
+                    <svg viewBox="0 0 24 24" aria-hidden="true">
+                      <path fill="currentColor" d="M16.4 13.08c-.02-2 1.64-2.97 1.72-3.02-.94-1.37-2.38-1.56-2.88-1.58-1.22-.13-2.4.72-3.02.72-.64 0-1.6-.7-2.64-.68-1.34.02-2.6.8-3.29 2.02-1.42 2.46-.36 6.08 1 8.06.68.97 1.48 2.06 2.52 2.02 1.02-.04 1.4-.65 2.62-.65 1.21 0 1.56.65 2.63.63 1.09-.02 1.78-.98 2.43-1.96.78-1.12 1.09-2.22 1.1-2.28-.02-.01-2.16-.83-2.19-3.28ZM14.44 7.18c.55-.69.93-1.62.82-2.56-.8.04-1.8.55-2.38 1.22-.52.6-.98 1.58-.86 2.5.9.07 1.85-.47 2.42-1.16Z" />
+                    </svg>
+                    Apple
+                  </button>
+                </div>
+              </div>
+              <div class="login-links">
+                <button type="button" id="link-esqueci-senha" class="login-link">Esqueci minha senha</button>
+              </div>
+              <div class="login-primeiro-acesso">
+                <span>Ainda não tem conta? O acesso é liberado por convite.</span>
+                <button type="button" id="link-solicitar-acesso" class="login-link">Solicitar acesso</button>
+              </div>
+            </form>
+          </div>
+        </div>
+      </section>
+
+    </main>
+
+    <script src="js/modal-components.js?v=100"></script>
+    <script src="js/api-client.js?v=101"></script>
+    <script src="js/auth-api.js?v=100"></script>
+    <script src="js/admin-api.js?v=100"></script>
+    <script src="js/auth.js?v=121"></script>
+    <script src="js/ui-core.js?v=105"></script>
+  </body>
+</html>

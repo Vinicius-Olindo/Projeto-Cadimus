@@ -239,13 +239,25 @@ function alternarTelas(estaLogado) {
   const bAdmin = document.getElementById("btn-admin");
   const footer = document.getElementById("app-footer");
   const paginaStandalone = document.body?.dataset?.cadimusPage || "";
+  const paginaLogin = paginaStandalone === "login";
   const secaoStandalone = paginaStandalone ? document.getElementById(`${paginaStandalone}-section`) : null;
 
   if (paginaStandalone === "cadastro" || paginaStandalone === "redefinir-senha") return;
 
+  if (paginaLogin) {
+    if (estaLogado) {
+      window.location.href = "index.html";
+      return;
+    }
+
+    if (sLogin) sLogin.style.display = "flex";
+    if (footer) footer.style.display = "none";
+    return;
+  }
+
   if (paginaStandalone) {
     if (!estaLogado) {
-      window.location.href = "index.html";
+      window.location.href = "login.html";
       return;
     }
 
@@ -306,7 +318,11 @@ function alternarTelas(estaLogado) {
       setTimeout(() => window.iniciarOnboarding(), 1500);
     }
   } else {
-    if (sLogin) sLogin.style.display = "flex"; // Garante o centro da tela
+    if (!sLogin) {
+      window.location.href = "login.html";
+      return;
+    }
+    sLogin.style.display = "flex"; // Garante o centro da tela
     if (sDash) sDash.style.display = "none";
     if (sAdmin) sAdmin.style.display = "none";
     if (footer) footer.style.display = "none";
@@ -717,7 +733,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   document.getElementById("link-voltar-login")?.addEventListener("click", () => {
-    window.location.href = "index.html";
+    window.location.href = "login.html";
   });
 
   const ICONE_SENHA_VISIVEL = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>';
@@ -783,7 +799,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await mostrarAviso(res.ok ? d.mensagem : d.erro);
 
       if (res.ok) {
-        window.location.href = "index.html";
+        window.location.href = "login.html";
       }
     } catch (erro) {
       await mostrarAviso("Falha na comunicação com o servidor.");
