@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=101" />
-    <link rel="stylesheet" href="css/style.css?v=175" />
+    <link rel="stylesheet" href="css/style.css?v=176" />
   </head>
   <body data-cadimus-page="planejamento">
     <main class="app-container">
@@ -35,10 +35,13 @@
       </div>
       <!-- SEÇÃO PLANEJAMENTO FINANCEIRO -->
       <section id="planejamento-section" style="display: none">
-        <header class="top-bar">
-          <div class="top-bar-linha1">
-            <h2>Planejamento Financeiro</h2>
-            <div class="acoes-topo">
+        <header class="top-bar planejamento-hero">
+          <div class="planejamento-hero-texto">
+            <span class="plano-eyebrow">Planejamento</span>
+            <h2>Planejamento financeiro</h2>
+            <p>Organize metas, orçamento e compromissos antes de decidir os próximos gastos.</p>
+          </div>
+          <div class="planejamento-hero-acoes">
               <div class="seletor-mes seletor-mes-planejamento" aria-label="Período do planejamento">
                 <span class="seletor-mes-contexto">Período do planejamento</span>
                 <button type="button" id="btn-plano-mes-anterior" aria-label="Mês anterior do planejamento">
@@ -49,8 +52,7 @@
                   <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
                 </button>
               </div>
-              <button id="btn-voltar-dashboard-plano" class="btn-secundario">Voltar</button>
-            </div>
+            <button id="btn-voltar-dashboard-plano" class="btn-secundario">Voltar para lançamentos</button>
           </div>
         </header>
 

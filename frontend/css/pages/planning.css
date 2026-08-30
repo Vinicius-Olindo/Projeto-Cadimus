@@ -6,14 +6,54 @@
   background: var(--cor-fundo);
 }
 
-#planejamento-section .top-bar-linha1 {
-  align-items: flex-start;
+.planejamento-hero {
+  width: min(100% - 48px, 1380px);
+  margin: 0 auto 14px;
+  padding: 18px;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  gap: 18px;
+  align-items: center;
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 18%, var(--cor-pauta-fraca));
+  border-radius: 20px;
+  background:
+    radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--cor-marca) 14%, transparent), transparent 34%),
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-superficie-alta) 72%, transparent), var(--cor-fundo-card));
+  box-shadow: 0 12px 28px color-mix(in srgb, var(--cor-sombra) 20%, transparent);
+}
+
+.planejamento-hero-texto {
+  min-width: 0;
+}
+
+.planejamento-hero h2 {
+  margin: 0;
+  color: var(--cor-texto);
+  font-size: clamp(1.35rem, 2.4vw, 2rem);
+  line-height: 1.05;
+  letter-spacing: -0.04em;
+}
+
+.planejamento-hero p {
+  max-width: 620px;
+  margin: 8px 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.9rem;
+  line-height: 1.45;
+}
+
+.planejamento-hero-acoes {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 
 .seletor-mes-planejamento {
-  flex-wrap: wrap;
+  flex-wrap: nowrap;
   gap: 6px;
-  padding: 5px;
+  padding: 6px;
   border-radius: 18px;
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 8%, transparent), transparent 54%),
@@ -25,7 +65,7 @@
 .seletor-mes-contexto {
   display: inline-flex;
   color: var(--cor-texto-suave);
-  font-size: 0.62rem;
+  font-size: 0.58rem;
   font-weight: 800;
   letter-spacing: 0.1em;
   text-transform: uppercase;
@@ -33,7 +73,7 @@
 }
 
 .seletor-mes-planejamento .seletor-mes-rotulo {
-  min-width: 144px;
+  min-width: 136px;
   min-height: 32px;
   padding: 0 12px;
   border: 1px solid transparent;
@@ -70,6 +110,13 @@
   border-color: color-mix(in srgb, var(--cor-marca) 32%, var(--cor-pauta));
 }
 
+.dark-mode .planejamento-hero {
+  background:
+    radial-gradient(circle at 12% 10%, color-mix(in srgb, var(--cor-marca) 16%, transparent), transparent 36%),
+    linear-gradient(135deg, color-mix(in srgb, var(--cor-superficie) 92%, var(--cor-fundo)), var(--cor-fundo-card));
+  border-color: color-mix(in srgb, var(--cor-marca) 28%, var(--cor-pauta));
+}
+
 .plano-container {
   width: min(100%, 1180px);
   margin: 0 auto;
@@ -81,7 +128,7 @@
 
 .plano-overview {
   width: min(100% - 48px, 1380px);
-  margin: 14px auto 0;
+  margin: 0 auto;
   padding: 18px;
   display: grid;
   grid-template-columns: minmax(240px, 1fr) auto;
@@ -169,15 +216,19 @@
     overflow-x: hidden;
   }
 
-  #planejamento-section .top-bar-linha1 {
+  .planejamento-hero {
+    width: min(100% - 24px, 1380px);
+    grid-template-columns: 1fr;
     align-items: stretch;
-    flex-direction: column;
-    gap: 12px;
   }
 
-  #planejamento-section .acoes-topo {
+  .planejamento-hero-acoes {
     width: 100%;
     justify-content: stretch;
+  }
+
+  .planejamento-hero-acoes > * {
+    flex: 1 1 auto;
   }
 
   .seletor-mes-planejamento {
@@ -889,9 +940,24 @@
 }
 
 @media (max-width: 420px) {
+  .planejamento-hero {
+    width: min(100% - 20px, 1380px);
+    grid-template-columns: 1fr;
+    padding: 14px;
+  }
+
+  .planejamento-hero-acoes {
+    justify-content: stretch;
+  }
+
+  .planejamento-hero-acoes > * {
+    width: 100%;
+  }
+
   .seletor-mes-planejamento {
     gap: 6px;
     padding: 6px;
+    justify-content: space-between;
   }
 
   .seletor-mes-contexto {
