@@ -219,32 +219,37 @@ document.addEventListener("DOMContentLoaded", () => {
   const ehCadastroConvite = typeof verificarCadastroConvite === "function" ? verificarCadastroConvite() : false;
   if (ehCadastroConvite) return;
 
+  const chamarSeExistir = (nome) => {
+    const fn = window[nome] || globalThis[nome];
+    if (typeof fn === "function") fn();
+  };
+
   inicializarFiltroMes();
   inicializarDarkMode();
-  configurarInputsMonetarios();
+  chamarSeExistir("configurarInputsMonetarios");
   configurarMonitoresDeFiltro();
-  configurarBuscaLancamentos();
-  configurarNotificacoes();
-  configurarLote();
-  configurarPopupNota();
-  configurarComparativoPeriodo();
-  configurarBuscaGlobal();
-  configurarModal();
-  configurarModalCarteira();
-  configurarModalGerenciarMembros();
-  configurarModalDespesasFixas();
-  configurarModalComprasParceladas();
-  configurarModalMeta();
-  configurarModalDeposito();
-  configurarModalRenomearCategoria();
-  configurarPainelAdmin();
-  configurarPlano();
-  configurarModalTransferencia();
-  configurarModalOrcamento();
-  configurarModalCartaoCredito();
-  configurarRelatorios();
-  configurarDashboardLayout();
-  configurarVisoesDashboard();
+  chamarSeExistir("configurarBuscaLancamentos");
+  chamarSeExistir("configurarNotificacoes");
+  chamarSeExistir("configurarLote");
+  chamarSeExistir("configurarPopupNota");
+  chamarSeExistir("configurarComparativoPeriodo");
+  chamarSeExistir("configurarBuscaGlobal");
+  chamarSeExistir("configurarModal");
+  chamarSeExistir("configurarModalCarteira");
+  chamarSeExistir("configurarModalGerenciarMembros");
+  chamarSeExistir("configurarModalDespesasFixas");
+  chamarSeExistir("configurarModalComprasParceladas");
+  chamarSeExistir("configurarModalMeta");
+  chamarSeExistir("configurarModalDeposito");
+  chamarSeExistir("configurarModalRenomearCategoria");
+  chamarSeExistir("configurarPainelAdmin");
+  chamarSeExistir("configurarPlano");
+  chamarSeExistir("configurarModalTransferencia");
+  chamarSeExistir("configurarModalOrcamento");
+  chamarSeExistir("configurarModalCartaoCredito");
+  chamarSeExistir("configurarRelatorios");
+  chamarSeExistir("configurarDashboardLayout");
+  chamarSeExistir("configurarVisoesDashboard");
 
   // Botão de transferência
   const btnTransferencia = document.getElementById("btn-transferencia");
