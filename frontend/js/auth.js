@@ -267,9 +267,9 @@ function alternarTelas(estaLogado) {
   }
 
   if (estaLogado) {
-    sLogin.style.display = "none";
-    sDash.style.display = "block";
-    sAdmin.style.display = "none";
+    if (sLogin) sLogin.style.display = "none";
+    if (sDash) sDash.style.display = "block";
+    if (sAdmin) sAdmin.style.display = "none";
     if (footer) footer.style.display = "flex";
 
     const u = obterUsuarioLogado();
@@ -306,9 +306,9 @@ function alternarTelas(estaLogado) {
       setTimeout(() => window.iniciarOnboarding(), 1500);
     }
   } else {
-    sLogin.style.display = "flex"; // Garante o centro da tela
-    sDash.style.display = "none";
-    sAdmin.style.display = "none";
+    if (sLogin) sLogin.style.display = "flex"; // Garante o centro da tela
+    if (sDash) sDash.style.display = "none";
+    if (sAdmin) sAdmin.style.display = "none";
     if (footer) footer.style.display = "none";
   }
 }
