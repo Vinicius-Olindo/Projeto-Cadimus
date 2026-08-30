@@ -12,11 +12,21 @@
 let carteirasDoUsuario = [];
 let ultimaRequisicaoCarteiras = 0;
 let fecharMenuCarteiraAtivo = null;
+let menuCarteiraFlutuanteAtivo = null;
 
 function removerFechamentoMenuCarteira() {
   if (!fecharMenuCarteiraAtivo) return;
   document.removeEventListener("click", fecharMenuCarteiraAtivo);
   fecharMenuCarteiraAtivo = null;
+}
+
+function removerMenuCarteiraFlutuante() {
+  removerFechamentoMenuCarteira();
+  if (!menuCarteiraFlutuanteAtivo) return;
+  menuCarteiraFlutuanteAtivo.classList.remove("aberto");
+  menuCarteiraFlutuanteAtivo.style.visibility = "";
+  menuCarteiraFlutuanteAtivo.remove();
+  menuCarteiraFlutuanteAtivo = null;
 }
 
 function obterNomeCarteiraExibicao(carteira) {
@@ -51,7 +61,7 @@ function renderizarTabsCarteira() {
   const container = document.getElementById("carteira-tabs");
   const inputOculto = document.getElementById("seletor-carteira");
   if (!container || !inputOculto) return;
-  removerFechamentoMenuCarteira();
+  removerMenuCarteiraFlutuante();
 
   const valorAtual = inputOculto.value;
   const aindaExiste = carteirasDoUsuario.some((c) => String(c.id) === String(valorAtual));
@@ -158,7 +168,28 @@ function renderizarTabsCarteira() {
   function fecharMenuCarteira() {
     acoesWrapper.classList.remove("aberto");
     btnAcoes.setAttribute("aria-expanded", "false");
-    removerFechamentoMenuCarteira();
+    removerMenuCarteiraFlutuante();
+  }
+
+  function posicionarMenuCarteira() {
+    const margem = 12;
+    const botao = btnAcoes.getBoundingClientRect();
+
+    menu.style.visibility = "hidden";
+    menu.style.left = "0px";
+    menu.style.top = "0px";
+    menu.classList.add("aberto");
+
+    const larguraMenu = menu.offsetWidth || 188;
+    const alturaMenu = menu.offsetHeight || 96;
+    const left = Math.min(Math.max(margem, botao.right - larguraMenu), window.innerWidth - larguraMenu - margem);
+    const topAbaixo = botao.bottom + 8;
+    const topAcima = botao.top - alturaMenu - 8;
+    const top = topAbaixo + alturaMenu + margem <= window.innerHeight ? topAbaixo : Math.max(margem, topAcima);
+
+    menu.style.left = `${left}px`;
+    menu.style.top = `${top}px`;
+    menu.style.visibility = "";
   }
 
   btnAcoes.addEventListener("click", (evento) => {
@@ -166,13 +197,16 @@ function renderizarTabsCarteira() {
     const aberto = acoesWrapper.classList.toggle("aberto");
     btnAcoes.setAttribute("aria-expanded", String(aberto));
     if (aberto) {
-      removerFechamentoMenuCarteira();
+      removerMenuCarteiraFlutuante();
+      document.body.appendChild(menu);
+      menuCarteiraFlutuanteAtivo = menu;
+      posicionarMenuCarteira();
       fecharMenuCarteiraAtivo = (eventoDocumento) => {
-        if (!acoesWrapper.contains(eventoDocumento.target)) fecharMenuCarteira();
+        if (!acoesWrapper.contains(eventoDocumento.target) && !menu.contains(eventoDocumento.target)) fecharMenuCarteira();
       };
       setTimeout(() => document.addEventListener("click", fecharMenuCarteiraAtivo), 0);
     } else {
-      removerFechamentoMenuCarteira();
+      removerMenuCarteiraFlutuante();
     }
   });
 
@@ -200,7 +234,6 @@ function renderizarTabsCarteira() {
   });
 
   acoesWrapper.appendChild(btnAcoes);
-  acoesWrapper.appendChild(menu);
   container.appendChild(acoesWrapper);
 
   // Se a carteira selecionada não existe mais (ou é a primeira carga), seleciona a primeira disponível
