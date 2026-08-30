@@ -11,6 +11,13 @@
 // ==========================================
 let carteirasDoUsuario = [];
 let ultimaRequisicaoCarteiras = 0;
+let fecharMenuCarteiraAtivo = null;
+
+function removerFechamentoMenuCarteira() {
+  if (!fecharMenuCarteiraAtivo) return;
+  document.removeEventListener("click", fecharMenuCarteiraAtivo);
+  fecharMenuCarteiraAtivo = null;
+}
 
 function obterNomeCarteiraExibicao(carteira) {
   const nome = String(carteira?.nome || "Carteira").trim();
@@ -44,6 +51,7 @@ function renderizarTabsCarteira() {
   const container = document.getElementById("carteira-tabs");
   const inputOculto = document.getElementById("seletor-carteira");
   if (!container || !inputOculto) return;
+  removerFechamentoMenuCarteira();
 
   const valorAtual = inputOculto.value;
   const aindaExiste = carteirasDoUsuario.some((c) => String(c.id) === String(valorAtual));
@@ -150,6 +158,7 @@ function renderizarTabsCarteira() {
   function fecharMenuCarteira() {
     acoesWrapper.classList.remove("aberto");
     btnAcoes.setAttribute("aria-expanded", "false");
+    removerFechamentoMenuCarteira();
   }
 
   btnAcoes.addEventListener("click", (evento) => {
@@ -157,7 +166,13 @@ function renderizarTabsCarteira() {
     const aberto = acoesWrapper.classList.toggle("aberto");
     btnAcoes.setAttribute("aria-expanded", String(aberto));
     if (aberto) {
-      setTimeout(() => document.addEventListener("click", fecharMenuCarteira, { once: true }), 0);
+      removerFechamentoMenuCarteira();
+      fecharMenuCarteiraAtivo = (eventoDocumento) => {
+        if (!acoesWrapper.contains(eventoDocumento.target)) fecharMenuCarteira();
+      };
+      setTimeout(() => document.addEventListener("click", fecharMenuCarteiraAtivo), 0);
+    } else {
+      removerFechamentoMenuCarteira();
     }
   });
 
@@ -181,7 +196,7 @@ function renderizarTabsCarteira() {
       mostrarToast("Você não pode configurar esta carteira.", "info");
       return;
     }
-    abrirModalGerenciarMembros(carteira);
+    void abrirModalGerenciarMembros(carteira);
   });
 
   acoesWrapper.appendChild(btnAcoes);
@@ -847,11 +862,22 @@ async function abrirModalGerenciarMembros(carteira) {
   const lista = document.getElementById("lista-gerenciar-membros");
   const campoMembros = document.getElementById("campo-gerenciar-membros");
   const btnSalvarMembros = document.getElementById("btn-salvar-membros");
-  if (!modal || !lista) return;
+  const titulo = document.getElementById("titulo-gerenciar-membros");
+  const inputCarteiraId = document.getElementById("gerenciar-membros-carteira-id");
+  const btnExcluirCarteira = document.getElementById("btn-excluir-carteira");
 
-  document.getElementById("titulo-gerenciar-membros").innerText = `Configurações de "${carteira.nome}"`;
-  document.getElementById("gerenciar-membros-carteira-id").value = carteira.id;
-  document.getElementById("btn-excluir-carteira").dataset.nome = carteira.nome;
+  if (!modal || !lista || !campoMembros || !btnSalvarMembros || !titulo || !inputCarteiraId || !btnExcluirCarteira) {
+    mostrarToast("Configuração de carteira indisponível nesta tela.", "info");
+    return;
+  }
+  if (!carteira || carteira.papel !== "admin") {
+    mostrarToast("Você não pode configurar esta carteira.", "info");
+    return;
+  }
+
+  titulo.innerText = `Configurações de "${carteira.nome}"`;
+  inputCarteiraId.value = carteira.id;
+  btnExcluirCarteira.dataset.nome = carteira.nome;
   modal.style.display = "flex";
   trapFoco(modal);
 
