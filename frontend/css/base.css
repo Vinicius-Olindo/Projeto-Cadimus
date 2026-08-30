@@ -62,13 +62,11 @@ button {
 #dashboard-section,
 #planejamento-section,
 #relatorios-section {
-  width: min(100%, 1760px);
-  margin: 0 auto;
+  width: 100%;
 }
 
 #admin-section {
-  width: min(100%, 1360px);
-  margin: 0 auto;
+  width: 100%;
 }
 
 /* ==========================================

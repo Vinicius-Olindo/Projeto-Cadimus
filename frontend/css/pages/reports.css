@@ -54,8 +54,7 @@
 }
 .relatorio-painel { flex: 1; overflow-y: auto; }
 .relatorio-container {
-  width: min(100%, 1480px);
-  margin: 0 auto;
+  width: 100%;
   padding: 16px 20px 32px;
   display: flex;
   flex-direction: column;
