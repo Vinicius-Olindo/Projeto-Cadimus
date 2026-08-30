@@ -155,8 +155,16 @@ button:active {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  opacity: 0.7;
-  transition: color 0.18s ease, opacity 0.18s ease;
+  opacity: 0;
+  transition: color 0.18s ease, opacity 0.18s ease, transform 0.18s ease;
+}
+
+.tema-switch-sol {
+  transform: translateX(14px);
+}
+
+.tema-switch-lua {
+  transform: translateX(-14px);
 }
 
 .tema-switch-thumb {
@@ -177,6 +185,7 @@ button:active {
 .tema-switch.tema-switch-escuro .tema-switch-lua {
   color: var(--cor-marca-forte);
   opacity: 1;
+  transform: translateX(0);
 }
 
 .tema-switch.tema-switch-escuro .tema-switch-thumb {
