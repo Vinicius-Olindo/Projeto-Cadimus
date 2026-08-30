@@ -231,6 +231,45 @@
   opacity: 0.6;
 }
 
+.modal-carteira-acoes {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  gap: 10px;
+  margin-top: 14px;
+}
+
+#modal-gerenciar-membros .modal-carteira-acoes button {
+  min-width: 112px;
+  min-height: 38px;
+  border-radius: 12px;
+  padding: 9px 16px;
+  font-size: 0.82rem;
+  font-weight: 800;
+  letter-spacing: 0.02em;
+}
+
+#modal-gerenciar-membros #btn-fechar-modal-membros {
+  background: color-mix(in srgb, var(--cor-superficie-alta) 78%, var(--cor-fundo-card));
+  border: var(--borda) solid color-mix(in srgb, var(--cor-pauta-fraca) 82%, transparent);
+  color: var(--cor-texto);
+}
+
+#modal-gerenciar-membros #btn-fechar-modal-membros:hover {
+  background: color-mix(in srgb, var(--cor-marca) 8%, var(--cor-superficie-alta));
+  color: var(--cor-marca-forte);
+}
+
+#modal-gerenciar-membros #btn-salvar-membros {
+  background: var(--cor-texto);
+  border: var(--borda) solid var(--cor-texto);
+  color: var(--cor-superficie-alta);
+}
+
+#modal-gerenciar-membros #btn-salvar-membros:hover {
+  background: color-mix(in srgb, var(--cor-texto) 88%, var(--cor-marca));
+}
+
 /* Zona de perigo: excluir carteira, dentro da modal de configurações */
 .zona-perigo-carteira {
   margin-top: 14px;
