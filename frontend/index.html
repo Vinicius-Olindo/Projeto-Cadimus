@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=101" />
-    <link rel="stylesheet" href="css/style.css?v=170" />
+    <link rel="stylesheet" href="css/style.css?v=171" />
   </head>
   <body>
     <main class="app-container">
@@ -1509,6 +1509,22 @@
       </div>
     </div>
 
+    <!-- MODAL: DIA DO CALENDÁRIO -->
+    <div id="modal-calendario-dia" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
+      <div class="modal-content modal-calendario-dia">
+        <div class="modal-calendario-dia-topo">
+          <div>
+            <h3 id="calendario-dia-titulo">Agenda do dia</h3>
+            <p id="calendario-dia-resumo" class="modal-subtitulo">Lançamentos desta data.</p>
+          </div>
+          <button type="button" id="btn-fechar-modal-calendario-dia" class="btn-fechar-modal" aria-label="Fechar">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          </button>
+        </div>
+        <div id="calendario-dia-lista" class="calendario-dia-lista"></div>
+      </div>
+    </div>
+
     <!-- MODAL: AVISO (substitui alert()) -->
     <div id="modal-aviso" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
       <div class="modal-content modal-compacto">
@@ -1580,7 +1596,7 @@
     <script src="js/batch-note-ui.js?v=100"></script>
     <script src="js/period-comparison-ui.js?v=103"></script>
     <script src="js/global-search-ui.js?v=100"></script>
-    <script src="js/dashboard-summary-ui.js?v=108"></script>
+    <script src="js/dashboard-summary-ui.js?v=109"></script>
     <script src="js/entries-loader-ui.js?v=107"></script>
     <script src="js/dashboard-insights-ui.js?v=100"></script>
     <script src="js/dashboard-charts-ui.js?v=100"></script>

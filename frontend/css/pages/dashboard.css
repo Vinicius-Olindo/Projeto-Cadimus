@@ -562,6 +562,92 @@
   gap: 5px;
 }
 
+.modal-calendario-dia {
+  max-width: 680px;
+}
+
+.modal-calendario-dia-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.modal-calendario-dia-topo h3 {
+  margin: 0;
+}
+
+.calendario-dia-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: min(58vh, 520px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.calendario-dia-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 76%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 78%, transparent);
+}
+
+.calendario-dia-item-receita {
+  border-left: 3px solid var(--cor-receita);
+}
+
+.calendario-dia-item-despesa {
+  border-left: 3px solid var(--cor-despesa);
+}
+
+.calendario-dia-item-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendario-dia-item-info strong {
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendario-dia-item-info span {
+  color: var(--cor-texto-suave);
+  font-size: 0.76rem;
+}
+
+.calendario-dia-item-acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.calendario-dia-item-valor {
+  font-family: var(--fonte-mono);
+  font-size: 0.86rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.calendario-dia-vazio-modal {
+  padding: 18px;
+  border: 1px dashed var(--cor-pauta-fraca);
+  border-radius: 14px;
+  color: var(--cor-texto-suave);
+  text-align: center;
+}
+
 .card-riscos-financeiros {
   gap: 12px;
 }
