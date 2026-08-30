@@ -113,21 +113,6 @@ function renderizarTabsCarteira() {
     btn.addEventListener("click", () => selecionarCarteira(carteira.id));
     wrapper.appendChild(btn);
 
-    // Quem é admin da carteira (individual sempre é; compartilhada só quem administra)
-    // pode abrir as configurações dela — gerenciar membros (se compartilhada) e excluir.
-    if (carteira.papel === "admin") {
-      const btnGerenciar = document.createElement("button");
-      btnGerenciar.type = "button";
-      btnGerenciar.className = "btn-gerenciar-membros";
-      btnGerenciar.innerHTML = `<svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06a1.65 1.65 0 0 0 1.82.33H9a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1Z"/></svg>`;
-      btnGerenciar.title = `Configurações de "${carteira.nome}"`;
-      btnGerenciar.addEventListener("click", (evento) => {
-        evento.stopPropagation();
-        abrirModalGerenciarMembros(carteira);
-      });
-      wrapper.appendChild(btnGerenciar);
-    }
-
     container.appendChild(wrapper);
   });
 
@@ -136,14 +121,72 @@ function renderizarTabsCarteira() {
   separador.className = "tab-carteira-separador";
   container.appendChild(separador);
 
-  const btnAdd = document.createElement("button");
-  btnAdd.type = "button";
-  btnAdd.className = "tab-carteira-add";
-  btnAdd.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
-  btnAdd.title = "Nova carteira";
-  btnAdd.setAttribute("aria-label", "Nova carteira");
-  btnAdd.addEventListener("click", () => abrirModalCarteira());
-  container.appendChild(btnAdd);
+  const acoesWrapper = document.createElement("div");
+  acoesWrapper.className = "carteira-acoes-wrapper";
+
+  const btnAcoes = document.createElement("button");
+  btnAcoes.type = "button";
+  btnAcoes.className = "tab-carteira-add";
+  btnAcoes.innerHTML = `<svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="5" x2="12" y2="19"/><line x1="5" y1="12" x2="19" y2="12"/></svg>`;
+  btnAcoes.title = "Criar ou configurar carteira";
+  btnAcoes.setAttribute("aria-label", "Criar ou configurar carteira");
+  btnAcoes.setAttribute("aria-haspopup", "menu");
+  btnAcoes.setAttribute("aria-expanded", "false");
+
+  const menu = document.createElement("div");
+  menu.className = "carteira-acoes-menu";
+  menu.setAttribute("role", "menu");
+  menu.innerHTML = `
+    <button type="button" role="menuitem" data-carteira-acao="nova">
+      <span class="carteira-menu-icone">+</span>
+      <span>Nova carteira</span>
+    </button>
+    <button type="button" role="menuitem" data-carteira-acao="configurar">
+      <span class="carteira-menu-icone">⚙</span>
+      <span>Configurar atual</span>
+    </button>
+  `;
+
+  function fecharMenuCarteira() {
+    acoesWrapper.classList.remove("aberto");
+    btnAcoes.setAttribute("aria-expanded", "false");
+  }
+
+  btnAcoes.addEventListener("click", (evento) => {
+    evento.stopPropagation();
+    const aberto = acoesWrapper.classList.toggle("aberto");
+    btnAcoes.setAttribute("aria-expanded", String(aberto));
+    if (aberto) {
+      setTimeout(() => document.addEventListener("click", fecharMenuCarteira, { once: true }), 0);
+    }
+  });
+
+  menu.addEventListener("click", (evento) => {
+    evento.stopPropagation();
+    const item = evento.target.closest("[data-carteira-acao]");
+    if (!item) return;
+    const acao = item.dataset.carteiraAcao;
+    fecharMenuCarteira();
+    if (acao === "nova") {
+      abrirModalCarteira();
+      return;
+    }
+
+    const carteira = obterCarteiraSelecionada();
+    if (!carteira) {
+      mostrarToast("Selecione uma carteira primeiro.", "info");
+      return;
+    }
+    if (carteira.papel !== "admin") {
+      mostrarToast("Você não pode configurar esta carteira.", "info");
+      return;
+    }
+    abrirModalGerenciarMembros(carteira);
+  });
+
+  acoesWrapper.appendChild(btnAcoes);
+  acoesWrapper.appendChild(menu);
+  container.appendChild(acoesWrapper);
 
   // Se a carteira selecionada não existe mais (ou é a primeira carga), seleciona a primeira disponível
   if (!aindaExiste && carteirasDoUsuario.length > 0) {
