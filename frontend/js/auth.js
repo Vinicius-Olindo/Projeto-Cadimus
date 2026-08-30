@@ -241,7 +241,7 @@ function alternarTelas(estaLogado) {
   const paginaStandalone = document.body?.dataset?.cadimusPage || "";
   const secaoStandalone = paginaStandalone ? document.getElementById(`${paginaStandalone}-section`) : null;
 
-  if (paginaStandalone === "cadastro") return;
+  if (paginaStandalone === "cadastro" || paginaStandalone === "redefinir-senha") return;
 
   if (paginaStandalone) {
     if (!estaLogado) {
@@ -702,16 +702,22 @@ document.addEventListener("DOMContentLoaded", () => {
   const tokenRecuperacao = new URLSearchParams(window.location.search).get("token");
   const sRedefinir = document.getElementById("redefinir-senha-section");
   const sLoginInicial = document.getElementById("login-section");
+  const paginaRedefinirSenha = document.body?.dataset?.cadimusPage === "redefinir-senha";
 
-  if (tokenRecuperacao && sRedefinir && sLoginInicial) {
-    sLoginInicial.style.display = "none";
+  if (tokenRecuperacao && !paginaRedefinirSenha && !sRedefinir) {
+    window.location.href = `redefinir-senha.html?token=${encodeURIComponent(tokenRecuperacao)}`;
+    return;
+  }
+
+  if (tokenRecuperacao && sRedefinir) {
+    if (sLoginInicial) sLoginInicial.style.display = "none";
+    sRedefinir.style.display = "flex";
+  } else if (paginaRedefinirSenha && sRedefinir) {
     sRedefinir.style.display = "flex";
   }
 
   document.getElementById("link-voltar-login")?.addEventListener("click", () => {
-    if (sRedefinir) sRedefinir.style.display = "none";
-    if (sLoginInicial) sLoginInicial.style.display = "flex";
-    window.history.replaceState({}, "", window.location.pathname);
+    window.location.href = "index.html";
   });
 
   const ICONE_SENHA_VISIVEL = '<svg viewBox="0 0 24 24" fill="none" aria-hidden="true"><path d="M2.5 12s3.5-6 9.5-6 9.5 6 9.5 6-3.5 6-9.5 6-9.5-6-9.5-6Z" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/><circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.8"/></svg>';
@@ -777,9 +783,7 @@ document.addEventListener("DOMContentLoaded", () => {
       await mostrarAviso(res.ok ? d.mensagem : d.erro);
 
       if (res.ok) {
-        window.history.replaceState({}, "", window.location.pathname);
-        if (sRedefinir) sRedefinir.style.display = "none";
-        if (sLoginInicial) sLoginInicial.style.display = "flex";
+        window.location.href = "index.html";
       }
     } catch (erro) {
       await mostrarAviso("Falha na comunicação com o servidor.");
@@ -788,6 +792,13 @@ document.addEventListener("DOMContentLoaded", () => {
       btnSalvar.innerText = "Salvar nova senha";
     }
   });
+
+  if (paginaRedefinirSenha) {
+    if (!tokenRecuperacao) {
+      setTimeout(() => mostrarAviso("Link de recuperação inválido. Solicite um novo link na tela de login."), 0);
+    }
+    return;
+  }
 
   // Verifica se há sessão salva (sessionStorage sobrevive a reload)
   const tokenSessao = obterToken();

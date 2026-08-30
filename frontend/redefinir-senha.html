@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="pt-br">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cadimus • Redefinir senha</title>
+    <meta name="description" content="Crie uma nova senha para acessar o Cadimus." />
+
+    <!-- PWA -->
+    <link rel="manifest" href="manifest.json" />
+    <meta name="theme-color" content="#a97a2f" />
+    <link rel="icon" type="image/png" sizes="192x192" href="assets/icon-192.png" />
+    <link rel="apple-touch-icon" href="assets/icon-192.png" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <meta name="apple-mobile-web-app-title" content="Cadimus" />
+
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+    <link rel="stylesheet" href="css/variables.css?v=101" />
+    <link rel="stylesheet" href="css/style.css?v=174" />
+  </head>
+  <body data-cadimus-page="redefinir-senha">
+    <main class="app-container">
+      <section id="redefinir-senha-section" style="display: none">
+        <div class="login-box">
+          <h1>Nova senha</h1>
+          <span class="subtitulo">Escolha uma nova senha para sua conta</span>
+          <form id="form-redefinir-senha">
+            <input type="text" id="redefinir-usuario-autocomplete" name="username" autocomplete="username" tabindex="-1" aria-hidden="true" style="position:absolute;left:-9999px;width:1px;height:1px;opacity:0;" />
+            <div class="campo-senha-toggle">
+              <input type="password" id="redefinir-nova-senha" placeholder="Nova senha" autocomplete="new-password" minlength="6" required />
+              <button type="button" class="btn-toggle-senha" data-alvo="redefinir-nova-senha" aria-label="Mostrar senha"></button>
+            </div>
+            <span class="dica-campo">Mínimo de 6 caracteres</span>
+
+            <div class="campo-senha-toggle">
+              <input type="password" id="redefinir-confirmar-senha" placeholder="Confirmar nova senha" autocomplete="new-password" minlength="6" required />
+              <button type="button" class="btn-toggle-senha" data-alvo="redefinir-confirmar-senha" aria-label="Mostrar senha"></button>
+            </div>
+            <span class="dica-campo dica-erro" id="aviso-senhas-diferentes" style="display: none">As senhas não coincidem.</span>
+
+            <button type="submit" id="btn-salvar-nova-senha">Salvar nova senha</button>
+            <div class="login-links">
+              <button type="button" id="link-voltar-login" class="login-link">Voltar para o login</button>
+            </div>
+          </form>
+        </div>
+      </section>
+    </main>
+
+    <div id="modal-aviso" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
+      <div class="modal-content modal-compacto">
+        <p id="aviso-texto" class="modal-aviso-texto"></p>
+        <button type="button" id="btn-aviso-ok">OK</button>
+      </div>
+    </div>
+
+    <footer class="app-footer" id="app-footer">
+      <div class="footer-linha-superior"></div>
+      <div class="footer-linha1">
+        <span class="footer-brand">Cadimus &copy; 2026</span>
+      </div>
+      <div class="footer-linha2">
+        <span>Versão 1.0.0</span>
+        <span class="footer-sep">·</span>
+        <a href="politica-privacidade.html" class="footer-link" target="_blank">Política de Privacidade</a>
+        <span class="footer-sep">·</span>
+        <a href="termos-uso.html" class="footer-link" target="_blank">Termos de Uso</a>
+      </div>
+    </footer>
+
+    <script src="js/api-client.js?v=101"></script>
+    <script src="js/auth-api.js?v=100"></script>
+    <script src="js/auth.js?v=120"></script>
+    <script src="js/ui-core.js?v=105"></script>
+  </body>
+</html>

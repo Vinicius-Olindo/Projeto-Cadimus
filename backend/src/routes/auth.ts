@@ -112,7 +112,8 @@ export async function processarLogin(request: Request, env: CadimusEnv, ctx: Wor
       const expiraEm = new Date(Date.now() + DURACAO_TOKEN_RECUPERACAO_MS).toISOString();
       await env.DB.prepare(`INSERT INTO tokens_recuperacao_senha (usuario_id, token, expira_em) VALUES (?, ?, ?)`).bind(usuarioId, token, expiraEm).run();
 
-      const linkFrontend = `${env.FRONTEND_URL || ""}?token=${token}`;
+      const frontendBase = (env.FRONTEND_URL || "").replace(/\/+$/, "");
+      const linkFrontend = `${frontendBase ? `${frontendBase}/` : ""}redefinir-senha.html?token=${token}`;
       await enviarEmail(env, {
         para: emailNormalizado,
         assunto: "Recuperação de senha — Cadimus",

@@ -211,7 +211,12 @@ if ("serviceWorker" in navigator) {
 }
 
 document.addEventListener("DOMContentLoaded", () => {
-  const ehCadastroConvite = verificarCadastroConvite();
+  if (document.body?.dataset?.cadimusPage === "redefinir-senha") {
+    inicializarDarkMode();
+    return;
+  }
+
+  const ehCadastroConvite = typeof verificarCadastroConvite === "function" ? verificarCadastroConvite() : false;
   if (ehCadastroConvite) return;
 
   inicializarFiltroMes();
