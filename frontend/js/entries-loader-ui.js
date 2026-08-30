@@ -11,9 +11,35 @@ let ultimaRequisicaoLancamentos = 0;
 let ultimoLoteLancamentos = [];
 let termoBuscaAtual = "";
 
+function agendarAtualizacaoComplementarLancamentos(tarefa) {
+  if (typeof tarefa !== "function") return;
+
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(() => Promise.resolve(tarefa()).catch((erro) => console.error("Erro em atualização complementar:", erro)), { timeout: 900 });
+    return;
+  }
+
+  setTimeout(() => Promise.resolve(tarefa()).catch((erro) => console.error("Erro em atualização complementar:", erro)), 60);
+}
+
+function atualizarPaineisComplementaresLancamentos(lancamentos = []) {
+  agendarAtualizacaoComplementarLancamentos(() => {
+    if (typeof carregarPainelDespesasFixas === "function") carregarPainelDespesasFixas();
+    if (typeof carregarPainelComprasParceladas === "function") carregarPainelComprasParceladas();
+    if (typeof carregarOrcamentos === "function") carregarOrcamentos();
+    if (typeof carregarMetas === "function") carregarMetas();
+    if (typeof carregarCartoesCredito === "function") carregarCartoesCredito();
+  });
+
+  if (typeof carregarPainelBonificacoes === "function") {
+    agendarAtualizacaoComplementarLancamentos(() => carregarPainelBonificacoes(lancamentos));
+  }
+}
+
 function invalidarCachesDashboardFinanceiro() {
   if (typeof cacheTendencia !== "undefined" && cacheTendencia?.clear) cacheTendencia.clear();
   if (typeof cacheComparativo6 !== "undefined" && cacheComparativo6?.clear) cacheComparativo6.clear();
+  if (typeof cacheResumoMensalDashboard !== "undefined" && cacheResumoMensalDashboard?.clear) cacheResumoMensalDashboard.clear();
 }
 
 async function recarregarLancamentosAposMutacao() {
@@ -66,12 +92,7 @@ async function carregarLancamentos() {
   const carteiraId = document.getElementById("seletor-carteira").value;
   if (!carteiraId) return; // carteiras ainda carregando
 
-  carregarPainelDespesasFixas();
-  carregarPainelComprasParceladas();
-  carregarPainelBonificacoes();
-  carregarOrcamentos();
   popularSelectFiltroCategorias();
-  const promiseMetas = carregarMetas();
 
   // Marca esta chamada como "a mais recente". Se outra começar antes dela terminar,
   // esta vira obsoleta e seu resultado é descartado (evita sobrescrever a tela com dado velho).
@@ -98,7 +119,6 @@ async function carregarLancamentos() {
     const [resposta, respostaTransferencias] = await Promise.all([
       CadimusEntriesApi.listarResposta(filtrosLancamentos),
       CadimusWalletsApi.listarTransferencias(filtrosTransferencias),
-      promiseMetas,
     ]);
 
     // Chegou uma requisição mais nova enquanto esperávamos? Descarta esta resposta.
@@ -129,14 +149,15 @@ async function carregarLancamentos() {
       renderizarAlertasRiscoFinanceiro([], { saldoCalculado: 0, totalReceitas: 0, totalDespesas: 0, totalPendente: 0 });
       document.getElementById("resumo-categorias").style.display = "none";
       document.getElementById("resumo-pendente-item").style.display = "none";
-      carregarPainelBonificacoes([]);
       renderizarResumoAutores([]);
-      carregarComparacaoMesAnterior(0);
-      carregarTendencia();
-      carregarComparativo6Meses();
-      carregarCartoesCredito();
       document.getElementById("card-poupanca").style.display = "none";
       document.getElementById("card-guarda").style.display = "none";
+      atualizarPaineisComplementaresLancamentos([]);
+      agendarAtualizacaoComplementarLancamentos(() => {
+        if (typeof carregarComparacaoMesAnterior === "function") carregarComparacaoMesAnterior(0);
+        if (typeof carregarTendencia === "function") carregarTendencia();
+        if (typeof carregarComparativo6Meses === "function") carregarComparativo6Meses();
+      });
       return;
     }
 
@@ -215,10 +236,6 @@ async function carregarLancamentos() {
     renderizarAlertasRiscoFinanceiro(dados, { saldoCalculado, totalReceitas, totalDespesas, totalPendente });
     renderizarResumoCategorias(totaisPorCategoria);
     renderizarResumoAutores(dados);
-    carregarPainelBonificacoes(dados);
-    carregarComparacaoMesAnterior(totalDespesas);
-    carregarTendencia();
-    carregarComparativo6Meses();
     calcularTaxaPoupanca(totalReceitas, totalDespesas);
     calcularCapacidadeGuarda({
       saldoCalculado,
@@ -229,7 +246,12 @@ async function carregarLancamentos() {
       totalTransferenciasSaida,
     });
     calcularScoreSaude(totalReceitas, totalDespesas, totaisPorCategoria);
-    carregarCartoesCredito();
+    atualizarPaineisComplementaresLancamentos(dados);
+    agendarAtualizacaoComplementarLancamentos(() => {
+      if (typeof carregarComparacaoMesAnterior === "function") carregarComparacaoMesAnterior(totalDespesas);
+      if (typeof carregarTendencia === "function") carregarTendencia();
+      if (typeof carregarComparativo6Meses === "function") carregarComparativo6Meses();
+    });
   } catch (erro) {
     if (idDestaRequisicao !== ultimaRequisicaoLancamentos) return;
     console.error("Erro:", erro);

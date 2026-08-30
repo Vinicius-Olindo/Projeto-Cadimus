@@ -7,6 +7,7 @@
 // ==========================================
 
 const cacheTendencia = new Map();
+const cacheResumoMensalDashboard = new Map();
 let ultimaRequisicaoTendencia = 0;
 const NOMES_MESES_ABREV = ["jan", "fev", "mar", "abr", "mai", "jun", "jul", "ago", "set", "out", "nov", "dez"];
 
@@ -42,6 +43,35 @@ function criarResumoGrafico(titulo, principal, detalhe, classe = "") {
   return resumo;
 }
 
+async function carregarResumoMensalDashboard(carteiraId, ano, mes) {
+  const chave = `${carteiraId}:${ano}-${String(mes + 1).padStart(2, "0")}`;
+  if (cacheResumoMensalDashboard.has(chave)) return cacheResumoMensalDashboard.get(chave);
+
+  try {
+    const resposta = await CadimusEntriesApi.listarResposta({ carteira_id: carteiraId, mes: mes + 1, ano });
+    if (!resposta.ok) return { receitas: 0, despesas: 0, saldo: 0 };
+
+    const dadosMes = await resposta.json();
+    let receitas = 0;
+    let despesas = 0;
+
+    dadosMes.forEach((lancamento) => {
+      if (lancamento.status === "pendente") return;
+      const valor = valorMonetario(lancamento);
+      if (lancamento.tipo === "receita") receitas += valor;
+      else despesas += valor;
+    });
+
+    const resumo = { receitas, despesas, saldo: receitas - despesas };
+    cacheResumoMensalDashboard.set(chave, resumo);
+    cacheTendencia.set(chave, resumo);
+    cacheComparativo6?.set?.(chave, resumo);
+    return resumo;
+  } catch {
+    return { receitas: 0, despesas: 0, saldo: 0 };
+  }
+}
+
 async function carregarTendencia() {
   const carteiraId = document.getElementById("seletor-carteira").value;
   const campoMes = document.getElementById("filtro-mes");
@@ -67,19 +97,7 @@ async function carregarTendencia() {
     meses.map(async ({ ano, mes }) => {
       const chave = `${carteiraId}:${ano}-${String(mes + 1).padStart(2, "0")}`;
       if (cacheTendencia.has(chave)) return cacheTendencia.get(chave);
-
-      try {
-        const resposta = await CadimusEntriesApi.listarResposta({ carteira_id: carteiraId, mes: mes + 1, ano });
-        if (!resposta.ok) return { receitas: 0, despesas: 0 };
-        const dadosMes = await resposta.json();
-        const receitas = dadosMes.filter((l) => l.tipo === "receita" && l.status === "pago").reduce((soma, l) => soma + valorMonetario(l), 0);
-        const despesas = dadosMes.filter((l) => l.tipo === "despesa" && l.status === "pago").reduce((soma, l) => soma + valorMonetario(l), 0);
-        const total = { receitas, despesas, saldo: receitas - despesas };
-        cacheTendencia.set(chave, total);
-        return total;
-      } catch {
-        return { receitas: 0, despesas: 0, saldo: 0 };
-      }
+      return carregarResumoMensalDashboard(carteiraId, ano, mes);
     }),
   );
 
@@ -232,24 +250,7 @@ async function carregarComparativo6Meses() {
     meses.map(async ({ ano, mes }) => {
       const chave = `${carteiraId}:${ano}-${String(mes + 1).padStart(2, "0")}`;
       if (cacheComparativo6.has(chave)) return cacheComparativo6.get(chave);
-
-      try {
-        const resposta = await CadimusEntriesApi.listarResposta({ carteira_id: carteiraId, mes: mes + 1, ano });
-        if (!resposta.ok) return { receitas: 0, despesas: 0 };
-        const dadosMes = await resposta.json();
-        let receitas = 0, despesas = 0;
-        dadosMes.forEach((l) => {
-          if (l.status === "pendente") return;
-          const valor = valorMonetario(l);
-          if (l.tipo === "receita") receitas += valor;
-          else despesas += valor;
-        });
-        const resultado = { receitas, despesas, saldo: receitas - despesas };
-        cacheComparativo6.set(chave, resultado);
-        return resultado;
-      } catch {
-        return { receitas: 0, despesas: 0, saldo: 0 };
-      }
+      return carregarResumoMensalDashboard(carteiraId, ano, mes);
     }),
   );
 
