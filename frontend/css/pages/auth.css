@@ -11,6 +11,11 @@
   padding: 20px;
 }
 
+body[data-cadimus-page="login"] #login-section {
+  min-height: calc(100vh - 92px);
+  min-height: calc(100dvh - 92px);
+}
+
 .app-container:has(> #login-section:not([style*="display: none"])),
 .app-container:has(> #redefinir-senha-section[style*="display: flex"]) {
   --app-padding-vertical: 0px;
@@ -21,6 +26,10 @@
   #login-section,
   #redefinir-senha-section {
     min-height: calc(100svh - var(--app-padding-vertical));
+  }
+
+  body[data-cadimus-page="login"] #login-section {
+    min-height: calc(100svh - 92px);
   }
 }
 
@@ -796,6 +805,11 @@
     padding: 8px;
     min-height: 100dvh;
     height: 100dvh;
+  }
+
+  body[data-cadimus-page="login"] #login-section {
+    min-height: calc(100dvh - 92px);
+    height: auto;
   }
 
   #login-section::before,
