@@ -3,6 +3,8 @@
 // ==========================================
 
 (function () {
+  const CADIMUS_APP_VERSION = "1.1.0-staging";
+
   function renderizarAppFooter() {
     const root = document.getElementById("app-footer-root");
     if (!root || root.dataset.renderizado === "1") return;
@@ -18,7 +20,7 @@
           </span>
         </div>
         <div class="footer-linha2">
-          <span>Versão 1.0.0</span>
+          <span>Versão ${CADIMUS_APP_VERSION}</span>
           <span class="footer-sep">·</span>
           <a href="politica-privacidade.html" class="footer-link" target="_blank">Política de Privacidade</a>
           <span class="footer-sep">·</span>
