@@ -19,7 +19,8 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - Gráfico de categorias (donut) em "Para onde foi o dinheiro"
 - Evolução mensal (SVG line chart) — Saldo real vs Despesas, com escala/eixo e valores nos pontos relevantes
 - Gráfico de barras "Saldo vs Despesas" com escala visual mais clara
-- Modo de edição do layout dos cards analíticos do dashboard, salvo por usuário no navegador
+- Modo de edição livre do layout dos cards analíticos do dashboard, salvo por usuário no navegador
+- Cards analíticos podem ser movidos entre áreas mantendo o tamanho original
 - Notificações de vencimento com badge vermelho no sino
 - Comparativo por período (Mês/Trimestre/Ano)
 
@@ -68,15 +69,17 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - **Despesas**: Fixas + Parceladas consolidadas
 - **Comparar**: Comparação planejado × real + recomendações
 - **Simular**: Calculadora de economia (12/24/60 meses)
+- Página própria (`planejamento.html`) com seletor de período dedicado
 
 ### Relatórios Financeiros (7 abas)
-- **Resumo**: 6 KPIs com tendências + Fluxo de Caixa SVG + Barras Receitas×Despesas + Donut + 10 Indicadores
-- **Categorias**: Evolução por categoria (linhas SVG) + Ranking com barras
-- **Contas**: Tabela por conta + Tabela por forma de pagamento
-- **Detalhes**: Maiores despesas/receitas + Gastos recorrentes
-- **Comparativo**: Período atual × anterior + Progresso de metas
-- **Insights**: Análises automáticas (gasto > receita, categorias com variação, fixas > 60%)
-- **Tabela**: Tabela completa com busca, ordenação e paginação
+- Página própria (`relatorios.html`) com topo explicativo, filtros em card separado e resumo do período selecionado
+- **Visão geral**: 6 KPIs com tendências + Fluxo de Caixa SVG + Barras Receitas×Despesas + Donut + Indicadores
+- **Onde gastou**: Evolução por categoria (linhas SVG) + Ranking com barras
+- **Carteiras**: Comparativo por carteira + Tabela por conta + Tabela por forma de pagamento
+- **Movimentos**: Maiores despesas/receitas + Gastos recorrentes
+- **Comparar**: Período atual × anterior + Progresso de metas
+- **Alertas**: Análises automáticas (gasto > receita, categorias com variação, fixas > 60%)
+- **Transações**: Tabela completa com busca, ordenação e paginação
 - Filtros: período (hoje/semana/mês/3m/6m/ano/personalizado), carteira, categoria, tipo
 - Exportação: PDF (impressão), CSV, JSON
 
@@ -114,6 +117,8 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 ### Administração (Superadmin)
 - Gerenciamento de usuários (criar, editar, excluir)
 - Sistema de convites com link expirante (3 horas)
+- Cadastro por convite em página própria (`cadastro.html`)
+- Redefinição de senha em página própria (`redefinir-senha.html`)
 - Visibilidade por criador (`criado_por` — superadmin vê tudo)
 - Usuários convidados recebem carteira pessoal automática
 
@@ -141,7 +146,9 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - Modais customizados (substitui alert/confirm do navegador)
 - Debounce de 250ms na busca
 - Fonts reduzidas (IBM Plex Sans + IBM Plex Mono)
-- Rodapé único com créditos Olinbyte Digital
+- Header e rodapé compartilhados por componente
+- Rodapé único com créditos Olinbyte Digital e versão centralizada
+- Versão exibida automatizada via `scripts/bump-version.mjs`
 
 ### Páginas Estáticas
 - **Política de Privacidade**: página revisada com dados coletados, uso, segurança, retenção e direitos do usuário
@@ -194,6 +201,12 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 Cadimus/
 ├── frontend/
 │   ├── index.html              # SPA principal
+│   ├── login.html              # Login
+│   ├── cadastro.html           # Cadastro por convite
+│   ├── redefinir-senha.html    # Recuperação/redefinição de senha
+│   ├── planejamento.html       # Planejamento financeiro
+│   ├── relatorios.html         # Relatórios financeiros
+│   ├── configuracoes.html      # Configurações/admin
 │   ├── offline.html            # Fallback offline
 │   ├── politica-privacidade.html
 │   ├── termos-uso.html
@@ -212,6 +225,10 @@ Cadimus/
 │   ├── js/
 │   │   ├── *-api.js            # Clientes de API por domínio
 │   │   ├── *-ui.js             # Módulos de interface por área
+│   │   ├── *-loader.js         # Carregamento de scripts por página
+│   │   ├── app-header-component.js
+│   │   ├── app-footer-component.js
+│   │   ├── app-version.js      # Versão exibida no rodapé
 │   │   ├── auth.js             # Autenticação, sessão, sanitização
 │   │   ├── main.js             # Mapa central/ponte do frontend
 │   │   ├── components.js       # Componentes reutilizáveis
@@ -263,8 +280,10 @@ Cadimus/
 │           ├── despesasFixas.ts
 │           ├── comprasParceladas.ts
 │           └── lancamentosRecorrentes.ts
-└── database/
-    └── migrations/             # 34 migrações SQL (0001-0034)
+├── database/
+│   └── migrations/             # 34 migrações SQL (0001-0034)
+└── scripts/
+    └── bump-version.mjs        # Atualiza versão exibida + cache do app-version
 ```
 
 ---
@@ -309,6 +328,18 @@ npx serve .
 # ou
 python -m http.server 3000
 ```
+
+### Versionamento do frontend
+
+A versão exibida no rodapé fica centralizada em `frontend/js/app-version.js`.
+
+Para atualizar a versão e renovar automaticamente o cache das páginas:
+
+```bash
+node scripts/bump-version.mjs 1.1.1-staging
+```
+
+Use o formato `x.y.z` ou `x.y.z-staging`.
 
 ### Banco de Dados
 

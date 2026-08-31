@@ -11,7 +11,7 @@ CadimusPageLoader.carregar([
   "budgets-api.js?v=100",
   "goals-api.js?v=100",
   "scheduled-api.js?v=100",
-  "app-version.js?v=100",
+  "app-version.js?v=101",
   "app-footer-component.js?v=101",
   "auth.js?v=124",
   "ui-formatters.js?v=100",

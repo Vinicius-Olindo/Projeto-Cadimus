@@ -4,5 +4,5 @@
 // ==========================================
 
 (function () {
-  window.CADIMUS_APP_VERSION = "1.1.0-staging";
+  window.CADIMUS_APP_VERSION = "1.1.1-staging";
 })();

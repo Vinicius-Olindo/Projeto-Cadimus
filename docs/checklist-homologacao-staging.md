@@ -1,7 +1,7 @@
 # Checklist de homologação da staging
 
 Criado em: 2026-08-14
-Última revisão: 2026-08-21
+Última revisão: 2026-08-31
 
 Use este roteiro antes de promover qualquer mudanca da `staging` para a `main`.
 
@@ -29,6 +29,8 @@ Ambientes:
 ## 2. Frontend tela por tela
 
 - Login, cadastro/convite e recuperacao de senha carregam sem erro visual.
+- Login exibe rodapé compacto com versão atual e links institucionais.
+- Botão "Solicitar acesso" abre WhatsApp da Olinbyte Digital com mensagem pronta.
 - Logo do login e do header aparece nítida nos temas claro e escuro.
 - Configurações aproveita melhor a largura disponível em desktop e a lista de usuários mostra dados completos sem truncamento indevido.
 - Dashboard exibe receitas, despesas, saldo, pendentes e categorias usando os valores corretos.
@@ -47,6 +49,7 @@ Ambientes:
 - Modo "Layout" permite arrastar cards analíticos, salvar ordem e restaurar padrão.
 - Modo "Layout" exibe banner de orientação, botão em estado de salvar e indicação visual nos cards editáveis.
 - Modo "Layout" permite cancelar alterações antes de salvar e mover cards com botões ↑/↓.
+- Modo "Layout" permite mover cards entre direita/esquerda mantendo o tamanho visual do card.
 - Lista de lancamentos mostra valor, status, autor, filtros e agrupamentos por data real corretamente.
 - Lista de lancamentos mantém leitura clara em desktop/mobile, com valor, status, autor com foto/nome e ações agrupados.
 - Lista de lancamentos suporta valores financeiros altos sem desalinhamento visual.
@@ -57,11 +60,13 @@ Ambientes:
 - Metas e depositos somam e exibem valores corretamente.
 - Cartoes mostram limite, gasto atual e percentual sem usar valor legado como fonte primaria.
 - Importacao e exportacao preservam centavos.
+- Relatórios exibem topo, resumo do período, filtros organizados, abas legíveis e gráficos/tabelas sem quebra visual.
 - Relatorios e PDF batem com os totais do painel.
 - Central de notificações abre, lista histórico, marca alertas como lidos e remove a bolinha vermelha após clique.
 - Se a conta vencida não for atualizada, a bolinha volta a aparecer no dia seguinte.
 - Textos de notificações aparecem sem caracteres quebrados.
 - Seletor claro/escuro mantém espaçamento correto entre alertas e avatar.
+- Seletor de período do planejamento não corta o mês/ano em telas estreitas.
 
 ## 3. Fluxos de exclusao e apagamento
 
@@ -146,6 +151,8 @@ Crie uma carteira `Homologacao Staging` e rode:
 - Confirmar que transferências aparecem separadas dos lançamentos comuns.
 - Confirmar que total do relatório bate com dashboard e exportação.
 - Validar PDF/CSV/OFX com dados de centavos.
+- Alternar abas de relatórios: Visão geral, Onde gastou, Carteiras, Movimentos, Comparar, Alertas e Transações.
+- Confirmar que o resumo "Período selecionado" acompanha o filtro escolhido.
 
 ## 9. Critérios para liberar a staging
 

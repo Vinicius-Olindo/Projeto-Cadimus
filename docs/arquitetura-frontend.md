@@ -21,10 +21,27 @@ O frontend está dividido por domínio:
 
 - `*-api.js`: comunicação com backend;
 - `*-ui.js`: renderização, eventos e fluxos de interface;
+- `*-loader.js`: lista de scripts carregados por página;
+- `app-header-component.js`: cabeçalho compartilhado;
+- `app-footer-component.js`: rodapé compartilhado;
+- `app-version.js`: versão exibida no rodapé;
 - `money-utils.js` e `money-ui.js`: conversão e payload monetário;
 - `ui-core.js`: inicialização, tema, filtros base e helpers visuais;
 - `dashboard-layout-ui.js`: modo de edição e ordem dos cards analíticos do dashboard;
 - `main.js`: mapa central e pequenas exportações globais.
+
+## Páginas separadas
+
+O `index.html` não deve voltar a concentrar todos os fluxos.
+
+Fluxos isolados devem permanecer em páginas próprias:
+
+- `login.html`: autenticação;
+- `cadastro.html`: cadastro por convite;
+- `redefinir-senha.html`: redefinição de senha;
+- `planejamento.html`: planejamento financeiro;
+- `relatorios.html`: relatórios financeiros;
+- `configuracoes.html`: configurações/admin.
 
 ## CSS
 
@@ -40,10 +57,19 @@ O CSS usa `frontend/css/style.css` como índice de módulos via `@import`, mante
 
 Quando qualquer arquivo carregado por `frontend/index.html` mudar, atualizar o parâmetro `?v=` correspondente para forçar a staging a buscar a versão nova.
 
-Referência atual:
+Referência atual de CSS:
 
-- CSS principal: `css/style.css?v=123`;
-- scripts principais: `js/*.js?v=89`.
+- CSS principal: `css/style.css?v=191`;
+- CSS de relatórios importado por `style.css`: `pages/reports.css?v=101`;
+- CSS de planejamento importado por `style.css`: `pages/planning.css?v=101`.
+
+Para a versão exibida no rodapé, use o script:
+
+```bash
+node scripts/bump-version.mjs 1.1.1-staging
+```
+
+Ele atualiza `frontend/js/app-version.js` e incrementa o cache `app-version.js?v=` nas páginas/loaders.
 
 ## Entradas monetárias
 
@@ -66,10 +92,11 @@ A lista de lançamentos usa paginação local no frontend.
 
 ## Layout editável do dashboard
 
-O dashboard possui um modo de edição local para reorganizar os cards analíticos da coluna direita.
+O dashboard possui um modo de edição local para reorganizar os cards analíticos.
 
 - O botão "Layout" ativa/desativa o modo de edição.
-- Os cards podem ser arrastados dentro da coluna direita.
+- Os cards podem ser movidos entre áreas do dashboard.
+- Ao mover um card da direita para a esquerda, ele deve manter o mesmo tamanho visual que tinha antes.
 - Ao sair do modo de edição, a ordem é salva no navegador.
 - A ordem é separada por usuário.
 - O botão de reset restaura o layout padrão.
