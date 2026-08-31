@@ -3,11 +3,13 @@
    ========================================== */
 #conteudo-periodo {
   display: grid;
-  grid-template-columns: 1fr;
+  grid-template-columns: minmax(0, 1fr) minmax(300px, 360px);
   gap: 20px;
+  align-items: start;
 }
 
 .dashboard-visoes {
+  grid-column: 1 / -1;
   display: flex;
   align-items: center;
   gap: 6px;
@@ -52,11 +54,11 @@
 }
 
 .area-resumo {
+  grid-column: 1 / -1;
   order: 1;
 }
 
-.dashboard-free-grid,
-.area-controle {
+.dashboard-free-grid {
   order: 2;
   display: grid;
   grid-template-columns: repeat(12, minmax(0, 1fr));
@@ -64,27 +66,25 @@
   align-items: start;
 }
 
+.area-controle {
+  order: 3;
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 16px;
+  align-items: start;
+}
+
 .dashboard-free-grid > *,
 .area-controle > * {
   min-width: 0;
-  grid-column: span 4;
 }
 
 .dashboard-free-grid > #card-hoje-dashboard,
 .dashboard-free-grid > #card-calendario-financeiro,
-.dashboard-free-grid > #card-comparativo-periodo {
-  grid-column: span 6;
-}
-
-.dashboard-free-grid > #card-lancamentos {
+.dashboard-free-grid > #card-comparativo-periodo,
+.dashboard-free-grid > #card-lancamentos,
+.area-controle > * {
   grid-column: 1 / -1;
-}
-
-.dashboard-free-grid > #card-tendencia,
-.dashboard-free-grid > #card-comparativo,
-.dashboard-free-grid > #card-metas-mes-dashboard,
-.dashboard-free-grid > #card-score {
-  grid-column: span 6;
 }
 
 .dashboard-free-grid > [data-dashboard-layout-tamanho="pequeno"] {
@@ -103,22 +103,31 @@
   grid-column: 1 / -1;
 }
 
+body:not(.dashboard-layout-modo-ativo) .dashboard-free-grid > *,
+body:not(.dashboard-layout-modo-ativo) .area-controle > * {
+  grid-column: 1 / -1;
+}
+
 .dashboard-card-oculto-usuario {
   display: none !important;
 }
 
-.dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-card-oculto-usuario {
+.dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-card-oculto-usuario,
+.dashboard-layout-modo-ativo .area-controle > .dashboard-card-oculto-usuario {
   display: flex !important;
   opacity: 0.48;
   filter: grayscale(0.5);
 }
 
 .dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-visao-oculto,
-.dashboard-layout-modo-ativo .dashboard-free-grid > [style*="display: none"] {
+.dashboard-layout-modo-ativo .dashboard-free-grid > [style*="display: none"],
+.dashboard-layout-modo-ativo .area-controle > .dashboard-visao-oculto,
+.dashboard-layout-modo-ativo .area-controle > [style*="display: none"] {
   display: flex !important;
 }
 
-.dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-card-oculto-usuario::after {
+.dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-card-oculto-usuario::after,
+.dashboard-layout-modo-ativo .area-controle > .dashboard-card-oculto-usuario::after {
   content: "Oculto no layout salvo";
   position: absolute;
   left: 14px;
@@ -147,6 +156,7 @@
   gap: 10px;
   padding: 10px 12px;
   grid-column: 1 / -1;
+  order: 0;
   border-radius: 14px;
   color: var(--cor-texto);
   background: color-mix(in srgb, var(--cor-marca) 12%, var(--cor-fundo-card));
@@ -2088,6 +2098,7 @@ button.risco-financeiro-item:hover {
 @media (max-width: 860px) {
   #conteudo-periodo {
     gap: 16px;
+    grid-template-columns: 1fr;
   }
 
   .dashboard-free-grid,

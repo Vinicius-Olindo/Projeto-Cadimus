@@ -156,16 +156,7 @@
             </div>
     `.trim();
 
-    const gridLivre = document.getElementById("dashboard-free-grid");
-    if (gridLivre) {
-      const fragmento = document.createElement("template");
-      fragmento.innerHTML = html;
-      gridLivre.append(...fragmento.content.children);
-      root.remove();
-      return;
-    }
-
-    root.outerHTML = `<div class="area-controle">${html}</div>`;
+    root.outerHTML = `<aside class="area-controle" id="dashboard-side-grid" aria-label="Cards analíticos do dashboard">${html}</aside>`;
   }
 
   window.renderizarDashboardSideCards = renderizarDashboardSideCards;

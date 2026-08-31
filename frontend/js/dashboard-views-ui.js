@@ -40,6 +40,7 @@ function obterCardsDashboardOrganizaveis() {
   return [
     document.querySelector("#dashboard-section .area-resumo"),
     ...document.querySelectorAll("#dashboard-section #dashboard-free-grid > *"),
+    ...document.querySelectorAll("#dashboard-section #dashboard-side-grid > *"),
   ].filter(Boolean);
 }
 
@@ -49,11 +50,15 @@ function obterIdCardDashboard(card) {
 }
 
 function atualizarContainersVisaoDashboard() {
-  const grid = document.querySelector("#dashboard-section #dashboard-free-grid");
-  if (!grid) return;
+  const containers = [
+    document.querySelector("#dashboard-section #dashboard-free-grid"),
+    document.querySelector("#dashboard-section #dashboard-side-grid"),
+  ].filter(Boolean);
 
-  const temCardDaVisao = [...grid.children].some((filho) => !filho.classList.contains("dashboard-visao-oculto"));
-  grid.classList.toggle("dashboard-area-oculta", !temCardDaVisao);
+  containers.forEach((container) => {
+    const temCardDaVisao = [...container.children].some((filho) => !filho.classList.contains("dashboard-visao-oculto"));
+    container.classList.toggle("dashboard-area-oculta", !temCardDaVisao);
+  });
 }
 
 function ativarVisaoDashboard(visao = "hoje", opcoes = {}) {

@@ -3,26 +3,28 @@
 // ==========================================
 
 const DASHBOARD_LAYOUT_STORAGE_PREFIX = "cadimus_dashboard_layout";
-const DASHBOARD_LAYOUT_CONTAINER_SELECTOR = "#dashboard-section #dashboard-free-grid";
+const DASHBOARD_LAYOUT_AREA_SELECTOR = "#dashboard-section #conteudo-periodo";
+const DASHBOARD_LAYOUT_MAIN_CONTAINER_SELECTOR = "#dashboard-section #dashboard-free-grid";
+const DASHBOARD_LAYOUT_SIDE_CONTAINER_SELECTOR = "#dashboard-section #dashboard-side-grid";
 const DASHBOARD_LAYOUT_CARD_CONFIGS = [
-  { id: "card-hoje-dashboard", nome: "Hoje financeiro", tamanhoPadrao: "grande" },
-  { id: "card-calendario-financeiro", nome: "Calendário", tamanhoPadrao: "grande" },
-  { id: "card-comparativo-periodo", nome: "Comparar períodos", tamanhoPadrao: "grande" },
-  { id: "card-lancamentos", nome: "Lançamentos", tamanhoPadrao: "inteiro" },
-  { id: "resumo-categorias", nome: "Categorias", tamanhoPadrao: "medio" },
-  { id: "card-tendencia", nome: "Evolução mensal", tamanhoPadrao: "grande" },
-  { id: "card-comparativo", nome: "Saldo vs despesas", tamanhoPadrao: "grande" },
-  { id: "card-por-autor", nome: "Quem gastou quanto", tamanhoPadrao: "medio" },
-  { id: "card-despesas-fixas", nome: "Despesas fixas", tamanhoPadrao: "medio" },
-  { id: "card-compras-parceladas", nome: "Compras parceladas", tamanhoPadrao: "medio" },
-  { id: "card-bonificacoes", nome: "Bonificações", tamanhoPadrao: "medio" },
-  { id: "card-assinaturas", nome: "Assinaturas", tamanhoPadrao: "medio" },
-  { id: "card-metas-mes-dashboard", nome: "Metas do mês", tamanhoPadrao: "grande" },
-  { id: "card-orcamentos", nome: "Orçamento", tamanhoPadrao: "medio" },
-  { id: "card-cartoes-credito", nome: "Cartões", tamanhoPadrao: "medio" },
-  { id: "card-riscos-financeiros", nome: "Riscos financeiros", tamanhoPadrao: "medio" },
-  { id: "card-modelos-lancamento", nome: "Modelos rápidos", tamanhoPadrao: "medio" },
-  { id: "card-score", nome: "Saúde financeira", tamanhoPadrao: "grande" },
+  { id: "card-hoje-dashboard", nome: "Hoje financeiro", tamanhoPadrao: "inteiro", zona: "principal" },
+  { id: "card-calendario-financeiro", nome: "Calendário", tamanhoPadrao: "inteiro", zona: "principal" },
+  { id: "card-comparativo-periodo", nome: "Comparar períodos", tamanhoPadrao: "inteiro", zona: "principal" },
+  { id: "card-lancamentos", nome: "Lançamentos", tamanhoPadrao: "inteiro", zona: "principal" },
+  { id: "resumo-categorias", nome: "Categorias", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-tendencia", nome: "Evolução mensal", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-comparativo", nome: "Saldo vs despesas", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-por-autor", nome: "Quem gastou quanto", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-despesas-fixas", nome: "Despesas fixas", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-compras-parceladas", nome: "Compras parceladas", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-bonificacoes", nome: "Bonificações", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-assinaturas", nome: "Assinaturas", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-metas-mes-dashboard", nome: "Metas do mês", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-orcamentos", nome: "Orçamento", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-cartoes-credito", nome: "Cartões", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-riscos-financeiros", nome: "Riscos financeiros", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-modelos-lancamento", nome: "Modelos rápidos", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "card-score", nome: "Saúde financeira", tamanhoPadrao: "inteiro", zona: "lateral" },
 ];
 const DASHBOARD_LAYOUT_CARDS = DASHBOARD_LAYOUT_CARD_CONFIGS.map((card) => card.id);
 const DASHBOARD_LAYOUT_TAMANHOS = {
@@ -125,15 +127,34 @@ function obterChavesLeituraLayoutDashboard() {
 }
 
 function obterContainerLayoutDashboard() {
-  return document.querySelector(DASHBOARD_LAYOUT_CONTAINER_SELECTOR);
+  return document.querySelector(DASHBOARD_LAYOUT_MAIN_CONTAINER_SELECTOR);
+}
+
+function obterAreaLayoutDashboard() {
+  return document.querySelector(DASHBOARD_LAYOUT_AREA_SELECTOR);
+}
+
+function obterContainersLayoutDashboard() {
+  return [
+    document.querySelector(DASHBOARD_LAYOUT_MAIN_CONTAINER_SELECTOR),
+    document.querySelector(DASHBOARD_LAYOUT_SIDE_CONTAINER_SELECTOR),
+  ].filter(Boolean);
+}
+
+function obterZonaCardLayoutDashboard(id) {
+  return obterConfigCardLayoutDashboard(id).zona || "principal";
+}
+
+function obterContainerCardLayoutDashboard(id) {
+  const seletor = obterZonaCardLayoutDashboard(id) === "lateral"
+    ? DASHBOARD_LAYOUT_SIDE_CONTAINER_SELECTOR
+    : DASHBOARD_LAYOUT_MAIN_CONTAINER_SELECTOR;
+  return document.querySelector(seletor);
 }
 
 function obterCardsLayoutDashboard() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return [];
-
   return DASHBOARD_LAYOUT_CARDS
-    .map((id) => container.querySelector(`#${id}`))
+    .map((id) => document.getElementById(id))
     .filter(Boolean);
 }
 
@@ -240,10 +261,10 @@ function removerOrdemLayoutDashboardSalva() {
 }
 
 function obterLayoutAtualDashboard() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return normalizarLayoutDashboard([]);
+  const containers = obterContainersLayoutDashboard();
+  if (containers.length === 0) return normalizarLayoutDashboard([]);
 
-  const cards = Array.from(container.children)
+  const cards = containers.flatMap((container) => Array.from(container.children))
     .map((el) => el.id)
     .filter((id) => DASHBOARD_LAYOUT_CARDS.includes(id))
     .map((id) => {
@@ -268,13 +289,13 @@ function aplicarPreferenciasCardLayoutDashboard(card, preferencias = {}) {
 }
 
 function aplicarLayoutDashboard(layout = []) {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return;
+  const containers = obterContainersLayoutDashboard();
+  if (containers.length === 0) return;
 
   const layoutNormalizado = normalizarLayoutDashboard(layout);
   const configsPorId = new Map(layoutNormalizado.cards.map((card) => [card.id, card]));
-  const idsAplicados = new Set();
-  const cardsOrdenados = [];
+  const idsAplicadosPorZona = new Map();
+  const cardsOrdenadosPorZona = new Map();
 
   dashboardLayoutAplicandoOrdem = true;
   try {
@@ -283,26 +304,46 @@ function aplicarLayoutDashboard(layout = []) {
       .filter((id) => DASHBOARD_LAYOUT_CARDS.includes(id))
       .forEach((id) => {
         const card = document.getElementById(id);
-        if (card && card.parentElement === container) {
-          cardsOrdenados.push(card);
-          idsAplicados.add(id);
-        }
+        const zona = obterZonaCardLayoutDashboard(id);
+        const container = obterContainerCardLayoutDashboard(id);
+        if (!card || !container) return;
+        const cardsOrdenados = cardsOrdenadosPorZona.get(zona) || [];
+        const idsAplicados = idsAplicadosPorZona.get(zona) || new Set();
+        cardsOrdenados.push(card);
+        idsAplicados.add(id);
+        cardsOrdenadosPorZona.set(zona, cardsOrdenados);
+        idsAplicadosPorZona.set(zona, idsAplicados);
       });
 
     DASHBOARD_LAYOUT_CARDS
-      .filter((id) => !idsAplicados.has(id))
       .forEach((id) => {
+        const zona = obterZonaCardLayoutDashboard(id);
+        const idsAplicados = idsAplicadosPorZona.get(zona) || new Set();
+        if (idsAplicados.has(id)) return;
         const card = document.getElementById(id);
-        if (card && card.parentElement === container) cardsOrdenados.push(card);
+        const container = obterContainerCardLayoutDashboard(id);
+        if (!card || !container) return;
+        const cardsOrdenados = cardsOrdenadosPorZona.get(zona) || [];
+        cardsOrdenados.push(card);
+        idsAplicados.add(id);
+        cardsOrdenadosPorZona.set(zona, cardsOrdenados);
+        idsAplicadosPorZona.set(zona, idsAplicados);
       });
 
-    cardsOrdenados.forEach((card, indice) => {
-      aplicarPreferenciasCardLayoutDashboard(card, configsPorId.get(card.id));
-      if (container.children[indice] !== card) container.insertBefore(card, container.children[indice] || null);
+    cardsOrdenadosPorZona.forEach((cardsOrdenados, zona) => {
+      const container = zona === "lateral"
+        ? document.querySelector(DASHBOARD_LAYOUT_SIDE_CONTAINER_SELECTOR)
+        : document.querySelector(DASHBOARD_LAYOUT_MAIN_CONTAINER_SELECTOR);
+      if (!container) return;
+      cardsOrdenados.forEach((card, indice) => {
+        aplicarPreferenciasCardLayoutDashboard(card, configsPorId.get(card.id));
+        if (container.children[indice] !== card) container.insertBefore(card, container.children[indice] || null);
+      });
     });
 
     const banner = document.getElementById(DASHBOARD_LAYOUT_BANNER_ID);
-    if (banner?.parentElement) banner.parentElement.prepend(banner);
+    const area = obterAreaLayoutDashboard();
+    if (banner && area) area.prepend(banner);
   } finally {
     dashboardLayoutAplicandoOrdem = false;
   }
@@ -389,8 +430,7 @@ function renderizarPainelLayoutDashboard() {
 }
 
 function aplicarLayoutDashboardSalvo() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return false;
+  if (obterContainersLayoutDashboard().length === 0) return false;
 
   const layout = lerLayoutDashboardSalvo();
   if (layout.cards.length === 0) return false;
@@ -420,8 +460,7 @@ function salvarLayoutDashboard() {
 }
 
 function resetarLayoutDashboard() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return;
+  if (obterContainersLayoutDashboard().length === 0) return;
 
   removerOrdemLayoutDashboardSalva();
   aplicarLayoutDashboard(obterOrdemPadraoLayoutDashboard());
@@ -442,9 +481,9 @@ function obterCardsVisiveisLayoutDashboard() {
 }
 
 function moverCardLayoutDashboard(card, direcao) {
-  const container = obterContainerLayoutDashboard();
+  const container = card?.parentElement;
   if (!container || !card || card.parentElement !== container) return;
-  const cardsVisiveis = obterCardsVisiveisLayoutDashboard();
+  const cardsVisiveis = obterCardsVisiveisLayoutDashboard().filter((item) => item.parentElement === container);
   const indice = cardsVisiveis.indexOf(card);
   if (indice < 0) return;
 
@@ -503,12 +542,13 @@ function atualizarEstadoModoLayoutDashboard() {
   const botao = document.getElementById("btn-editar-layout-dashboard");
   const cancelar = document.getElementById("btn-cancelar-layout-dashboard");
   const divisorCancelar = document.querySelector(".acoes-topo-divider-cancelar-layout");
-  const container = obterContainerLayoutDashboard();
-  if (!container || !botao) return;
+  const area = obterAreaLayoutDashboard();
+  const containers = obterContainersLayoutDashboard();
+  if (!area || containers.length === 0 || !botao) return;
   const label = botao.querySelector(".btn-topo-label");
 
   document.body.classList.toggle("dashboard-layout-modo-ativo", dashboardLayoutEditando);
-  container.classList.toggle("dashboard-layout-editando", dashboardLayoutEditando);
+  containers.forEach((container) => container.classList.toggle("dashboard-layout-editando", dashboardLayoutEditando));
   botao.classList.toggle("ativo", dashboardLayoutEditando);
   botao.setAttribute("aria-pressed", String(dashboardLayoutEditando));
   botao.title = dashboardLayoutEditando ? "Salvar layout do dashboard" : "Editar layout do dashboard";
@@ -517,7 +557,7 @@ function atualizarEstadoModoLayoutDashboard() {
   if (divisorCancelar) divisorCancelar.hidden = !dashboardLayoutEditando;
 
   const banner = dashboardLayoutEditando
-    ? obterOuCriarBannerLayoutDashboard(container)
+    ? obterOuCriarBannerLayoutDashboard(area)
     : document.getElementById(DASHBOARD_LAYOUT_BANNER_ID);
   if (banner) banner.hidden = !dashboardLayoutEditando;
 
@@ -586,37 +626,40 @@ function obterCardDepoisDoArraste(container, x, y) {
 }
 
 function configurarEventosLayoutDashboard() {
-  const container = obterContainerLayoutDashboard();
-  if (!container) return;
+  const area = obterAreaLayoutDashboard();
+  const containers = obterContainersLayoutDashboard();
+  if (!area || containers.length === 0) return;
 
-  container.addEventListener("dragstart", (evento) => {
-    if (!dashboardLayoutEditando) return;
-    const card = evento.target.closest(".dashboard-card-editavel");
-    if (!card || card.parentElement !== container) return;
-    dashboardLayoutCardArrastado = card;
-    card.classList.add("arrastando");
-    card.setAttribute("aria-grabbed", "true");
-    evento.dataTransfer.effectAllowed = "move";
-    evento.dataTransfer.setData("text/plain", card.id);
+  containers.forEach((container) => {
+    container.addEventListener("dragstart", (evento) => {
+      if (!dashboardLayoutEditando) return;
+      const card = evento.target.closest(".dashboard-card-editavel");
+      if (!card || card.parentElement !== container) return;
+      dashboardLayoutCardArrastado = card;
+      card.classList.add("arrastando");
+      card.setAttribute("aria-grabbed", "true");
+      evento.dataTransfer.effectAllowed = "move";
+      evento.dataTransfer.setData("text/plain", card.id);
+    });
+
+    container.addEventListener("dragend", () => {
+      dashboardLayoutCardArrastado?.classList.remove("arrastando");
+      dashboardLayoutCardArrastado?.setAttribute("aria-grabbed", "false");
+      dashboardLayoutCardArrastado = null;
+      atualizarControlesCardsLayoutDashboard();
+    });
+
+    container.addEventListener("dragover", (evento) => {
+      if (!dashboardLayoutEditando || !dashboardLayoutCardArrastado || dashboardLayoutCardArrastado.parentElement !== container) return;
+      evento.preventDefault();
+      const depois = obterCardDepoisDoArraste(container, evento.clientX, evento.clientY);
+      if (depois) container.insertBefore(dashboardLayoutCardArrastado, depois);
+      else container.appendChild(dashboardLayoutCardArrastado);
+      atualizarControlesCardsLayoutDashboard();
+    });
   });
 
-  container.addEventListener("dragend", () => {
-    dashboardLayoutCardArrastado?.classList.remove("arrastando");
-    dashboardLayoutCardArrastado?.setAttribute("aria-grabbed", "false");
-    dashboardLayoutCardArrastado = null;
-    atualizarControlesCardsLayoutDashboard();
-  });
-
-  container.addEventListener("dragover", (evento) => {
-    if (!dashboardLayoutEditando || !dashboardLayoutCardArrastado) return;
-    evento.preventDefault();
-    const depois = obterCardDepoisDoArraste(container, evento.clientX, evento.clientY);
-    if (depois) container.insertBefore(dashboardLayoutCardArrastado, depois);
-    else container.appendChild(dashboardLayoutCardArrastado);
-    atualizarControlesCardsLayoutDashboard();
-  });
-
-  container.addEventListener("click", (evento) => {
+  area.addEventListener("click", (evento) => {
     const botaoPreset = evento.target.closest("[data-layout-preset]");
     if (dashboardLayoutEditando && botaoPreset) {
       evento.preventDefault();
@@ -632,7 +675,7 @@ function configurarEventosLayoutDashboard() {
     moverCardLayoutDashboard(botaoMover.closest(".dashboard-card-editavel"), Number(botaoMover.dataset.layoutMover));
   });
 
-  container.addEventListener("change", (evento) => {
+  area.addEventListener("change", (evento) => {
     if (!dashboardLayoutEditando) return;
 
     const seletorTamanho = evento.target.closest("[data-layout-tamanho-card]");
@@ -653,8 +696,8 @@ function configurarDashboardLayout() {
   const botao = document.getElementById("btn-editar-layout-dashboard");
   const cancelar = document.getElementById("btn-cancelar-layout-dashboard");
   const resetar = document.getElementById("btn-resetar-layout-dashboard");
-  const container = obterContainerLayoutDashboard();
-  if (!botao || !container) return;
+  const containers = obterContainersLayoutDashboard();
+  if (!botao || containers.length === 0) return;
   dashboardLayoutConfigurado = true;
 
   aplicarLayoutDashboardSalvo();
@@ -662,7 +705,7 @@ function configurarDashboardLayout() {
   document.addEventListener("click", bloquearCriacaoDuranteLayout, true);
 
   const observer = new MutationObserver(agendarReaplicacaoLayoutDashboard);
-  observer.observe(container, { childList: true });
+  containers.forEach((container) => observer.observe(container, { childList: true }));
 
   botao.addEventListener("click", () => {
     if (!dashboardLayoutEditando && typeof ativarVisaoDashboard === "function") {
