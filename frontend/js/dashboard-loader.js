@@ -15,7 +15,7 @@ CadimusPageLoader.carregar([
   "app-footer-component.js?v=100",
   "entries-dashboard-component.js?v=101",
   "dashboard-side-cards-component.js?v=102",
-  "auth.js?v=122",
+  "auth.js?v=123",
   "ui-formatters.js?v=100",
   "money-utils.js?v=100",
   "money-ui.js?v=100",

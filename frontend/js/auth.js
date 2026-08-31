@@ -564,13 +564,10 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   });
 
-  document.getElementById("link-solicitar-acesso")?.addEventListener("click", async () => {
-    const mensagem = "O Cadimus funciona por convite. Peça para um administrador gerar seu acesso em Configurações > Usuários.";
-    if (typeof mostrarAviso === "function") {
-      await mostrarAviso(mensagem);
-    } else {
-      alert(mensagem);
-    }
+  document.getElementById("link-solicitar-acesso")?.addEventListener("click", () => {
+    const telefoneOlinbyte = "5519992861538";
+    const mensagem = "Olá! Estou tentando acessar o Cadimus e gostaria de solicitar a liberação do meu acesso por convite. Pode me ajudar?";
+    window.open(`https://wa.me/${telefoneOlinbyte}?text=${encodeURIComponent(mensagem)}`, "_blank", "noopener,noreferrer");
   });
 
   if (fLogin) {
