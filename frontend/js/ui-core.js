@@ -122,6 +122,7 @@ function mostrarAviso(mensagem) {
     const texto = document.getElementById("aviso-texto");
     const btnOk = document.getElementById("btn-aviso-ok");
     if (!modal || !texto || !btnOk) {
+      alert(mensagem);
       resolve();
       return;
     }
