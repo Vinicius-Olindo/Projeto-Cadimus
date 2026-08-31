@@ -145,8 +145,27 @@ function obterPeriodoRelatorio() {
   };
 }
 
+function atualizarResumoPeriodoRelatorio(periodo) {
+  const resumo = document.getElementById("relatorio-periodo-atual");
+  if (!resumo || !periodo?.inicioDate || !periodo?.fimDate) return;
+
+  const formatar = (data) => data.toLocaleDateString("pt-BR", { day: "2-digit", month: "short", year: "numeric" });
+  const labels = {
+    hoje: "Hoje",
+    semana: "Esta semana",
+    mes: "Este mês",
+    "3meses": "Últimos 3 meses",
+    "6meses": "Últimos 6 meses",
+    ano: "Este ano",
+    personalizado: "Período personalizado",
+  };
+
+  resumo.textContent = `${labels[periodo.tipo] || "Período"} · ${formatar(periodo.inicioDate)} até ${formatar(periodo.fimDate)}`;
+}
+
 async function carregarDadosRelatorio() {
   const periodo = obterPeriodoRelatorio();
+  atualizarResumoPeriodoRelatorio(periodo);
   const filtroCarteira = document.getElementById("relatorio-filtro-carteira")?.value || "";
   const filtroCategoria = document.getElementById("relatorio-filtro-categoria")?.value || "";
   const filtroTipo = document.getElementById("relatorio-filtro-tipo")?.value || "";

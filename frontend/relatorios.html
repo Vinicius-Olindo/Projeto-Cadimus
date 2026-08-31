@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=101" />
-    <link rel="stylesheet" href="css/style.css?v=190" />
+    <link rel="stylesheet" href="css/style.css?v=191" />
   </head>
   <body data-cadimus-page="relatorios">
     <main class="app-container">
@@ -35,20 +35,36 @@
       </div>
       <!-- SEÇÃO RELATÓRIOS FINANCEIROS -->
       <section id="relatorios-section" style="display: none">
-        <header class="top-bar">
-          <div class="top-bar-linha1">
-            <h2>Relatórios Financeiros</h2>
-            <div class="acoes-topo">
-              <button id="btn-relatorio-exportar" class="btn-secundario" title="Exportar relatório">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
-                Exportar
-              </button>
-              <button id="btn-relatorio-compartilhar" class="btn-secundario" title="Compartilhar">
-                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-                Compartilhar
-              </button>
-              <button id="btn-voltar-dashboard-relatorio" class="btn-secundario">Voltar</button>
+        <header class="relatorio-hero">
+          <div class="relatorio-hero-texto">
+            <span class="relatorio-eyebrow">Análise financeira</span>
+            <h2>Relatórios financeiros</h2>
+            <p>Entenda o período, encontre os maiores impactos e confira os detalhes sem misturar com os lançamentos do dia a dia.</p>
+            <div class="relatorio-periodo-resumo" aria-live="polite">
+              <span>Período selecionado</span>
+              <strong id="relatorio-periodo-atual">Este mês</strong>
             </div>
+          </div>
+          <div class="relatorio-hero-acoes">
+            <button id="btn-relatorio-exportar" class="btn-secundario" title="Exportar relatório">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="7 10 12 15 17 10"/><line x1="12" y1="15" x2="12" y2="3"/></svg>
+              Exportar
+            </button>
+            <button id="btn-relatorio-compartilhar" class="btn-secundario" title="Compartilhar">
+              <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+              Compartilhar
+            </button>
+            <button id="btn-voltar-dashboard-relatorio" class="btn-secundario">Voltar</button>
+          </div>
+        </header>
+
+        <section class="relatorio-controles-card" aria-label="Filtros do relatório">
+          <div class="relatorio-controles-topo">
+            <div>
+              <span class="relatorio-eyebrow">Filtros</span>
+              <h3>Escolha o recorte da análise</h3>
+            </div>
+            <small>Os gráficos e tabelas abaixo atualizam com estes filtros.</small>
           </div>
           <div class="relatorio-filtros">
             <div class="relatorio-filtro-grupo">
@@ -87,17 +103,17 @@
               </select>
             </div>
           </div>
-        </header>
+        </section>
 
         <!-- TABS DO RELATÓRIO -->
         <div class="relatorio-tabs">
-          <button type="button" class="relatorio-tab ativo" data-painel="rel-resumo">Resumo</button>
-          <button type="button" class="relatorio-tab" data-painel="rel-categorias">Categorias</button>
-          <button type="button" class="relatorio-tab" data-painel="rel-contas">Contas</button>
-          <button type="button" class="relatorio-tab" data-painel="rel-detalhes">Detalhes</button>
-          <button type="button" class="relatorio-tab" data-painel="rel-comparativo">Comparativo</button>
-          <button type="button" class="relatorio-tab" data-painel="rel-insights">Insights</button>
-          <button type="button" class="relatorio-tab" data-painel="rel-tabela">Tabela</button>
+          <button type="button" class="relatorio-tab ativo" data-painel="rel-resumo">Visão geral</button>
+          <button type="button" class="relatorio-tab" data-painel="rel-categorias">Onde gastou</button>
+          <button type="button" class="relatorio-tab" data-painel="rel-contas">Carteiras</button>
+          <button type="button" class="relatorio-tab" data-painel="rel-detalhes">Movimentos</button>
+          <button type="button" class="relatorio-tab" data-painel="rel-comparativo">Comparar</button>
+          <button type="button" class="relatorio-tab" data-painel="rel-insights">Alertas</button>
+          <button type="button" class="relatorio-tab" data-painel="rel-tabela">Transações</button>
         </div>
 
         <!-- PAINEL: RESUMO -->
@@ -135,20 +151,38 @@
             </div>
 
             <!-- Fluxo de Caixa -->
-            <div class="card">
-              <h3 class="relatorio-subtitulo">Fluxo de Caixa</h3>
+            <div class="card rel-card-grafico rel-card-destaque">
+              <div class="rel-card-cabecalho">
+                <div>
+                  <span class="relatorio-eyebrow">Tendência</span>
+                  <h3 class="relatorio-subtitulo">Fluxo de caixa</h3>
+                </div>
+                <p>Receitas, despesas e saldo no período.</p>
+              </div>
               <div id="rel-grafico-fluxo" class="rel-grafico-container"></div>
             </div>
 
             <!-- Receitas × Despesas -->
-            <div class="card">
-              <h3 class="relatorio-subtitulo">Receitas × Despesas</h3>
+            <div class="card rel-card-grafico">
+              <div class="rel-card-cabecalho">
+                <div>
+                  <span class="relatorio-eyebrow">Comparação</span>
+                  <h3 class="relatorio-subtitulo">Receitas × despesas</h3>
+                </div>
+                <p>Veja o peso das entradas contra as saídas.</p>
+              </div>
               <div id="rel-grafico-barras" class="rel-grafico-container"></div>
             </div>
 
             <!-- Gastos por Categoria (Donut) -->
-            <div class="card">
-              <h3 class="relatorio-subtitulo">Gastos por Categoria</h3>
+            <div class="card rel-card-grafico">
+              <div class="rel-card-cabecalho">
+                <div>
+                  <span class="relatorio-eyebrow">Distribuição</span>
+                  <h3 class="relatorio-subtitulo">Gastos por categoria</h3>
+                </div>
+                <p>Onde as despesas se concentram.</p>
+              </div>
               <div id="rel-grafico-donut" class="rel-donut-area">
                 <div class="rel-donut-svg" id="rel-donut-svg"></div>
                 <div class="rel-donut-legenda" id="rel-donut-legenda"></div>
@@ -156,8 +190,14 @@
             </div>
 
             <!-- Indicadores Financeiros -->
-            <div class="card">
-              <h3 class="relatorio-subtitulo">Indicadores Financeiros</h3>
+            <div class="card rel-card-grafico">
+              <div class="rel-card-cabecalho">
+                <div>
+                  <span class="relatorio-eyebrow">Leitura rápida</span>
+                  <h3 class="relatorio-subtitulo">Indicadores financeiros</h3>
+                </div>
+                <p>Médias, tickets e sinais do período.</p>
+              </div>
               <div id="rel-indicadores" class="rel-indicadores-grid"></div>
             </div>
           </div>
