@@ -144,17 +144,18 @@ body:not(.dashboard-layout-modo-ativo) .area-controle > * {
 }
 
 .dashboard-layout-editando {
-  padding: 10px;
+  padding: 8px;
   border: 1px dashed color-mix(in srgb, var(--cor-marca) 50%, transparent);
-  border-radius: var(--raio-card);
+  border-radius: 18px;
   background: color-mix(in srgb, var(--cor-marca) 6%, transparent);
 }
 
 .dashboard-layout-banner {
   display: grid;
-  grid-template-columns: 1fr;
-  gap: 10px;
-  padding: 10px 12px;
+  grid-template-columns: minmax(240px, 0.8fr) minmax(260px, 1.2fr) auto;
+  gap: 12px;
+  align-items: center;
+  padding: 9px 10px;
   grid-column: 1 / -1;
   order: 0;
   border-radius: 14px;
@@ -207,24 +208,26 @@ body:not(.dashboard-layout-modo-ativo) .area-controle > * {
 }
 
 .dashboard-layout-presets {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
-  gap: 8px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  min-width: 0;
+  overflow-x: auto;
+  scrollbar-width: thin;
 }
 
 .dashboard-layout-preset-btn {
-  display: flex;
-  min-height: 62px;
-  flex-direction: column;
-  align-items: flex-start;
+  display: inline-flex;
+  min-height: 34px;
+  flex: 0 0 auto;
+  align-items: center;
   justify-content: center;
-  gap: 3px;
-  padding: 10px 12px;
+  padding: 7px 10px;
   border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 75%, transparent);
-  border-radius: 13px;
+  border-radius: 999px;
   background: color-mix(in srgb, var(--cor-fundo-card) 78%, transparent);
   color: var(--cor-texto);
-  text-align: left;
+  text-align: center;
   cursor: pointer;
   transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
 }
@@ -236,25 +239,52 @@ body:not(.dashboard-layout-modo-ativo) .area-controle > * {
 }
 
 .dashboard-layout-preset-btn strong {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   letter-spacing: 0.05em;
   text-transform: uppercase;
+  white-space: nowrap;
 }
 
 .dashboard-layout-preset-btn span {
+  display: none;
   color: var(--cor-texto-suave);
   font-size: 0.67rem;
   line-height: 1.25;
 }
 
+.dashboard-layout-banner-acoes {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.dashboard-layout-toggle-painel {
+  min-height: 34px;
+  padding: 7px 11px;
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 42%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-marca) 12%, var(--cor-fundo-card));
+  color: var(--cor-texto);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  cursor: pointer;
+}
+
 .dashboard-layout-painel {
   display: grid;
+  grid-column: 1 / -1;
   grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
   gap: 8px;
-  max-height: 220px;
+  max-height: 260px;
   overflow: auto;
   padding-top: 8px;
   border-top: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 78%, transparent);
+}
+
+.dashboard-layout-painel[hidden] {
+  display: none;
 }
 
 .dashboard-layout-painel-item {
@@ -2101,6 +2131,14 @@ button.risco-financeiro-item:hover {
     grid-template-columns: 1fr;
   }
 
+  .dashboard-layout-banner {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-layout-banner-acoes {
+    justify-content: flex-start;
+  }
+
   .dashboard-free-grid,
   .area-controle {
     grid-template-columns: repeat(2, minmax(0, 1fr));
@@ -2143,7 +2181,7 @@ button.risco-financeiro-item:hover {
   }
 
   .dashboard-layout-presets {
-    grid-template-columns: 1fr;
+    width: 100%;
   }
 
   .dashboard-layout-painel {

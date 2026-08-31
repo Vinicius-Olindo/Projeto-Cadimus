@@ -393,7 +393,12 @@ function obterOuCriarBannerLayoutDashboard(container) {
     <div class="dashboard-layout-presets" id="dashboard-layout-presets" aria-label="Presets de layout">
       ${renderizarBotoesPresetLayoutDashboard()}
     </div>
-    <div class="dashboard-layout-painel" id="dashboard-layout-painel" aria-label="Configurações dos cards"></div>
+    <div class="dashboard-layout-banner-acoes">
+      <button type="button" class="dashboard-layout-toggle-painel" data-layout-toggle-painel aria-expanded="false">
+        Configurar cards
+      </button>
+    </div>
+    <div class="dashboard-layout-painel" id="dashboard-layout-painel" aria-label="Configurações dos cards" hidden></div>
   `;
   container.prepend(banner);
   renderizarPainelLayoutDashboard();
@@ -665,6 +670,18 @@ function configurarEventosLayoutDashboard() {
       evento.preventDefault();
       evento.stopPropagation();
       aplicarPresetLayoutDashboard(botaoPreset.dataset.layoutPreset);
+      return;
+    }
+
+    const botaoPainel = evento.target.closest("[data-layout-toggle-painel]");
+    if (dashboardLayoutEditando && botaoPainel) {
+      const painel = document.getElementById("dashboard-layout-painel");
+      if (!painel) return;
+      const abrir = painel.hidden;
+      painel.hidden = !abrir;
+      botaoPainel.setAttribute("aria-expanded", String(abrir));
+      botaoPainel.textContent = abrir ? "Ocultar configurações" : "Configurar cards";
+      if (abrir) renderizarPainelLayoutDashboard();
       return;
     }
 
