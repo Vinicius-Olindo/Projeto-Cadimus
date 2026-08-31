@@ -147,6 +147,7 @@ body:not(.dashboard-layout-modo-ativo) .area-controle > * {
 }
 
 .dashboard-layout-editando {
+  min-height: 180px;
   padding: 8px;
   border: 1px dashed color-mix(in srgb, var(--cor-marca) 50%, transparent);
   border-radius: 18px;

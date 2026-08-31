@@ -57,6 +57,10 @@ const DASHBOARD_LAYOUT_TAMANHOS = {
   grande: "Grande",
   inteiro: "Largura total",
 };
+const DASHBOARD_LAYOUT_ZONAS = {
+  principal: "Esquerda",
+  lateral: "Direita",
+};
 const DASHBOARD_LAYOUT_PRESETS = [
   {
     chave: "essencial",
@@ -169,11 +173,15 @@ function obterZonaCardLayoutDashboard(id) {
   return obterConfigCardLayoutDashboard(id).zona || "principal";
 }
 
-function obterContainerCardLayoutDashboard(id) {
-  const seletor = obterZonaCardLayoutDashboard(id) === "lateral"
+function obterContainerZonaLayoutDashboard(zona) {
+  const seletor = zona === "lateral"
     ? DASHBOARD_LAYOUT_SIDE_CONTAINER_SELECTOR
     : DASHBOARD_LAYOUT_MAIN_CONTAINER_SELECTOR;
   return document.querySelector(seletor);
+}
+
+function obterContainerCardLayoutDashboard(id) {
+  return obterContainerZonaLayoutDashboard(obterZonaCardLayoutDashboard(id));
 }
 
 function obterVisaoAtualLayoutDashboard() {
@@ -204,6 +212,11 @@ function normalizarTamanhoLayoutDashboard(tamanho, id) {
   return obterConfigCardLayoutDashboard(id).tamanhoPadrao;
 }
 
+function normalizarZonaLayoutDashboard(zona, id) {
+  if (DASHBOARD_LAYOUT_ZONAS[zona]) return zona;
+  return obterZonaCardLayoutDashboard(id);
+}
+
 function normalizarLayoutDashboard(layout) {
   let cards = [];
 
@@ -227,6 +240,7 @@ function normalizarLayoutDashboard(layout) {
       return {
         id: item.id,
         tamanho: normalizarTamanhoLayoutDashboard(item.tamanho, item.id),
+        zona: normalizarZonaLayoutDashboard(item.zona, item.id),
         visivel: item.visivel !== false,
       };
     });
@@ -237,6 +251,7 @@ function normalizarLayoutDashboard(layout) {
       normalizados.push({
         id,
         tamanho: obterConfigCardLayoutDashboard(id).tamanhoPadrao,
+        zona: obterZonaCardLayoutDashboard(id),
         visivel: true,
       });
     });
@@ -252,6 +267,7 @@ function criarLayoutAPartirDePreset(preset) {
     .map(([id, tamanho]) => ({
       id,
       tamanho: normalizarTamanhoLayoutDashboard(tamanho, id),
+      zona: obterZonaCardLayoutDashboard(id),
       visivel: true,
     }));
 
@@ -260,6 +276,7 @@ function criarLayoutAPartirDePreset(preset) {
     .map((config) => ({
       id: config.id,
       tamanho: config.tamanhoPadrao,
+      zona: config.zona,
       visivel: false,
     }));
 
@@ -305,6 +322,7 @@ function obterLayoutAtualDashboard() {
       return {
         id,
         tamanho: normalizarTamanhoLayoutDashboard(card?.dataset?.dashboardLayoutTamanho, id),
+        zona: card?.parentElement?.id === "dashboard-side-grid" ? "lateral" : "principal",
         visivel: !card?.classList.contains("dashboard-card-oculto-usuario"),
       };
     });
@@ -316,7 +334,9 @@ function aplicarPreferenciasCardLayoutDashboard(card, preferencias = {}) {
   if (!card?.id || !DASHBOARD_LAYOUT_CARDS.includes(card.id)) return;
 
   const tamanho = normalizarTamanhoLayoutDashboard(preferencias.tamanho, card.id);
+  const zona = normalizarZonaLayoutDashboard(preferencias.zona, card.id);
   card.dataset.dashboardLayoutTamanho = tamanho;
+  card.dataset.dashboardLayoutZona = zona;
   card.classList.toggle("dashboard-card-oculto-usuario", preferencias.visivel === false);
   card.setAttribute("data-layout-visivel", preferencias.visivel === false ? "false" : "true");
 }
@@ -337,8 +357,9 @@ function aplicarLayoutDashboard(layout = []) {
       .filter((id) => DASHBOARD_LAYOUT_CARDS.includes(id))
       .forEach((id) => {
         const card = document.getElementById(id);
-        const zona = obterZonaCardLayoutDashboard(id);
-        const container = obterContainerCardLayoutDashboard(id);
+        const preferencias = configsPorId.get(id);
+        const zona = normalizarZonaLayoutDashboard(preferencias?.zona, id);
+        const container = obterContainerZonaLayoutDashboard(zona);
         if (!card || !container) return;
         const cardsOrdenados = cardsOrdenadosPorZona.get(zona) || [];
         const idsAplicados = idsAplicadosPorZona.get(zona) || new Set();
@@ -354,7 +375,7 @@ function aplicarLayoutDashboard(layout = []) {
         const idsAplicados = idsAplicadosPorZona.get(zona) || new Set();
         if (idsAplicados.has(id)) return;
         const card = document.getElementById(id);
-        const container = obterContainerCardLayoutDashboard(id);
+        const container = obterContainerZonaLayoutDashboard(zona);
         if (!card || !container) return;
         const cardsOrdenados = cardsOrdenadosPorZona.get(zona) || [];
         cardsOrdenados.push(card);
@@ -420,7 +441,7 @@ function obterOuCriarBannerLayoutDashboard(container) {
       <span class="dashboard-layout-banner-icone" aria-hidden="true">↕</span>
       <span class="dashboard-layout-banner-texto">
         <strong>Modo layout ativo</strong>
-        <small>Escolha um preset, arraste, ajuste tamanhos e oculte cards. Clique em Salvar layout ao finalizar.</small>
+        <small>Escolha um preset, arraste entre as colunas e oculte cards. Clique em Salvar layout ao finalizar.</small>
       </span>
     </div>
     <div class="dashboard-layout-presets" id="dashboard-layout-presets" aria-label="Presets de layout">
@@ -446,10 +467,10 @@ function renderizarPainelLayoutDashboard() {
     .filter((config) => document.getElementById(config.id) && cardPertenceVisaoAtualLayoutDashboard(config.id))
     .map((config) => {
       const card = document.getElementById(config.id);
-      const tamanhoAtual = normalizarTamanhoLayoutDashboard(card?.dataset?.dashboardLayoutTamanho, config.id);
+      const zonaAtual = card?.parentElement?.id === "dashboard-side-grid" ? "lateral" : "principal";
       const visivel = !card?.classList.contains("dashboard-card-oculto-usuario");
-      const opcoesTamanho = Object.entries(DASHBOARD_LAYOUT_TAMANHOS)
-        .map(([valor, rotulo]) => `<option value="${valor}" ${valor === tamanhoAtual ? "selected" : ""}>${rotulo}</option>`)
+      const opcoesZona = Object.entries(DASHBOARD_LAYOUT_ZONAS)
+        .map(([valor, rotulo]) => `<option value="${valor}" ${valor === zonaAtual ? "selected" : ""}>${rotulo}</option>`)
         .join("");
 
       return `
@@ -458,8 +479,8 @@ function renderizarPainelLayoutDashboard() {
             <input type="checkbox" data-layout-visivel-card="${config.id}" ${visivel ? "checked" : ""} />
             <span>${config.nome}</span>
           </label>
-          <select data-layout-tamanho-card="${config.id}" aria-label="Tamanho de ${config.nome}">
-            ${opcoesTamanho}
+          <select data-layout-zona-card="${config.id}" aria-label="Coluna de ${config.nome}">
+            ${opcoesZona}
           </select>
         </div>
       `;
@@ -541,6 +562,24 @@ function alterarTamanhoCardLayoutDashboard(id, tamanho) {
   atualizarControlesCardsLayoutDashboard();
 }
 
+function alterarZonaCardLayoutDashboard(id, zona) {
+  const card = document.getElementById(id);
+  const destino = obterContainerZonaLayoutDashboard(normalizarZonaLayoutDashboard(zona, id));
+  if (!card || !destino || !DASHBOARD_LAYOUT_CARDS.includes(id)) return;
+
+  destino.appendChild(card);
+  card.dataset.dashboardLayoutZona = normalizarZonaLayoutDashboard(zona, id);
+  renderizarPainelLayoutDashboard();
+  atualizarControlesCardsLayoutDashboard();
+}
+
+function alternarZonaCardLayoutDashboard(card) {
+  if (!card?.id || !DASHBOARD_LAYOUT_CARDS.includes(card.id)) return;
+
+  const zonaAtual = card.parentElement?.id === "dashboard-side-grid" ? "lateral" : "principal";
+  alterarZonaCardLayoutDashboard(card.id, zonaAtual === "lateral" ? "principal" : "lateral");
+}
+
 function alterarVisibilidadeCardLayoutDashboard(id, visivel) {
   const card = document.getElementById(id);
   if (!card || !DASHBOARD_LAYOUT_CARDS.includes(id)) return;
@@ -566,6 +605,7 @@ function atualizarControlesCardsLayoutDashboard() {
       acoes.innerHTML = `
         <button type="button" data-layout-mover="-1" title="Mover card para trás" aria-label="Mover card para trás">←</button>
         <button type="button" data-layout-mover="1" title="Mover card para frente" aria-label="Mover card para frente">→</button>
+        <button type="button" data-layout-alternar-zona title="Mover para outra coluna" aria-label="Mover para outra coluna">↔</button>
       `;
       card.appendChild(acoes);
     }
@@ -689,11 +729,12 @@ function configurarEventosLayoutDashboard() {
     });
 
     container.addEventListener("dragover", (evento) => {
-      if (!dashboardLayoutEditando || !dashboardLayoutCardArrastado || dashboardLayoutCardArrastado.parentElement !== container) return;
+      if (!dashboardLayoutEditando || !dashboardLayoutCardArrastado) return;
       evento.preventDefault();
       const depois = obterCardDepoisDoArraste(container, evento.clientX, evento.clientY);
       if (depois) container.insertBefore(dashboardLayoutCardArrastado, depois);
       else container.appendChild(dashboardLayoutCardArrastado);
+      dashboardLayoutCardArrastado.dataset.dashboardLayoutZona = container.id === "dashboard-side-grid" ? "lateral" : "principal";
       atualizarControlesCardsLayoutDashboard();
     });
   });
@@ -719,6 +760,14 @@ function configurarEventosLayoutDashboard() {
       return;
     }
 
+    const botaoAlternarZona = evento.target.closest("[data-layout-alternar-zona]");
+    if (dashboardLayoutEditando && botaoAlternarZona) {
+      evento.preventDefault();
+      evento.stopPropagation();
+      alternarZonaCardLayoutDashboard(botaoAlternarZona.closest(".dashboard-card-editavel"));
+      return;
+    }
+
     const botaoMover = evento.target.closest("[data-layout-mover]");
     if (!dashboardLayoutEditando || !botaoMover) return;
     evento.preventDefault();
@@ -729,9 +778,9 @@ function configurarEventosLayoutDashboard() {
   area.addEventListener("change", (evento) => {
     if (!dashboardLayoutEditando) return;
 
-    const seletorTamanho = evento.target.closest("[data-layout-tamanho-card]");
-    if (seletorTamanho) {
-      alterarTamanhoCardLayoutDashboard(seletorTamanho.dataset.layoutTamanhoCard, seletorTamanho.value);
+    const seletorZona = evento.target.closest("[data-layout-zona-card]");
+    if (seletorZona) {
+      alterarZonaCardLayoutDashboard(seletorZona.dataset.layoutZonaCard, seletorZona.value);
       return;
     }
 
