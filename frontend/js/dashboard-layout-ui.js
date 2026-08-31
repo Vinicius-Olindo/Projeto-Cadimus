@@ -31,6 +31,72 @@ const DASHBOARD_LAYOUT_TAMANHOS = {
   grande: "Grande",
   inteiro: "Largura total",
 };
+const DASHBOARD_LAYOUT_PRESETS = [
+  {
+    chave: "essencial",
+    nome: "Essencial",
+    descricao: "Resumo enxuto para uso diário.",
+    cards: [
+      ["card-hoje-dashboard", "grande"],
+      ["card-lancamentos", "inteiro"],
+      ["card-calendario-financeiro", "grande"],
+      ["card-score", "grande"],
+      ["card-riscos-financeiros", "medio"],
+      ["card-metas-mes-dashboard", "grande"],
+    ],
+  },
+  {
+    chave: "lancamentos",
+    nome: "Foco em lançamentos",
+    descricao: "Rotina, agenda e compromissos.",
+    cards: [
+      ["card-hoje-dashboard", "grande"],
+      ["card-lancamentos", "inteiro"],
+      ["card-modelos-lancamento", "medio"],
+      ["card-despesas-fixas", "medio"],
+      ["card-compras-parceladas", "medio"],
+      ["card-bonificacoes", "medio"],
+      ["card-calendario-financeiro", "grande"],
+    ],
+  },
+  {
+    chave: "saude",
+    nome: "Saúde financeira",
+    descricao: "Riscos, score, metas e tendências.",
+    cards: [
+      ["card-score", "grande"],
+      ["card-riscos-financeiros", "grande"],
+      ["card-metas-mes-dashboard", "grande"],
+      ["card-orcamentos", "medio"],
+      ["resumo-categorias", "medio"],
+      ["card-tendencia", "grande"],
+      ["card-comparativo", "grande"],
+      ["card-comparativo-periodo", "grande"],
+      ["card-cartoes-credito", "medio"],
+    ],
+  },
+  {
+    chave: "analitico",
+    nome: "Analítico",
+    descricao: "Comparações e origem dos gastos.",
+    cards: [
+      ["card-comparativo-periodo", "grande"],
+      ["resumo-categorias", "medio"],
+      ["card-tendencia", "grande"],
+      ["card-comparativo", "grande"],
+      ["card-por-autor", "medio"],
+      ["card-assinaturas", "medio"],
+      ["card-cartoes-credito", "medio"],
+      ["card-orcamentos", "medio"],
+    ],
+  },
+  {
+    chave: "completo",
+    nome: "Completo",
+    descricao: "Todos os cards ativos no layout padrão.",
+    cards: DASHBOARD_LAYOUT_CARD_CONFIGS.map((card) => [card.id, card.tamanhoPadrao]),
+  },
+];
 const DASHBOARD_LAYOUT_BANNER_ID = "dashboard-layout-banner";
 const DASHBOARD_LAYOUT_STORAGE_ULTIMO = `${DASHBOARD_LAYOUT_STORAGE_PREFIX}_ultimo`;
 
@@ -122,6 +188,28 @@ function normalizarLayoutDashboard(layout) {
     });
 
   return { version: 2, cards: normalizados };
+}
+
+function criarLayoutAPartirDePreset(preset) {
+  const cardsPreset = Array.isArray(preset?.cards) ? preset.cards : [];
+  const idsPreset = new Set(cardsPreset.map(([id]) => id).filter((id) => DASHBOARD_LAYOUT_CARDS.includes(id)));
+  const cardsVisiveis = cardsPreset
+    .filter(([id]) => DASHBOARD_LAYOUT_CARDS.includes(id) && document.getElementById(id))
+    .map(([id, tamanho]) => ({
+      id,
+      tamanho: normalizarTamanhoLayoutDashboard(tamanho, id),
+      visivel: true,
+    }));
+
+  const cardsOcultos = DASHBOARD_LAYOUT_CARD_CONFIGS
+    .filter((config) => document.getElementById(config.id) && !idsPreset.has(config.id))
+    .map((config) => ({
+      id: config.id,
+      tamanho: config.tamanhoPadrao,
+      visivel: false,
+    }));
+
+  return { version: 2, preset: preset?.chave || "", cards: [...cardsVisiveis, ...cardsOcultos] };
 }
 
 function lerLayoutDashboardSalvo() {
@@ -220,6 +308,29 @@ function aplicarLayoutDashboard(layout = []) {
   }
 }
 
+function aplicarPresetLayoutDashboard(chave) {
+  const preset = DASHBOARD_LAYOUT_PRESETS.find((item) => item.chave === chave);
+  if (!preset) return;
+
+  aplicarLayoutDashboard(criarLayoutAPartirDePreset(preset));
+  renderizarPainelLayoutDashboard();
+  atualizarControlesCardsLayoutDashboard();
+  mostrarToast(`Preset "${preset.nome}" aplicado. Clique em Salvar layout para confirmar.`, "info");
+}
+
+function renderizarBotoesPresetLayoutDashboard() {
+  return DASHBOARD_LAYOUT_PRESETS
+    .map(
+      (preset) => `
+        <button type="button" class="dashboard-layout-preset-btn" data-layout-preset="${preset.chave}" title="${preset.descricao}">
+          <strong>${preset.nome}</strong>
+          <span>${preset.descricao}</span>
+        </button>
+      `
+    )
+    .join("");
+}
+
 function obterOuCriarBannerLayoutDashboard(container) {
   let banner = document.getElementById(DASHBOARD_LAYOUT_BANNER_ID);
   if (banner) {
@@ -235,8 +346,11 @@ function obterOuCriarBannerLayoutDashboard(container) {
       <span class="dashboard-layout-banner-icone" aria-hidden="true">↕</span>
       <span class="dashboard-layout-banner-texto">
         <strong>Modo layout ativo</strong>
-        <small>Arraste, escolha o tamanho e oculte cards que não quer ver. Clique em Salvar layout ao finalizar.</small>
+        <small>Escolha um preset, arraste, ajuste tamanhos e oculte cards. Clique em Salvar layout ao finalizar.</small>
       </span>
+    </div>
+    <div class="dashboard-layout-presets" id="dashboard-layout-presets" aria-label="Presets de layout">
+      ${renderizarBotoesPresetLayoutDashboard()}
     </div>
     <div class="dashboard-layout-painel" id="dashboard-layout-painel" aria-label="Configurações dos cards"></div>
   `;
@@ -503,6 +617,14 @@ function configurarEventosLayoutDashboard() {
   });
 
   container.addEventListener("click", (evento) => {
+    const botaoPreset = evento.target.closest("[data-layout-preset]");
+    if (dashboardLayoutEditando && botaoPreset) {
+      evento.preventDefault();
+      evento.stopPropagation();
+      aplicarPresetLayoutDashboard(botaoPreset.dataset.layoutPreset);
+      return;
+    }
+
     const botaoMover = evento.target.closest("[data-layout-mover]");
     if (!dashboardLayoutEditando || !botaoMover) return;
     evento.preventDefault();

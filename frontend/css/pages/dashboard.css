@@ -113,6 +113,11 @@
   filter: grayscale(0.5);
 }
 
+.dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-visao-oculto,
+.dashboard-layout-modo-ativo .dashboard-free-grid > [style*="display: none"] {
+  display: flex !important;
+}
+
 .dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-card-oculto-usuario::after {
   content: "Oculto no layout salvo";
   position: absolute;
@@ -189,6 +194,47 @@
   color: var(--cor-texto-suave);
   font-size: 0.72rem;
   line-height: 1.35;
+}
+
+.dashboard-layout-presets {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(148px, 1fr));
+  gap: 8px;
+}
+
+.dashboard-layout-preset-btn {
+  display: flex;
+  min-height: 62px;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: center;
+  gap: 3px;
+  padding: 10px 12px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 75%, transparent);
+  border-radius: 13px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 78%, transparent);
+  color: var(--cor-texto);
+  text-align: left;
+  cursor: pointer;
+  transition: transform 0.18s ease, border-color 0.18s ease, background 0.18s ease;
+}
+
+.dashboard-layout-preset-btn:hover {
+  transform: translateY(-1px);
+  border-color: color-mix(in srgb, var(--cor-marca) 55%, transparent);
+  background: color-mix(in srgb, var(--cor-marca) 12%, var(--cor-fundo-card));
+}
+
+.dashboard-layout-preset-btn strong {
+  font-size: 0.72rem;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
+.dashboard-layout-preset-btn span {
+  color: var(--cor-texto-suave);
+  font-size: 0.67rem;
+  line-height: 1.25;
 }
 
 .dashboard-layout-painel {
@@ -2083,6 +2129,18 @@ button.risco-financeiro-item:hover {
 
   .dashboard-layout-banner-texto small {
     font-size: 0.68rem;
+  }
+
+  .dashboard-layout-presets {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-layout-painel {
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-layout-painel-item {
+    grid-template-columns: 1fr;
   }
 
   .dashboard-free-grid,
