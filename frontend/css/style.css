@@ -19,7 +19,7 @@
 @import url("components/export-modal.css");
 @import url("components/toast.css");
 @import url("accessibility.css");
-@import url("pages/planning.css");
+@import url("pages/planning.css?v=101");
 @import url("components/charts.css");
 @import url("components/pwa-install.css");
 @import url("components/global-search.css");

@@ -551,7 +551,7 @@
   }
 
   .seletor-mes-planejamento {
-    min-width: 0;
+    min-width: min(100%, 236px);
   }
 
   .plano-overview-kpis strong,

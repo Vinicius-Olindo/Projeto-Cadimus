@@ -51,9 +51,11 @@
 }
 
 .seletor-mes-planejamento {
+  box-sizing: border-box;
   flex-wrap: nowrap;
   gap: 6px;
   padding: 6px;
+  max-width: 100%;
   border-radius: 18px;
   background:
     linear-gradient(135deg, color-mix(in srgb, var(--cor-marca) 8%, transparent), transparent 54%),
@@ -73,7 +75,8 @@
 }
 
 .seletor-mes-planejamento .seletor-mes-rotulo {
-  min-width: 136px;
+  width: 148px;
+  min-width: 148px;
   min-height: 32px;
   padding: 0 12px;
   border: 1px solid transparent;
@@ -231,16 +234,20 @@
 
   .seletor-mes-planejamento {
     width: 100%;
+    display: grid;
+    grid-template-columns: 32px minmax(124px, 1fr) 32px;
+    align-items: center;
     justify-content: space-between;
   }
 
   .seletor-mes-contexto {
-    flex: 1 0 100%;
+    grid-column: 1 / -1;
+    min-width: 0;
   }
 
   .seletor-mes-planejamento .seletor-mes-rotulo {
-    flex: 1;
-    min-width: 0;
+    width: 100%;
+    min-width: 124px;
   }
 }
 
@@ -955,7 +962,13 @@
   .seletor-mes-planejamento {
     gap: 6px;
     padding: 6px;
+    grid-template-columns: 30px minmax(112px, 1fr) 30px;
     justify-content: space-between;
+  }
+
+  .seletor-mes-planejamento button {
+    width: 30px;
+    height: 30px;
   }
 
   .seletor-mes-contexto {
@@ -964,7 +977,8 @@
 
   .seletor-mes-planejamento .seletor-mes-rotulo {
     padding-inline: 6px;
-    font-size: 0.7rem;
+    font-size: 0.68rem;
+    min-width: 112px;
   }
 
   .plano-overview h3 {
