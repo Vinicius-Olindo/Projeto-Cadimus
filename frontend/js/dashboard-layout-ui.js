@@ -219,6 +219,15 @@ function normalizarZonaLayoutDashboard(zona, id) {
   return obterZonaCardLayoutDashboard(id);
 }
 
+function obterTamanhoVisualAoMoverCardLayoutDashboard(card) {
+  if (!card?.id) return "medio";
+
+  const tamanhoAtual = card.dataset.dashboardLayoutTamanho;
+  const config = obterConfigCardLayoutDashboard(card.id);
+  if (config.zona === "lateral" && tamanhoAtual === "inteiro") return config.tamanhoPadrao;
+  return normalizarTamanhoLayoutDashboard(tamanhoAtual, card.id);
+}
+
 function normalizarLayoutDashboard(layout) {
   let cards = [];
 
@@ -566,11 +575,14 @@ function alterarTamanhoCardLayoutDashboard(id, tamanho) {
 
 function alterarZonaCardLayoutDashboard(id, zona) {
   const card = document.getElementById(id);
-  const destino = obterContainerZonaLayoutDashboard(normalizarZonaLayoutDashboard(zona, id));
+  const zonaNormalizada = normalizarZonaLayoutDashboard(zona, id);
+  const destino = obterContainerZonaLayoutDashboard(zonaNormalizada);
   if (!card || !destino || !DASHBOARD_LAYOUT_CARDS.includes(id)) return;
 
+  const tamanhoVisual = obterTamanhoVisualAoMoverCardLayoutDashboard(card);
   destino.appendChild(card);
-  card.dataset.dashboardLayoutZona = normalizarZonaLayoutDashboard(zona, id);
+  card.dataset.dashboardLayoutZona = zonaNormalizada;
+  card.dataset.dashboardLayoutTamanho = tamanhoVisual;
   renderizarPainelLayoutDashboard();
   atualizarControlesCardsLayoutDashboard();
 }
@@ -734,9 +746,11 @@ function configurarEventosLayoutDashboard() {
       if (!dashboardLayoutEditando || !dashboardLayoutCardArrastado) return;
       evento.preventDefault();
       const depois = obterCardDepoisDoArraste(container, evento.clientX, evento.clientY);
+      const tamanhoVisual = obterTamanhoVisualAoMoverCardLayoutDashboard(dashboardLayoutCardArrastado);
       if (depois) container.insertBefore(dashboardLayoutCardArrastado, depois);
       else container.appendChild(dashboardLayoutCardArrastado);
       dashboardLayoutCardArrastado.dataset.dashboardLayoutZona = container.id === "dashboard-side-grid" ? "lateral" : "principal";
+      dashboardLayoutCardArrastado.dataset.dashboardLayoutTamanho = tamanhoVisual;
       atualizarControlesCardsLayoutDashboard();
     });
   });

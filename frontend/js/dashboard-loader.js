@@ -22,7 +22,7 @@ CadimusPageLoader.carregar([
   "components.js?v=104",
   "dashboard-views-ui.js?v=109",
   "ui-core.js?v=106",
-  "dashboard-layout-ui.js?v=117",
+  "dashboard-layout-ui.js?v=118",
   "wallets-ui.js?v=113",
   "categories-ui.js?v=100",
   "entries-modal-ui.js?v=118",
