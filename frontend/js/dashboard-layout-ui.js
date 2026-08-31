@@ -11,20 +11,20 @@ const DASHBOARD_LAYOUT_CARD_CONFIGS = [
   { id: "card-calendario-financeiro", nome: "Calendário", tamanhoPadrao: "inteiro", zona: "principal" },
   { id: "card-comparativo-periodo", nome: "Comparar períodos", tamanhoPadrao: "inteiro", zona: "principal" },
   { id: "card-lancamentos", nome: "Lançamentos", tamanhoPadrao: "inteiro", zona: "principal" },
-  { id: "resumo-categorias", nome: "Categorias", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-tendencia", nome: "Evolução mensal", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-comparativo", nome: "Saldo vs despesas", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-por-autor", nome: "Quem gastou quanto", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-despesas-fixas", nome: "Despesas fixas", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-compras-parceladas", nome: "Compras parceladas", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-bonificacoes", nome: "Bonificações", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-assinaturas", nome: "Assinaturas", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-metas-mes-dashboard", nome: "Metas do mês", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-orcamentos", nome: "Orçamento", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-cartoes-credito", nome: "Cartões", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-riscos-financeiros", nome: "Riscos financeiros", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-modelos-lancamento", nome: "Modelos rápidos", tamanhoPadrao: "inteiro", zona: "lateral" },
-  { id: "card-score", nome: "Saúde financeira", tamanhoPadrao: "inteiro", zona: "lateral" },
+  { id: "resumo-categorias", nome: "Categorias", tamanhoPadrao: "medio", zona: "lateral" },
+  { id: "card-tendencia", nome: "Evolução mensal", tamanhoPadrao: "grande", zona: "lateral" },
+  { id: "card-comparativo", nome: "Saldo vs despesas", tamanhoPadrao: "grande", zona: "lateral" },
+  { id: "card-por-autor", nome: "Quem gastou quanto", tamanhoPadrao: "medio", zona: "lateral" },
+  { id: "card-despesas-fixas", nome: "Despesas fixas", tamanhoPadrao: "medio", zona: "lateral" },
+  { id: "card-compras-parceladas", nome: "Compras parceladas", tamanhoPadrao: "medio", zona: "lateral" },
+  { id: "card-bonificacoes", nome: "Bonificações", tamanhoPadrao: "medio", zona: "lateral" },
+  { id: "card-assinaturas", nome: "Assinaturas", tamanhoPadrao: "medio", zona: "lateral" },
+  { id: "card-metas-mes-dashboard", nome: "Metas do mês", tamanhoPadrao: "grande", zona: "lateral" },
+  { id: "card-orcamentos", nome: "Orçamento", tamanhoPadrao: "medio", zona: "lateral" },
+  { id: "card-cartoes-credito", nome: "Cartões", tamanhoPadrao: "medio", zona: "lateral" },
+  { id: "card-riscos-financeiros", nome: "Riscos financeiros", tamanhoPadrao: "medio", zona: "lateral" },
+  { id: "card-modelos-lancamento", nome: "Modelos rápidos", tamanhoPadrao: "medio", zona: "lateral" },
+  { id: "card-score", nome: "Saúde financeira", tamanhoPadrao: "grande", zona: "lateral" },
 ];
 const DASHBOARD_LAYOUT_CARDS = DASHBOARD_LAYOUT_CARD_CONFIGS.map((card) => card.id);
 const DASHBOARD_LAYOUT_CARDS_POR_VISAO = {
@@ -208,8 +208,10 @@ function obterOrdemPadraoLayoutDashboard() {
 }
 
 function normalizarTamanhoLayoutDashboard(tamanho, id) {
+  const config = obterConfigCardLayoutDashboard(id);
+  if (config.zona === "lateral" && tamanho === "inteiro") return config.tamanhoPadrao;
   if (DASHBOARD_LAYOUT_TAMANHOS[tamanho]) return tamanho;
-  return obterConfigCardLayoutDashboard(id).tamanhoPadrao;
+  return config.tamanhoPadrao;
 }
 
 function normalizarZonaLayoutDashboard(zona, id) {

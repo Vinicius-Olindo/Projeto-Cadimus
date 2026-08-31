@@ -103,7 +103,6 @@
   grid-column: 1 / -1;
 }
 
-body:not(.dashboard-layout-modo-ativo) .dashboard-free-grid > *,
 body:not(.dashboard-layout-modo-ativo) .area-controle > * {
   grid-column: 1 / -1;
 }
