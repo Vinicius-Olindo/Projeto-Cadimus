@@ -3,7 +3,7 @@
 // ==========================================
 
 (function () {
-  const CADIMUS_APP_VERSION = "1.1.0-staging";
+  const CADIMUS_APP_VERSION = String(window.CADIMUS_APP_VERSION || "1.1.0-staging").trim();
 
   function renderizarAppFooter() {
     const root = document.getElementById("app-footer-root");

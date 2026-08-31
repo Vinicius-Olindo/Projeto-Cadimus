@@ -12,6 +12,7 @@ CadimusPageLoader.carregar([
   "goals-api.js?v=100",
   "scheduled-api.js?v=100",
   "app-header-component.js?v=100",
+  "app-version.js?v=100",
   "app-footer-component.js?v=101",
   "entries-dashboard-component.js?v=101",
   "dashboard-side-cards-component.js?v=102",
