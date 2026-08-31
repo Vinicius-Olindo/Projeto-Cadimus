@@ -161,7 +161,6 @@ function configurarModalDespesasFixas() {
 
       if (resposta.ok) {
         fecharModalDespesaFixa();
-        carregarPainelDespesasFixas();
         await recarregarLancamentosAposMutacao();
         mostrarToast(idEdicao ? "Despesa fixa atualizada" : "Despesa fixa criada");
       } else {

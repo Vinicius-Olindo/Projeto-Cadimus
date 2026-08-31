@@ -183,7 +183,6 @@ function configurarModalComprasParceladas() {
         preview.style.display = "none";
         modal.style.display = "none";
         liberarFoco();
-        carregarPainelComprasParceladas();
         await recarregarLancamentosAposMutacao();
         mostrarToast("Compra parcelada criada");
       } else {

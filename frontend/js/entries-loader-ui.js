@@ -10,6 +10,9 @@
 let ultimaRequisicaoLancamentos = 0;
 let ultimoLoteLancamentos = [];
 let termoBuscaAtual = "";
+let recargaMutacaoEmAndamento = null;
+let recargaMutacaoTimer = null;
+let recargaMutacaoPendente = false;
 
 function agendarAtualizacaoComplementarLancamentos(tarefa) {
   if (typeof tarefa !== "function") return;
@@ -42,12 +45,47 @@ function invalidarCachesDashboardFinanceiro() {
   if (typeof cacheResumoMensalDashboard !== "undefined" && cacheResumoMensalDashboard?.clear) cacheResumoMensalDashboard.clear();
 }
 
-async function recarregarLancamentosAposMutacao() {
+function agendarAtualizacaoPlanejamentoAposMutacao() {
+  if (typeof atualizarPlanejamentoVisivel !== "function") return;
+
+  agendarAtualizacaoComplementarLancamentos(() => atualizarPlanejamentoVisivel());
+}
+
+async function executarRecargaLancamentosAposMutacao() {
   invalidarCachesDashboardFinanceiro();
-  await carregarLancamentos();
-  if (typeof atualizarPlanejamentoVisivel === "function") {
-    await atualizarPlanejamentoVisivel();
+  await carregarLancamentos({ manterConteudoAtual: true });
+  agendarAtualizacaoPlanejamentoAposMutacao();
+}
+
+function recarregarLancamentosAposMutacao() {
+  if (recargaMutacaoEmAndamento) {
+    recargaMutacaoPendente = true;
+    return Promise.resolve();
   }
+
+  recargaMutacaoEmAndamento = new Promise((resolver, rejeitar) => {
+    if (recargaMutacaoTimer) clearTimeout(recargaMutacaoTimer);
+
+    recargaMutacaoTimer = setTimeout(() => {
+      recargaMutacaoTimer = null;
+      executarRecargaLancamentosAposMutacao()
+        .then(resolver)
+        .catch(rejeitar)
+        .finally(() => {
+          recargaMutacaoEmAndamento = null;
+          if (recargaMutacaoPendente) {
+            recargaMutacaoPendente = false;
+            recarregarLancamentosAposMutacao();
+          }
+        });
+    }, 80);
+  });
+
+  recargaMutacaoEmAndamento.catch((erro) => {
+    console.error("Erro ao recarregar dados após alteração:", erro);
+  });
+
+  return Promise.resolve();
 }
 
 function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, totalPendente = 0, saldoCalculado = 0 } = {}) {
@@ -85,7 +123,7 @@ function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, total
   }
 }
 
-async function carregarLancamentos() {
+async function carregarLancamentos(opcoes = {}) {
   const container = document.getElementById("lista-lancamentos");
   if (!container) return;
 
@@ -97,10 +135,14 @@ async function carregarLancamentos() {
   // Marca esta chamada como "a mais recente". Se outra começar antes dela terminar,
   // esta vira obsoleta e seu resultado é descartado (evita sobrescrever a tela com dado velho).
   const idDestaRequisicao = ++ultimaRequisicaoLancamentos;
+  const manterConteudoAtual = Boolean(opcoes.manterConteudoAtual && container.childElementCount > 0);
 
-  container.innerHTML = "";
-  container.appendChild(criarFeedbackCarregamento());
-  ocultarPaginacaoLancamentos();
+  container.classList.toggle("lista-lancamentos-atualizando", manterConteudoAtual);
+  if (!manterConteudoAtual) {
+    container.innerHTML = "";
+    container.appendChild(criarFeedbackCarregamento());
+    ocultarPaginacaoLancamentos();
+  }
 
   try {
     const inputMes = document.getElementById("filtro-mes").value;
@@ -130,6 +172,7 @@ async function carregarLancamentos() {
 
     if (idDestaRequisicao !== ultimaRequisicaoLancamentos) return;
 
+    container.classList.remove("lista-lancamentos-atualizando");
     container.innerHTML = "";
 
     if (dados.length === 0) {
@@ -255,7 +298,12 @@ async function carregarLancamentos() {
   } catch (erro) {
     if (idDestaRequisicao !== ultimaRequisicaoLancamentos) return;
     console.error("Erro:", erro);
+    container.classList.remove("lista-lancamentos-atualizando");
     container.innerHTML = '<p style="color: var(--cor-despesa); padding: 1rem;">Erro ao carregar os dados.</p>';
     ocultarPaginacaoLancamentos();
+  } finally {
+    if (idDestaRequisicao === ultimaRequisicaoLancamentos) {
+      container.classList.remove("lista-lancamentos-atualizando");
+    }
   }
 }

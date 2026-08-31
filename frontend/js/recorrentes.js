@@ -198,7 +198,6 @@ function configurarModalRecorrencia() {
         document.getElementById("recorrencia-tipo").disabled = false;
         form.dataset.contexto = "";
         liberarFoco();
-        carregarPainelRecorrentes();
         await recarregarLancamentosAposMutacao();
         mostrarToast(idEdicao ? "Recorrência atualizada" : "Recorrência criada");
       } else {

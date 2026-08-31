@@ -115,7 +115,6 @@ function configurarModalMeta() {
 
       if (resposta.ok) {
         modal.style.display = "none";
-        await carregarMetas();
         await recarregarLancamentosAposMutacao();
       } else {
         const erro = await resposta.json();
@@ -143,7 +142,6 @@ function configurarModalMeta() {
       if (resposta.ok) {
         modal.style.display = "none";
         liberarFoco();
-        await carregarMetas();
         await recarregarLancamentosAposMutacao();
         mostrarToast("Meta removida", "info");
       } else {

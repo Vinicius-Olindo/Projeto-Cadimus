@@ -2,9 +2,34 @@
    LISTA DE LANÇAMENTOS (transações)
    ========================================== */
 .lista-lancamentos {
+  position: relative;
   display: flex;
   flex-direction: column;
   gap: 8px;
+}
+
+.lista-lancamentos-atualizando {
+  opacity: 0.78;
+  pointer-events: none;
+  transition: opacity 0.18s ease;
+}
+
+.lista-lancamentos-atualizando::after {
+  content: "Atualizando...";
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  z-index: 2;
+  padding: 5px 9px;
+  border: 1px solid color-mix(in srgb, var(--cor-marca) 35%, transparent);
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 86%, transparent);
+  color: var(--cor-marca-forte);
+  font-size: 0.68rem;
+  font-weight: 900;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  box-shadow: 0 8px 18px color-mix(in srgb, var(--cor-sombra) 18%, transparent);
 }
 
 .lancamentos-paginacao {
