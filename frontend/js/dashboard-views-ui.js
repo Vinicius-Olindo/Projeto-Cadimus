@@ -78,6 +78,7 @@ function ativarVisaoDashboard(visao = "hoje", opcoes = {}) {
 
   document.getElementById("conteudo-periodo")?.setAttribute("data-dashboard-visao-atual", visao);
   atualizarContainersVisaoDashboard();
+  document.dispatchEvent(new CustomEvent("cadimus:dashboard-visao-alterada", { detail: { visao } }));
 
   if (opcoes.salvar !== false) {
     gravarLocalStorageSeguro(DASHBOARD_VISAO_STORAGE, visao);

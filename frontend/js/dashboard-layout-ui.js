@@ -27,6 +27,30 @@ const DASHBOARD_LAYOUT_CARD_CONFIGS = [
   { id: "card-score", nome: "Saúde financeira", tamanhoPadrao: "inteiro", zona: "lateral" },
 ];
 const DASHBOARD_LAYOUT_CARDS = DASHBOARD_LAYOUT_CARD_CONFIGS.map((card) => card.id);
+const DASHBOARD_LAYOUT_CARDS_POR_VISAO = {
+  hoje: new Set([
+    "card-hoje-dashboard",
+    "card-lancamentos",
+    "card-modelos-lancamento",
+    "card-despesas-fixas",
+    "card-compras-parceladas",
+    "card-bonificacoes",
+  ]),
+  dashboard: new Set([
+    "card-score",
+    "card-riscos-financeiros",
+    "card-calendario-financeiro",
+    "card-comparativo-periodo",
+    "resumo-categorias",
+    "card-tendencia",
+    "card-comparativo",
+    "card-por-autor",
+    "card-metas-mes-dashboard",
+    "card-orcamentos",
+    "card-cartoes-credito",
+    "card-assinaturas",
+  ]),
+};
 const DASHBOARD_LAYOUT_TAMANHOS = {
   pequeno: "Pequeno",
   medio: "Médio",
@@ -150,6 +174,15 @@ function obterContainerCardLayoutDashboard(id) {
     ? DASHBOARD_LAYOUT_SIDE_CONTAINER_SELECTOR
     : DASHBOARD_LAYOUT_MAIN_CONTAINER_SELECTOR;
   return document.querySelector(seletor);
+}
+
+function obterVisaoAtualLayoutDashboard() {
+  const visao = document.getElementById("conteudo-periodo")?.dataset?.dashboardVisaoAtual;
+  return DASHBOARD_LAYOUT_CARDS_POR_VISAO[visao] ? visao : "hoje";
+}
+
+function cardPertenceVisaoAtualLayoutDashboard(id) {
+  return DASHBOARD_LAYOUT_CARDS_POR_VISAO[obterVisaoAtualLayoutDashboard()]?.has(id);
 }
 
 function obterCardsLayoutDashboard() {
@@ -410,7 +443,7 @@ function renderizarPainelLayoutDashboard() {
   if (!painel) return;
 
   painel.innerHTML = DASHBOARD_LAYOUT_CARD_CONFIGS
-    .filter((config) => document.getElementById(config.id))
+    .filter((config) => document.getElementById(config.id) && cardPertenceVisaoAtualLayoutDashboard(config.id))
     .map((config) => {
       const card = document.getElementById(config.id);
       const tamanhoAtual = normalizarTamanhoLayoutDashboard(card?.dataset?.dashboardLayoutTamanho, config.id);
@@ -482,7 +515,7 @@ function removerControlesCardsLayoutDashboard() {
 }
 
 function obterCardsVisiveisLayoutDashboard() {
-  return obterCardsLayoutDashboard().filter((item) => item.offsetParent !== null);
+  return obterCardsLayoutDashboard().filter((item) => item.offsetParent !== null && !item.classList.contains("dashboard-visao-oculto"));
 }
 
 function moverCardLayoutDashboard(card, direcao) {
@@ -523,8 +556,9 @@ function atualizarControlesCardsLayoutDashboard() {
     return;
   }
 
-  const cardsVisiveis = obterCardsVisiveisLayoutDashboard();
-  cardsVisiveis.forEach((card, indice) => {
+  obterCardsVisiveisLayoutDashboard().forEach((card) => {
+    const cardsVisiveisDoContainer = obterCardsVisiveisLayoutDashboard().filter((item) => item.parentElement === card.parentElement);
+    const indice = cardsVisiveisDoContainer.indexOf(card);
     let acoes = card.querySelector(":scope > .dashboard-layout-card-acoes");
     if (!acoes) {
       acoes = document.createElement("div");
@@ -539,7 +573,7 @@ function atualizarControlesCardsLayoutDashboard() {
     const btnAnterior = acoes.querySelector('[data-layout-mover="-1"]');
     const btnProximo = acoes.querySelector('[data-layout-mover="1"]');
     if (btnAnterior) btnAnterior.disabled = indice === 0;
-    if (btnProximo) btnProximo.disabled = indice === cardsVisiveis.length - 1;
+    if (btnProximo) btnProximo.disabled = indice === cardsVisiveisDoContainer.length - 1;
   });
 }
 
@@ -733,5 +767,10 @@ function configurarDashboardLayout() {
   cancelar?.addEventListener("click", cancelarModoLayoutDashboard);
   resetar?.addEventListener("click", resetarLayoutDashboard);
   window.addEventListener("cadimus:usuario-logado", reaplicarLayoutDashboardSalvo);
+  document.addEventListener("cadimus:dashboard-visao-alterada", () => {
+    if (!dashboardLayoutEditando) return;
+    renderizarPainelLayoutDashboard();
+    atualizarControlesCardsLayoutDashboard();
+  });
   atualizarEstadoModoLayoutDashboard();
 }

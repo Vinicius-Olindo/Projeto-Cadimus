@@ -119,11 +119,14 @@ body:not(.dashboard-layout-modo-ativo) .area-controle > * {
   filter: grayscale(0.5);
 }
 
-.dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-visao-oculto,
 .dashboard-layout-modo-ativo .dashboard-free-grid > [style*="display: none"],
-.dashboard-layout-modo-ativo .area-controle > .dashboard-visao-oculto,
 .dashboard-layout-modo-ativo .area-controle > [style*="display: none"] {
   display: flex !important;
+}
+
+.dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-visao-oculto,
+.dashboard-layout-modo-ativo .area-controle > .dashboard-visao-oculto {
+  display: none !important;
 }
 
 .dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-card-oculto-usuario::after,
