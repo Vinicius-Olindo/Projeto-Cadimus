@@ -393,6 +393,7 @@
   .comparativo-periodo-card,
   .plano-overview,
   .plano-container,
+  .dashboard-free-grid > .card,
   .area-controle > .card {
     box-shadow: 0 12px 28px -22px var(--cor-sombra);
   }
@@ -941,6 +942,7 @@
     .top-bar,
     .card,
     .stat-card,
+    .dashboard-free-grid,
     .area-controle,
     .area-lancamentos,
     .card-lancamentos-bloco,
@@ -952,6 +954,7 @@
     min-width: 0;
   }
 
+  .dashboard-free-grid,
   .area-controle {
     position: static;
     width: 100%;

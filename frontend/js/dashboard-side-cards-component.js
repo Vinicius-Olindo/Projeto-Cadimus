@@ -7,8 +7,7 @@
     const root = document.getElementById("dashboard-side-cards-root");
     if (!root || root.dataset.renderizado === "1") return;
 
-    root.outerHTML = `
-          <div class="area-controle">
+    const html = `
             <div class="card resumo-categorias" id="resumo-categorias" style="display: none">
               <span class="resumo-categorias-titulo">Para onde foi o dinheiro</span>
               <div class="grafico-categorias-container">
@@ -155,8 +154,18 @@
                 <div class="score-detalhes" id="score-detalhes"></div>
               </div>
             </div>
-          </div>
     `.trim();
+
+    const gridLivre = document.getElementById("dashboard-free-grid");
+    if (gridLivre) {
+      const fragmento = document.createElement("template");
+      fragmento.innerHTML = html;
+      gridLivre.append(...fragmento.content.children);
+      root.remove();
+      return;
+    }
+
+    root.outerHTML = `<div class="area-controle">${html}</div>`;
   }
 
   window.renderizarDashboardSideCards = renderizarDashboardSideCards;

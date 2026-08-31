@@ -1,5 +1,5 @@
 /* ==========================================
-   GRID DO PAINEL: resumo no topo + lançamentos (esquerda) + controle (direita)
+   GRID DO PAINEL: resumo no topo + cards livres por encaixe
    ========================================== */
 #conteudo-periodo {
   display: grid;
@@ -55,11 +55,36 @@
   order: 1;
 }
 
+.dashboard-free-grid,
 .area-controle {
   order: 2;
-  display: flex;
-  flex-direction: column;
+  display: grid;
+  grid-template-columns: repeat(12, minmax(0, 1fr));
   gap: 16px;
+  align-items: start;
+}
+
+.dashboard-free-grid > *,
+.area-controle > * {
+  min-width: 0;
+  grid-column: span 4;
+}
+
+.dashboard-free-grid > #card-hoje-dashboard,
+.dashboard-free-grid > #card-calendario-financeiro,
+.dashboard-free-grid > #card-comparativo-periodo {
+  grid-column: span 6;
+}
+
+.dashboard-free-grid > #card-lancamentos {
+  grid-column: 1 / -1;
+}
+
+.dashboard-free-grid > #card-tendencia,
+.dashboard-free-grid > #card-comparativo,
+.dashboard-free-grid > #card-metas-mes-dashboard,
+.dashboard-free-grid > #card-score {
+  grid-column: span 6;
 }
 
 .dashboard-layout-editando {
@@ -268,13 +293,6 @@
 .btn-resetar-layout-dashboard {
   width: 28px;
   height: 28px;
-}
-
-.area-lancamentos {
-  order: 3;
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
 }
 
 .card-lancamentos-bloco {
@@ -879,60 +897,18 @@ button.risco-financeiro-item:hover {
 }
 
 @media (min-width: 900px) {
-  #conteudo-periodo {
-    grid-template-columns: minmax(0, 1fr) minmax(380px, 0.34fr);
-    align-items: start;
-  }
-
-  #conteudo-periodo[data-dashboard-visao-atual="hoje"] {
-    grid-template-columns: minmax(0, 1fr);
-  }
-
   .area-resumo {
     grid-column: 1 / -1;
     order: unset;
-  }
-
-  .area-lancamentos {
-    grid-column: 1;
-    order: unset;
-  }
-
-  .area-controle {
-    grid-column: 2;
-    order: unset;
-    position: sticky;
-    top: 20px;
-  }
-
-  #conteudo-periodo[data-dashboard-visao-atual="hoje"] .area-lancamentos,
-  #conteudo-periodo[data-dashboard-visao-atual="hoje"] .area-controle {
-    grid-column: 1 / -1;
-  }
-}
-
-@media (min-width: 1180px) {
-  #conteudo-periodo[data-dashboard-visao-atual="hoje"] {
-    grid-template-columns: minmax(0, 1fr) minmax(320px, 0.28fr);
-  }
-
-  #conteudo-periodo[data-dashboard-visao-atual="hoje"] .area-lancamentos {
-    grid-column: 1;
-  }
-
-  #conteudo-periodo[data-dashboard-visao-atual="hoje"] .area-controle {
-    grid-column: 2;
-    position: sticky;
-    top: 20px;
   }
 }
 
 @media (min-width: 1500px) {
   #conteudo-periodo {
-    grid-template-columns: minmax(0, 1fr) minmax(430px, 0.36fr);
     gap: 24px;
   }
 
+  .dashboard-free-grid,
   .area-controle {
     gap: 18px;
   }
@@ -1965,10 +1941,25 @@ button.risco-financeiro-item:hover {
     gap: 16px;
   }
 
+  .dashboard-free-grid,
   .area-controle {
-    display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
-    align-items: start;
+  }
+
+  .dashboard-free-grid > *,
+  .dashboard-free-grid > #card-hoje-dashboard,
+  .dashboard-free-grid > #card-calendario-financeiro,
+  .dashboard-free-grid > #card-comparativo-periodo,
+  .dashboard-free-grid > #card-tendencia,
+  .dashboard-free-grid > #card-comparativo,
+  .dashboard-free-grid > #card-metas-mes-dashboard,
+  .dashboard-free-grid > #card-score,
+  .area-controle > * {
+    grid-column: span 1;
+  }
+
+  .dashboard-free-grid > #card-lancamentos {
+    grid-column: 1 / -1;
   }
 
   .area-controle > * {
@@ -1991,8 +1982,21 @@ button.risco-financeiro-item:hover {
     font-size: 0.68rem;
   }
 
+  .dashboard-free-grid,
   .area-controle {
     grid-template-columns: 1fr;
+  }
+
+  .dashboard-free-grid > *,
+  .dashboard-free-grid > #card-hoje-dashboard,
+  .dashboard-free-grid > #card-calendario-financeiro,
+  .dashboard-free-grid > #card-comparativo-periodo,
+  .dashboard-free-grid > #card-lancamentos,
+  .dashboard-free-grid > #card-tendencia,
+  .dashboard-free-grid > #card-comparativo,
+  .dashboard-free-grid > #card-metas-mes-dashboard,
+  .dashboard-free-grid > #card-score {
+    grid-column: 1 / -1;
   }
 
   .card,

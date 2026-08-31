@@ -39,9 +39,7 @@ const DASHBOARD_VISOES = {
 function obterCardsDashboardOrganizaveis() {
   return [
     document.querySelector("#dashboard-section .area-resumo"),
-    ...document.querySelectorAll(
-      "#dashboard-section .area-lancamentos > *, #dashboard-section .area-controle > *"
-    ),
+    ...document.querySelectorAll("#dashboard-section #dashboard-free-grid > *"),
   ].filter(Boolean);
 }
 
@@ -51,10 +49,11 @@ function obterIdCardDashboard(card) {
 }
 
 function atualizarContainersVisaoDashboard() {
-  document.querySelectorAll("#dashboard-section .area-lancamentos, #dashboard-section .area-controle").forEach((area) => {
-    const temCardDaVisao = [...area.children].some((filho) => !filho.classList.contains("dashboard-visao-oculto"));
-    area.classList.toggle("dashboard-area-oculta", !temCardDaVisao);
-  });
+  const grid = document.querySelector("#dashboard-section #dashboard-free-grid");
+  if (!grid) return;
+
+  const temCardDaVisao = [...grid.children].some((filho) => !filho.classList.contains("dashboard-visao-oculto"));
+  grid.classList.toggle("dashboard-area-oculta", !temCardDaVisao);
 }
 
 function ativarVisaoDashboard(visao = "hoje", opcoes = {}) {

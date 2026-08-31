@@ -6,8 +6,8 @@
     if (!root) return;
 
     const html = `
-          <!-- COLUNA ESQUERDA: comparativo + lançamentos -->
-          <div class="area-lancamentos">
+          <!-- GRID LIVRE: cards do dashboard e lançamentos -->
+          <div class="dashboard-free-grid" id="dashboard-free-grid">
             <div class="card card-hoje-dashboard" id="card-hoje-dashboard">
               <div class="hoje-dashboard-topo">
                 <div>
@@ -181,9 +181,9 @@
 
   window.renderizarEntriesDashboard = renderizarEntriesDashboard;
 
+  renderizarEntriesDashboard();
+
   if (document.readyState === "loading") {
     document.addEventListener("DOMContentLoaded", renderizarEntriesDashboard, { once: true });
-  } else {
-    renderizarEntriesDashboard();
   }
 })();
