@@ -251,7 +251,7 @@ function alternarTelas(estaLogado) {
     }
 
     if (sLogin) sLogin.style.display = "flex";
-    if (footer) footer.style.display = "none";
+    if (footer) footer.style.display = "flex";
     return;
   }
 
