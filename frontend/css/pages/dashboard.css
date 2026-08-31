@@ -87,6 +87,48 @@
   grid-column: span 6;
 }
 
+.dashboard-free-grid > [data-dashboard-layout-tamanho="pequeno"] {
+  grid-column: span 3;
+}
+
+.dashboard-free-grid > [data-dashboard-layout-tamanho="medio"] {
+  grid-column: span 4;
+}
+
+.dashboard-free-grid > [data-dashboard-layout-tamanho="grande"] {
+  grid-column: span 6;
+}
+
+.dashboard-free-grid > [data-dashboard-layout-tamanho="inteiro"] {
+  grid-column: 1 / -1;
+}
+
+.dashboard-card-oculto-usuario {
+  display: none !important;
+}
+
+.dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-card-oculto-usuario {
+  display: flex !important;
+  opacity: 0.48;
+  filter: grayscale(0.5);
+}
+
+.dashboard-layout-modo-ativo .dashboard-free-grid > .dashboard-card-oculto-usuario::after {
+  content: "Oculto no layout salvo";
+  position: absolute;
+  left: 14px;
+  bottom: 12px;
+  z-index: 7;
+  padding: 5px 9px;
+  border-radius: 999px;
+  background: color-mix(in srgb, var(--cor-despesa) 18%, var(--cor-fundo-card));
+  color: var(--cor-despesa);
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
 .dashboard-layout-editando {
   padding: 10px;
   border: 1px dashed color-mix(in srgb, var(--cor-marca) 50%, transparent);
@@ -95,15 +137,22 @@
 }
 
 .dashboard-layout-banner {
-  display: flex;
-  align-items: center;
+  display: grid;
+  grid-template-columns: 1fr;
   gap: 10px;
   padding: 10px 12px;
+  grid-column: 1 / -1;
   border-radius: 14px;
   color: var(--cor-texto);
   background: color-mix(in srgb, var(--cor-marca) 12%, var(--cor-fundo-card));
   border: 1px solid color-mix(in srgb, var(--cor-marca) 28%, transparent);
   box-shadow: 0 8px 18px color-mix(in srgb, var(--cor-texto) 5%, transparent);
+}
+
+.dashboard-layout-banner-resumo {
+  display: flex;
+  align-items: center;
+  gap: 10px;
 }
 
 .dashboard-layout-banner[hidden] {
@@ -140,6 +189,60 @@
   color: var(--cor-texto-suave);
   font-size: 0.72rem;
   line-height: 1.35;
+}
+
+.dashboard-layout-painel {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(210px, 1fr));
+  gap: 8px;
+  max-height: 220px;
+  overflow: auto;
+  padding-top: 8px;
+  border-top: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 78%, transparent);
+}
+
+.dashboard-layout-painel-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 112px;
+  gap: 8px;
+  align-items: center;
+  padding: 8px;
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 72%, transparent);
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 72%, transparent);
+}
+
+.dashboard-layout-visibilidade {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  min-width: 0;
+  color: var(--cor-texto);
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+}
+
+.dashboard-layout-visibilidade span {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.dashboard-layout-visibilidade input {
+  accent-color: var(--cor-marca);
+}
+
+.dashboard-layout-painel select {
+  width: 100%;
+  min-width: 0;
+  padding: 7px 8px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-forte) 70%, transparent);
+  border-radius: 10px;
+  background: var(--cor-fundo-card);
+  color: var(--cor-texto);
+  font-size: 0.72rem;
+  font-weight: 700;
 }
 
 .dashboard-card-editavel {
