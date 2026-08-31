@@ -521,8 +521,13 @@ function configurarModal() {
       if (tratarSessaoExpirada(resposta)) return;
 
       if (resposta.ok) {
+        const resultado = await resposta.clone().json().catch(() => null);
         fecharModalLancamento();
-        await recarregarLancamentosAposMutacao();
+        if (resultado?.lancamento && typeof aplicarLancamentoAtualizadoLocalmente === "function") {
+          aplicarLancamentoAtualizadoLocalmente(resultado.lancamento, { resetarPagina: !idEdicao });
+        } else {
+          await recarregarLancamentosAposMutacao();
+        }
         mostrarToast(idEdicao ? "Lançamento atualizado" : "Lançamento salvo");
       } else {
         const erro = await resposta.json();

@@ -16,7 +16,12 @@ async function alternarStatusLancamento(id, statusAtual) {
     if (tratarSessaoExpirada(resposta)) return;
 
     if (resposta.ok) {
-      await recarregarLancamentosAposMutacao();
+      const resultado = await resposta.clone().json().catch(() => null);
+      if (resultado?.lancamento && typeof aplicarLancamentoAtualizadoLocalmente === "function") {
+        aplicarLancamentoAtualizadoLocalmente(resultado.lancamento);
+      } else {
+        await recarregarLancamentosAposMutacao();
+      }
       mostrarToast(novoStatus === "pago" ? "Marcado como pago" : "Marcado como pendente", "info");
     } else {
       const erro = await resposta.json();

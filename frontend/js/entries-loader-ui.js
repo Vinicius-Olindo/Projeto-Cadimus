@@ -9,6 +9,7 @@
 // --- COMUNICAÇÃO COM A API (BUSCA FILTRADA) ---
 let ultimaRequisicaoLancamentos = 0;
 let ultimoLoteLancamentos = [];
+let ultimoLoteTransferencias = [];
 let termoBuscaAtual = "";
 let recargaMutacaoEmAndamento = null;
 let recargaMutacaoTimer = null;
@@ -123,6 +124,149 @@ function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, total
   }
 }
 
+function lancamentoPertenceAoPeriodoAtual(lancamento) {
+  const inputMes = document.getElementById("filtro-mes")?.value || "";
+  if (!inputMes) return true;
+  return String(lancamento?.data_compra || "").startsWith(inputMes);
+}
+
+function ordenarLancamentosLocais() {
+  ultimoLoteLancamentos.sort((a, b) => {
+    const dataA = String(a?.data_compra || "");
+    const dataB = String(b?.data_compra || "");
+    const comparacaoData = dataB.localeCompare(dataA);
+    if (comparacaoData !== 0) return comparacaoData;
+    return Number(b?.id || 0) - Number(a?.id || 0);
+  });
+}
+
+function calcularResumoLancamentosLocal(lancamentos = ultimoLoteLancamentos) {
+  const carteiraIdNum = Number(document.getElementById("seletor-carteira")?.value || 0);
+  let totalReceitas = 0;
+  let totalDespesas = 0;
+  let totalPendente = 0;
+  let totalTransferenciasSaida = 0;
+  let totalTransferenciasEntrada = 0;
+  const totaisPorCategoria = {};
+
+  lancamentos.forEach((lancamento) => {
+    const valor = valorMonetario(lancamento);
+    const despesaNaoPaga = lancamento.tipo === "despesa" && lancamento.status !== "pago";
+
+    if (despesaNaoPaga) {
+      totalPendente += valor;
+      return;
+    }
+
+    if (lancamento.tipo === "receita") {
+      totalReceitas += valor;
+    } else {
+      totalDespesas += valor;
+      totaisPorCategoria[lancamento.categoria] = (totaisPorCategoria[lancamento.categoria] || 0) + valor;
+    }
+  });
+
+  ultimoLoteTransferencias.forEach((transferencia) => {
+    const valor = valorMonetario(transferencia);
+    if (Number(transferencia.carteira_origem_id) === carteiraIdNum) totalTransferenciasSaida += valor;
+    if (Number(transferencia.carteira_destino_id) === carteiraIdNum) totalTransferenciasEntrada += valor;
+  });
+
+  return {
+    totalReceitas,
+    totalDespesas,
+    totalPendente,
+    totalTransferenciasSaida,
+    totalTransferenciasEntrada,
+    saldoCalculado: totalReceitas - totalDespesas - totalTransferenciasSaida + totalTransferenciasEntrada,
+    totaisPorCategoria,
+  };
+}
+
+function atualizarDashboardComLancamentosLocais() {
+  const container = document.getElementById("lista-lancamentos");
+  const dados = Array.isArray(ultimoLoteLancamentos) ? ultimoLoteLancamentos : [];
+  const resumo = calcularResumoLancamentosLocal(dados);
+
+  if (container) {
+    container.classList.remove("lista-lancamentos-atualizando");
+    container.innerHTML = "";
+    if (dados.length === 0) {
+      resetarPaginacaoLancamentos();
+      ocultarPaginacaoLancamentos();
+      container.appendChild(criarAvisoListaVazia());
+    } else {
+      renderizarListaLancamentos();
+      popularSelectLoteCategorias();
+      renderizarComparativoPeriodo();
+    }
+  }
+
+  animarValorMonetario(document.getElementById("total-receitas"), resumo.totalReceitas);
+  animarValorMonetario(document.getElementById("total-despesas"), resumo.totalDespesas);
+  atualizarDescricoesResumo(resumo);
+
+  const elementoPendente = document.getElementById("resumo-pendente-item");
+  if (elementoPendente) {
+    if (resumo.totalPendente > 0) {
+      elementoPendente.style.display = "flex";
+      animarValorMonetario(document.getElementById("total-pendente"), resumo.totalPendente);
+    } else {
+      elementoPendente.style.display = "none";
+    }
+  }
+
+  const elementoSaldo = document.getElementById("saldo-total");
+  if (elementoSaldo) {
+    animarValorMonetario(elementoSaldo, resumo.saldoCalculado);
+    elementoSaldo.style.color = resumo.saldoCalculado >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)";
+  }
+
+  renderizarTelaHojeDashboard(dados, { saldoCalculado: resumo.saldoCalculado, totalPendente: resumo.totalPendente });
+  renderizarCalendarioFinanceiro(dados);
+  renderizarModelosLancamentoDashboard(dados);
+  renderizarResumoAssinaturasDashboard(dados);
+  renderizarAlertasRiscoFinanceiro(dados, resumo);
+  renderizarResumoCategorias(resumo.totaisPorCategoria);
+  renderizarResumoAutores(dados);
+  calcularTaxaPoupanca(resumo.totalReceitas, resumo.totalDespesas);
+  calcularCapacidadeGuarda(resumo);
+  calcularScoreSaude(resumo.totalReceitas, resumo.totalDespesas, resumo.totaisPorCategoria);
+}
+
+function aplicarLancamentoAtualizadoLocalmente(lancamento, opcoes = {}) {
+  if (!lancamento?.id || !lancamentoPertenceAoPeriodoAtual(lancamento)) {
+    recarregarLancamentosAposMutacao();
+    return false;
+  }
+
+  const indice = ultimoLoteLancamentos.findIndex((item) => String(item.id) === String(lancamento.id));
+  if (indice >= 0) {
+    ultimoLoteLancamentos[indice] = { ...ultimoLoteLancamentos[indice], ...lancamento };
+  } else {
+    ultimoLoteLancamentos.unshift(lancamento);
+  }
+
+  ordenarLancamentosLocais();
+  if (opcoes.resetarPagina) resetarPaginacaoLancamentos();
+  atualizarDashboardComLancamentosLocais();
+  recarregarLancamentosAposMutacao();
+  return true;
+}
+
+function removerLancamentoLocalmente(id) {
+  const quantidadeAntes = ultimoLoteLancamentos.length;
+  ultimoLoteLancamentos = ultimoLoteLancamentos.filter((item) => String(item.id) !== String(id));
+  if (ultimoLoteLancamentos.length === quantidadeAntes) {
+    recarregarLancamentosAposMutacao();
+    return false;
+  }
+
+  atualizarDashboardComLancamentosLocais();
+  recarregarLancamentosAposMutacao();
+  return true;
+}
+
 async function carregarLancamentos(opcoes = {}) {
   const container = document.getElementById("lista-lancamentos");
   if (!container) return;
@@ -169,6 +313,7 @@ async function carregarLancamentos(opcoes = {}) {
     if (tratarSessaoExpirada(resposta) || tratarSessaoExpirada(respostaTransferencias)) return;
     const dados = await resposta.json();
     const transferencias = await respostaTransferencias.json();
+    ultimoLoteTransferencias = Array.isArray(transferencias) ? transferencias : [];
 
     if (idDestaRequisicao !== ultimaRequisicaoLancamentos) return;
 

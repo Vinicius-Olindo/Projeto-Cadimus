@@ -164,6 +164,19 @@ async function obterCarteirasCompartilhadas(env: CadimusEnv, carteiraIds: Array<
   return new Set(results.map((carteira) => Number(carteira.id)));
 }
 
+async function obterLancamentoPorId(env: CadimusEnv, id: number | string): Promise<Lancamento | null> {
+  const { results } = await env.DB.prepare(`
+    SELECT l.*, COALESCE(u.nome, u.nome_usuario) AS criado_por_nome, u.foto_perfil AS criado_por_foto
+    FROM lancamentos l
+    JOIN usuarios u ON u.id = l.criado_por
+    WHERE l.id = ?
+  `)
+    .bind(id)
+    .all<Lancamento>();
+
+  return results[0] || null;
+}
+
 export async function processarLancamentos(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -432,7 +445,11 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
         },
       });
 
-      return json({ mensagem: "Salvo com sucesso!" }, 201);
+      const lancamento = insertResult.meta?.last_row_id
+        ? await obterLancamentoPorId(env, insertResult.meta.last_row_id)
+        : null;
+
+      return json({ mensagem: "Salvo com sucesso!", lancamento }, 201);
     } catch (erro) {
       return erroFinanceiro(erro, "lancamentos.criar", "Não foi possível salvar este lançamento agora.", "lancamento_salvar_falhou");
     }
@@ -575,7 +592,9 @@ export async function processarLancamentos(request: Request, env: CadimusEnv, ct
         },
       });
 
-      return json({ mensagem: "Atualizado com sucesso." });
+      const lancamento = await obterLancamentoPorId(env, id);
+
+      return json({ mensagem: "Atualizado com sucesso.", lancamento });
     } catch (erro) {
       return erroFinanceiro(erro, "lancamentos.atualizar", "Não foi possível atualizar este lançamento agora.", "lancamento_atualizar_falhou");
     }
