@@ -4,7 +4,7 @@
    ========================================== */
 
 @import url("base.css");
-@import url("components/buttons.css");
+@import url("components/buttons.css?v=101");
 @import url("components/wallet-tabs.css");
 @import url("components/month-transition.css");
 @import url("pages/dashboard.css?v=104");

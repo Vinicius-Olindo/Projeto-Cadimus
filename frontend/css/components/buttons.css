@@ -155,16 +155,18 @@ button:active {
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  opacity: 0;
+  opacity: 0.46;
   transition: color 0.18s ease, opacity 0.18s ease, transform 0.18s ease;
 }
 
 .tema-switch-sol {
-  transform: translateX(14px);
+  color: color-mix(in srgb, var(--cor-marca-forte) 78%, var(--cor-texto-suave));
+  transform: none;
 }
 
 .tema-switch-lua {
-  transform: translateX(-14px);
+  color: color-mix(in srgb, var(--cor-texto-suave) 72%, var(--cor-marca));
+  transform: none;
 }
 
 .tema-switch-thumb {
@@ -185,7 +187,7 @@ button:active {
 .tema-switch.tema-switch-escuro .tema-switch-lua {
   color: var(--cor-marca-forte);
   opacity: 1;
-  transform: translateX(0);
+  transform: scale(1.04);
 }
 
 .tema-switch.tema-switch-escuro .tema-switch-thumb {
@@ -215,6 +217,16 @@ button:active {
 .dark-mode .tema-switch:not(.tema-switch-escuro) .tema-switch-sol {
   color: var(--cor-marca-forte);
   opacity: 1;
+}
+
+.dark-mode .tema-switch:not(.tema-switch-escuro) .tema-switch-lua {
+  color: color-mix(in srgb, var(--cor-texto-suave) 76%, var(--cor-marca));
+  opacity: 0.5;
+}
+
+.dark-mode .tema-switch.tema-switch-escuro .tema-switch-sol {
+  color: color-mix(in srgb, var(--cor-texto-suave) 74%, var(--cor-marca));
+  opacity: 0.52;
 }
 
 /* Sair: ícone + texto, destaque sutil */
