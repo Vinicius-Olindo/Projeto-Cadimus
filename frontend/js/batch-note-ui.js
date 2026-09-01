@@ -68,7 +68,15 @@ function configurarLote() {
 
       mostrarToast(resultado.mensagem || "Lançamentos atualizados!", "sucesso");
       limparSelecaoLote();
-      await recarregarLancamentosAposMutacao();
+      if (typeof atualizarDashboardAposMudanca === "function") {
+        atualizarDashboardAposMudanca({
+          tipo: "lote",
+          recarregarLista: true,
+          entidadesAfetadas: ["bonificacoes", "orcamentos", "metas", "cartoes"],
+        });
+      } else {
+        await recarregarLancamentosAposMutacao();
+      }
     } catch (erro) {
       await mostrarAviso("Erro de conexão ao atualizar em lote.");
     } finally {

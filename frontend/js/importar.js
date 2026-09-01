@@ -271,7 +271,17 @@ async function executarImportacao() {
   if (erros > 0) msg += ` ${erros} falhou.`;
 
   mostrarToast(msg, importados > 0 ? "sucesso" : "erro", 3500);
-  if (importados > 0) await recarregarLancamentosAposMutacao();
+  if (importados > 0) {
+    if (typeof atualizarDashboardAposMudanca === "function") {
+      atualizarDashboardAposMudanca({
+        tipo: "importacao",
+        recarregarLista: true,
+        entidadesAfetadas: ["bonificacoes", "orcamentos", "metas", "cartoes"],
+      });
+    } else {
+      await recarregarLancamentosAposMutacao();
+    }
+  }
 }
 
 // ==========================================

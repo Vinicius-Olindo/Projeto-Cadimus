@@ -17,7 +17,13 @@ async function alternarStatusLancamento(id, statusAtual) {
 
     if (resposta.ok) {
       const resultado = await resposta.clone().json().catch(() => null);
-      if (resultado?.lancamento && typeof aplicarLancamentoAtualizadoLocalmente === "function") {
+      if (resultado?.lancamento && typeof atualizarDashboardAposMudanca === "function") {
+        atualizarDashboardAposMudanca({
+          tipo: "lancamento",
+          acao: "editar",
+          lancamento: resultado.lancamento,
+        });
+      } else if (resultado?.lancamento && typeof aplicarLancamentoAtualizadoLocalmente === "function") {
         aplicarLancamentoAtualizadoLocalmente(resultado.lancamento);
       } else {
         await recarregarLancamentosAposMutacao();

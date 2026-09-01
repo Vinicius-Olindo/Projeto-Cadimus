@@ -262,7 +262,15 @@ function configurarModalComprasParceladas() {
         modal.style.display = "none";
         liberarFoco();
         atualizarCompraParceladaNoCard({ id: resultado?.id, ativo: true, ...corpo });
-        recarregarLancamentosAposMutacao();
+        if (typeof atualizarDashboardAposMudanca === "function") {
+          atualizarDashboardAposMudanca({
+            tipo: "compra-parcelada",
+            recarregarLista: true,
+            entidadesAfetadas: ["compras-parceladas", "cartoes", "orcamentos", "metas"],
+          });
+        } else {
+          recarregarLancamentosAposMutacao();
+        }
         mostrarToast("Compra parcelada criada");
       } else {
         const erro = await resposta.json();
@@ -326,7 +334,15 @@ async function alternarComprasParcelada(id) {
 
     if (resposta.ok) {
       atualizarCompraParceladaNoCard({ ...alvo, ativo: !alvo.ativo });
-      recarregarLancamentosAposMutacao();
+      if (typeof atualizarDashboardAposMudanca === "function") {
+        atualizarDashboardAposMudanca({
+          tipo: "compra-parcelada",
+          recarregarLista: true,
+          entidadesAfetadas: ["compras-parceladas", "cartoes", "orcamentos", "metas"],
+        });
+      } else {
+        recarregarLancamentosAposMutacao();
+      }
       mostrarToast(alvo.ativo ? "Compra parcelada cancelada" : "Compra parcelada reativada", "info");
     } else {
       const erro = await resposta.json();
@@ -347,7 +363,15 @@ async function excluirComprasParcelada(id) {
 
     if (resposta.ok) {
       removerCompraParceladaDoCard(id);
-      recarregarLancamentosAposMutacao();
+      if (typeof atualizarDashboardAposMudanca === "function") {
+        atualizarDashboardAposMudanca({
+          tipo: "compra-parcelada",
+          recarregarLista: true,
+          entidadesAfetadas: ["compras-parceladas", "cartoes", "orcamentos", "metas"],
+        });
+      } else {
+        recarregarLancamentosAposMutacao();
+      }
       mostrarToast("Compra parcelada excluída", "info");
     } else {
       const erro = await resposta.json();

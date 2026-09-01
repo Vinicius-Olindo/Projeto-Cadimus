@@ -240,7 +240,15 @@ function configurarModalDespesasFixas() {
         };
         fecharModalDespesaFixa();
         atualizarDespesaFixaNoCard(fixaLocal);
-        recarregarLancamentosAposMutacao();
+        if (typeof atualizarDashboardAposMudanca === "function") {
+          atualizarDashboardAposMudanca({
+            tipo: "despesa-fixa",
+            recarregarLista: true,
+            entidadesAfetadas: ["despesas-fixas", "cartoes", "orcamentos", "metas"],
+          });
+        } else {
+          recarregarLancamentosAposMutacao();
+        }
         mostrarToast(idEdicao ? "Despesa fixa atualizada" : "Despesa fixa criada");
       } else {
         const erro = await resposta.json();
@@ -320,7 +328,15 @@ async function alternarDespesaFixa(id) {
 
     if (resposta.ok) {
       atualizarDespesaFixaNoCard({ ...alvo, ativo: !alvo.ativo });
-      recarregarLancamentosAposMutacao();
+      if (typeof atualizarDashboardAposMudanca === "function") {
+        atualizarDashboardAposMudanca({
+          tipo: "despesa-fixa",
+          recarregarLista: true,
+          entidadesAfetadas: ["despesas-fixas", "cartoes", "orcamentos", "metas"],
+        });
+      } else {
+        recarregarLancamentosAposMutacao();
+      }
       mostrarToast(alvo.ativo ? "Despesa fixa pausada" : "Despesa fixa ativada", "info");
     } else {
       const erro = await resposta.json();
@@ -341,7 +357,15 @@ async function excluirDespesaFixa(id) {
 
     if (resposta.ok) {
       removerDespesaFixaDoCard(id);
-      recarregarLancamentosAposMutacao();
+      if (typeof atualizarDashboardAposMudanca === "function") {
+        atualizarDashboardAposMudanca({
+          tipo: "despesa-fixa",
+          recarregarLista: true,
+          entidadesAfetadas: ["despesas-fixas", "cartoes", "orcamentos", "metas"],
+        });
+      } else {
+        recarregarLancamentosAposMutacao();
+      }
       mostrarToast("Despesa fixa excluída", "info");
     } else {
       const erro = await resposta.json();

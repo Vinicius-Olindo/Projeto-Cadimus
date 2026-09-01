@@ -12,7 +12,13 @@ async function apagarLancamento(id) {
     if (tratarSessaoExpirada(resposta)) return;
 
     if (resposta.ok) {
-      if (typeof removerLancamentoLocalmente === "function") {
+      if (typeof atualizarDashboardAposMudanca === "function") {
+        atualizarDashboardAposMudanca({
+          tipo: "lancamento",
+          acao: "excluir",
+          id,
+        });
+      } else if (typeof removerLancamentoLocalmente === "function") {
         removerLancamentoLocalmente(id);
       } else {
         await recarregarLancamentosAposMutacao();

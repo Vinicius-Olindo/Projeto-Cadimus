@@ -198,7 +198,15 @@ function configurarModalRecorrencia() {
         document.getElementById("recorrencia-tipo").disabled = false;
         form.dataset.contexto = "";
         liberarFoco();
-        await recarregarLancamentosAposMutacao();
+        if (typeof atualizarDashboardAposMudanca === "function") {
+          atualizarDashboardAposMudanca({
+            tipo: "recorrencia",
+            recarregarLista: true,
+            entidadesAfetadas: ehBonificacao ? ["bonificacoes", "metas"] : ["bonificacoes", "orcamentos", "metas"],
+          });
+        } else {
+          await recarregarLancamentosAposMutacao();
+        }
         mostrarToast(idEdicao ? "Recorrência atualizada" : "Recorrência criada");
       } else {
         const erro = await resposta.json();

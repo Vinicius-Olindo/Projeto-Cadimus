@@ -523,7 +523,14 @@ function configurarModal() {
       if (resposta.ok) {
         const resultado = await resposta.clone().json().catch(() => null);
         fecharModalLancamento();
-        if (resultado?.lancamento && typeof aplicarLancamentoAtualizadoLocalmente === "function") {
+        if (resultado?.lancamento && typeof atualizarDashboardAposMudanca === "function") {
+          atualizarDashboardAposMudanca({
+            tipo: "lancamento",
+            acao: idEdicao ? "editar" : "criar",
+            lancamento: resultado.lancamento,
+            resetarPagina: !idEdicao,
+          });
+        } else if (resultado?.lancamento && typeof aplicarLancamentoAtualizadoLocalmente === "function") {
           aplicarLancamentoAtualizadoLocalmente(resultado.lancamento, { resetarPagina: !idEdicao });
         } else {
           await recarregarLancamentosAposMutacao();

@@ -14,11 +14,21 @@ let termoBuscaAtual = "";
 let recargaMutacaoEmAndamento = null;
 let recargaMutacaoTimer = null;
 let recargaMutacaoPendente = false;
+let recargaMutacaoEntidades = new Set();
 let atualizacaoGraficaTimer = null;
 let atualizacaoPaineisTimer = null;
 let atualizacaoPaineisLancamentos = [];
+let atualizacaoPaineisEntidades = new Set();
 const cachePeriodoLancamentos = new Map();
 const LIMITE_CACHE_PERIODO_LANCAMENTOS = 8;
+const ENTIDADES_DASHBOARD_COMPLETAS = [
+  "despesas-fixas",
+  "compras-parceladas",
+  "bonificacoes",
+  "orcamentos",
+  "metas",
+  "cartoes",
+];
 
 function obterChavePeriodoLancamentos(carteiraId, filtrosLancamentos = {}) {
   return [
@@ -76,21 +86,45 @@ function cardDashboardEstaVisivel(id) {
   return !card.classList.contains("dashboard-visao-oculto") && !card.classList.contains("dashboard-card-oculto-usuario");
 }
 
-function atualizarPaineisComplementaresLancamentos(lancamentos = []) {
+function executarAtualizacaoPaineisDashboard(entidades, lancamentos = []) {
+  if (entidades.has("despesas-fixas") && cardDashboardEstaVisivel("card-despesas-fixas") && typeof carregarPainelDespesasFixas === "function") {
+    carregarPainelDespesasFixas();
+  }
+  if (entidades.has("compras-parceladas") && cardDashboardEstaVisivel("card-compras-parceladas") && typeof carregarPainelComprasParceladas === "function") {
+    carregarPainelComprasParceladas();
+  }
+  if (entidades.has("bonificacoes") && cardDashboardEstaVisivel("card-bonificacoes") && typeof carregarPainelBonificacoes === "function") {
+    carregarPainelBonificacoes(lancamentos);
+  }
+  if (entidades.has("orcamentos") && cardDashboardEstaVisivel("card-orcamentos") && typeof carregarOrcamentos === "function") {
+    carregarOrcamentos();
+  }
+  if (entidades.has("metas") && cardDashboardEstaVisivel("card-metas-mes-dashboard") && typeof carregarMetas === "function") {
+    carregarMetas();
+  }
+  if (entidades.has("cartoes") && cardDashboardEstaVisivel("card-cartoes-credito") && typeof carregarCartoesCredito === "function") {
+    carregarCartoesCredito();
+  }
+}
+
+function agendarAtualizacaoPaineisDashboard(entidades = ENTIDADES_DASHBOARD_COMPLETAS, lancamentos = ultimoLoteLancamentos) {
   atualizacaoPaineisLancamentos = Array.isArray(lancamentos) ? lancamentos : [];
+  const listaEntidades = Array.isArray(entidades) ? entidades : [entidades];
+  listaEntidades.filter(Boolean).forEach((entidade) => atualizacaoPaineisEntidades.add(entidade));
   if (atualizacaoPaineisTimer) clearTimeout(atualizacaoPaineisTimer);
 
   atualizacaoPaineisTimer = setTimeout(() => {
     atualizacaoPaineisTimer = null;
+    const entidadesPendentes = new Set(atualizacaoPaineisEntidades);
+    atualizacaoPaineisEntidades.clear();
     agendarAtualizacaoComplementarLancamentos(() => {
-      if (cardDashboardEstaVisivel("card-despesas-fixas") && typeof carregarPainelDespesasFixas === "function") carregarPainelDespesasFixas();
-      if (cardDashboardEstaVisivel("card-compras-parceladas") && typeof carregarPainelComprasParceladas === "function") carregarPainelComprasParceladas();
-      if (cardDashboardEstaVisivel("card-bonificacoes") && typeof carregarPainelBonificacoes === "function") carregarPainelBonificacoes(atualizacaoPaineisLancamentos);
-      if (cardDashboardEstaVisivel("card-orcamentos") && typeof carregarOrcamentos === "function") carregarOrcamentos();
-      if (cardDashboardEstaVisivel("card-metas-mes-dashboard") && typeof carregarMetas === "function") carregarMetas();
-      if (cardDashboardEstaVisivel("card-cartoes-credito") && typeof carregarCartoesCredito === "function") carregarCartoesCredito();
+      executarAtualizacaoPaineisDashboard(entidadesPendentes, atualizacaoPaineisLancamentos);
     });
   }, 140);
+}
+
+function atualizarPaineisComplementaresLancamentos(lancamentos = []) {
+  agendarAtualizacaoPaineisDashboard(ENTIDADES_DASHBOARD_COMPLETAS, lancamentos);
 }
 
 function invalidarCachesDashboardFinanceiro() {
@@ -105,12 +139,19 @@ function agendarAtualizacaoPlanejamentoAposMutacao() {
   agendarAtualizacaoComplementarLancamentos(() => atualizarPlanejamentoVisivel());
 }
 
-async function executarRecargaLancamentosAposMutacao() {
-  await carregarLancamentos({ manterConteudoAtual: true, atualizarGraficosPesados: false });
+async function executarRecargaLancamentosAposMutacao(opcoes = {}) {
+  await carregarLancamentos({
+    manterConteudoAtual: true,
+    atualizarGraficosPesados: false,
+    entidadesAfetadas: opcoes.entidadesAfetadas,
+  });
   agendarAtualizacaoPlanejamentoAposMutacao();
 }
 
-function recarregarLancamentosAposMutacao() {
+function recarregarLancamentosAposMutacao(opcoes = {}) {
+  const entidades = Array.isArray(opcoes.entidadesAfetadas) ? opcoes.entidadesAfetadas : [];
+  entidades.filter(Boolean).forEach((entidade) => recargaMutacaoEntidades.add(entidade));
+
   if (recargaMutacaoEmAndamento) {
     recargaMutacaoPendente = true;
     return Promise.resolve();
@@ -121,14 +162,19 @@ function recarregarLancamentosAposMutacao() {
 
     recargaMutacaoTimer = setTimeout(() => {
       recargaMutacaoTimer = null;
-      executarRecargaLancamentosAposMutacao()
+      const entidadesDaRecarga = [...recargaMutacaoEntidades];
+      recargaMutacaoEntidades.clear();
+      executarRecargaLancamentosAposMutacao({
+        ...opcoes,
+        entidadesAfetadas: entidadesDaRecarga.length ? entidadesDaRecarga : opcoes.entidadesAfetadas,
+      })
         .then(resolver)
         .catch(rejeitar)
         .finally(() => {
           recargaMutacaoEmAndamento = null;
           if (recargaMutacaoPendente) {
             recargaMutacaoPendente = false;
-            recarregarLancamentosAposMutacao();
+            recarregarLancamentosAposMutacao(opcoes);
           }
         });
     }, 80);
@@ -139,6 +185,14 @@ function recarregarLancamentosAposMutacao() {
   });
 
   return Promise.resolve();
+}
+
+function entidadesAfetadasPorLancamento(lancamento = {}) {
+  const entidades = new Set(["bonificacoes", "orcamentos", "metas"]);
+  if (lancamento.despesa_fixa_id) entidades.add("despesas-fixas");
+  if (lancamento.compra_parcelada_id) entidades.add("compras-parceladas");
+  if (lancamento.cartao_credito_id) entidades.add("cartoes");
+  return [...entidades];
 }
 
 function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, totalPendente = 0, saldoCalculado = 0 } = {}) {
@@ -325,11 +379,12 @@ function atualizarDashboardComLancamentosLocais(opcoes = {}) {
 
 function aplicarLancamentoAtualizadoLocalmente(lancamento, opcoes = {}) {
   if (!lancamento?.id || !lancamentoPertenceAoPeriodoAtual(lancamento)) {
-    recarregarLancamentosAposMutacao();
+    if (opcoes.recarregarQuandoForaDoPeriodo !== false) recarregarLancamentosAposMutacao();
     return false;
   }
 
   const indice = ultimoLoteLancamentos.findIndex((item) => String(item.id) === String(lancamento.id));
+  const lancamentoAnterior = indice >= 0 ? ultimoLoteLancamentos[indice] : null;
   if (indice >= 0) {
     ultimoLoteLancamentos[indice] = { ...ultimoLoteLancamentos[indice], ...lancamento };
   } else {
@@ -340,21 +395,73 @@ function aplicarLancamentoAtualizadoLocalmente(lancamento, opcoes = {}) {
   if (opcoes.resetarPagina) resetarPaginacaoLancamentos();
   atualizarDashboardComLancamentosLocais({ atualizarAnalises: false });
   atualizarCachePeriodoAtualLancamentos();
-  recarregarLancamentosAposMutacao();
+  if (opcoes.atualizarComplementos !== false) {
+    agendarAtualizacaoPaineisDashboard([
+      ...entidadesAfetadasPorLancamento(lancamento),
+      ...entidadesAfetadasPorLancamento(lancamentoAnterior || {}),
+    ]);
+    agendarAtualizacaoPlanejamentoAposMutacao();
+  }
   return true;
 }
 
-function removerLancamentoLocalmente(id) {
+function removerLancamentoLocalmente(id, opcoes = {}) {
+  const lancamentoRemovido = ultimoLoteLancamentos.find((item) => String(item.id) === String(id));
   const quantidadeAntes = ultimoLoteLancamentos.length;
   ultimoLoteLancamentos = ultimoLoteLancamentos.filter((item) => String(item.id) !== String(id));
   if (ultimoLoteLancamentos.length === quantidadeAntes) {
-    recarregarLancamentosAposMutacao();
+    if (opcoes.recarregarQuandoNaoEncontrar !== false) recarregarLancamentosAposMutacao();
     return false;
   }
 
   atualizarDashboardComLancamentosLocais({ atualizarAnalises: false });
   atualizarCachePeriodoAtualLancamentos();
-  recarregarLancamentosAposMutacao();
+  if (opcoes.atualizarComplementos !== false) {
+    agendarAtualizacaoPaineisDashboard(entidadesAfetadasPorLancamento(lancamentoRemovido || {}));
+    agendarAtualizacaoPlanejamentoAposMutacao();
+  }
+  return true;
+}
+
+function atualizarDashboardAposMudanca(opcoes = {}) {
+  const {
+    tipo = "lancamento",
+    acao = "salvar",
+    lancamento = null,
+    id = null,
+    entidadesAfetadas = [],
+    resetarPagina = false,
+    recarregarLista = false,
+    atualizarPlanejamento = true,
+  } = opcoes;
+
+  invalidarCachesDashboardFinanceiro();
+
+  if (recarregarLista) {
+    recarregarLancamentosAposMutacao({ entidadesAfetadas });
+    return true;
+  }
+
+  if (tipo === "lancamento") {
+    const idLancamento = acao === "excluir" ? id : lancamento?.id;
+    const lancamentoAnterior = ultimoLoteLancamentos.find((item) => String(item.id) === String(idLancamento));
+    const atualizado = acao === "excluir"
+      ? removerLancamentoLocalmente(id, { atualizarComplementos: false })
+      : aplicarLancamentoAtualizadoLocalmente(lancamento, { resetarPagina, atualizarComplementos: false });
+
+    if (!atualizado) return false;
+
+    const entidadesLancamento = [
+      ...entidadesAfetadasPorLancamento(lancamentoAnterior || {}),
+      ...entidadesAfetadasPorLancamento(lancamento || {}),
+    ];
+    agendarAtualizacaoPaineisDashboard([...entidadesLancamento, ...entidadesAfetadas]);
+    if (atualizarPlanejamento) agendarAtualizacaoPlanejamentoAposMutacao();
+    return true;
+  }
+
+  agendarAtualizacaoPaineisDashboard(entidadesAfetadas);
+  if (atualizarPlanejamento) agendarAtualizacaoPlanejamentoAposMutacao();
   return true;
 }
 
@@ -426,7 +533,7 @@ async function carregarLancamentos(opcoes = {}) {
       ultimoLoteLancamentos = [];
       resetarPaginacaoLancamentos();
       const resumoVazio = atualizarDashboardComLancamentosLocais({ atualizarAnalises: false });
-      atualizarPaineisComplementaresLancamentos([]);
+      agendarAtualizacaoPaineisDashboard(opcoes.entidadesAfetadas || ENTIDADES_DASHBOARD_COMPLETAS, []);
       agendarAtualizacaoAnaliticaLancamentos([], resumoVazio, {
         atualizarGraficosPesados: opcoes.atualizarGraficosPesados !== false,
       });
@@ -436,7 +543,7 @@ async function carregarLancamentos(opcoes = {}) {
     ultimoLoteLancamentos = dados;
     resetarPaginacaoLancamentos();
     const resumo = atualizarDashboardComLancamentosLocais({ atualizarAnalises: false });
-    atualizarPaineisComplementaresLancamentos(dados);
+    agendarAtualizacaoPaineisDashboard(opcoes.entidadesAfetadas || ENTIDADES_DASHBOARD_COMPLETAS, dados);
     agendarAtualizacaoAnaliticaLancamentos(dados, resumo, {
       atualizarGraficosPesados: opcoes.atualizarGraficosPesados !== false,
     });

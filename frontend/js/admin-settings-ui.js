@@ -396,7 +396,15 @@ function configurarZonaDePerigo() {
         cacheComparativo6.clear();
         await mostrarAviso("Todos os dados financeiros foram apagados. As categorias voltaram ao padrão.");
         carregarListaCategorias();
-        await recarregarLancamentosAposMutacao();
+        if (typeof atualizarDashboardAposMudanca === "function") {
+          atualizarDashboardAposMudanca({
+            tipo: "admin",
+            recarregarLista: true,
+            entidadesAfetadas: ["despesas-fixas", "compras-parceladas", "bonificacoes", "orcamentos", "metas", "cartoes"],
+          });
+        } else {
+          await recarregarLancamentosAposMutacao();
+        }
       } else {
         const erro = await resposta.json();
         await mostrarAviso(`Erro: ${erro.erro}`);

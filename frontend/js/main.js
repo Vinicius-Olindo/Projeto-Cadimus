@@ -111,6 +111,7 @@
 // ==========================================
 
 window.carregarLancamentos = carregarLancamentos;
+window.atualizarDashboardAposMudanca = atualizarDashboardAposMudanca;
 window.recarregarLancamentosAposMutacao = recarregarLancamentosAposMutacao;
 window.aplicarLancamentoAtualizadoLocalmente = aplicarLancamentoAtualizadoLocalmente;
 window.removerLancamentoLocalmente = removerLancamentoLocalmente;

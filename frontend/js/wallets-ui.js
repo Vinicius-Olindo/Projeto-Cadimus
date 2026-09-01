@@ -499,7 +499,15 @@ function configurarModalTransferencia() {
         modal.style.display = "none";
         liberarFoco();
         form.reset();
-        await recarregarLancamentosAposMutacao();
+        if (typeof atualizarDashboardAposMudanca === "function") {
+          atualizarDashboardAposMudanca({
+            tipo: "transferencia",
+            recarregarLista: true,
+            entidadesAfetadas: ["bonificacoes", "orcamentos", "metas"],
+          });
+        } else {
+          await recarregarLancamentosAposMutacao();
+        }
         mostrarToast("Transferência realizada com sucesso!");
       } else {
         const erro = await resposta.json();
