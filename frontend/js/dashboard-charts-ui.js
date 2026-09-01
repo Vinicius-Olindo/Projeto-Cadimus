@@ -56,10 +56,12 @@ async function carregarResumoMensalDashboard(carteiraId, ano, mes) {
     let despesas = 0;
 
     dadosMes.forEach((lancamento) => {
-      if (lancamento.status === "pendente") return;
       const valor = valorMonetario(lancamento);
-      if (lancamento.tipo === "receita") receitas += valor;
-      else despesas += valor;
+      if (lancamento.tipo === "receita") {
+        if (lancamento.status === "pago") receitas += valor;
+      } else {
+        despesas += valor;
+      }
     });
 
     const resumo = { receitas, despesas, saldo: receitas - despesas };

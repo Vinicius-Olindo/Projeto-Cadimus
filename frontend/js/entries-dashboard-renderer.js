@@ -18,8 +18,8 @@ function atualizarDescricoesResumo({ totalReceitas = 0, totalDespesas = 0, total
 
   if (despesasDesc) {
     despesasDesc.textContent = totalDespesas > 0
-      ? "Saídas pagas neste período."
-      : "Nenhuma saída paga no período.";
+      ? "Saídas do período, pagas e pendentes."
+      : "Nenhuma saída no período.";
   }
 
   if (pendenteDesc) {
@@ -50,18 +50,14 @@ function calcularResumoLancamentosLocal(lancamentos = ultimoLoteLancamentos) {
 
   lancamentos.forEach((lancamento) => {
     const valor = valorMonetario(lancamento);
-    const despesaNaoPaga = lancamento.tipo === "despesa" && lancamento.status !== "pago";
-
-    if (despesaNaoPaga) {
-      totalPendente += valor;
-      return;
-    }
 
     if (lancamento.tipo === "receita") {
+      if (lancamento.status !== "pago") return;
       totalReceitas += valor;
     } else {
       totalDespesas += valor;
       totaisPorCategoria[lancamento.categoria] = (totaisPorCategoria[lancamento.categoria] || 0) + valor;
+      if (lancamento.status !== "pago") totalPendente += valor;
     }
   });
 
