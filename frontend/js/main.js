@@ -119,6 +119,7 @@ window.alternarStatusLancamento = alternarStatusLancamento;
 window.editarLancamento = editarLancamento;
 window.duplicarLancamento = duplicarLancamento;
 window.carregarCarteiras = carregarCarteiras;
+window.atualizarOrcamentoNoCard = atualizarOrcamentoNoCard;
 
 // Renomeação de categorias fica em admin-categories-ui.js.
 

@@ -33,6 +33,51 @@ interface OrcamentoAlvoRow {
   criado_por: number;
 }
 
+function montarOrcamentoComProgresso(o: OrcamentoComGastoRow) {
+  const valorCentavos = o.valor_centavos ?? Math.round(o.valor * 100);
+  const totalGastoCentavos = o.total_gasto_centavos ?? Math.round(o.total_gasto * 100);
+  const progresso = valorCentavos > 0 ? (totalGastoCentavos / valorCentavos) * 100 : 0;
+  const status = progresso >= 100 ? "estourado" : progresso >= 80 ? "alerta" : "ok";
+  return {
+    ...o,
+    progresso: Math.min(progresso, 100),
+    progresso_real: progresso,
+    status,
+    saldo: centavosParaReais(Math.max(valorCentavos - totalGastoCentavos, 0)),
+  };
+}
+
+async function obterOrcamentoComProgresso(env: CadimusEnv, carteiraId: number, categoria: string, mes: string, ano: string | number) {
+  const { results } = await env.DB.prepare(`
+    SELECT o.*,
+           COALESCE(gasto.total_gasto, 0) AS total_gasto,
+           COALESCE(gasto.total_gasto_centavos, 0) AS total_gasto_centavos
+    FROM orcamentos o
+    LEFT JOIN (
+      SELECT
+        carteira_id,
+        LOWER(categoria) AS categoria_normalizada,
+        SUM(COALESCE(valor_centavos, ROUND(valor * 100))) / 100.0 AS total_gasto,
+        SUM(COALESCE(valor_centavos, ROUND(valor * 100))) AS total_gasto_centavos
+      FROM lancamentos
+      WHERE tipo = 'despesa'
+        AND status = 'pago'
+        AND strftime('%m', data_compra) = ?
+        AND strftime('%Y', data_compra) = ?
+      GROUP BY carteira_id, LOWER(categoria)
+    ) gasto ON gasto.carteira_id = o.carteira_id AND gasto.categoria_normalizada = LOWER(o.categoria)
+    WHERE o.carteira_id = ?
+      AND LOWER(o.categoria) = LOWER(?)
+      AND o.mes IN (?, ?)
+      AND o.ano = ?
+    LIMIT 1
+  `)
+    .bind(mes, String(ano), carteiraId, categoria, mes, String(Number(mes)), ano)
+    .all<OrcamentoComGastoRow>();
+
+  return results[0] ? montarOrcamentoComProgresso(results[0]) : null;
+}
+
 export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   const metodo = request.method;
   const url = new URL(request.url);
@@ -112,20 +157,7 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
 
       const { results } = await env.DB.prepare(query).bind(...params).all<OrcamentoComGastoRow>();
 
-      // Calcular progresso para cada orçamento
-      const orcamentosComProgresso = results.map((o) => {
-        const valorCentavos = o.valor_centavos ?? Math.round(o.valor * 100);
-        const totalGastoCentavos = o.total_gasto_centavos ?? Math.round(o.total_gasto * 100);
-        const progresso = valorCentavos > 0 ? (totalGastoCentavos / valorCentavos) * 100 : 0;
-        const status = progresso >= 100 ? "estourado" : progresso >= 80 ? "alerta" : "ok";
-        return {
-          ...o,
-          progresso: Math.min(progresso, 100),
-          progresso_real: progresso,
-          status,
-          saldo: centavosParaReais(Math.max(valorCentavos - totalGastoCentavos, 0)),
-        };
-      });
+      const orcamentosComProgresso = results.map(montarOrcamentoComProgresso);
 
       return json(orcamentosComProgresso);
     } catch (erro) {
@@ -205,7 +237,9 @@ export async function processarOrcamentos(request: Request, env: CadimusEnv, ctx
         )
         .run();
 
-      return json({ mensagem: "Orçamento salvo com sucesso!" }, 201);
+      const orcamento = await obterOrcamentoComProgresso(env, carteiraIdNormalizada, categoria, mesNormalizado, dados.ano);
+
+      return json({ mensagem: "Orçamento salvo com sucesso!", orcamento }, 201);
     } catch (erro) {
       return erroFinanceiro(erro, "orcamentos.salvar", "Não foi possível salvar este orçamento agora.", "orcamento_salvar_falhou");
     }

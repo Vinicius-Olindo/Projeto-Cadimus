@@ -10,6 +10,21 @@
 // ==========================================
 let metasCarregadas = [];
 
+function atualizarMetaNoEstadoLocal(meta) {
+  if (!meta?.categoria) return;
+  const indice = metasCarregadas.findIndex((item) => item.categoria === meta.categoria);
+  if (indice >= 0) metasCarregadas[indice] = { ...metasCarregadas[indice], ...meta };
+  else metasCarregadas.push(meta);
+  if (typeof renderizarAlertasRiscoFinanceiro === "function") renderizarAlertasRiscoFinanceiro();
+  if (typeof atualizarPlanejamentoVisivel === "function") atualizarPlanejamentoVisivel({ forcarRender: true });
+}
+
+function removerMetaDoEstadoLocal(categoria) {
+  metasCarregadas = metasCarregadas.filter((item) => item.categoria !== categoria);
+  if (typeof renderizarAlertasRiscoFinanceiro === "function") renderizarAlertasRiscoFinanceiro();
+  if (typeof atualizarPlanejamentoVisivel === "function") atualizarPlanejamentoVisivel({ forcarRender: true });
+}
+
 async function carregarMetas() {
   const carteiraId = document.getElementById("seletor-carteira").value;
   metasCarregadas = [];
@@ -115,7 +130,15 @@ function configurarModalMeta() {
 
       if (resposta.ok) {
         modal.style.display = "none";
-        await recarregarLancamentosAposMutacao();
+        liberarFoco();
+        atualizarMetaNoEstadoLocal({
+          categoria,
+          valor_limite: valorLimite,
+          valor_limite_centavos: valorLimitePayload.valor_limite_centavos,
+          data_limite: dataLimite,
+          carteira_id: carteiraId,
+        });
+        mostrarToast("Meta salva", "sucesso");
       } else {
         const erro = await resposta.json();
         await mostrarAviso(`Erro: ${erro.erro}`);
@@ -142,7 +165,7 @@ function configurarModalMeta() {
       if (resposta.ok) {
         modal.style.display = "none";
         liberarFoco();
-        await recarregarLancamentosAposMutacao();
+        removerMetaDoEstadoLocal(categoria);
         mostrarToast("Meta removida", "info");
       } else {
         const erro = await resposta.json();

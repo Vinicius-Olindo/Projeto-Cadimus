@@ -10,6 +10,83 @@
 // ==========================================
 let comprasParceladasCarregadas = [];
 
+function renderizarPainelComprasParceladas() {
+  const card = document.getElementById("card-compras-parceladas");
+  const container = document.getElementById("lista-compras-parceladas-painel");
+  if (!card || !container) return;
+
+  if (comprasParceladasCarregadas.length === 0) {
+    card.style.display = "none";
+    container.innerHTML = "";
+    return;
+  }
+
+  card.style.display = "flex";
+  container.innerHTML = "";
+
+  comprasParceladasCarregadas.forEach((compra) => {
+    const valorFormatado = formatadorBRL.format(valorMonetario(compra, "valor_parcela"));
+    const parcelaAtual = calcularParcelaAtual(compra);
+    const concluida = parcelaAtual > compra.total_parcelas;
+
+    let rotuloParcela;
+    if (!compra.ativo) {
+      rotuloParcela = "Cancelada";
+    } else if (concluida) {
+      rotuloParcela = `Concluída (${compra.total_parcelas}/${compra.total_parcelas})`;
+    } else if (parcelaAtual < 1) {
+      rotuloParcela = `Começa em ${NOMES_MESES_ABREV[compra.mes_inicio - 1]}/${compra.ano_inicio}`;
+    } else {
+      rotuloParcela = `Parcela ${parcelaAtual}/${compra.total_parcelas}`;
+    }
+
+    const div = document.createElement("div");
+    div.className = "linha-item linha-usuario lancamento-recorrente-card lancamento-recorrente-parcelada";
+    div.innerHTML = `
+      ${!concluida ? `
+      <button type="button" class="fixa-btn-toggle btn-alternar-parcela ${compra.ativo ? "fixa-ativa" : "fixa-pausada"}" data-id="${compra.id}" title="${compra.ativo ? "Pausar" : "Ativar"}">
+        ${compra.ativo
+          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>'}
+      </button>` : ""}
+      <div class="fixa-conteudo">
+        <span class="item-descricao">${escaparHtml(compra.descricao)}</span>
+        <span class="item-categoria">${rotuloParcela} · ${valorFormatado}/mês</span>
+        <div class="fixa-botoes">
+          <span class="item-status ${compra.ativo && !concluida ? "status-pago" : "status-pendente"}">${compra.ativo ? (concluida ? "Concluída" : "Ativa") : "Pausada"}</span>
+          <button type="button" class="fixa-btn btn-historico-parcela" data-id="${compra.id}" data-descricao="${escaparHtml(compra.descricao)}">Histórico</button>
+          <button type="button" class="fixa-btn-excluir btn-excluir-parcela" data-id="${compra.id}">Excluir</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  container.querySelectorAll(".btn-historico-parcela").forEach((btn) => {
+    btn.addEventListener("click", () => abrirHistoricoParcela(Number(btn.dataset.id), btn.dataset.descricao));
+  });
+  container.querySelectorAll(".btn-alternar-parcela").forEach((btn) => {
+    btn.addEventListener("click", () => alternarComprasParcelada(Number(btn.dataset.id)));
+  });
+  container.querySelectorAll(".btn-excluir-parcela").forEach((btn) => {
+    btn.addEventListener("click", () => excluirComprasParcelada(Number(btn.dataset.id)));
+  });
+}
+
+function atualizarCompraParceladaNoCard(compra) {
+  if (!compra?.id) return false;
+  const indice = comprasParceladasCarregadas.findIndex((item) => String(item.id) === String(compra.id));
+  if (indice >= 0) comprasParceladasCarregadas[indice] = { ...comprasParceladasCarregadas[indice], ...compra };
+  else comprasParceladasCarregadas.unshift(compra);
+  renderizarPainelComprasParceladas();
+  return true;
+}
+
+function removerCompraParceladaDoCard(id) {
+  comprasParceladasCarregadas = comprasParceladasCarregadas.filter((item) => String(item.id) !== String(id));
+  renderizarPainelComprasParceladas();
+}
+
 function sincronizarVencimentoParceladaComCartao() {
   const campoDia = document.getElementById("parcelada-dia");
   const selectCartao = document.getElementById("parcelada-cartao-credito");
@@ -179,11 +256,13 @@ function configurarModalComprasParceladas() {
       if (tratarSessaoExpirada(resposta)) return;
 
       if (resposta.ok) {
+        const resultado = await resposta.clone().json().catch(() => null);
         form.reset();
         preview.style.display = "none";
         modal.style.display = "none";
         liberarFoco();
-        await recarregarLancamentosAposMutacao();
+        atualizarCompraParceladaNoCard({ id: resultado?.id, ativo: true, ...corpo });
+        recarregarLancamentosAposMutacao();
         mostrarToast("Compra parcelada criada");
       } else {
         const erro = await resposta.json();
@@ -226,61 +305,7 @@ async function carregarPainelComprasParceladas() {
 
     comprasParceladasCarregadas = await resposta.json();
 
-    if (comprasParceladasCarregadas.length === 0) {
-      card.style.display = "none";
-      return;
-    }
-
-    card.style.display = "flex";
-    container.innerHTML = "";
-
-    comprasParceladasCarregadas.forEach((compra) => {
-      const valorFormatado = formatadorBRL.format(valorMonetario(compra, "valor_parcela"));
-      const parcelaAtual = calcularParcelaAtual(compra);
-      const concluida = parcelaAtual > compra.total_parcelas;
-
-      let rotuloParcela;
-      if (!compra.ativo) {
-        rotuloParcela = "Cancelada";
-      } else if (concluida) {
-        rotuloParcela = `Concluída (${compra.total_parcelas}/${compra.total_parcelas})`;
-      } else if (parcelaAtual < 1) {
-        rotuloParcela = `Começa em ${NOMES_MESES_ABREV[compra.mes_inicio - 1]}/${compra.ano_inicio}`;
-      } else {
-        rotuloParcela = `Parcela ${parcelaAtual}/${compra.total_parcelas}`;
-      }
-
-      const div = document.createElement("div");
-      div.className = "linha-item linha-usuario lancamento-recorrente-card lancamento-recorrente-parcelada";
-      div.innerHTML = `
-        ${!concluida ? `
-        <button type="button" class="fixa-btn-toggle btn-alternar-parcela ${compra.ativo ? "fixa-ativa" : "fixa-pausada"}" data-id="${compra.id}" title="${compra.ativo ? "Pausar" : "Ativar"}">
-          ${compra.ativo
-            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
-            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>'}
-        </button>` : ""}
-        <div class="fixa-conteudo">
-          <span class="item-descricao">${escaparHtml(compra.descricao)}</span>
-          <span class="item-categoria">${rotuloParcela} · ${valorFormatado}/mês</span>
-          <div class="fixa-botoes">
-            <span class="item-status ${compra.ativo && !concluida ? "status-pago" : "status-pendente"}">${compra.ativo ? (concluida ? "Concluída" : "Ativa") : "Pausada"}</span>
-            <button type="button" class="fixa-btn btn-historico-parcela" data-id="${compra.id}" data-descricao="${escaparHtml(compra.descricao)}">Histórico</button>
-            <button type="button" class="fixa-btn-excluir btn-excluir-parcela" data-id="${compra.id}">Excluir</button>
-          </div>
-        </div>
-      `;
-      container.appendChild(div);
-    });
-
-    container.querySelectorAll(".btn-historico-parcela").forEach((btn) => {
-      btn.addEventListener("click", () => abrirHistoricoParcela(Number(btn.dataset.id), btn.dataset.descricao));
-    });
-    container.querySelectorAll(".btn-alternar-parcela").forEach((btn) => {
-      btn.addEventListener("click", () => alternarComprasParcelada(Number(btn.dataset.id)));
-    });
-    container.querySelectorAll(".btn-excluir-parcela").forEach((btn) => {
-      btn.addEventListener("click", () => excluirComprasParcelada(Number(btn.dataset.id)));
-    });
+    renderizarPainelComprasParceladas();
   } catch (erro) {
     console.error("Erro ao carregar compras parceladas:", erro);
     comprasParceladasCarregadas = [];
@@ -300,7 +325,8 @@ async function alternarComprasParcelada(id) {
     if (tratarSessaoExpirada(resposta)) return;
 
     if (resposta.ok) {
-      carregarPainelComprasParceladas();
+      atualizarCompraParceladaNoCard({ ...alvo, ativo: !alvo.ativo });
+      recarregarLancamentosAposMutacao();
       mostrarToast(alvo.ativo ? "Compra parcelada cancelada" : "Compra parcelada reativada", "info");
     } else {
       const erro = await resposta.json();
@@ -320,7 +346,8 @@ async function excluirComprasParcelada(id) {
     if (tratarSessaoExpirada(resposta)) return;
 
     if (resposta.ok) {
-      carregarPainelComprasParceladas();
+      removerCompraParceladaDoCard(id);
+      recarregarLancamentosAposMutacao();
       mostrarToast("Compra parcelada excluída", "info");
     } else {
       const erro = await resposta.json();

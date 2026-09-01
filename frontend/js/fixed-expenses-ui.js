@@ -7,6 +7,76 @@
 
 let despesasFixasCarregadas = [];
 
+function renderizarPainelDespesasFixas() {
+  const card = document.getElementById("card-despesas-fixas");
+  const container = document.getElementById("lista-despesas-fixas-painel");
+  if (!card || !container) return;
+
+  if (despesasFixasCarregadas.length === 0) {
+    card.style.display = "none";
+    container.innerHTML = "";
+    return;
+  }
+
+  card.style.display = "flex";
+  container.innerHTML = "";
+
+  despesasFixasCarregadas.forEach((fixa) => {
+    const valorFormatado = formatadorBRL.format(valorMonetario(fixa));
+    const aviso = fixa.ativo ? calcularAvisoVencimento(fixa.dia_vencimento) : null;
+    const badgeAviso = aviso ? `<span class="aviso-vencimento ${aviso.atrasado ? "aviso-vencimento-atrasado" : ""}">${aviso.texto}</span>` : "";
+    const classeDestaque = aviso ? (aviso.atrasado ? "linha-vencimento-atrasado" : "linha-vencimento-proximo") : "";
+
+    const div = document.createElement("div");
+    div.className = `linha-item linha-usuario lancamento-recorrente-card lancamento-recorrente-fixa ${classeDestaque}`.trim();
+    div.innerHTML = `
+      <button type="button" class="fixa-btn-toggle btn-alternar-fixa ${fixa.ativo ? "fixa-ativa" : "fixa-pausada"}" data-id="${fixa.id}" title="${fixa.ativo ? "Pausar" : "Ativar"}">
+        ${fixa.ativo
+          ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
+          : '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>'}
+      </button>
+      <div class="fixa-conteudo">
+        <span class="item-descricao">${escaparHtml(fixa.descricao)}</span>
+        <span class="item-categoria">${valorFormatado} · Dia ${fixa.dia_vencimento}</span>
+        <div class="fixa-botoes">
+          ${badgeAviso}
+          <button type="button" class="fixa-btn btn-historico-fixa" data-id="${fixa.id}" data-descricao="${escaparHtml(fixa.descricao)}">Histórico</button>
+          <button type="button" class="fixa-btn btn-editar-fixa" data-id="${fixa.id}">Editar</button>
+          <button type="button" class="fixa-btn-excluir btn-excluir-conta" data-id="${fixa.id}">Excluir</button>
+        </div>
+      </div>
+    `;
+    container.appendChild(div);
+  });
+
+  container.querySelectorAll(".btn-editar-fixa").forEach((btn) => {
+    btn.addEventListener("click", () => editarDespesaFixa(Number(btn.dataset.id)));
+  });
+  container.querySelectorAll(".btn-historico-fixa").forEach((btn) => {
+    btn.addEventListener("click", () => abrirHistoricoFixa(Number(btn.dataset.id), btn.dataset.descricao));
+  });
+  container.querySelectorAll(".btn-alternar-fixa").forEach((btn) => {
+    btn.addEventListener("click", () => alternarDespesaFixa(Number(btn.dataset.id)));
+  });
+  container.querySelectorAll(".btn-excluir-conta").forEach((btn) => {
+    btn.addEventListener("click", () => excluirDespesaFixa(Number(btn.dataset.id)));
+  });
+}
+
+function atualizarDespesaFixaNoCard(fixa) {
+  if (!fixa?.id) return false;
+  const indice = despesasFixasCarregadas.findIndex((item) => String(item.id) === String(fixa.id));
+  if (indice >= 0) despesasFixasCarregadas[indice] = { ...despesasFixasCarregadas[indice], ...fixa };
+  else despesasFixasCarregadas.unshift(fixa);
+  renderizarPainelDespesasFixas();
+  return true;
+}
+
+function removerDespesaFixaDoCard(id) {
+  despesasFixasCarregadas = despesasFixasCarregadas.filter((item) => String(item.id) !== String(id));
+  renderizarPainelDespesasFixas();
+}
+
 function sincronizarVencimentoFixaComCartao() {
   const campoDia = document.getElementById("fixa-dia");
   const selectCartao = document.getElementById("fixa-cartao-credito");
@@ -160,8 +230,17 @@ function configurarModalDespesasFixas() {
       if (tratarSessaoExpirada(resposta)) return;
 
       if (resposta.ok) {
+        const resultado = await resposta.clone().json().catch(() => null);
+        const fixaExistente = despesasFixasCarregadas.find((item) => String(item.id) === String(idEdicao));
+        const fixaLocal = {
+          id: resultado?.id || idEdicao,
+          carteira_id: Number(carteiraId),
+          ativo: fixaExistente?.ativo ?? true,
+          ...corpo,
+        };
         fecharModalDespesaFixa();
-        await recarregarLancamentosAposMutacao();
+        atualizarDespesaFixaNoCard(fixaLocal);
+        recarregarLancamentosAposMutacao();
         mostrarToast(idEdicao ? "Despesa fixa atualizada" : "Despesa fixa criada");
       } else {
         const erro = await resposta.json();
@@ -201,55 +280,7 @@ async function carregarPainelDespesasFixas() {
       renderizarResumoAssinaturasDashboard(typeof ultimoLoteLancamentos !== "undefined" ? ultimoLoteLancamentos : []);
     }
 
-    if (despesasFixasCarregadas.length === 0) {
-      card.style.display = "none";
-      return;
-    }
-
-    card.style.display = "flex";
-    container.innerHTML = "";
-
-    despesasFixasCarregadas.forEach((fixa) => {
-      const valorFormatado = formatadorBRL.format(valorMonetario(fixa));
-      const aviso = fixa.ativo ? calcularAvisoVencimento(fixa.dia_vencimento) : null;
-
-      const badgeAviso = aviso ? `<span class="aviso-vencimento ${aviso.atrasado ? "aviso-vencimento-atrasado" : ""}">${aviso.texto}</span>` : "";
-      const classeDestaque = aviso ? (aviso.atrasado ? "linha-vencimento-atrasado" : "linha-vencimento-proximo") : "";
-
-      const div = document.createElement("div");
-      div.className = `linha-item linha-usuario lancamento-recorrente-card lancamento-recorrente-fixa ${classeDestaque}`.trim();
-      div.innerHTML = `
-        <button type="button" class="fixa-btn-toggle btn-alternar-fixa ${fixa.ativo ? "fixa-ativa" : "fixa-pausada"}" data-id="${fixa.id}" title="${fixa.ativo ? "Pausar" : "Ativar"}">
-          ${fixa.ativo
-            ? '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="4" width="4" height="16" rx="1"/><rect x="14" y="4" width="4" height="16" rx="1"/></svg>'
-            : '<svg width="14" height="14" viewBox="0 0 24 24" fill="currentColor"><polygon points="5,3 19,12 5,21"/></svg>'}
-        </button>
-        <div class="fixa-conteudo">
-          <span class="item-descricao">${escaparHtml(fixa.descricao)}</span>
-          <span class="item-categoria">${valorFormatado} · Dia ${fixa.dia_vencimento}</span>
-          <div class="fixa-botoes">
-            ${badgeAviso}
-            <button type="button" class="fixa-btn btn-historico-fixa" data-id="${fixa.id}" data-descricao="${escaparHtml(fixa.descricao)}">Histórico</button>
-            <button type="button" class="fixa-btn btn-editar-fixa" data-id="${fixa.id}">Editar</button>
-            <button type="button" class="fixa-btn-excluir btn-excluir-conta" data-id="${fixa.id}">Excluir</button>
-          </div>
-        </div>
-      `;
-      container.appendChild(div);
-    });
-
-    container.querySelectorAll(".btn-editar-fixa").forEach((btn) => {
-      btn.addEventListener("click", () => editarDespesaFixa(Number(btn.dataset.id)));
-    });
-    container.querySelectorAll(".btn-historico-fixa").forEach((btn) => {
-      btn.addEventListener("click", () => abrirHistoricoFixa(Number(btn.dataset.id), btn.dataset.descricao));
-    });
-    container.querySelectorAll(".btn-alternar-fixa").forEach((btn) => {
-      btn.addEventListener("click", () => alternarDespesaFixa(Number(btn.dataset.id)));
-    });
-    container.querySelectorAll(".btn-excluir-conta").forEach((btn) => {
-      btn.addEventListener("click", () => excluirDespesaFixa(Number(btn.dataset.id)));
-    });
+    renderizarPainelDespesasFixas();
   } catch (erro) {
     console.error("Erro ao carregar despesas fixas:", erro);
     despesasFixasCarregadas = [];
@@ -288,7 +319,8 @@ async function alternarDespesaFixa(id) {
     if (tratarSessaoExpirada(resposta)) return;
 
     if (resposta.ok) {
-      carregarPainelDespesasFixas();
+      atualizarDespesaFixaNoCard({ ...alvo, ativo: !alvo.ativo });
+      recarregarLancamentosAposMutacao();
       mostrarToast(alvo.ativo ? "Despesa fixa pausada" : "Despesa fixa ativada", "info");
     } else {
       const erro = await resposta.json();
@@ -308,7 +340,8 @@ async function excluirDespesaFixa(id) {
     if (tratarSessaoExpirada(resposta)) return;
 
     if (resposta.ok) {
-      carregarPainelDespesasFixas();
+      removerDespesaFixaDoCard(id);
+      recarregarLancamentosAposMutacao();
       mostrarToast("Despesa fixa excluída", "info");
     } else {
       const erro = await resposta.json();
