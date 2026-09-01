@@ -14,9 +14,9 @@ CadimusPageLoader.carregar([
   "money-ui.js?v=100",
   "components.js?v=104",
   "ui-core.js?v=107",
-  "reports-shell-ui.js?v=104",
-  "reports-charts-ui.js?v=100",
-  "reports-tables-ui.js?v=101",
-  "reports-export-ui.js?v=100",
+  "pages/reports/reports-shell-ui.js?v=104",
+  "pages/reports/reports-charts-ui.js?v=100",
+  "pages/reports/reports-tables-ui.js?v=101",
+  "pages/reports/reports-export-ui.js?v=100",
 ]);
 

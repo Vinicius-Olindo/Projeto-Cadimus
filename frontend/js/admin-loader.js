@@ -19,7 +19,7 @@ CadimusPageLoader.carregar([
   "components.js?v=104",
   "ui-core.js?v=107",
   "wallets-ui.js?v=113",
-  "entries-state.js?v=100",
+  "pages/entries/entries-state.js?v=100",
   "notifications-ui.js?v=100",
   "admin-shell-ui.js?v=101",
   "admin-settings-ui.js?v=103",
