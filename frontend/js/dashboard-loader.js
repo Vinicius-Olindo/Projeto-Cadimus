@@ -35,7 +35,7 @@ CadimusPageLoader.carregar([
   "global-search-ui.js?v=100",
   "dashboard-summary-ui.js?v=109",
   "entries-dashboard-renderer.js?v=101",
-  "dashboard-card-details-ui.js?v=104",
+  "dashboard-card-details-ui.js?v=105",
   "dashboard-card-refreshers.js?v=100",
   "entries-loader-ui.js?v=116",
   "dashboard-refresh-coordinator.js?v=100",
