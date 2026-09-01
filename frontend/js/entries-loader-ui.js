@@ -15,6 +15,8 @@ let recargaMutacaoEmAndamento = null;
 let recargaMutacaoTimer = null;
 let recargaMutacaoPendente = false;
 let atualizacaoGraficaTimer = null;
+let atualizacaoPaineisTimer = null;
+let atualizacaoPaineisLancamentos = [];
 const cachePeriodoLancamentos = new Map();
 const LIMITE_CACHE_PERIODO_LANCAMENTOS = 8;
 
@@ -68,18 +70,27 @@ function agendarAtualizacaoComplementarLancamentos(tarefa) {
   setTimeout(() => Promise.resolve(tarefa()).catch((erro) => console.error("Erro em atualização complementar:", erro)), 60);
 }
 
-function atualizarPaineisComplementaresLancamentos(lancamentos = []) {
-  agendarAtualizacaoComplementarLancamentos(() => {
-    if (typeof carregarPainelDespesasFixas === "function") carregarPainelDespesasFixas();
-    if (typeof carregarPainelComprasParceladas === "function") carregarPainelComprasParceladas();
-    if (typeof carregarOrcamentos === "function") carregarOrcamentos();
-    if (typeof carregarMetas === "function") carregarMetas();
-    if (typeof carregarCartoesCredito === "function") carregarCartoesCredito();
-  });
+function cardDashboardEstaVisivel(id) {
+  const card = document.getElementById(id);
+  if (!card) return false;
+  return !card.classList.contains("dashboard-visao-oculto") && !card.classList.contains("dashboard-card-oculto-usuario");
+}
 
-  if (typeof carregarPainelBonificacoes === "function") {
-    agendarAtualizacaoComplementarLancamentos(() => carregarPainelBonificacoes(lancamentos));
-  }
+function atualizarPaineisComplementaresLancamentos(lancamentos = []) {
+  atualizacaoPaineisLancamentos = Array.isArray(lancamentos) ? lancamentos : [];
+  if (atualizacaoPaineisTimer) clearTimeout(atualizacaoPaineisTimer);
+
+  atualizacaoPaineisTimer = setTimeout(() => {
+    atualizacaoPaineisTimer = null;
+    agendarAtualizacaoComplementarLancamentos(() => {
+      if (cardDashboardEstaVisivel("card-despesas-fixas") && typeof carregarPainelDespesasFixas === "function") carregarPainelDespesasFixas();
+      if (cardDashboardEstaVisivel("card-compras-parceladas") && typeof carregarPainelComprasParceladas === "function") carregarPainelComprasParceladas();
+      if (cardDashboardEstaVisivel("card-bonificacoes") && typeof carregarPainelBonificacoes === "function") carregarPainelBonificacoes(atualizacaoPaineisLancamentos);
+      if (cardDashboardEstaVisivel("card-orcamentos") && typeof carregarOrcamentos === "function") carregarOrcamentos();
+      if (cardDashboardEstaVisivel("card-metas-mes-dashboard") && typeof carregarMetas === "function") carregarMetas();
+      if (cardDashboardEstaVisivel("card-cartoes-credito") && typeof carregarCartoesCredito === "function") carregarCartoesCredito();
+    });
+  }, 140);
 }
 
 function invalidarCachesDashboardFinanceiro() {
@@ -441,3 +452,7 @@ async function carregarLancamentos(opcoes = {}) {
     }
   }
 }
+
+document.addEventListener("cadimus:dashboard-visao-alterada", () => {
+  atualizarPaineisComplementaresLancamentos(ultimoLoteLancamentos);
+});
