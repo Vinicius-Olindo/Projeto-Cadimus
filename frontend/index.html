@@ -21,7 +21,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=101" />
-    <link rel="stylesheet" href="css/style.css?v=193" />
+    <link rel="stylesheet" href="css/style.css?v=194" />
   </head>
   <body>
     <main class="app-container">
@@ -39,7 +39,7 @@
         <div id="conteudo-periodo">
           <!-- LINHA 1: grade de indicadores, ocupa a largura toda — o "painel de controle" -->
           <div class="stat-grid area-resumo">
-            <div class="card stat-card stat-card-receita stat-card-atalho" id="resumo-receitas-item" role="button" tabindex="0" title="Limpar filtros de lançamentos" aria-label="Limpar filtros de lançamentos">
+            <div class="card stat-card stat-card-receita stat-card-atalho" id="resumo-receitas-item" data-resumo-card="receitas" role="button" tabindex="0" title="Ver detalhes das receitas" aria-label="Ver detalhes das receitas">
               <div class="stat-card-topo">
                 <span class="stat-card-icone">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6"/></svg>
@@ -49,7 +49,7 @@
               <span class="stat-valor texto-receita" id="total-receitas">R$ 0,00</span>
               <span class="stat-desc" id="receitas-desc">Entradas pagas neste período.</span>
             </div>
-            <div class="card stat-card stat-card-despesa">
+            <div class="card stat-card stat-card-despesa stat-card-atalho" data-resumo-card="despesas" role="button" tabindex="0" title="Ver detalhes das despesas" aria-label="Ver detalhes das despesas">
               <div class="stat-card-topo">
                 <span class="stat-card-icone">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 14l-4-4m0 0l4-4m-4 4h11a4 4 0 0 1 0 8h-1"/></svg>
@@ -60,7 +60,7 @@
               <span class="stat-desc" id="despesas-desc">Saídas do período, pagas e pendentes.</span>
               <span class="comparacao-mes" id="comparacao-mes" style="display: none"></span>
             </div>
-            <div class="card stat-card stat-card-pendente stat-card-atalho" id="resumo-pendente-item" role="button" tabindex="0" title="Ver compromissos a pagar" aria-label="Filtrar compromissos a pagar" style="display: none">
+            <div class="card stat-card stat-card-pendente stat-card-atalho" id="resumo-pendente-item" data-resumo-card="pendentes" role="button" tabindex="0" title="Ver compromissos a pagar" aria-label="Ver compromissos a pagar" style="display: none">
               <div class="stat-card-topo">
                 <span class="stat-card-icone">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/></svg>
@@ -70,7 +70,7 @@
               <span class="stat-valor" id="total-pendente" style="color: var(--cor-pendente)">R$ 0,00</span>
               <span class="stat-desc" id="pendente-desc">Compromissos ainda pendentes.</span>
             </div>
-            <div class="card stat-card stat-card-saldo">
+            <div class="card stat-card stat-card-saldo stat-card-atalho" data-resumo-card="saldo" role="button" tabindex="0" title="Ver composição do saldo" aria-label="Ver composição do saldo">
               <div class="stat-card-topo">
                 <span class="stat-card-icone">
                   <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 12V7H5a2 2 0 0 1 0-4h14v4"/><path d="M3 5v14a2 2 0 0 0 2 2h16v-5"/><path d="M18 12a2 2 0 0 0 0 4h4v-4Z"/></svg>
@@ -117,6 +117,6 @@
     <!-- RODAPÉ -->
     <div id="app-footer-root"></div>
     <script src="js/page-script-loader.js?v=100"></script>
-    <script src="js/dashboard-loader.js?v=112"></script>
+    <script src="js/dashboard-loader.js?v=113"></script>
   </body>
 </html>

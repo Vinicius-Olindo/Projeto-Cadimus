@@ -7,7 +7,7 @@
 @import url("components/buttons.css");
 @import url("components/wallet-tabs.css");
 @import url("components/month-transition.css");
-@import url("pages/dashboard.css");
+@import url("pages/dashboard.css?v=101");
 @import url("pages/entries.css?v=101");
 @import url("pages/auth.css");
 @import url("components/forms.css");
