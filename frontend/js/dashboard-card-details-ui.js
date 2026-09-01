@@ -219,11 +219,64 @@ function garantirModalDetalheCard() {
   return modal;
 }
 
+function clonarCardAnaliticoParaDetalhe(card) {
+  const clone = card.cloneNode(true);
+  clone.removeAttribute("id");
+  clone.removeAttribute("style");
+  clone.removeAttribute("role");
+  clone.removeAttribute("tabindex");
+  clone.removeAttribute("title");
+  clone.removeAttribute("aria-label");
+  clone.classList.remove("dashboard-card-detalhe-atalho", "dashboard-card-editavel", "arrastando");
+  clone.classList.add("detalhe-card-clone");
+  delete clone.dataset.cardAnalitico;
+  delete clone.dataset.cardAnaliticoTitulo;
+
+  clone.querySelectorAll("[id]").forEach((elemento) => elemento.removeAttribute("id"));
+  clone.querySelectorAll(".dashboard-layout-card-acoes, .dashboard-card-drag-handle").forEach((elemento) => elemento.remove());
+  clone.querySelectorAll("button, a, input, select, textarea").forEach((elemento) => {
+    if (elemento.matches(".btn-link-adicionar, .btn-editar, .btn-excluir, .btn-duplicar")) {
+      elemento.remove();
+      return;
+    }
+    elemento.setAttribute("tabindex", "-1");
+  });
+
+  return clone;
+}
+
+function abrirModalCardAnaliticoDashboard(card) {
+  if (!card) return;
+
+  const modal = garantirModalDetalheCard();
+  const titulo = modal.querySelector("#detalhe-card-titulo");
+  const subtitulo = modal.querySelector("#detalhe-card-subtitulo");
+  const corpo = modal.querySelector("#detalhe-card-corpo");
+  const btnFiltrar = modal.querySelector("#btn-detalhe-card-filtrar");
+  const tituloCard = card.dataset.cardAnaliticoTitulo
+    || card.querySelector(".resumo-categorias-titulo")?.textContent?.trim()
+    || "Detalhe do card";
+
+  if (titulo) titulo.textContent = tituloCard;
+  if (subtitulo) subtitulo.textContent = "Visão ampliada do card para consultar com mais conforto.";
+  if (btnFiltrar) btnFiltrar.style.display = "none";
+  if (corpo) {
+    corpo.innerHTML = "";
+    corpo.appendChild(clonarCardAnaliticoParaDetalhe(card));
+  }
+
+  modal.dataset.tipo = "";
+  modal.dataset.cardAnalitico = card.dataset.cardAnalitico || "";
+  modal.style.display = "flex";
+  if (typeof trapFoco === "function") trapFoco(modal);
+}
+
 function fecharModalDetalheCard() {
   const modal = document.getElementById("modal-detalhe-card-dashboard");
   if (!modal) return;
   modal.style.display = "none";
   modal.dataset.tipo = "";
+  modal.dataset.cardAnalitico = "";
 }
 
 function abrirModalDetalheCard(tipo) {
@@ -244,7 +297,10 @@ function abrirModalDetalheCard(tipo) {
 
   if (titulo) titulo.textContent = config.titulo;
   if (subtitulo) subtitulo.textContent = config.subtitulo;
-  if (btnFiltrar) btnFiltrar.textContent = config.filtroTexto;
+  if (btnFiltrar) {
+    btnFiltrar.textContent = config.filtroTexto;
+    btnFiltrar.style.display = "";
+  }
   if (corpo) {
     corpo.innerHTML = `
       <div class="detalhe-card-total">
@@ -304,6 +360,27 @@ function configurarDetalhesCardsDashboard() {
       abrirModalDetalheCard(tipo);
     }, true);
   });
+
+  document.addEventListener("click", (evento) => {
+    const card = evento.target.closest("[data-card-analitico]");
+    if (!card || document.body.classList.contains("dashboard-layout-modo-ativo")) return;
+    if (evento.target.closest("button, a, input, select, textarea, label, [data-action], [data-risco-acao]")) return;
+    evento.preventDefault();
+    abrirModalCardAnaliticoDashboard(card);
+  });
+
+  document.addEventListener("keydown", (evento) => {
+    if (evento.key !== "Enter" && evento.key !== " ") return;
+    const card = evento.target.closest("[data-card-analitico]");
+    if (!card || document.body.classList.contains("dashboard-layout-modo-ativo")) return;
+    if (evento.target.closest("button, a, input, select, textarea, label, [data-action], [data-risco-acao]")) return;
+    evento.preventDefault();
+    abrirModalCardAnaliticoDashboard(card);
+  });
 }
 
-document.addEventListener("DOMContentLoaded", configurarDetalhesCardsDashboard);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", configurarDetalhesCardsDashboard);
+} else {
+  configurarDetalhesCardsDashboard();
+}

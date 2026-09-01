@@ -3,9 +3,44 @@
 // ==========================================
 
 (function () {
+  const CARDS_ANALITICOS_DETALHE = {
+    "resumo-categorias": "Para onde foi o dinheiro",
+    "card-tendencia": "Evolução mensal",
+    "card-comparativo": "Saldo vs Despesas (6 meses)",
+    "card-por-autor": "Quem gastou quanto",
+    "card-despesas-fixas": "Despesas fixas",
+    "card-compras-parceladas": "Compras parceladas",
+    "card-bonificacoes": "Bonificações",
+    "card-assinaturas": "Resumo por assinatura",
+    "card-metas-mes-dashboard": "Metas do mês",
+    "card-orcamentos": "Orçamento do mês",
+    "card-cartoes-credito": "Cartões de crédito",
+    "card-riscos-financeiros": "Riscos financeiros",
+    "card-modelos-lancamento": "Modelos rápidos",
+    "card-score": "Saúde financeira",
+  };
+
+  function prepararDetalhesCardsAnaliticos() {
+    Object.entries(CARDS_ANALITICOS_DETALHE).forEach(([id, titulo]) => {
+      const card = document.getElementById(id);
+      if (!card) return;
+
+      card.dataset.cardAnalitico = id;
+      card.dataset.cardAnaliticoTitulo = titulo;
+      card.classList.add("dashboard-card-detalhe-atalho");
+      if (!card.hasAttribute("role")) card.setAttribute("role", "button");
+      if (!card.hasAttribute("tabindex")) card.setAttribute("tabindex", "0");
+      if (!card.hasAttribute("title")) card.setAttribute("title", `Expandir ${titulo}`);
+      if (!card.hasAttribute("aria-label")) card.setAttribute("aria-label", `Expandir ${titulo}`);
+    });
+  }
+
   function renderizarDashboardSideCards() {
     const root = document.getElementById("dashboard-side-cards-root");
-    if (!root || root.dataset.renderizado === "1") return;
+    if (!root || root.dataset.renderizado === "1") {
+      prepararDetalhesCardsAnaliticos();
+      return;
+    }
 
     const html = `
             <div class="card resumo-categorias" id="resumo-categorias" style="display: none">
@@ -157,6 +192,7 @@
     `.trim();
 
     root.outerHTML = `<aside class="area-controle" id="dashboard-side-grid" aria-label="Cards analíticos do dashboard">${html}</aside>`;
+    prepararDetalhesCardsAnaliticos();
   }
 
   window.renderizarDashboardSideCards = renderizarDashboardSideCards;
