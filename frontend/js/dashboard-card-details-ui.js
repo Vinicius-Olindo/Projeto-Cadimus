@@ -550,6 +550,7 @@ function abrirModalCardAnaliticoDashboard(card) {
 
   modal.dataset.tipo = "";
   modal.dataset.cardAnalitico = card.dataset.cardAnalitico || "";
+  modal.classList.toggle("modal-detalhe-analitico", Boolean(detalheAnalitico));
   modal.style.display = "flex";
   if (typeof trapFoco === "function") trapFoco(modal);
 }
@@ -561,6 +562,7 @@ function fecharModalDetalheCard() {
   modal.style.display = "none";
   modal.dataset.tipo = "";
   modal.dataset.cardAnalitico = "";
+  modal.classList.remove("modal-detalhe-analitico");
 }
 
 function abrirModalDetalheCard(tipo) {
@@ -600,6 +602,8 @@ function abrirModalDetalheCard(tipo) {
   }
 
   modal.dataset.tipo = tipo;
+  modal.dataset.cardAnalitico = "";
+  modal.classList.remove("modal-detalhe-analitico");
   modal.style.display = "flex";
   if (typeof trapFoco === "function") trapFoco(modal);
 }

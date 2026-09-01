@@ -1369,10 +1369,17 @@ button.risco-financeiro-item:hover {
 }
 
 .detalhe-card-content {
+  width: min(720px, calc(100vw - 40px));
   max-width: 720px;
+  max-height: calc(100vh - 40px);
   padding: 0;
-  overflow: hidden;
+  overflow: auto;
   border: 1px solid color-mix(in srgb, var(--cor-marca) 26%, var(--cor-pauta-forte));
+}
+
+.modal-detalhe-analitico .detalhe-card-content {
+  width: min(1120px, calc(100vw - 48px));
+  max-width: 1120px;
 }
 
 .detalhe-card-topo {
@@ -1423,6 +1430,12 @@ button.risco-financeiro-item:hover {
   display: grid;
   gap: 16px;
   padding: 22px 26px;
+}
+
+.modal-detalhe-analitico #detalhe-card-corpo {
+  grid-template-columns: minmax(280px, 0.85fr) minmax(440px, 1.35fr);
+  align-items: start;
+  gap: 18px;
 }
 
 .detalhe-card-total {
@@ -1603,6 +1616,11 @@ button.risco-financeiro-item:hover {
   gap: 10px;
 }
 
+.modal-detalhe-analitico .detalhe-analise-grid {
+  grid-column: 1;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
 .detalhe-analise-metrica {
   display: grid;
   gap: 8px;
@@ -1622,10 +1640,11 @@ button.risco-financeiro-item:hover {
 
 .detalhe-analise-metrica strong {
   min-width: 0;
-  overflow: hidden;
-  text-overflow: ellipsis;
   font-family: var(--fonte-mono);
-  font-size: clamp(1rem, 2.5vw, 1.35rem);
+  font-size: clamp(0.94rem, 1.5vw, 1.28rem);
+  line-height: 1.18;
+  overflow-wrap: normal;
+  white-space: normal;
 }
 
 .detalhe-analise-bloco {
@@ -1635,6 +1654,13 @@ button.risco-financeiro-item:hover {
   border: 1px solid var(--cor-pauta-fraca);
   border-radius: var(--raio-md);
   background: var(--cor-superficie);
+}
+
+.modal-detalhe-analitico .detalhe-analise-bloco {
+  grid-column: 2;
+  grid-row: 1 / span 2;
+  max-height: min(58vh, 560px);
+  overflow: auto;
 }
 
 .detalhe-analise-linha {
@@ -1671,6 +1697,7 @@ button.risco-financeiro-item:hover {
   flex-shrink: 0;
   font-family: var(--fonte-mono);
   text-align: right;
+  white-space: nowrap;
 }
 
 .detalhe-analise-barra {
@@ -1698,6 +1725,10 @@ button.risco-financeiro-item:hover {
   line-height: 1.55;
 }
 
+.modal-detalhe-analitico .detalhe-analise-insight {
+  grid-column: 1;
+}
+
 .detalhe-card-acoes {
   display: flex;
   justify-content: flex-end;
@@ -1713,6 +1744,10 @@ button.risco-financeiro-item:hover {
 @media (max-width: 720px) {
   .detalhe-card-content {
     max-width: 100%;
+  }
+
+  .modal-detalhe-analitico .detalhe-card-content {
+    width: min(100%, calc(100vw - 28px));
   }
 
   .detalhe-card-topo,
@@ -1747,6 +1782,22 @@ button.risco-financeiro-item:hover {
 
   .detalhe-analise-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .modal-detalhe-analitico #detalhe-card-corpo,
+  .modal-detalhe-analitico .detalhe-analise-grid,
+  .modal-detalhe-analitico .detalhe-analise-bloco,
+  .modal-detalhe-analitico .detalhe-analise-insight {
+    grid-column: auto;
+    grid-row: auto;
+  }
+
+  .modal-detalhe-analitico #detalhe-card-corpo {
+    grid-template-columns: 1fr;
+  }
+
+  .modal-detalhe-analitico .detalhe-analise-bloco {
+    max-height: none;
   }
 }
 
