@@ -6,6 +6,40 @@ let relatorioDados = { lancamentos: [], periodo: {}, filtros: {} };
 const relatorioPagina = { atual: 1, porPagina: 20 };
 const CORES_GRAFICO = ["#2e7d32","#c62828","#1565c0","#e65100","#6a1b9a","#00838f","#4e342e","#ad1457","#827717","#00695c","#d84315","#283593"];
 let relatoriosConfigurados = false;
+let relatorioTimerCarregamento = null;
+let relatorioRenderToken = 0;
+const cacheRelatoriosFinanceiros = new Map();
+const LIMITE_CACHE_RELATORIOS = 6;
+
+function agendarTarefaRelatorio(tarefa) {
+  if (typeof tarefa !== "function") return;
+  if (typeof window.requestIdleCallback === "function") {
+    window.requestIdleCallback(() => tarefa(), { timeout: 700 });
+    return;
+  }
+  setTimeout(tarefa, 40);
+}
+
+function agendarCarregarDadosRelatorio() {
+  if (relatorioTimerCarregamento) clearTimeout(relatorioTimerCarregamento);
+  relatorioTimerCarregamento = setTimeout(() => {
+    relatorioTimerCarregamento = null;
+    carregarDadosRelatorio();
+  }, 180);
+}
+
+function obterChaveCacheRelatorio(parametros) {
+  return JSON.stringify(parametros || {});
+}
+
+function gravarCacheRelatorio(chave, dados) {
+  if (!chave) return;
+  cacheRelatoriosFinanceiros.set(chave, Array.isArray(dados) ? [...dados] : []);
+  while (cacheRelatoriosFinanceiros.size > LIMITE_CACHE_RELATORIOS) {
+    const primeiraChave = cacheRelatoriosFinanceiros.keys().next().value;
+    cacheRelatoriosFinanceiros.delete(primeiraChave);
+  }
+}
 
 function configurarRelatorios() {
   if (relatoriosConfigurados) return;
@@ -57,17 +91,17 @@ function configurarPeriodoRelatorio() {
   if (sel) {
     sel.addEventListener("change", () => {
       if (grupoData) grupoData.style.display = sel.value === "personalizado" ? "flex" : "none";
-      carregarDadosRelatorio();
+      agendarCarregarDadosRelatorio();
     });
   }
   const dtInicio = document.getElementById("relatorio-data-inicio");
   const dtFim = document.getElementById("relatorio-data-fim");
-  if (dtInicio) dtInicio.addEventListener("change", carregarDadosRelatorio);
-  if (dtFim) dtFim.addEventListener("change", carregarDadosRelatorio);
+  if (dtInicio) dtInicio.addEventListener("change", agendarCarregarDadosRelatorio);
+  if (dtFim) dtFim.addEventListener("change", agendarCarregarDadosRelatorio);
 
   ["relatorio-filtro-carteira", "relatorio-filtro-categoria", "relatorio-filtro-tipo"].forEach((id) => {
     const el = document.getElementById(id);
-    if (el) el.addEventListener("change", carregarDadosRelatorio);
+    if (el) el.addEventListener("change", agendarCarregarDadosRelatorio);
   });
 }
 
@@ -171,21 +205,32 @@ async function carregarDadosRelatorio() {
   const filtroTipo = document.getElementById("relatorio-filtro-tipo")?.value || "";
 
   const usuario = obterUsuarioLogado();
+  const parametros = {
+    inicio: periodo.inicio,
+    fim: periodo.fim,
+    usuarioId: usuario.id,
+    carteiraId: filtroCarteira,
+    categoria: filtroCategoria,
+    tipo: filtroTipo,
+  };
+  const chaveCache = obterChaveCacheRelatorio(parametros);
+  const dadosEmCache = cacheRelatoriosFinanceiros.get(chaveCache);
+
+  if (dadosEmCache) {
+    relatorioDados.lancamentos = [...dadosEmCache];
+    relatorioDados.periodo = periodo;
+    relatorioDados.filtros = { filtroCarteira, filtroCategoria, filtroTipo };
+    renderizarRelatorioCompleto();
+  }
 
   try {
-    const resposta = await CadimusReportsApi.buscarLancamentosResposta({
-      inicio: periodo.inicio,
-      fim: periodo.fim,
-      usuarioId: usuario.id,
-      carteiraId: filtroCarteira,
-      categoria: filtroCategoria,
-      tipo: filtroTipo,
-    });
+    const resposta = await CadimusReportsApi.buscarLancamentosResposta(parametros);
     if (tratarSessaoExpirada(resposta)) return;
     if (!resposta.ok) throw new Error("Erro ao carregar");
     relatorioDados.lancamentos = await resposta.json();
     relatorioDados.periodo = periodo;
     relatorioDados.filtros = { filtroCarteira, filtroCategoria, filtroTipo };
+    gravarCacheRelatorio(chaveCache, relatorioDados.lancamentos);
 
     renderizarRelatorioCompleto();
   } catch (erro) {
@@ -196,24 +241,33 @@ async function carregarDadosRelatorio() {
 function renderizarRelatorioCompleto() {
   const { lancamentos, periodo } = relatorioDados;
   const mesAnterior = obterPeriodoMesAnterior(periodo);
+  const token = ++relatorioRenderToken;
 
   renderizarKPIsRelatorio(lancamentos, mesAnterior);
   renderizarFluxoCaixa(lancamentos, periodo);
   renderizarBarrasReceitasDespesas(lancamentos, periodo);
-  renderizarDonutCategorias(lancamentos);
-  renderizarIndicadoresFinanceiros(lancamentos, periodo);
-  renderizarEvolucaoCategorias(lancamentos, periodo);
-  renderizarRankingCategorias(lancamentos);
-  renderizarComparativoCarteiras(lancamentos);
-  renderizarTabelaContas(lancamentos);
-  renderizarTabelaFormasPagamento(lancamentos);
-  renderizarMaioresDespesas(lancamentos);
-  renderizarMaioresReceitas(lancamentos);
-  renderizarRecorrentesRelatorio(lancamentos);
-  renderizarComparativoPeriodos(lancamentos, mesAnterior);
-  renderizarMetasRelatorio();
-  renderizarInsights(lancamentos, mesAnterior);
-  renderizarTabelaTransacoes(lancamentos);
+
+  [
+    () => renderizarDonutCategorias(lancamentos),
+    () => renderizarIndicadoresFinanceiros(lancamentos, periodo),
+    () => renderizarEvolucaoCategorias(lancamentos, periodo),
+    () => renderizarRankingCategorias(lancamentos),
+    () => renderizarComparativoCarteiras(lancamentos),
+    () => renderizarTabelaContas(lancamentos),
+    () => renderizarTabelaFormasPagamento(lancamentos),
+    () => renderizarMaioresDespesas(lancamentos),
+    () => renderizarMaioresReceitas(lancamentos),
+    () => renderizarRecorrentesRelatorio(lancamentos),
+    () => renderizarComparativoPeriodos(lancamentos, mesAnterior),
+    () => renderizarMetasRelatorio(),
+    () => renderizarInsights(lancamentos, mesAnterior),
+    () => renderizarTabelaTransacoes(lancamentos),
+  ].forEach((tarefa) => {
+    agendarTarefaRelatorio(() => {
+      if (token !== relatorioRenderToken) return;
+      tarefa();
+    });
+  });
 }
 
 function obterPeriodoMesAnterior(periodo) {

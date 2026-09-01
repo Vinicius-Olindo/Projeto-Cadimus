@@ -72,6 +72,22 @@ async function carregarResumoMensalDashboard(carteiraId, ano, mes) {
   }
 }
 
+function atualizarResumoMensalDashboardEmCache(carteiraId, ano, mes, resumo = {}) {
+  if (!carteiraId || !Number.isFinite(Number(ano)) || !Number.isFinite(Number(mes))) return;
+
+  const mesIndice = Number(mes) > 11 ? Number(mes) - 1 : Number(mes);
+  const chave = `${carteiraId}:${ano}-${String(mesIndice + 1).padStart(2, "0")}`;
+  const resumoCache = {
+    receitas: Number(resumo.totalReceitas || resumo.receitas || 0),
+    despesas: Number(resumo.totalDespesas || resumo.despesas || 0),
+    saldo: Number(resumo.saldoCalculado ?? resumo.saldo ?? 0),
+  };
+
+  cacheResumoMensalDashboard.set(chave, resumoCache);
+  cacheTendencia.set(chave, resumoCache);
+  cacheComparativo6?.set?.(chave, resumoCache);
+}
+
 async function carregarTendencia() {
   const carteiraId = document.getElementById("seletor-carteira").value;
   const campoMes = document.getElementById("filtro-mes");

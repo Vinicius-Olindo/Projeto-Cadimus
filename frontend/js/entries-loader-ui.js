@@ -14,6 +14,48 @@ let termoBuscaAtual = "";
 let recargaMutacaoEmAndamento = null;
 let recargaMutacaoTimer = null;
 let recargaMutacaoPendente = false;
+let atualizacaoGraficaTimer = null;
+const cachePeriodoLancamentos = new Map();
+const LIMITE_CACHE_PERIODO_LANCAMENTOS = 8;
+
+function obterChavePeriodoLancamentos(carteiraId, filtrosLancamentos = {}) {
+  return [
+    carteiraId || "sem-carteira",
+    filtrosLancamentos.ano || "todos-anos",
+    filtrosLancamentos.mes || "todos-meses",
+  ].join(":");
+}
+
+function gravarCachePeriodoLancamentos(chave, lancamentos, transferencias) {
+  if (!chave) return;
+  cachePeriodoLancamentos.set(chave, {
+    lancamentos: Array.isArray(lancamentos) ? [...lancamentos] : [],
+    transferencias: Array.isArray(transferencias) ? [...transferencias] : [],
+  });
+
+  while (cachePeriodoLancamentos.size > LIMITE_CACHE_PERIODO_LANCAMENTOS) {
+    const primeiraChave = cachePeriodoLancamentos.keys().next().value;
+    cachePeriodoLancamentos.delete(primeiraChave);
+  }
+}
+
+function atualizarCachePeriodoAtualLancamentos() {
+  const carteiraId = document.getElementById("seletor-carteira")?.value;
+  const inputMes = document.getElementById("filtro-mes")?.value || "";
+  const filtros = {};
+
+  if (inputMes) {
+    const [ano, mes] = inputMes.split("-");
+    filtros.ano = ano;
+    filtros.mes = mes;
+  }
+
+  gravarCachePeriodoLancamentos(
+    obterChavePeriodoLancamentos(carteiraId, filtros),
+    ultimoLoteLancamentos,
+    ultimoLoteTransferencias,
+  );
+}
 
 function agendarAtualizacaoComplementarLancamentos(tarefa) {
   if (typeof tarefa !== "function") return;
@@ -53,8 +95,7 @@ function agendarAtualizacaoPlanejamentoAposMutacao() {
 }
 
 async function executarRecargaLancamentosAposMutacao() {
-  invalidarCachesDashboardFinanceiro();
-  await carregarLancamentos({ manterConteudoAtual: true });
+  await carregarLancamentos({ manterConteudoAtual: true, atualizarGraficosPesados: false });
   agendarAtualizacaoPlanejamentoAposMutacao();
 }
 
@@ -183,7 +224,46 @@ function calcularResumoLancamentosLocal(lancamentos = ultimoLoteLancamentos) {
   };
 }
 
-function atualizarDashboardComLancamentosLocais() {
+function sincronizarResumoMensalDashboardComCache(resumo) {
+  if (typeof atualizarResumoMensalDashboardEmCache !== "function") return;
+  const carteiraId = document.getElementById("seletor-carteira")?.value;
+  const campoMes = document.getElementById("filtro-mes");
+  const ano = Number(campoMes?.dataset?.ano);
+  const mes = Number(campoMes?.dataset?.mes);
+  if (!carteiraId || !Number.isFinite(ano) || !Number.isFinite(mes)) return;
+
+  atualizarResumoMensalDashboardEmCache(carteiraId, ano, mes, resumo);
+}
+
+function agendarAtualizacaoAnaliticaLancamentos(lancamentos, resumo, opcoes = {}) {
+  const atualizarGraficosPesados = opcoes.atualizarGraficosPesados !== false;
+  sincronizarResumoMensalDashboardComCache(resumo);
+
+  agendarAtualizacaoComplementarLancamentos(() => {
+    renderizarModelosLancamentoDashboard(lancamentos);
+    renderizarResumoAssinaturasDashboard(lancamentos);
+    renderizarAlertasRiscoFinanceiro(lancamentos, resumo);
+    renderizarResumoCategorias(resumo.totaisPorCategoria);
+    renderizarResumoAutores(lancamentos);
+    calcularTaxaPoupanca(resumo.totalReceitas, resumo.totalDespesas);
+    calcularCapacidadeGuarda(resumo);
+    calcularScoreSaude(resumo.totalReceitas, resumo.totalDespesas, resumo.totaisPorCategoria);
+  });
+
+  if (!atualizarGraficosPesados) return;
+
+  if (atualizacaoGraficaTimer) clearTimeout(atualizacaoGraficaTimer);
+  atualizacaoGraficaTimer = setTimeout(() => {
+    atualizacaoGraficaTimer = null;
+    agendarAtualizacaoComplementarLancamentos(() => {
+      if (typeof carregarComparacaoMesAnterior === "function") carregarComparacaoMesAnterior(resumo.totalDespesas);
+      if (typeof carregarTendencia === "function") carregarTendencia();
+      if (typeof carregarComparativo6Meses === "function") carregarComparativo6Meses();
+    });
+  }, 260);
+}
+
+function atualizarDashboardComLancamentosLocais(opcoes = {}) {
   const container = document.getElementById("lista-lancamentos");
   const dados = Array.isArray(ultimoLoteLancamentos) ? ultimoLoteLancamentos : [];
   const resumo = calcularResumoLancamentosLocal(dados);
@@ -224,14 +304,12 @@ function atualizarDashboardComLancamentosLocais() {
 
   renderizarTelaHojeDashboard(dados, { saldoCalculado: resumo.saldoCalculado, totalPendente: resumo.totalPendente });
   renderizarCalendarioFinanceiro(dados);
-  renderizarModelosLancamentoDashboard(dados);
-  renderizarResumoAssinaturasDashboard(dados);
-  renderizarAlertasRiscoFinanceiro(dados, resumo);
-  renderizarResumoCategorias(resumo.totaisPorCategoria);
-  renderizarResumoAutores(dados);
-  calcularTaxaPoupanca(resumo.totalReceitas, resumo.totalDespesas);
-  calcularCapacidadeGuarda(resumo);
-  calcularScoreSaude(resumo.totalReceitas, resumo.totalDespesas, resumo.totaisPorCategoria);
+
+  if (opcoes.atualizarAnalises !== false) {
+    agendarAtualizacaoAnaliticaLancamentos(dados, resumo, opcoes);
+  }
+
+  return resumo;
 }
 
 function aplicarLancamentoAtualizadoLocalmente(lancamento, opcoes = {}) {
@@ -249,7 +327,8 @@ function aplicarLancamentoAtualizadoLocalmente(lancamento, opcoes = {}) {
 
   ordenarLancamentosLocais();
   if (opcoes.resetarPagina) resetarPaginacaoLancamentos();
-  atualizarDashboardComLancamentosLocais();
+  atualizarDashboardComLancamentosLocais({ atualizarAnalises: false });
+  atualizarCachePeriodoAtualLancamentos();
   recarregarLancamentosAposMutacao();
   return true;
 }
@@ -262,7 +341,8 @@ function removerLancamentoLocalmente(id) {
     return false;
   }
 
-  atualizarDashboardComLancamentosLocais();
+  atualizarDashboardComLancamentosLocais({ atualizarAnalises: false });
+  atualizarCachePeriodoAtualLancamentos();
   recarregarLancamentosAposMutacao();
   return true;
 }
@@ -302,6 +382,16 @@ async function carregarLancamentos(opcoes = {}) {
       filtrosTransferencias.ano = ano;
     }
 
+    const chaveCachePeriodo = obterChavePeriodoLancamentos(carteiraId, filtrosLancamentos);
+    const periodoEmCache = cachePeriodoLancamentos.get(chaveCachePeriodo);
+    if (periodoEmCache && !opcoes.ignorarCache) {
+      ultimoLoteLancamentos = [...periodoEmCache.lancamentos];
+      ultimoLoteTransferencias = [...periodoEmCache.transferencias];
+      resetarPaginacaoLancamentos();
+      atualizarDashboardComLancamentosLocais({ atualizarAnalises: false });
+      container.classList.add("lista-lancamentos-atualizando");
+    }
+
     const [resposta, respostaTransferencias] = await Promise.all([
       CadimusEntriesApi.listarResposta(filtrosLancamentos),
       CadimusWalletsApi.listarTransferencias(filtrosTransferencias),
@@ -314,6 +404,7 @@ async function carregarLancamentos(opcoes = {}) {
     const dados = await resposta.json();
     const transferencias = await respostaTransferencias.json();
     ultimoLoteTransferencias = Array.isArray(transferencias) ? transferencias : [];
+    gravarCachePeriodoLancamentos(chaveCachePeriodo, dados, ultimoLoteTransferencias);
 
     if (idDestaRequisicao !== ultimaRequisicaoLancamentos) return;
 
@@ -323,122 +414,20 @@ async function carregarLancamentos(opcoes = {}) {
     if (dados.length === 0) {
       ultimoLoteLancamentos = [];
       resetarPaginacaoLancamentos();
-      ocultarPaginacaoLancamentos();
-      container.appendChild(criarAvisoListaVazia());
-      animarValorMonetario(document.getElementById("total-receitas"), 0);
-      animarValorMonetario(document.getElementById("total-despesas"), 0);
-      animarValorMonetario(document.getElementById("saldo-total"), 0);
-      atualizarDescricoesResumo();
-      document.getElementById("saldo-total").style.color = "var(--cor-texto)";
-      renderizarTelaHojeDashboard([], { saldoCalculado: 0, totalPendente: 0 });
-      renderizarCalendarioFinanceiro([]);
-      renderizarModelosLancamentoDashboard([]);
-      renderizarResumoAssinaturasDashboard([]);
-      renderizarAlertasRiscoFinanceiro([], { saldoCalculado: 0, totalReceitas: 0, totalDespesas: 0, totalPendente: 0 });
-      document.getElementById("resumo-categorias").style.display = "none";
-      document.getElementById("resumo-pendente-item").style.display = "none";
-      renderizarResumoAutores([]);
-      document.getElementById("card-poupanca").style.display = "none";
-      document.getElementById("card-guarda").style.display = "none";
+      const resumoVazio = atualizarDashboardComLancamentosLocais({ atualizarAnalises: false });
       atualizarPaineisComplementaresLancamentos([]);
-      agendarAtualizacaoComplementarLancamentos(() => {
-        if (typeof carregarComparacaoMesAnterior === "function") carregarComparacaoMesAnterior(0);
-        if (typeof carregarTendencia === "function") carregarTendencia();
-        if (typeof carregarComparativo6Meses === "function") carregarComparativo6Meses();
+      agendarAtualizacaoAnaliticaLancamentos([], resumoVazio, {
+        atualizarGraficosPesados: opcoes.atualizarGraficosPesados !== false,
       });
       return;
     }
 
     ultimoLoteLancamentos = dados;
     resetarPaginacaoLancamentos();
-
-    let totalReceitas = 0;
-    let totalDespesas = 0;
-    let totalPendente = 0;
-    let totalTransferenciasSaida = 0;
-    let totalTransferenciasEntrada = 0;
-    const totaisPorCategoria = {};
-
-    dados.forEach((lancamento) => {
-      const valor = valorMonetario(lancamento);
-      const despesaNaoPaga = lancamento.tipo === "despesa" && lancamento.status !== "pago";
-
-      // Despesa não paga é compromisso em aberto — entra em "A pagar",
-      // mas não conta no saldo, nas despesas pagas nem nas categorias.
-      if (despesaNaoPaga) {
-        totalPendente += valor;
-        return;
-      }
-
-      if (lancamento.tipo === "receita") {
-        totalReceitas += valor;
-      } else {
-        totalDespesas += valor;
-        totaisPorCategoria[lancamento.categoria] = (totaisPorCategoria[lancamento.categoria] || 0) + valor;
-      }
-    });
-
-    // Calcular transferências (saída e entrada)
-    const carteiraIdNum = Number(carteiraId);
-    transferencias.forEach((t) => {
-      const valor = valorMonetario(t);
-      if (t.carteira_origem_id === carteiraIdNum) {
-        totalTransferenciasSaida += valor;
-      }
-      if (t.carteira_destino_id === carteiraIdNum) {
-        totalTransferenciasEntrada += valor;
-      }
-    });
-
-    renderizarListaLancamentos();
-    popularSelectLoteCategorias();
-    renderizarComparativoPeriodo();
-
-    // Saldo = Receitas - Despesas - Transferências Saída + Transferências Entrada
-    const saldoCalculado = totalReceitas - totalDespesas - totalTransferenciasSaida + totalTransferenciasEntrada;
-
-    animarValorMonetario(document.getElementById("total-receitas"), totalReceitas);
-    animarValorMonetario(document.getElementById("total-despesas"), totalDespesas);
-    atualizarDescricoesResumo({ totalReceitas, totalDespesas, totalPendente, saldoCalculado });
-
-    const elementoPendente = document.getElementById("resumo-pendente-item");
-    if (elementoPendente) {
-      if (totalPendente > 0) {
-        elementoPendente.style.display = "flex";
-        animarValorMonetario(document.getElementById("total-pendente"), totalPendente);
-      } else {
-        elementoPendente.style.display = "none";
-      }
-    }
-
-    const elementoSaldo = document.getElementById("saldo-total");
-    if (elementoSaldo) {
-      animarValorMonetario(elementoSaldo, saldoCalculado);
-      elementoSaldo.style.color = saldoCalculado >= 0 ? "var(--cor-receita)" : "var(--cor-despesa)";
-    }
-
-    renderizarTelaHojeDashboard(dados, { saldoCalculado, totalPendente });
-    renderizarCalendarioFinanceiro(dados);
-    renderizarModelosLancamentoDashboard(dados);
-    renderizarResumoAssinaturasDashboard(dados);
-    renderizarAlertasRiscoFinanceiro(dados, { saldoCalculado, totalReceitas, totalDespesas, totalPendente });
-    renderizarResumoCategorias(totaisPorCategoria);
-    renderizarResumoAutores(dados);
-    calcularTaxaPoupanca(totalReceitas, totalDespesas);
-    calcularCapacidadeGuarda({
-      saldoCalculado,
-      totalPendente,
-      totalReceitas,
-      totalDespesas,
-      totalTransferenciasEntrada,
-      totalTransferenciasSaida,
-    });
-    calcularScoreSaude(totalReceitas, totalDespesas, totaisPorCategoria);
+    const resumo = atualizarDashboardComLancamentosLocais({ atualizarAnalises: false });
     atualizarPaineisComplementaresLancamentos(dados);
-    agendarAtualizacaoComplementarLancamentos(() => {
-      if (typeof carregarComparacaoMesAnterior === "function") carregarComparacaoMesAnterior(totalDespesas);
-      if (typeof carregarTendencia === "function") carregarTendencia();
-      if (typeof carregarComparativo6Meses === "function") carregarComparativo6Meses();
+    agendarAtualizacaoAnaliticaLancamentos(dados, resumo, {
+      atualizarGraficosPesados: opcoes.atualizarGraficosPesados !== false,
     });
   } catch (erro) {
     if (idDestaRequisicao !== ultimaRequisicaoLancamentos) return;

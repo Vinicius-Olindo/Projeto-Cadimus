@@ -103,6 +103,12 @@
   grid-column: 1 / -1;
 }
 
+.dashboard-free-grid > [data-dashboard-layout-origem="lateral"] {
+  grid-column: span 3;
+  justify-self: start;
+  width: min(100%, 360px);
+}
+
 body:not(.dashboard-layout-modo-ativo) .area-controle > * {
   grid-column: 1 / -1;
 }

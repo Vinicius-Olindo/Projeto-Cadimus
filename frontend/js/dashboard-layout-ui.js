@@ -348,6 +348,7 @@ function aplicarPreferenciasCardLayoutDashboard(card, preferencias = {}) {
   const zona = normalizarZonaLayoutDashboard(preferencias.zona, card.id);
   card.dataset.dashboardLayoutTamanho = tamanho;
   card.dataset.dashboardLayoutZona = zona;
+  card.dataset.dashboardLayoutOrigem = obterZonaCardLayoutDashboard(card.id);
   card.classList.toggle("dashboard-card-oculto-usuario", preferencias.visivel === false);
   card.setAttribute("data-layout-visivel", preferencias.visivel === false ? "false" : "true");
 }

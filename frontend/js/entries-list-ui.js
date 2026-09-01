@@ -221,6 +221,21 @@ let paginaLancamentosAtual = 1;
 const OPCOES_LANCAMENTOS_POR_PAGINA = [10, 20, 30, 50];
 const CHAVE_LANCAMENTOS_POR_PAGINA = "cadimus_lancamentos_por_pagina";
 let lancamentosPorPagina = obterPreferenciaLancamentosPorPagina();
+let renderizacaoListaLancamentosPendente = false;
+
+function agendarRenderizacaoListaLancamentos(opcoes = {}) {
+  if (opcoes.resetarPagina) resetarPaginacaoLancamentos();
+  if (renderizacaoListaLancamentosPendente) return;
+
+  renderizacaoListaLancamentosPendente = true;
+  requestAnimationFrame(() => {
+    renderizacaoListaLancamentosPendente = false;
+    renderizarListaLancamentos();
+    if (opcoes.rolar) {
+      document.getElementById("lista-lancamentos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+    }
+  });
+}
 
 function obterPreferenciaLancamentosPorPagina() {
   const salvo = Number(lerLocalStorageSeguro(CHAVE_LANCAMENTOS_POR_PAGINA));
@@ -285,8 +300,7 @@ function renderizarPaginacaoLancamentos(totalItens) {
 
 function irParaPaginaLancamentos(pagina) {
   paginaLancamentosAtual = pagina;
-  renderizarListaLancamentos();
-  document.getElementById("lista-lancamentos")?.scrollIntoView({ behavior: "smooth", block: "start" });
+  agendarRenderizacaoListaLancamentos({ rolar: true });
 }
 
 function resetarPaginacaoLancamentos() {
@@ -428,17 +442,15 @@ function configurarBuscaLancamentos() {
     clearTimeout(timeoutBusca);
     timeoutBusca = setTimeout(() => {
       termoBuscaAtual = evento.target.value;
-      resetarPaginacaoLancamentos();
-      renderizarListaLancamentos();
-    }, 250);
+      agendarRenderizacaoListaLancamentos({ resetarPagina: true });
+    }, 160);
   });
 
   ["filtro-tipo", "filtro-status", "filtro-categoria-lancamento"].forEach((id) => {
     const el = document.getElementById(id);
     if (el) {
       el.addEventListener("change", () => {
-        resetarPaginacaoLancamentos();
-        renderizarListaLancamentos();
+        agendarRenderizacaoListaLancamentos({ resetarPagina: true });
       });
     }
   });
@@ -494,8 +506,7 @@ function configurarBuscaLancamentos() {
       if (!OPCOES_LANCAMENTOS_POR_PAGINA.includes(novoValor)) return;
       lancamentosPorPagina = novoValor;
       gravarLocalStorageSeguro(CHAVE_LANCAMENTOS_POR_PAGINA, String(novoValor));
-      resetarPaginacaoLancamentos();
-      renderizarListaLancamentos();
+      agendarRenderizacaoListaLancamentos({ resetarPagina: true });
     });
   }
 }
