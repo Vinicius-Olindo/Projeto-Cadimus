@@ -198,22 +198,31 @@ function garantirModalDetalheCard() {
           <h3 id="detalhe-card-titulo">Resumo</h3>
           <p id="detalhe-card-subtitulo"></p>
         </div>
-        <button type="button" class="btn-fechar-modal detalhe-card-fechar" id="btn-fechar-modal-detalhe-card" aria-label="Fechar detalhes">×</button>
+        <button type="button" class="btn-fechar-modal detalhe-card-fechar" id="btn-fechar-modal-detalhe-card" data-detalhe-card-fechar aria-label="Fechar detalhes">×</button>
       </div>
       <div id="detalhe-card-corpo"></div>
       <div class="detalhe-card-acoes">
         <button type="button" class="btn-secundario" id="btn-detalhe-card-filtrar">Ver na lista</button>
-        <button type="button" class="btn-secundario" id="btn-detalhe-card-fechar">Fechar</button>
+        <button type="button" class="btn-secundario" id="btn-detalhe-card-fechar" data-detalhe-card-fechar>Fechar</button>
       </div>
     </div>
   `;
   document.body.appendChild(modal);
 
   modal.addEventListener("click", (evento) => {
-    if (evento.target === modal) fecharModalDetalheCard();
+    const botaoFechar = evento.target.closest("[data-detalhe-card-fechar]");
+    if (botaoFechar && modal.contains(botaoFechar)) {
+      evento.preventDefault();
+      evento.stopPropagation();
+      fecharModalDetalheCard();
+      return;
+    }
+
+    if (evento.target === modal) {
+      evento.preventDefault();
+      fecharModalDetalheCard();
+    }
   });
-  modal.querySelector("#btn-fechar-modal-detalhe-card")?.addEventListener("click", fecharModalDetalheCard);
-  modal.querySelector("#btn-detalhe-card-fechar")?.addEventListener("click", fecharModalDetalheCard);
   modal.querySelector("#btn-detalhe-card-filtrar")?.addEventListener("click", aplicarFiltroDetalheCard);
 
   return modal;
@@ -274,6 +283,7 @@ function abrirModalCardAnaliticoDashboard(card) {
 function fecharModalDetalheCard() {
   const modal = document.getElementById("modal-detalhe-card-dashboard");
   if (!modal) return;
+  if (typeof liberarFoco === "function") liberarFoco();
   modal.style.display = "none";
   modal.dataset.tipo = "";
   modal.dataset.cardAnalitico = "";
@@ -370,6 +380,12 @@ function configurarDetalhesCardsDashboard() {
   });
 
   document.addEventListener("keydown", (evento) => {
+    if (evento.key === "Escape" && document.getElementById("modal-detalhe-card-dashboard")?.style.display !== "none") {
+      evento.preventDefault();
+      fecharModalDetalheCard();
+      return;
+    }
+
     if (evento.key !== "Enter" && evento.key !== " ") return;
     const card = evento.target.closest("[data-card-analitico]");
     if (!card || document.body.classList.contains("dashboard-layout-modo-ativo")) return;
