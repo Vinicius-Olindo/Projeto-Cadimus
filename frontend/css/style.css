@@ -7,7 +7,11 @@
 @import url("components/buttons.css?v=101");
 @import url("components/wallet-tabs.css");
 @import url("components/month-transition.css");
-@import url("pages/dashboard.css?v=105");
+@import url("pages/dashboard-layout.css?v=100");
+@import url("pages/dashboard-cards.css?v=100");
+@import url("pages/dashboard-calendar.css?v=100");
+@import url("pages/dashboard-entries.css?v=100");
+@import url("pages/dashboard.css?v=106");
 @import url("components/dashboard-card-details.css?v=100");
 @import url("pages/entries.css?v=101");
 @import url("pages/auth.css");

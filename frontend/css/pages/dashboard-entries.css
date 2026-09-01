@@ -1,0 +1,66 @@
+.card-lancamentos-bloco {
+  display: flex;
+  flex-direction: column;
+}
+
+
+
+.lancamentos-cabecalho {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.lancamentos-cabecalho h3 {
+  font-family: var(--fonte-corpo);
+  font-weight: 700;
+  font-size: 1.1rem;
+  color: var(--cor-texto);
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+#btn-novo-gasto {
+  background: var(--cor-marca);
+  color: var(--cor-superficie-alta);
+  padding: 10px 20px;
+  border-radius: var(--raio-md);
+  font-size: 0.82rem;
+  box-shadow: var(--sombra-cartao);
+}
+
+#btn-novo-gasto:hover {
+  background: var(--cor-marca-forte);
+}
+
+#btn-novo-gasto:active {
+  transform: scale(0.98);
+}
+
+.botoes-cabecalho {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.btn-secundario {
+  background: var(--cor-superficie);
+  color: var(--cor-texto);
+  border: var(--borda) solid var(--cor-pauta-forte);
+  padding: 10px 16px;
+  border-radius: var(--raio-md);
+  font-size: 0.82rem;
+  box-shadow: var(--sombra-cartao);
+  cursor: pointer;
+  transition: all 0.15s ease;
+}
+
+.btn-secundario:hover {
+  background: var(--cor-pauta);
+  border-color: var(--cor-marca);
+}
+
+.btn-secundario:active {
+  transform: scale(0.98);
+}

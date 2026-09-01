@@ -1,0 +1,485 @@
+.calendario-financeiro-topo {
+  display: flex;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.calendario-financeiro-topo h3 {
+  margin: 0;
+  color: var(--cor-texto);
+  font-size: 1.05rem;
+}
+
+.calendario-financeiro-topo p {
+  margin: 5px 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.82rem;
+}
+
+.calendario-financeiro-semana,
+.calendario-financeiro-grid {
+  display: grid;
+  grid-template-columns: repeat(7, minmax(0, 1fr));
+  gap: 6px;
+}
+
+.calendario-financeiro-semana span {
+  color: var(--cor-texto-suave);
+  font-size: 0.64rem;
+  font-weight: 800;
+  text-align: center;
+  text-transform: uppercase;
+}
+
+.calendario-dia {
+  min-width: 0;
+  min-height: 62px;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 4px;
+  padding: 7px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 74%, transparent);
+  border-radius: 12px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 64%, transparent);
+  color: var(--cor-texto);
+  text-align: left;
+}
+
+.calendario-dia:hover {
+  border-color: color-mix(in srgb, var(--cor-marca) 28%, var(--cor-pauta-fraca));
+  background: color-mix(in srgb, var(--cor-marca) 7%, var(--cor-fundo-card));
+}
+
+.calendario-dia-vazio {
+  visibility: hidden;
+}
+
+.calendario-dia-hoje {
+  border-color: var(--cor-marca);
+  box-shadow: inset 0 0 0 1px color-mix(in srgb, var(--cor-marca) 22%, transparent);
+}
+
+.calendario-dia-numero {
+  font-family: var(--fonte-mono);
+  font-size: 0.72rem;
+  font-weight: 800;
+}
+
+.calendario-dia-valor {
+  max-width: 100%;
+  overflow: hidden;
+  color: var(--cor-texto-suave);
+  font-family: var(--fonte-mono);
+  font-size: 0.64rem;
+  font-weight: 700;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendario-dia-pontos,
+.calendario-financeiro-legenda {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  flex-wrap: wrap;
+}
+
+.calendario-dia-pontos i,
+.calendario-financeiro-legenda i {
+  width: 7px;
+  height: 7px;
+  display: inline-block;
+  border-radius: 999px;
+}
+
+.ponto-receita,
+.legenda-receita {
+  background: var(--cor-receita);
+}
+
+.ponto-despesa,
+.legenda-despesa {
+  background: var(--cor-despesa);
+}
+
+.ponto-pendente,
+.legenda-pendente {
+  background: var(--cor-pendente);
+}
+
+.calendario-financeiro-legenda {
+  color: var(--cor-texto-suave);
+  font-size: 0.7rem;
+}
+
+.calendario-financeiro-legenda span {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+}
+
+.modal-calendario-dia {
+  max-width: 680px;
+}
+
+.modal-calendario-dia-topo {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: 16px;
+}
+
+.modal-calendario-dia-topo h3 {
+  margin: 0;
+}
+
+.calendario-dia-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  max-height: min(58vh, 520px);
+  overflow: auto;
+  padding-right: 4px;
+}
+
+.calendario-dia-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 76%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 78%, transparent);
+}
+
+.calendario-dia-item-receita {
+  border-left: 3px solid var(--cor-receita);
+}
+
+.calendario-dia-item-despesa {
+  border-left: 3px solid var(--cor-despesa);
+}
+
+.calendario-dia-item-info {
+  min-width: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.calendario-dia-item-info strong {
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: 0.92rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.calendario-dia-item-info span {
+  color: var(--cor-texto-suave);
+  font-size: 0.76rem;
+}
+
+.calendario-dia-item-acoes {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  flex-shrink: 0;
+}
+
+.calendario-dia-item-valor {
+  font-family: var(--fonte-mono);
+  font-size: 0.86rem;
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.calendario-dia-vazio-modal {
+  padding: 18px;
+  border: 1px dashed var(--cor-pauta-fraca);
+  border-radius: 14px;
+  color: var(--cor-texto-suave);
+  text-align: center;
+}
+
+.card-riscos-financeiros {
+  gap: 12px;
+}
+
+.riscos-financeiros-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.risco-financeiro-item {
+  width: 100%;
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 78%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 68%, transparent);
+  color: var(--cor-texto);
+  text-align: left;
+}
+
+button.risco-financeiro-item {
+  cursor: pointer;
+}
+
+button.risco-financeiro-item:hover {
+  border-color: color-mix(in srgb, currentColor 22%, var(--cor-pauta-fraca));
+  background: color-mix(in srgb, currentColor 8%, var(--cor-fundo-card));
+}
+
+.risco-financeiro-icone {
+  width: 22px;
+  height: 22px;
+  flex: 0 0 auto;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  font-family: var(--fonte-mono);
+  font-size: 0.72rem;
+  font-weight: 900;
+}
+
+.risco-financeiro-item strong,
+.risco-financeiro-item small {
+  display: block;
+}
+
+.risco-financeiro-item strong {
+  color: var(--cor-texto);
+  font-size: 0.82rem;
+  line-height: 1.25;
+}
+
+.risco-financeiro-item small {
+  margin-top: 2px;
+  color: var(--cor-texto-suave);
+  font-size: 0.74rem;
+  line-height: 1.35;
+}
+
+.risco-financeiro-erro {
+  border-color: color-mix(in srgb, var(--cor-despesa) 24%, var(--cor-pauta-fraca));
+}
+
+.risco-financeiro-erro .risco-financeiro-icone {
+  background: color-mix(in srgb, var(--cor-despesa) 14%, transparent);
+  color: var(--cor-despesa);
+}
+
+.risco-financeiro-aviso {
+  border-color: color-mix(in srgb, var(--cor-pendente) 26%, var(--cor-pauta-fraca));
+}
+
+.risco-financeiro-aviso .risco-financeiro-icone {
+  background: color-mix(in srgb, var(--cor-pendente) 16%, transparent);
+  color: var(--cor-pendente);
+}
+
+.risco-financeiro-ok .risco-financeiro-icone {
+  background: color-mix(in srgb, var(--cor-receita) 14%, transparent);
+  color: var(--cor-receita);
+}
+
+.card-modelos-lancamento {
+  gap: 10px;
+}
+
+.modelos-lancamento-subtitulo {
+  margin: -4px 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.modelos-lancamento-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.modelo-lancamento-item {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 78%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 68%, transparent);
+  color: var(--cor-texto);
+  text-align: left;
+}
+
+.modelo-lancamento-item:hover {
+  border-color: color-mix(in srgb, var(--cor-marca) 30%, var(--cor-pauta-fraca));
+  background: color-mix(in srgb, var(--cor-marca) 8%, var(--cor-fundo-card));
+}
+
+.modelo-lancamento-info {
+  min-width: 0;
+}
+
+.modelo-lancamento-info strong,
+.modelo-lancamento-info small {
+  display: block;
+}
+
+.modelo-lancamento-info strong {
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.modelo-lancamento-info small {
+  margin-top: 2px;
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+}
+
+.modelo-lancamento-valor {
+  flex: 0 0 auto;
+  font-family: var(--fonte-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+.card-assinaturas {
+  gap: 10px;
+}
+
+.assinaturas-resumo {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 8px;
+}
+
+.assinaturas-resumo > div {
+  min-width: 0;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 78%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-fundo-card) 68%, transparent);
+}
+
+.assinaturas-resumo span,
+.assinatura-item-info small {
+  display: block;
+  color: var(--cor-texto-suave);
+  font-size: 0.72rem;
+}
+
+.assinaturas-resumo strong {
+  display: block;
+  margin-top: 4px;
+  font-family: var(--fonte-mono);
+  font-size: 0.9rem;
+  overflow-wrap: anywhere;
+}
+
+.assinaturas-subtitulo {
+  margin: -2px 0 0;
+  color: var(--cor-texto-suave);
+  font-size: 0.78rem;
+  line-height: 1.35;
+}
+
+.assinaturas-lista {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.assinatura-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px;
+  border: 1px solid color-mix(in srgb, var(--cor-pauta-fraca) 78%, transparent);
+  border-radius: 14px;
+  background: color-mix(in srgb, var(--cor-marca) 5%, var(--cor-fundo-card));
+}
+
+.assinatura-item-info {
+  min-width: 0;
+}
+
+.assinatura-item-info strong {
+  display: block;
+  overflow: hidden;
+  color: var(--cor-texto);
+  font-size: 0.82rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.assinatura-item-valor {
+  flex: 0 0 auto;
+  color: var(--cor-despesa);
+  font-family: var(--fonte-mono);
+  font-size: 0.78rem;
+  font-weight: 800;
+}
+
+@media (min-width: 900px) {
+  .area-resumo {
+    grid-column: 1 / -1;
+    order: unset;
+  }
+}
+
+@media (min-width: 1500px) {
+  #conteudo-periodo {
+    gap: 24px;
+  }
+
+  .dashboard-free-grid,
+  .area-controle {
+    gap: 18px;
+  }
+}
+
+@media (max-width: 720px) {
+  .hoje-dashboard-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .calendario-dia {
+    min-height: 54px;
+    padding: 6px;
+  }
+
+  .calendario-dia-valor {
+    display: none;
+  }
+}
+
+@media (max-width: 420px) {
+  .hoje-dashboard-topo {
+    flex-direction: column;
+  }
+
+  .hoje-dashboard-data {
+    align-self: flex-start;
+  }
+
+  .hoje-dashboard-acoes {
+    display: grid;
+    grid-template-columns: 1fr;
+  }
+}
