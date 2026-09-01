@@ -765,9 +765,16 @@ function configurarModalCartaoCredito() {
       if (tratarSessaoExpirada(resposta)) return;
 
       if (resposta.ok) {
+        const resultado = await resposta.clone().json().catch(() => null);
         modal.style.display = "none";
         liberarFoco();
-        if (idEdicao) {
+        if (resultado?.cartao) {
+          const cartaoAtualizado = resultado.cartao;
+          const indice = cartoesCreditoCarregados.findIndex((cartao) => String(cartao.id) === String(cartaoAtualizado.id));
+          if (indice >= 0) cartoesCreditoCarregados[indice] = { ...cartoesCreditoCarregados[indice], ...cartaoAtualizado };
+          else cartoesCreditoCarregados.unshift(cartaoAtualizado);
+          renderizarCartoesCreditoCarregados();
+        } else if (idEdicao) {
           const existente = cartoesCreditoCarregados.find((cartao) => String(cartao.id) === String(idEdicao)) || {};
           const atualizado = { ...existente, ...corpo, id: Number(idEdicao) };
           cartoesCreditoCarregados = cartoesCreditoCarregados.map((cartao) => String(cartao.id) === String(idEdicao) ? atualizado : cartao);

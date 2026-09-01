@@ -177,7 +177,7 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
     }
 
     try {
-      const { success } = await env.DB.prepare(
+      const { success, meta } = await env.DB.prepare(
         `INSERT INTO cartoes_credito (nome, bandeira, ultimos4, dia_fechamento, dia_vencimento, limite, limite_centavos, carteira_id, criado_por)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
       ).bind(
@@ -192,7 +192,28 @@ export async function processarCartoesCredito(request: Request, env: CadimusEnv,
         usuario.id
       ).run();
 
-      if (success) return json({ ok: true }, 201);
+      if (success !== false) {
+        const cartaoId = meta?.last_row_id ?? null;
+        return json({
+          ok: true,
+          cartao: {
+            id: cartaoId,
+            nome,
+            bandeira: bandeiraNormalizada,
+            ultimos4: ultimos4 || null,
+            dia_fechamento: diaFechamento,
+            dia_vencimento: diaVencimento,
+            limite: limiteNormalizado,
+            limite_centavos: limiteCentavos,
+            carteira_id: carteiraIdNormalizada,
+            criado_por: usuario.id,
+            ativo: 1,
+            parcelas_ativas: 0,
+            gasto_atual: 0,
+            gasto_atual_centavos: 0,
+          },
+        }, 201);
+      }
       return erroFinanceiro(new Error("D1 retornou success=false ao criar cartão"), "cartoesCredito.criar", "Não foi possível criar este cartão agora.", "cartao_criar_falhou");
     } catch (erro) {
       return erroFinanceiro(erro, "cartoesCredito.criar", "Não foi possível criar este cartão agora.", "cartao_criar_falhou");

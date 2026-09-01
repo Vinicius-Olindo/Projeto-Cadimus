@@ -1449,6 +1449,56 @@ test("cartao de credito nao pode ser criado em carteira sem acesso", async () =>
   assert.equal(inserts.length, 0);
 });
 
+test("criacao de cartao de credito retorna o cartao criado para atualizar a interface", async () => {
+  const inserts = [];
+  const db = new FakeD1(handlersAutenticados([
+    {
+      type: "run",
+      match: "INSERT INTO cartoes_credito",
+      reply: ({ args }) => {
+        inserts.push(args);
+        return { meta: { last_row_id: 42 } };
+      },
+    },
+  ]));
+
+  const res = await processarCartoesCredito(
+    request("POST", "https://cadimus.test/api/cartoes-credito", {
+      nome: "Cartão novo",
+      bandeira: "visa",
+      ultimos4: "1234",
+      dia_fechamento: 8,
+      dia_vencimento: 10,
+      limite_centavos: 250000,
+      carteira_id: 10,
+    }),
+    { DB: db },
+    { waitUntil() {} },
+  );
+
+  assert.equal(res.status, 201);
+  assert.deepEqual(await res.json(), {
+    ok: true,
+    cartao: {
+      id: 42,
+      nome: "Cartão novo",
+      bandeira: "visa",
+      ultimos4: "1234",
+      dia_fechamento: 8,
+      dia_vencimento: 10,
+      limite: 2500,
+      limite_centavos: 250000,
+      carteira_id: 10,
+      criado_por: 1,
+      ativo: 1,
+      parcelas_ativas: 0,
+      gasto_atual: 0,
+      gasto_atual_centavos: 0,
+    },
+  });
+  assert.equal(inserts.length, 1);
+});
+
 test("cartao de credito retorna erro claro quando limite é inválido", async () => {
   const inserts = [];
   const db = new FakeD1(handlersAutenticados([
