@@ -87,9 +87,10 @@ function renderizarMetasMesDashboard(orcamentos = []) {
   }).join("");
 
   lista.querySelectorAll(".metas-mes-item").forEach((item) => {
-    item.addEventListener("click", () => {
+    item.addEventListener("click", async () => {
       const inputMes = document.getElementById("filtro-mes")?.value || "";
       const [ano, mes] = inputMes.split("-");
+      await window.carregarModuloOrcamentoCarteira?.();
       window.abrirModalOrcamento?.({
         categoria: item.dataset.categoria || "",
         mes: Number(mes),

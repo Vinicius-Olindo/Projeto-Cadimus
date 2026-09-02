@@ -41,9 +41,6 @@ function configurarModalTransferencia() {
   // Expor globalmente para chamar do botão
   window.abrirModalTransferencia = abrirModalTransferencia;
 
-  const btnTransferencia = document.getElementById("btn-transferencia");
-  btnTransferencia?.addEventListener("click", () => abrirModalTransferencia());
-
   // Fechar modal
   btnFechar.addEventListener("click", () => {
     modal.style.display = "none";

@@ -60,7 +60,7 @@ async function carregarModuloCarteirasSettings() {
 
   await carregarScriptsSettingsAdmin("carteiras-ui", [
     "wallets-modal-ui.js?v=100",
-    "wallets-transfer-ui.js?v=100",
+    "wallets-transfer-ui.js?v=101",
     "wallets-budget-modal-ui.js?v=100",
     "wallets-card-ui.js?v=100",
     "wallets-members-ui.js?v=100",

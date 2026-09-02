@@ -306,7 +306,8 @@ async function abrirLancamentoPeloPlanejamento(tipo) {
 }
 
 function configurarAtalhosAcoesPlanejamento() {
-  document.getElementById("btn-novo-orcamento-plano")?.addEventListener("click", () => {
+  document.getElementById("btn-novo-orcamento-plano")?.addEventListener("click", async () => {
+    await window.carregarModuloOrcamentoCarteira?.();
     if (typeof window.abrirModalOrcamento === "function") {
       const periodo = typeof obterPeriodoPlanejamentoSelecionado === "function" ? obterPeriodoPlanejamentoSelecionado() : null;
       window.abrirModalOrcamento(periodo ? { mes: periodo.mes, ano: periodo.ano } : undefined);

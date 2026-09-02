@@ -6,14 +6,23 @@ let carteirasDoUsuario = [];
 let ultimaRequisicaoCarteiras = 0;
 let fecharMenuCarteiraAtivo = null;
 let menuCarteiraFlutuanteAtivo = null;
-let moduloCarteirasCompletoPromise = null;
-const scriptsModuloCarteirasCompleto = [
-  "wallets-modal-ui.js?v=100",
-  "wallets-transfer-ui.js?v=100",
-  "wallets-budget-modal-ui.js?v=100",
-  "wallets-card-ui.js?v=100",
-  "wallets-members-ui.js?v=100",
-];
+let botaoTransferenciaCarteiraConfigurado = false;
+const dependenciasCarteiras = {};
+const scriptsCarteirasCarregados = new Set();
+
+function carregarScriptsCarteiras(chave, scripts) {
+  if (dependenciasCarteiras[chave]) return dependenciasCarteiras[chave];
+  const scriptsPendentes = scripts.filter((script) => !scriptsCarteirasCarregados.has(script));
+  if (scriptsPendentes.length === 0) return Promise.resolve();
+
+  dependenciasCarteiras[chave] = CadimusPageLoader.carregar(scriptsPendentes).then(() => {
+    scriptsPendentes.forEach((script) => scriptsCarteirasCarregados.add(script));
+  }).catch((erro) => {
+    delete dependenciasCarteiras[chave];
+    throw erro;
+  });
+  return dependenciasCarteiras[chave];
+}
 
 function removerFechamentoMenuCarteira() {
   if (!fecharMenuCarteiraAtivo) return;
@@ -37,25 +46,43 @@ function obterNomeCarteiraExibicao(carteira) {
 }
 
 async function carregarModuloCarteirasCompleto() {
-  if (typeof configurarModalCarteira === "function" && typeof configurarModalGerenciarMembros === "function") return;
-  if (!moduloCarteirasCompletoPromise) {
-    moduloCarteirasCompletoPromise = CadimusPageLoader.carregar(scriptsModuloCarteirasCompleto).then(() => {
-      chamarInicializadorCadimus("configurarModalCarteira");
-      chamarInicializadorCadimus("configurarModalGerenciarMembros");
-      chamarInicializadorCadimus("configurarModalTransferencia");
-      chamarInicializadorCadimus("configurarModalOrcamento");
-      chamarInicializadorCadimus("configurarModalCartaoCredito");
-    }).catch((erro) => {
-      moduloCarteirasCompletoPromise = null;
-      throw erro;
-    });
-  }
-  await moduloCarteirasCompletoPromise;
+  await Promise.all([
+    carregarModuloCarteiraModal(),
+    carregarModuloMembrosCarteira(),
+    carregarModuloTransferenciaCarteira(),
+    carregarModuloOrcamentoCarteira(),
+    carregarModuloCartoesCreditoCarteira(),
+  ]);
+}
+
+async function carregarModuloCarteiraModal() {
+  await carregarScriptsCarteiras("modal-carteira", ["wallets-modal-ui.js?v=100"]);
+  chamarInicializadorCadimus("configurarModalCarteira");
+}
+
+async function carregarModuloMembrosCarteira() {
+  await carregarScriptsCarteiras("membros-carteira", ["wallets-members-ui.js?v=100"]);
+  chamarInicializadorCadimus("configurarModalGerenciarMembros");
+}
+
+async function carregarModuloTransferenciaCarteira() {
+  await carregarScriptsCarteiras("transferencia-carteira", ["wallets-transfer-ui.js?v=101"]);
+  chamarInicializadorCadimus("configurarModalTransferencia");
+}
+
+async function carregarModuloOrcamentoCarteira() {
+  await carregarScriptsCarteiras("orcamento-carteira", ["wallets-budget-modal-ui.js?v=100"]);
+  chamarInicializadorCadimus("configurarModalOrcamento");
+}
+
+async function carregarModuloCartoesCreditoCarteira() {
+  await carregarScriptsCarteiras("cartoes-carteira", ["wallets-card-ui.js?v=100"]);
+  chamarInicializadorCadimus("configurarModalCartaoCredito");
 }
 
 async function abrirModalCarteiraSobDemanda() {
   try {
-    await carregarModuloCarteirasCompleto();
+    await carregarModuloCarteiraModal();
     if (typeof abrirModalCarteira === "function") abrirModalCarteira();
   } catch (erro) {
     console.error("Erro ao carregar módulo de carteira:", erro);
@@ -65,12 +92,28 @@ async function abrirModalCarteiraSobDemanda() {
 
 async function abrirGerenciamentoMembrosSobDemanda(carteira) {
   try {
-    await carregarModuloCarteirasCompleto();
+    await carregarModuloMembrosCarteira();
     if (typeof abrirModalGerenciarMembros === "function") await abrirModalGerenciarMembros(carteira);
   } catch (erro) {
     console.error("Erro ao carregar gerenciamento de carteira:", erro);
     mostrarToast("Não foi possível abrir a configuração da carteira agora.", "erro");
   }
+}
+
+function configurarBotaoTransferenciaCarteira() {
+  const btnTransferencia = document.getElementById("btn-transferencia");
+  if (!btnTransferencia || botaoTransferenciaCarteiraConfigurado) return;
+  botaoTransferenciaCarteiraConfigurado = true;
+
+  btnTransferencia.addEventListener("click", async () => {
+    try {
+      await carregarModuloTransferenciaCarteira();
+      if (typeof abrirModalTransferencia === "function") await abrirModalTransferencia();
+    } catch (erro) {
+      console.error("Erro ao carregar transferência:", erro);
+      mostrarToast("Não foi possível abrir a transferência agora.", "erro");
+    }
+  });
 }
 
 async function carregarCarteiras() {
@@ -332,3 +375,9 @@ window.carregarCarteiras = carregarCarteiras;
 window.obterCarteiraSelecionada = obterCarteiraSelecionada;
 window.selecionarCarteira = selecionarCarteira;
 window.carregarModuloCarteirasCompleto = carregarModuloCarteirasCompleto;
+window.carregarModuloCarteiraModal = carregarModuloCarteiraModal;
+window.carregarModuloMembrosCarteira = carregarModuloMembrosCarteira;
+window.carregarModuloTransferenciaCarteira = carregarModuloTransferenciaCarteira;
+window.carregarModuloOrcamentoCarteira = carregarModuloOrcamentoCarteira;
+window.carregarModuloCartoesCreditoCarteira = carregarModuloCartoesCreditoCarteira;
+window.configurarBotaoTransferenciaCarteira = configurarBotaoTransferenciaCarteira;

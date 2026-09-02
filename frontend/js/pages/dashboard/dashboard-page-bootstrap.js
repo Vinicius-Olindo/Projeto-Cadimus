@@ -12,14 +12,11 @@ quandoCadimusPronto(() => {
   chamarInicializadorCadimus("configurarComparativoPeriodo");
   chamarInicializadorCadimus("configurarBuscaGlobal");
   chamarInicializadorCadimus("configurarModal");
-  chamarInicializadorCadimus("configurarModalCarteira");
-  chamarInicializadorCadimus("configurarModalGerenciarMembros");
   chamarInicializadorCadimus("configurarModalDespesasFixas");
   chamarInicializadorCadimus("configurarModalComprasParceladas");
   chamarInicializadorCadimus("configurarModalMeta");
   chamarInicializadorCadimus("configurarModalDeposito");
-  chamarInicializadorCadimus("configurarModalTransferencia");
-  chamarInicializadorCadimus("configurarModalOrcamento");
+  chamarInicializadorCadimus("configurarBotaoTransferenciaCarteira");
   chamarInicializadorCadimus("configurarModalCartaoCredito");
   chamarInicializadorCadimus("configurarDashboardLayout");
   chamarInicializadorCadimus("configurarVisoesDashboard");

@@ -6,7 +6,10 @@ function configurarBotaoNovoOrcamentoDashboard() {
   const btnNovoOrcamento = document.getElementById("btn-novo-orcamento");
   if (!btnNovoOrcamento) return;
 
-  btnNovoOrcamento.addEventListener("click", () => window.abrirModalOrcamento?.());
+  btnNovoOrcamento.addEventListener("click", async () => {
+    await window.carregarModuloOrcamentoCarteira?.();
+    window.abrirModalOrcamento?.();
+  });
 }
 
 function configurarBotaoNovoCartaoDashboard() {

@@ -144,10 +144,9 @@ function montarItensBuscaGlobal() {
       titulo: orcamento.categoria || `Orçamento #${orcamento.id}`,
       detalhe: `${formatadorBRL.format(valorMonetario(orcamento, "total_gasto"))} de ${formatadorBRL.format(valorMonetario(orcamento))}`,
       palavras: `${orcamento.mes || ""} ${orcamento.ano || ""}`,
-      acao: () => {
-        if (typeof window.abrirModalOrcamento === "function") {
-          window.abrirModalOrcamento({ categoria: orcamento.categoria, mes: orcamento.mes, ano: orcamento.ano });
-        }
+      acao: async () => {
+        await window.carregarModuloOrcamentoCarteira?.();
+        window.abrirModalOrcamento?.({ categoria: orcamento.categoria, mes: orcamento.mes, ano: orcamento.ano });
       },
     }));
   });
