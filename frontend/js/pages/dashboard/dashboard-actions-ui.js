@@ -16,14 +16,20 @@ function configurarBotaoNovoCartaoDashboard() {
   const btnNovoCartao = document.getElementById("btn-novo-cartao");
   if (!btnNovoCartao) return;
 
-  btnNovoCartao.addEventListener("click", () => window.abrirModalCartao?.());
+  btnNovoCartao.addEventListener("click", async () => {
+    await window.carregarModuloCartoesCreditoCarteira?.();
+    window.abrirModalCartao?.();
+  });
 }
 
 function configurarBotaoCartoesCreditoDashboard() {
   const btnCartoesCredito = document.getElementById("btn-cartoes-credito");
   if (!btnCartoesCredito) return;
 
-  btnCartoesCredito.addEventListener("click", () => {
+  btnCartoesCredito.addEventListener("click", async () => {
+    await window.carregarModuloCartoesCreditoCarteira?.();
+    if (typeof carregarCartoesCredito === "function") await carregarCartoesCredito();
+
     const cartoes = typeof cartoesCreditoCarregados !== "undefined" && Array.isArray(cartoesCreditoCarregados)
       ? cartoesCreditoCarregados
       : [];

@@ -74,6 +74,7 @@ async function prepararDadosBuscaGlobal() {
   const tarefas = [];
   if (typeof carregarOrcamentos === "function") tarefas.push(carregarOrcamentos());
   if (typeof carregarMetas === "function") tarefas.push(carregarMetas());
+  await window.carregarModuloCartoesCreditoCarteira?.();
   if (typeof carregarCartoesCredito === "function") tarefas.push(carregarCartoesCredito());
   await Promise.allSettled(tarefas);
 }
@@ -120,7 +121,8 @@ function montarItensBuscaGlobal() {
       titulo: cartao.nome || `Cartão #${cartao.id}`,
       detalhe: `${cartao.bandeira || "cartão"}${cartao.ultimos4 ? ` •••• ${cartao.ultimos4}` : ""} · limite ${formatadorBRL.format(valorMonetario(cartao, "limite"))}`,
       palavras: `${cartao.dia_fechamento || ""} ${cartao.dia_vencimento || ""}`,
-      acao: () => {
+      acao: async () => {
+        await window.carregarModuloCartoesCreditoCarteira?.();
         if (typeof abrirModalCartao === "function") abrirModalCartao(cartao);
       },
     }));

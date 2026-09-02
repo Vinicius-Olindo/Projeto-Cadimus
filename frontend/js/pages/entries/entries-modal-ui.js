@@ -77,6 +77,20 @@ const atalhosFluxoLancamento = [
   },
 ];
 
+let campoCartaoLancamentoConfigurado = false;
+
+async function garantirModuloCartaoCreditoLancamento() {
+  await window.carregarModuloCartoesCreditoCarteira?.();
+  if (campoCartaoLancamentoConfigurado) return;
+  configurarCampoCartaoCredito?.({
+    campoId: "campo-cartao-lancamento",
+    selectId: "cartao-credito-lancamento",
+    meioId: "meio-pagamento",
+    tipoId: "tipo-gasto",
+  });
+  campoCartaoLancamentoConfigurado = true;
+}
+
 function montarAtalhosFluxoLancamento(ativo = "simples") {
   return atalhosFluxoLancamento
     .map(
@@ -158,6 +172,7 @@ async function abrirModalNovoLancamento() {
 
   carregarCategorias();
   document.getElementById("form-lancamento")?.reset();
+  await garantirModuloCartaoCreditoLancamento();
   await popularSelectCartoesCredito?.(document.getElementById("cartao-credito-lancamento"), carteiraAtual);
   document.getElementById("lancamento-editando-id").value = "";
   document.getElementById("titulo-modal-lancamento").innerText = "Novo lançamento";
@@ -300,6 +315,7 @@ function atualizarSugestaoCategoriaLancamento() {
 async function preencherModalLancamento(lancamento, { modo = "editar" } = {}) {
   await popularSelectCategorias(document.getElementById("categoria"));
   adicionarCategoriaAoSelect(lancamento.categoria);
+  await garantirModuloCartaoCreditoLancamento();
 
   const duplicando = modo === "duplicar";
   document.getElementById("form-lancamento")?.reset();
@@ -340,6 +356,7 @@ async function abrirModalModeloLancamento(modelo = {}) {
   await popularSelectCategorias(document.getElementById("categoria"));
   adicionarCategoriaAoSelect(modelo.categoria);
   document.getElementById("form-lancamento")?.reset();
+  await garantirModuloCartaoCreditoLancamento();
   await popularSelectCartoesCredito?.(document.getElementById("cartao-credito-lancamento"), carteiraAtual, modelo.cartao_credito_id || "");
   document.getElementById("lancamento-editando-id").value = "";
   document.getElementById("tipo-gasto").value = modelo.tipo || "despesa";
@@ -385,12 +402,6 @@ function configurarModal() {
   if (!modal || !btnNovo || !btnFechar || !form) return;
 
   configurarAtalhosContextuaisLancamento();
-  configurarCampoCartaoCredito?.({
-    campoId: "campo-cartao-lancamento",
-    selectId: "cartao-credito-lancamento",
-    meioId: "meio-pagamento",
-    tipoId: "tipo-gasto",
-  });
 
   selectCategoria?.addEventListener("change", () => {
     const escolheuNova = selectCategoria.value === "__nova__";
@@ -486,6 +497,7 @@ function configurarModal() {
         return;
       }
 
+      await garantirModuloCartaoCreditoLancamento();
       if (typeof validarCartaoCreditoObrigatorio === "function" && !validarCartaoCreditoObrigatorio({
         meioId: "meio-pagamento",
         tipoId: "tipo-gasto",

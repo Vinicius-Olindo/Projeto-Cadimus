@@ -33,8 +33,8 @@ function executarAtualizacaoPaineisDashboard(entidades, lancamentos = []) {
   if (entidades.has("metas") && cardDashboardEstaVisivel("card-metas-mes-dashboard") && typeof carregarMetas === "function") {
     carregarMetas();
   }
-  if (entidades.has("cartoes") && cardDashboardEstaVisivel("card-cartoes-credito") && typeof carregarCartoesCredito === "function") {
-    carregarCartoesCredito();
+  if (entidades.has("cartoes") && cardDashboardEstaVisivel("card-cartoes-credito")) {
+    window.carregarModuloCartoesCreditoCarteira?.().then(() => carregarCartoesCredito?.());
   }
 }
 

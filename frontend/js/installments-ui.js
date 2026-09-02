@@ -9,6 +9,18 @@
 // COMPRAS PARCELADAS (ex: "Notebook em 10x de R$300")
 // ==========================================
 let comprasParceladasCarregadas = [];
+let campoCartaoParceladaConfigurado = false;
+
+async function garantirModuloCartaoCreditoParcelada() {
+  await window.carregarModuloCartoesCreditoCarteira?.();
+  if (campoCartaoParceladaConfigurado) return;
+  configurarCampoCartaoCredito?.({
+    campoId: "campo-cartao-parcelada",
+    selectId: "parcelada-cartao-credito",
+    meioId: "parcelada-meio-pagamento",
+  });
+  campoCartaoParceladaConfigurado = true;
+}
 
 function renderizarPainelComprasParceladas() {
   const card = document.getElementById("card-compras-parceladas");
@@ -120,6 +132,7 @@ async function abrirModalComprasParceladas() {
   }
 
   await popularSelectCategorias(document.getElementById("parcelada-categoria"));
+  await garantirModuloCartaoCreditoParcelada();
   await popularSelectCartoesCredito?.(document.getElementById("parcelada-cartao-credito"), carteiraId);
   sincronizarVencimentoParceladaComCartao();
 
@@ -145,12 +158,6 @@ function configurarModalComprasParceladas() {
   const preview = document.getElementById("parcelada-preview");
 
   if (!modal || !btnFechar || !form) return;
-
-  configurarCampoCartaoCredito?.({
-    campoId: "campo-cartao-parcelada",
-    selectId: "parcelada-cartao-credito",
-    meioId: "parcelada-meio-pagamento",
-  });
 
   document.getElementById("parcelada-cartao-credito")?.addEventListener("change", sincronizarVencimentoParceladaComCartao);
   document.getElementById("parcelada-meio-pagamento")?.addEventListener("change", sincronizarVencimentoParceladaComCartao);
@@ -241,6 +248,7 @@ function configurarModalComprasParceladas() {
         cartao_credito_id: document.getElementById("parcelada-cartao-credito")?.value || null,
       };
 
+      await garantirModuloCartaoCreditoParcelada();
       if (typeof validarCartaoCreditoObrigatorio === "function" && !validarCartaoCreditoObrigatorio({
         meioId: "parcelada-meio-pagamento",
         selectId: "parcelada-cartao-credito",

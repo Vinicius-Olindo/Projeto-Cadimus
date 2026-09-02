@@ -17,7 +17,6 @@ quandoCadimusPronto(() => {
   chamarInicializadorCadimus("configurarModalMeta");
   chamarInicializadorCadimus("configurarModalDeposito");
   chamarInicializadorCadimus("configurarBotaoTransferenciaCarteira");
-  chamarInicializadorCadimus("configurarModalCartaoCredito");
   chamarInicializadorCadimus("configurarDashboardLayout");
   chamarInicializadorCadimus("configurarVisoesDashboard");
   chamarInicializadorCadimus("configurarAcoesDashboard");

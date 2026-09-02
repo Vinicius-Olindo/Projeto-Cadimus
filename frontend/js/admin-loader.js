@@ -18,7 +18,7 @@ CadimusPageLoader.carregar([
   "ui-pwa.js?v=100",
   "ui-core.js?v=113",
   "ui-bootstrap.js?v=102",
-  "wallets-context-ui.js?v=104",
+  "wallets-context-ui.js?v=106",
   "pages/entries/entries-state.js?v=100",
   "notifications-ui.js?v=100",
   "admin-shell-ui.js?v=101",

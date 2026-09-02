@@ -6,6 +6,19 @@
 // ==========================================
 
 let despesasFixasCarregadas = [];
+let campoCartaoFixaConfigurado = false;
+
+async function garantirModuloCartaoCreditoFixa() {
+  await window.carregarModuloCartoesCreditoCarteira?.();
+  if (campoCartaoFixaConfigurado) return;
+  configurarCampoCartaoCredito?.({
+    campoId: "campo-cartao-fixa",
+    selectId: "fixa-cartao-credito",
+    meioId: "fixa-meio-pagamento",
+    tipoId: "fixa-tipo",
+  });
+  campoCartaoFixaConfigurado = true;
+}
 
 function renderizarPainelDespesasFixas() {
   const card = document.getElementById("card-despesas-fixas");
@@ -126,6 +139,7 @@ async function abrirModalDespesasFixas() {
   document.getElementById("titulo-modal-fixa").innerText = "Nova despesa fixa";
   document.getElementById("btn-salvar-fixa").innerText = "Salvar";
   await popularSelectCategorias(document.getElementById("fixa-categoria"));
+  await garantirModuloCartaoCreditoFixa();
   await popularSelectCartoesCredito?.(document.getElementById("fixa-cartao-credito"), carteiraId);
   sincronizarVencimentoFixaComCartao();
   modal.style.display = "flex";
@@ -141,6 +155,7 @@ async function editarDespesaFixa(id) {
 
   await popularSelectCategorias(document.getElementById("fixa-categoria"));
   adicionarOpcaoSelect(document.getElementById("fixa-categoria"), fixa.categoria);
+  await garantirModuloCartaoCreditoFixa();
 
   document.getElementById("fixa-editando-id").value = fixa.id;
   document.getElementById("fixa-descricao").value = fixa.descricao;
@@ -168,13 +183,6 @@ function configurarModalDespesasFixas() {
   const form = document.getElementById("form-despesa-fixa");
 
   if (!modal || !btnFechar || !form) return;
-
-  configurarCampoCartaoCredito?.({
-    campoId: "campo-cartao-fixa",
-    selectId: "fixa-cartao-credito",
-    meioId: "fixa-meio-pagamento",
-    tipoId: "fixa-tipo",
-  });
 
   document.getElementById("fixa-cartao-credito")?.addEventListener("change", sincronizarVencimentoFixaComCartao);
   document.getElementById("fixa-meio-pagamento")?.addEventListener("change", sincronizarVencimentoFixaComCartao);
@@ -214,6 +222,7 @@ function configurarModalDespesasFixas() {
       };
       if (!idEdicao) corpo.carteira_id = carteiraId; // carteira só é definida na criação, não muda na edição
 
+      await garantirModuloCartaoCreditoFixa();
       if (typeof validarCartaoCreditoObrigatorio === "function" && !validarCartaoCreditoObrigatorio({
         meioId: "fixa-meio-pagamento",
         tipoId: "fixa-tipo",
