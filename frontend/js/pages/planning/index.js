@@ -14,7 +14,7 @@ CadimusPageLoader.carregar([
   "app-version.js?v=101",
   "app-footer-component.js?v=101",
   "auth-session.js?v=100",
-  "auth.js?v=125",
+  "auth.js?v=126",
   "ui-formatters.js?v=100",
   "money-utils.js?v=100",
   "money-ui.js?v=100",

@@ -8,5 +8,6 @@ CadimusPageLoader.carregar([
   "app-footer-component.js?v=101",
   "ui-core.js?v=107",
   "auth-session.js?v=100",
-  "auth.js?v=125",
+  "auth.js?v=126",
+  "auth-login-ui.js?v=100",
 ]);

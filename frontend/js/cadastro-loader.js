@@ -6,7 +6,7 @@ CadimusPageLoader.carregar([
   "app-version.js?v=101",
   "app-footer-component.js?v=101",
   "auth-session.js?v=100",
-  "auth.js?v=125",
+  "auth.js?v=126",
   "ui-formatters.js?v=100",
   "ui-core.js?v=107",
   "admin-users-ui.js?v=102",
