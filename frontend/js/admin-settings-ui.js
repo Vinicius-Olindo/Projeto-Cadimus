@@ -49,6 +49,20 @@ async function carregarDependenciasPainelSettings(painelId) {
 
 async function carregarModuloCartoesSettings() {
   await carregarScriptsSettingsAdmin("cartoes", ["cards-api.js?v=100"]);
+  await carregarModuloCarteirasSettings();
+}
+
+async function carregarModuloCarteirasSettings() {
+  if (typeof carregarModuloCarteirasCompleto === "function") {
+    await carregarModuloCarteirasCompleto();
+    return;
+  }
+
+  await carregarScriptsSettingsAdmin("carteiras-ui", ["wallets-ui.js?v=118"]);
+  chamarInicializadorCadimus("configurarModalCarteira");
+  chamarInicializadorCadimus("configurarModalGerenciarMembros");
+  chamarInicializadorCadimus("configurarModalTransferencia");
+  chamarInicializadorCadimus("configurarModalOrcamento");
   chamarInicializadorCadimus("configurarModalCartaoCredito");
 }
 
@@ -63,7 +77,7 @@ async function carregarModuloMetasSettings() {
 
 async function carregarModuloOrcamentosSettings() {
   await carregarScriptsSettingsAdmin("orcamentos", ["budgets-api.js?v=100"]);
-  chamarInicializadorCadimus("configurarModalOrcamento");
+  await carregarModuloCarteirasSettings();
 }
 
 function avisarFalhaDependenciaSettings(erro) {
@@ -232,8 +246,13 @@ async function carregarSettingsContas() {
 
 const btnNovaCarteiraSettings = document.getElementById("btn-nova-carteira-settings");
 if (btnNovaCarteiraSettings) {
-  btnNovaCarteiraSettings.addEventListener("click", () => {
-    abrirModalCarteira();
+  btnNovaCarteiraSettings.addEventListener("click", async () => {
+    try {
+      await carregarModuloCarteirasSettings();
+      if (typeof abrirModalCarteira === "function") abrirModalCarteira();
+    } catch (erro) {
+      avisarFalhaDependenciaSettings(erro);
+    }
   });
 }
 
