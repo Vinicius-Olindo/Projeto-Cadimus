@@ -10,7 +10,7 @@ CadimusPageLoader.carregar([
   "ui-theme.js?v=100",
   "ui-pwa.js?v=100",
   "ui-core.js?v=113",
-  "ui-bootstrap.js?v=100",
+  "ui-bootstrap.js?v=101",
   "auth-session.js?v=100",
   "auth.js?v=126",
   "auth-login-ui.js?v=100",

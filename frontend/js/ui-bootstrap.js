@@ -42,46 +42,7 @@ document.addEventListener("DOMContentLoaded", () => {
   chamarSeExistir("configurarRelatorios");
   chamarSeExistir("configurarDashboardLayout");
   chamarSeExistir("configurarVisoesDashboard");
-
-  // Botão de transferência
-  const btnTransferencia = document.getElementById("btn-transferencia");
-  if (btnTransferencia) {
-    btnTransferencia.addEventListener("click", () => window.abrirModalTransferencia());
-  }
-
-  // Botão de novo orçamento
-  const btnNovoOrcamento = document.getElementById("btn-novo-orcamento");
-  if (btnNovoOrcamento) {
-    btnNovoOrcamento.addEventListener("click", () => window.abrirModalOrcamento());
-  }
-
-  // Botão de novo cartão de crédito
-  const btnNovoCartao = document.getElementById("btn-novo-cartao");
-  if (btnNovoCartao) {
-    btnNovoCartao.addEventListener("click", () => window.abrirModalCartao());
-  }
-
-  // Botão de cartões de crédito no header
-  const btnCartoesCredito = document.getElementById("btn-cartoes-credito");
-  if (btnCartoesCredito) {
-    btnCartoesCredito.addEventListener("click", () => {
-      // Se já tem cartões, scrolla para o painel; senão abre modal de novo
-      if (cartoesCreditoCarregados.length > 0) {
-        const card = document.getElementById("card-cartoes-credito");
-        if (card && card.style.display !== "none") {
-          card.scrollIntoView({ behavior: "smooth" });
-          return;
-        }
-      }
-      window.abrirModalCartao();
-    });
-  }
-
-  // Botão de relatório PDF
-  const btnRelatorioPdf = document.getElementById("btn-relatorio-pdf");
-  if (btnRelatorioPdf) {
-    btnRelatorioPdf.addEventListener("click", gerarRelatorioPDF);
-  }
+  chamarSeExistir("configurarAcoesDashboard");
 
   chamarSeExistir("configurarInstallBanner");
 });
