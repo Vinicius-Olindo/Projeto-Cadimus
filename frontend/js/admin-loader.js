@@ -29,7 +29,7 @@ CadimusPageLoader.carregar([
   "admin-shell-ui.js?v=101",
   "admin-settings-ui.js?v=103",
   "profile-image-ui.js?v=100",
-  "admin-users-ui.js?v=102",
+  "admin-users-ui.js?v=103",
   "admin-categories-ui.js?v=101",
   "fixed-expenses-ui.js?v=111",
   "installments-ui.js?v=110",
