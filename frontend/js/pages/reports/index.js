@@ -16,7 +16,7 @@ CadimusPageLoader.carregar([
   "components.js?v=105",
   "ui-feedback.js?v=100",
   "ui-theme.js?v=100",
-  "ui-core.js?v=109",
+  "ui-core.js?v=110",
   "pages/reports/reports-shell-ui.js?v=104",
   "pages/reports/reports-charts-ui.js?v=100",
   "pages/reports/reports-tables-ui.js?v=101",

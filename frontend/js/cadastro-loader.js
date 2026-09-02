@@ -10,7 +10,7 @@ CadimusPageLoader.carregar([
   "ui-formatters.js?v=100",
   "ui-feedback.js?v=100",
   "ui-theme.js?v=100",
-  "ui-core.js?v=109",
+  "ui-core.js?v=110",
   "admin-users-ui.js?v=102",
 ]);
 
