@@ -1,5 +1,7 @@
 // pages/entries/index.js - Dependências da tela/lista de lançamentos
 CadimusPageLoader.carregar([
+  "components.js?v=105",
+  "pages/entries/entries-row-components.js?v=100",
   "pages/entries/entries-state.js?v=100",
   "pages/entries/entries-modal-ui.js?v=120",
   "pages/entries/entries-list-groups.js?v=100",

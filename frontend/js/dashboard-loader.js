@@ -1,3 +1,3 @@
 // dashboard-loader.js - Entrada da tela principal/dashboard
-CadimusPageLoader.carregar(["pages/dashboard/index.js?v=101"]);
+CadimusPageLoader.carregar(["pages/dashboard/index.js?v=102"]);
 

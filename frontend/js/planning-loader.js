@@ -1,3 +1,3 @@
 // planning-loader.js - Entrada da página de planejamento
-CadimusPageLoader.carregar(["pages/planning/index.js?v=101"]);
+CadimusPageLoader.carregar(["pages/planning/index.js?v=102"]);
 
