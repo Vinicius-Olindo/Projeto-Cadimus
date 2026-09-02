@@ -50,7 +50,7 @@
 
 // Filtro de mês fica em ui-period-filter.js; tema fica em ui-theme.js; PWA fica em ui-pwa.js.
 
-// Interface de carteiras, transferências e membros fica em wallets-ui.js.
+// Contexto, modais e ações de carteiras ficam nos módulos wallets-*.js.
 
 // Despesas fixas ficam em fixed-expenses-ui.js.
 
