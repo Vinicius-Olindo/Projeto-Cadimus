@@ -8,7 +8,7 @@ CadimusPageLoader.carregar([
   "app-footer-component.js?v=101",
   "ui-feedback.js?v=100",
   "ui-theme.js?v=100",
-  "ui-core.js?v=110",
+  "ui-core.js?v=111",
   "auth-session.js?v=100",
   "auth.js?v=126",
   "auth-login-ui.js?v=100",
