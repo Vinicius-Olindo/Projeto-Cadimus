@@ -11,7 +11,8 @@ CadimusPageLoader.carregar([
   "ui-feedback.js?v=100",
   "ui-theme.js?v=100",
   "ui-pwa.js?v=100",
-  "ui-core.js?v=112",
+  "ui-core.js?v=113",
+  "ui-bootstrap.js?v=100",
   "admin-users-ui.js?v=102",
 ]);
 
