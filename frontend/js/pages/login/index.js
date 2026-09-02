@@ -1,6 +1,6 @@
 // pages/login/index.js - Dependências da tela de login
 CadimusPageLoader.carregar([
-  "modal-components.js?v=100",
+  "modal-feedback-components.js?v=100",
   "api-client.js?v=101",
   "auth-api.js?v=100",
   "admin-api.js?v=100",

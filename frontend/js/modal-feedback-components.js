@@ -1,0 +1,29 @@
+// modal-feedback-components.js - Modais leves de aviso/confirmacao
+const MODAIS_FEEDBACK_HTML = String.raw`
+    <!-- MODAL: AVISO (substitui alert()) -->
+    <div id="modal-aviso" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
+      <div class="modal-content modal-compacto">
+        <p id="aviso-texto" class="modal-aviso-texto"></p>
+        <button type="button" id="btn-aviso-ok">OK</button>
+      </div>
+    </div>
+
+    <!-- MODAL: CONFIRMAÇÃO (substitui confirm()) -->
+    <div id="modal-confirmacao" class="modal-overlay" role="dialog" aria-modal="true" style="display: none">
+      <div class="modal-content modal-compacto">
+        <p id="confirmacao-texto" class="modal-aviso-texto"></p>
+        <div class="modal-confirmacao-acoes">
+          <button type="button" id="btn-confirmacao-confirmar">Confirmar</button>
+          <button type="button" id="btn-confirmacao-cancelar">Cancelar</button>
+        </div>
+      </div>
+    </div>
+`;
+
+function montarComponentesFeedback() {
+  const raiz = document.getElementById("modal-components-root");
+  if (!raiz) return;
+  raiz.insertAdjacentHTML("beforeend", MODAIS_FEEDBACK_HTML);
+}
+
+montarComponentesFeedback();
