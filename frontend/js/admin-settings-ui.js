@@ -1,6 +1,31 @@
 // ==========================================
 // admin-settings-ui.js - Abas e preferências do admin/configurações
 // ==========================================
+const dependenciasSettingsAdmin = {};
+let modalRecorrenciaSettingsConfigurado = false;
+
+function carregarScriptsSettingsAdmin(chave, scripts) {
+  if (dependenciasSettingsAdmin[chave]) return dependenciasSettingsAdmin[chave];
+  dependenciasSettingsAdmin[chave] = CadimusPageLoader.carregar(scripts).catch((erro) => {
+    delete dependenciasSettingsAdmin[chave];
+    throw erro;
+  });
+  return dependenciasSettingsAdmin[chave];
+}
+
+async function carregarDependenciasPainelSettings(painelId) {
+  if (painelId !== "sp-recorrentes") return;
+
+  await carregarScriptsSettingsAdmin("recorrentes", [
+    "scheduled-api.js?v=100",
+    "recorrentes.js?v=105",
+  ]);
+  if (!modalRecorrenciaSettingsConfigurado && typeof configurarModalRecorrencia === "function") {
+    configurarModalRecorrencia();
+    modalRecorrenciaSettingsConfigurado = true;
+  }
+}
+
 function configurarSubAbasAdmin() {
   const navItems = document.querySelectorAll(".settings-nav-item");
 
@@ -9,7 +34,15 @@ function configurarSubAbasAdmin() {
     if (item) item.click();
   }
 
-  function carregarPainelSettings(painelId) {
+  async function carregarPainelSettings(painelId) {
+    try {
+      await carregarDependenciasPainelSettings(painelId);
+    } catch (erro) {
+      console.error("Erro ao carregar dependências do painel:", erro);
+      mostrarToast("Não foi possível carregar esta seção agora.", "erro");
+      return;
+    }
+
     if (painelId === "sp-categorias") carregarListaCategorias();
     if (painelId === "sp-usuarios") carregarUsuarios();
     if (painelId === "sp-recorrentes") carregarPainelRecorrentes();
