@@ -2,11 +2,17 @@
 // admin-settings-ui.js - Abas e preferências do admin/configurações
 // ==========================================
 const dependenciasSettingsAdmin = {};
+const scriptsSettingsAdminCarregados = new Set();
 let modalRecorrenciaSettingsConfigurado = false;
 
 function carregarScriptsSettingsAdmin(chave, scripts) {
   if (dependenciasSettingsAdmin[chave]) return dependenciasSettingsAdmin[chave];
-  dependenciasSettingsAdmin[chave] = CadimusPageLoader.carregar(scripts).catch((erro) => {
+  const scriptsPendentes = scripts.filter((script) => !scriptsSettingsAdminCarregados.has(script));
+  if (scriptsPendentes.length === 0) return Promise.resolve();
+
+  dependenciasSettingsAdmin[chave] = CadimusPageLoader.carregar(scriptsPendentes).then(() => {
+    scriptsPendentes.forEach((script) => scriptsSettingsAdminCarregados.add(script));
+  }).catch((erro) => {
     delete dependenciasSettingsAdmin[chave];
     throw erro;
   });
@@ -14,16 +20,55 @@ function carregarScriptsSettingsAdmin(chave, scripts) {
 }
 
 async function carregarDependenciasPainelSettings(painelId) {
-  if (painelId !== "sp-recorrentes") return;
-
-  await carregarScriptsSettingsAdmin("recorrentes", [
-    "scheduled-api.js?v=100",
-    "recorrentes.js?v=105",
-  ]);
-  if (!modalRecorrenciaSettingsConfigurado && typeof configurarModalRecorrencia === "function") {
-    configurarModalRecorrencia();
-    modalRecorrenciaSettingsConfigurado = true;
+  if (painelId === "sp-cartoes") {
+    await carregarScriptsSettingsAdmin("cartoes", ["cards-api.js?v=100"]);
+    return;
   }
+
+  if (painelId === "sp-metas") {
+    await carregarScriptsSettingsAdmin("metas", ["goals-api.js?v=100"]);
+    return;
+  }
+
+  if (painelId === "sp-orcamentos") {
+    await carregarScriptsSettingsAdmin("orcamentos", ["budgets-api.js?v=100"]);
+    return;
+  }
+
+  if (painelId === "sp-recorrentes") {
+    await carregarScriptsSettingsAdmin("recorrentes", [
+      "scheduled-api.js?v=100",
+      "recorrentes.js?v=105",
+    ]);
+    if (!modalRecorrenciaSettingsConfigurado && typeof configurarModalRecorrencia === "function") {
+      configurarModalRecorrencia();
+      modalRecorrenciaSettingsConfigurado = true;
+    }
+  }
+}
+
+async function carregarModuloCartoesSettings() {
+  await carregarScriptsSettingsAdmin("cartoes", ["cards-api.js?v=100"]);
+  chamarInicializadorCadimus("configurarModalCartaoCredito");
+}
+
+async function carregarModuloMetasSettings() {
+  await carregarScriptsSettingsAdmin("metas-ui", [
+    "goals-api.js?v=100",
+    "goals-ui.js?v=101",
+  ]);
+  chamarInicializadorCadimus("configurarModalMeta");
+  chamarInicializadorCadimus("configurarModalDeposito");
+}
+
+async function carregarModuloOrcamentosSettings() {
+  await carregarScriptsSettingsAdmin("orcamentos", ["budgets-api.js?v=100"]);
+  chamarInicializadorCadimus("configurarModalOrcamento");
+}
+
+function avisarFalhaDependenciaSettings(erro) {
+  console.error("Erro ao carregar módulo do admin:", erro);
+  mostrarToast("Não foi possível carregar esta ação agora.", "erro");
 }
 
 function configurarSubAbasAdmin() {
@@ -232,8 +277,13 @@ async function carregarSettingsCartoes() {
 
 const btnNovoCartaoSettings = document.getElementById("btn-novo-cartao-settings");
 if (btnNovoCartaoSettings) {
-  btnNovoCartaoSettings.addEventListener("click", () => {
-    abrirModalCartao(false);
+  btnNovoCartaoSettings.addEventListener("click", async () => {
+    try {
+      await carregarModuloCartoesSettings();
+      if (typeof abrirModalCartao === "function") abrirModalCartao(false);
+    } catch (erro) {
+      avisarFalhaDependenciaSettings(erro);
+    }
   });
 }
 
@@ -283,7 +333,12 @@ async function carregarSettingsMetas() {
 const btnNovaMetaSettings = document.getElementById("btn-nova-meta-settings");
 if (btnNovaMetaSettings) {
   btnNovaMetaSettings.addEventListener("click", async () => {
-    await abrirModalMeta("", "", "");
+    try {
+      await carregarModuloMetasSettings();
+      if (typeof abrirModalMeta === "function") await abrirModalMeta("", "", "");
+    } catch (erro) {
+      avisarFalhaDependenciaSettings(erro);
+    }
   });
 }
 
@@ -334,8 +389,13 @@ async function carregarSettingsOrcamentos() {
 
 const btnNovoOrcamentoSettings = document.getElementById("btn-novo-orcamento-settings");
 if (btnNovoOrcamentoSettings) {
-  btnNovoOrcamentoSettings.addEventListener("click", () => {
-    abrirModalOrcamento();
+  btnNovoOrcamentoSettings.addEventListener("click", async () => {
+    try {
+      await carregarModuloOrcamentosSettings();
+      if (typeof abrirModalOrcamento === "function") abrirModalOrcamento();
+    } catch (erro) {
+      avisarFalhaDependenciaSettings(erro);
+    }
   });
 }
 

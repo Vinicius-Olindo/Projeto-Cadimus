@@ -5,9 +5,6 @@ CadimusPageLoader.carregar([
   "notifications-api.js?v=100",
   "wallets-api.js?v=100",
   "admin-api.js?v=100",
-  "cards-api.js?v=100",
-  "budgets-api.js?v=100",
-  "goals-api.js?v=100",
   "app-version.js?v=101",
   "app-footer-component.js?v=101",
   "auth-session.js?v=100",
@@ -25,12 +22,10 @@ CadimusPageLoader.carregar([
   "pages/entries/entries-state.js?v=100",
   "notifications-ui.js?v=100",
   "admin-shell-ui.js?v=101",
-  "admin-settings-ui.js?v=104",
+  "admin-settings-ui.js?v=105",
   "profile-image-ui.js?v=100",
   "admin-users-ui.js?v=103",
   "admin-categories-ui.js?v=101",
-  "budgets-ui.js?v=102",
-  "goals-ui.js?v=101",
   "admin-page-bootstrap.js?v=100",
 ]);
 
