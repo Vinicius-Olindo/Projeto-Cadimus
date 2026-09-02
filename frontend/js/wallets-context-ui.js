@@ -7,6 +7,13 @@ let ultimaRequisicaoCarteiras = 0;
 let fecharMenuCarteiraAtivo = null;
 let menuCarteiraFlutuanteAtivo = null;
 let moduloCarteirasCompletoPromise = null;
+const scriptsModuloCarteirasCompleto = [
+  "wallets-modal-ui.js?v=100",
+  "wallets-transfer-ui.js?v=100",
+  "wallets-budget-modal-ui.js?v=100",
+  "wallets-card-ui.js?v=100",
+  "wallets-members-ui.js?v=100",
+];
 
 function removerFechamentoMenuCarteira() {
   if (!fecharMenuCarteiraAtivo) return;
@@ -32,7 +39,7 @@ function obterNomeCarteiraExibicao(carteira) {
 async function carregarModuloCarteirasCompleto() {
   if (typeof configurarModalCarteira === "function" && typeof configurarModalGerenciarMembros === "function") return;
   if (!moduloCarteirasCompletoPromise) {
-    moduloCarteirasCompletoPromise = CadimusPageLoader.carregar(["wallets-ui.js?v=118"]).then(() => {
+    moduloCarteirasCompletoPromise = CadimusPageLoader.carregar(scriptsModuloCarteirasCompleto).then(() => {
       chamarInicializadorCadimus("configurarModalCarteira");
       chamarInicializadorCadimus("configurarModalGerenciarMembros");
       chamarInicializadorCadimus("configurarModalTransferencia");

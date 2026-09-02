@@ -58,7 +58,13 @@ async function carregarModuloCarteirasSettings() {
     return;
   }
 
-  await carregarScriptsSettingsAdmin("carteiras-ui", ["wallets-ui.js?v=118"]);
+  await carregarScriptsSettingsAdmin("carteiras-ui", [
+    "wallets-modal-ui.js?v=100",
+    "wallets-transfer-ui.js?v=100",
+    "wallets-budget-modal-ui.js?v=100",
+    "wallets-card-ui.js?v=100",
+    "wallets-members-ui.js?v=100",
+  ]);
   chamarInicializadorCadimus("configurarModalCarteira");
   chamarInicializadorCadimus("configurarModalGerenciarMembros");
   chamarInicializadorCadimus("configurarModalTransferencia");
