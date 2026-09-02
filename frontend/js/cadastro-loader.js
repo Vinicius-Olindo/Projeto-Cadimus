@@ -12,7 +12,7 @@ CadimusPageLoader.carregar([
   "ui-theme.js?v=100",
   "ui-pwa.js?v=100",
   "ui-core.js?v=113",
-  "ui-bootstrap.js?v=101",
+  "ui-bootstrap.js?v=102",
   "admin-users-ui.js?v=102",
 ]);
 

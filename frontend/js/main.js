@@ -44,7 +44,11 @@
 
 // Helpers monetários de UI ficam em money-ui.js.
 
-// Helpers visuais, filtros e tema ficam em ui-core.js.
+// Helpers visuais legados ficam em ui-core.js.
+
+// Bootstrap global fica em ui-bootstrap.js; bootstraps específicos ficam nas pastas/páginas.
+
+// Filtro de mês fica em ui-period-filter.js; tema fica em ui-theme.js; PWA fica em ui-pwa.js.
 
 // Interface de carteiras, transferências e membros fica em wallets-ui.js.
 
@@ -81,6 +85,8 @@
 // Saúde financeira do dashboard fica em dashboard-health-ui.js.
 
 // Relatório PDF do dashboard fica em dashboard-pdf-ui.js.
+
+// Ações e inicialização do dashboard ficam em dashboard-actions-ui.js e dashboard-page-bootstrap.js.
 
 // Ações sensíveis de lançamentos ficam em entries-actions-ui.js.
 

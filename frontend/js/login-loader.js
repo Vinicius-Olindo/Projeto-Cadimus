@@ -1,2 +1,2 @@
 // login-loader.js - Entrada da tela de login
-CadimusPageLoader.carregar(["pages/login/index.js?v=109"]);
+CadimusPageLoader.carregar(["pages/login/index.js?v=110"]);

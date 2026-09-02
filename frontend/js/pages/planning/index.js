@@ -24,7 +24,7 @@ CadimusPageLoader.carregar([
   "ui-period-filter.js?v=100",
   "ui-pwa.js?v=100",
   "ui-core.js?v=113",
-  "ui-bootstrap.js?v=101",
+  "ui-bootstrap.js?v=102",
   "wallets-ui.js?v=117",
   "categories-ui.js?v=100",
   "pages/entries/entries-state.js?v=100",
@@ -39,5 +39,6 @@ CadimusPageLoader.carregar([
   "pages/planning/planning-dashboard-ui.js?v=104",
   "pages/planning/planning-plans-ui.js?v=100",
   "pages/planning/planning-goals-ui.js?v=100",
+  "pages/planning/planning-page-bootstrap.js?v=100",
   { src: "bonuses-ui.js?v=104", defer: true },
 ]);

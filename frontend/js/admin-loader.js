@@ -22,7 +22,7 @@ CadimusPageLoader.carregar([
   "ui-theme.js?v=100",
   "ui-pwa.js?v=100",
   "ui-core.js?v=113",
-  "ui-bootstrap.js?v=101",
+  "ui-bootstrap.js?v=102",
   "wallets-ui.js?v=117",
   "pages/entries/entries-state.js?v=100",
   "notifications-ui.js?v=100",
@@ -35,6 +35,7 @@ CadimusPageLoader.carregar([
   "installments-ui.js?v=110",
   "budgets-ui.js?v=102",
   "goals-ui.js?v=101",
+  "admin-page-bootstrap.js?v=100",
   { src: "recorrentes.js?v=105", defer: true },
   { src: "bonuses-ui.js?v=104", defer: true },
 ]);
