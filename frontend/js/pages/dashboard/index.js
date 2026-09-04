@@ -1,6 +1,7 @@
 // pages/dashboard/index.js - Dependências da página principal/dashboard
 CadimusPageLoader.carregar([
-  "modal-components.js?v=100",
+  "modal-components.js?v=101",
+  "import-export-modal-components.js?v=100",
   "api-client.js?v=101",
   "auth-api.js?v=100",
   "notifications-api.js?v=100",
@@ -73,7 +74,7 @@ CadimusPageLoader.carregar([
   "installments-ui.js?v=112",
   "budgets-ui.js?v=105",
   "goals-ui.js?v=103",
-  "pages/dashboard/dashboard-page-bootstrap.js?v=103",
+  "pages/dashboard/dashboard-page-bootstrap.js?v=104",
   { src: "main.js?v=104", defer: true },
   { src: "importar.js?v=101", defer: true },
   { src: "exportar.js?v=100", defer: true },
