@@ -66,7 +66,7 @@ CadimusPageLoader.carregar([
   "pages/dashboard/dashboard-health-ui.js?v=103",
   "pages/dashboard/dashboard-pdf-ui.js?v=100",
   "pages/dashboard/dashboard-actions-ui.js?v=103",
-  "pages/entries/entries-actions-ui.js?v=102",
+  "pages/entries/entries-actions-loader.js?v=100",
   "fixed-expenses-ui.js?v=113",
   "installments-ui.js?v=112",
   "budgets-ui.js?v=105",

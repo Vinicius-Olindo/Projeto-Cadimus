@@ -88,7 +88,7 @@
 
 // Ações e inicialização do dashboard ficam em dashboard-actions-ui.js e dashboard-page-bootstrap.js.
 
-// Ações sensíveis de lançamentos ficam em entries-actions-ui.js.
+// Ações sensíveis de lançamentos ficam em entries-actions-ui.js ou entram sob demanda pelo dashboard.
 
 // ==========================================
 // [27] ADMIN: Painel, Usuários, Categorias
