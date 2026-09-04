@@ -6,7 +6,7 @@ CadimusPageLoader.carregar([
   "app-footer-component.js?v=101",
   "auth-session.js?v=100",
   "ui-feedback.js?v=100",
-  "ui-theme.js?v=100",
+  "ui-theme.js?v=101",
   "ui-pwa.js?v=100",
   "invite-public-ui.js?v=100",
   "ui-bootstrap.js?v=102",

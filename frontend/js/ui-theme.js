@@ -4,8 +4,14 @@ const ICONE_SOL =
   '<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M4.93 4.93l1.41 1.41M17.66 17.66l1.41 1.41M2 12h2M20 12h2M6.34 17.66l-1.41 1.41M19.07 4.93l-1.41 1.41"/></svg>';
 
 function inicializarDarkMode() {
+  aplicarTemaAtual();
+
   const areaAcoes = document.querySelector(".acoes-topo");
   if (!areaAcoes) return;
+  if (document.getElementById("btn-theme-toggle")) {
+    atualizarSeletorTemaTopo();
+    return;
+  }
 
   const btnTheme = document.createElement("button");
   btnTheme.id = "btn-theme-toggle";
@@ -16,17 +22,34 @@ function inicializarDarkMode() {
 
   areaAcoes.insertBefore(btnTheme, document.querySelector(".avatar-dropdown-wrapper"));
 
-  if (lerLocalStorageSeguro("cadimus_tema") === "dark") {
-    document.body.classList.add("dark-mode");
-  }
   atualizarSeletorTemaTopo();
 
   btnTheme.addEventListener("click", () => {
     document.body.classList.toggle("dark-mode");
     gravarLocalStorageSeguro("cadimus_tema", document.body.classList.contains("dark-mode") ? "dark" : "light");
+    atualizarMetaThemeColor();
     atualizarSeletorTemaTopo();
-    sincronizarToggleTema();
+    if (typeof sincronizarToggleTema === "function") sincronizarToggleTema();
   });
+}
+
+window.aplicarTemaAtual = aplicarTemaAtual;
+window.atualizarMetaThemeColor = atualizarMetaThemeColor;
+
+function aplicarTemaAtual() {
+  const temaSalvo = lerLocalStorageSeguro("cadimus_tema");
+  const prefereEscuro = !temaSalvo && window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
+  const temaEscuroAtivo = temaSalvo === "dark" || prefereEscuro;
+
+  document.body.classList.toggle("dark-mode", temaEscuroAtivo);
+  atualizarMetaThemeColor();
+}
+
+function atualizarMetaThemeColor() {
+  const metaThemeColor = document.querySelector('meta[name="theme-color"]');
+  if (!metaThemeColor) return;
+
+  metaThemeColor.setAttribute("content", document.body.classList.contains("dark-mode") ? "#0b1f14" : "#a97a2f");
 }
 
 function atualizarSeletorTemaTopo() {

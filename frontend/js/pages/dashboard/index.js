@@ -27,7 +27,7 @@ CadimusPageLoader.carregar([
   "pages/entries/entries-row-components.js?v=100",
   "pages/dashboard/dashboard-views-ui.js?v=109",
   "ui-feedback.js?v=100",
-  "ui-theme.js?v=100",
+  "ui-theme.js?v=101",
   "ui-period-filter.js?v=100",
   "ui-pwa.js?v=100",
   "ui-core.js?v=113",

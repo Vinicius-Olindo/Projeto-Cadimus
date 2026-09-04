@@ -165,6 +165,7 @@ function configurarSubAbasAdmin() {
           document.body.classList.remove("dark-mode");
         }
       }
+      if (typeof atualizarMetaThemeColor === "function") atualizarMetaThemeColor();
       sincronizarToggleTema();
       atualizarSeletorTemaTopo();
       mostrarToast(`Tema "${nomeTema}" salvo`);

@@ -11,7 +11,7 @@ CadimusPageLoader.carregar([
   "money-utils.js?v=100",
   "html-utils.js?v=100",
   "ui-feedback.js?v=100",
-  "ui-theme.js?v=100",
+  "ui-theme.js?v=101",
   "ui-pwa.js?v=100",
   "ui-core.js?v=113",
   "ui-bootstrap.js?v=102",
