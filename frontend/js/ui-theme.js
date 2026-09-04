@@ -25,8 +25,8 @@ function inicializarDarkMode() {
   atualizarSeletorTemaTopo();
 
   btnTheme.addEventListener("click", () => {
-    document.body.classList.toggle("dark-mode");
-    gravarLocalStorageSeguro("cadimus_tema", document.body.classList.contains("dark-mode") ? "dark" : "light");
+    definirTemaEscuro(!temaEscuroEstaAtivo());
+    gravarLocalStorageSeguro("cadimus_tema", temaEscuroEstaAtivo() ? "dark" : "light");
     atualizarMetaThemeColor();
     atualizarSeletorTemaTopo();
     if (typeof sincronizarToggleTema === "function") sincronizarToggleTema();
@@ -39,24 +39,34 @@ window.atualizarMetaThemeColor = atualizarMetaThemeColor;
 function aplicarTemaAtual() {
   const temaSalvo = lerLocalStorageSeguro("cadimus_tema");
   const prefereEscuro = !temaSalvo && window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
-  const temaEscuroAtivo = temaSalvo === "dark" || prefereEscuro;
+  const temaEscuroAtivo = temaSalvo === "dark" || temaSalvo === "escuro" || prefereEscuro;
 
-  document.body.classList.toggle("dark-mode", temaEscuroAtivo);
+  definirTemaEscuro(temaEscuroAtivo);
   atualizarMetaThemeColor();
+}
+
+function definirTemaEscuro(ativo) {
+  document.documentElement.classList.toggle("dark-mode", ativo);
+  if (document.body) document.body.classList.toggle("dark-mode", ativo);
+}
+
+function temaEscuroEstaAtivo() {
+  return document.body?.classList.contains("dark-mode")
+    || document.documentElement.classList.contains("dark-mode");
 }
 
 function atualizarMetaThemeColor() {
   const metaThemeColor = document.querySelector('meta[name="theme-color"]');
   if (!metaThemeColor) return;
 
-  metaThemeColor.setAttribute("content", document.body.classList.contains("dark-mode") ? "#0b1f14" : "#a97a2f");
+  metaThemeColor.setAttribute("content", temaEscuroEstaAtivo() ? "#0b1f14" : "#a97a2f");
 }
 
 function atualizarSeletorTemaTopo() {
   const btnTheme = document.getElementById("btn-theme-toggle");
   if (!btnTheme) return;
 
-  const estaEscuro = document.body.classList.contains("dark-mode");
+  const estaEscuro = temaEscuroEstaAtivo();
   btnTheme.classList.toggle("tema-switch-escuro", estaEscuro);
   btnTheme.setAttribute("aria-pressed", String(estaEscuro));
   btnTheme.title = estaEscuro ? "Tema escuro ativo. Clique para usar tema claro." : "Tema claro ativo. Clique para usar tema escuro.";

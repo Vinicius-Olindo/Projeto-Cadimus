@@ -152,19 +152,14 @@ function configurarSubAbasAdmin() {
       const tema = btn.dataset.tema;
       const nomeTema = tema === "escuro" ? "Escuro" : tema === "claro" ? "Claro" : "Automático";
       if (tema === "escuro") {
-        document.body.classList.add("dark-mode");
         gravarLocalStorageSeguro("cadimus_tema", "dark");
       } else if (tema === "claro") {
-        document.body.classList.remove("dark-mode");
         gravarLocalStorageSeguro("cadimus_tema", "light");
       } else {
         removerLocalStorageSeguro("cadimus_tema");
-        if (window.matchMedia("(prefers-color-scheme: dark)").matches) {
-          document.body.classList.add("dark-mode");
-        } else {
-          document.body.classList.remove("dark-mode");
-        }
       }
+      if (typeof aplicarTemaAtual === "function") aplicarTemaAtual();
+      else document.body.classList.toggle("dark-mode", tema === "escuro");
       if (typeof atualizarMetaThemeColor === "function") atualizarMetaThemeColor();
       sincronizarToggleTema();
       atualizarSeletorTemaTopo();

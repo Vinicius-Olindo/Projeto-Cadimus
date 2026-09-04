@@ -15,13 +15,23 @@
     <meta name="apple-mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
     <meta name="apple-mobile-web-app-title" content="Cadimus" />
+    <script>
+      (() => {
+        try {
+          const tema = localStorage.getItem("cadimus_tema");
+          const prefereEscuro = !tema && window.matchMedia?.("(prefers-color-scheme: dark)")?.matches;
+          const temaEscuroAtivo = tema === "dark" || tema === "escuro" || prefereEscuro;
+          document.documentElement.classList.toggle("dark-mode", temaEscuroAtivo);
+        } catch (_) {}
+      })();
+    </script>
 
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=101" />
-    <link rel="stylesheet" href="css/style.css?v=190" />
+    <link rel="stylesheet" href="css/style.css?v=191" />
   </head>
   <body data-cadimus-page="admin">
     <main class="app-container">
@@ -504,6 +514,6 @@
     <!-- RODAPÉ -->
     <div id="app-footer-root"></div>
     <script src="js/page-script-loader.js?v=100"></script>
-    <script src="js/admin-loader.js?v=127"></script>
+    <script src="js/admin-loader.js?v=128"></script>
   </body>
 </html>
