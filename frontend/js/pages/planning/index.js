@@ -29,7 +29,6 @@ CadimusPageLoader.carregar([
   "categories-ui.js?v=100",
   "pages/entries/entries-state.js?v=100",
   "pages/entries/entries-modal-loader.js?v=100",
-  "batch-note-ui.js?v=101",
   "period-comparison-ui.js?v=103",
   "fixed-expenses-ui.js?v=113",
   "installments-ui.js?v=112",

@@ -70,7 +70,7 @@
 
 // Central de notificações fica em notifications-ui.js.
 
-// Edição em lote e popup de nota ficam em batch-note-ui.js.
+// Edição em lote e popup de nota ficam em batch-selection-ui.js e note-popup-ui.js.
 
 // Comparativo por período fica em period-comparison-ui.js.
 
