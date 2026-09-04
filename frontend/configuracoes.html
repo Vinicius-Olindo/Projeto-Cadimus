@@ -31,7 +31,7 @@
     <link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&family=IBM+Plex+Sans:wght@400;500;600;700&display=swap" rel="stylesheet" />
 
     <link rel="stylesheet" href="css/variables.css?v=101" />
-    <link rel="stylesheet" href="css/style.css?v=191" />
+    <link rel="stylesheet" href="css/style.css?v=192" />
   </head>
   <body data-cadimus-page="admin">
     <main class="app-container">
@@ -488,8 +488,10 @@
           <span class="dica-campo">Nada será apagado se a senha estiver errada.</span>
         </div>
         <p id="erro-zerar-dados" class="modal-aviso-texto" style="display: none"></p>
-        <button type="button" id="btn-confirmar-zerar-dados" class="btn-excluir-conta" disabled>Apagar tudo permanentemente</button>
-        <button type="button" id="btn-fechar-modal-zerar-dados">Cancelar</button>
+        <div class="modal-perigo-acoes">
+          <button type="button" id="btn-confirmar-zerar-dados" class="modal-perigo-btn modal-perigo-btn-confirmar" disabled>Apagar tudo permanentemente</button>
+          <button type="button" id="btn-fechar-modal-zerar-dados" class="modal-perigo-btn modal-perigo-btn-cancelar">Cancelar</button>
+        </div>
       </div>
     </div>
 
