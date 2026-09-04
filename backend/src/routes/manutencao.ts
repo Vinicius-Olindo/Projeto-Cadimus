@@ -3,19 +3,21 @@
 // ==========================================
 import type { CadimusEnv, WorkerCtx } from "../types.js";
 import { obterUsuarioDaSessao } from "../utils/sessao.ts";
+import { verificarSenha } from "../utils/crypto.ts";
 
 const CATEGORIAS_PADRAO = ["Mercado", "Transporte", "Moradia", "Contas", "Saúde", "Lazer", "Educação", "Salário", "Outros"];
 const FRASE_CONFIRMACAO = "APAGAR TUDO";
 
-interface EnvManutencao extends CadimusEnv {
-  PERMITE_ZERAR_DADOS_GLOBAIS?: string;
-}
-
 interface ConfirmacaoLimpeza {
   confirmacao?: string;
+  senha?: string;
 }
 
-export async function processarLimpezaDados(request: Request, env: EnvManutencao, ctx: WorkerCtx): Promise<Response> {
+interface UsuarioSenhaRow {
+  senha_hash: string | null;
+}
+
+export async function processarLimpezaDados(request: Request, env: CadimusEnv, ctx: WorkerCtx): Promise<Response> {
   if (request.method !== "POST") {
     return new Response(JSON.stringify({ erro: "Método não permitido." }), { status: 405 });
   }
@@ -27,9 +29,6 @@ export async function processarLimpezaDados(request: Request, env: EnvManutencao
   if (usuarioLogado.perfil !== "superadmin") {
     return new Response(JSON.stringify({ erro: "Acesso restrito a administradores." }), { status: 403 });
   }
-  if (env.PERMITE_ZERAR_DADOS_GLOBAIS !== "true") {
-    return new Response(JSON.stringify({ erro: "A limpeza global de dados está desativada no produto. Use uma rotina administrativa isolada e com backup para manutenção." }), { status: 403 });
-  }
 
   try {
     const dados = (await request.json().catch(() => ({}))) as ConfirmacaoLimpeza;
@@ -38,6 +37,20 @@ export async function processarLimpezaDados(request: Request, env: EnvManutencao
     // não só uma carteira, então o clique sozinho num botão não é confirmação suficiente.
     if (dados.confirmacao !== FRASE_CONFIRMACAO) {
       return new Response(JSON.stringify({ erro: `Confirmação inválida. Digite exatamente "${FRASE_CONFIRMACAO}" para prosseguir.` }), { status: 400 });
+    }
+
+    if (!dados.senha || typeof dados.senha !== "string") {
+      return new Response(JSON.stringify({ erro: "Informe sua senha para confirmar a exclusão.", codigo: "senha_obrigatoria" }), { status: 400 });
+    }
+
+    const usuarioSenha = await env.DB
+      .prepare(`SELECT senha_hash FROM usuarios WHERE id = ?`)
+      .bind(usuarioLogado.id)
+      .first<UsuarioSenhaRow>();
+
+    const senhaCorreta = await verificarSenha(dados.senha, usuarioSenha?.senha_hash);
+    if (!senhaCorreta) {
+      return new Response(JSON.stringify({ erro: "Senha incorreta. Nenhum dado foi apagado.", codigo: "senha_incorreta" }), { status: 403 });
     }
 
     // Ordem importa: lancamentos referencia despesas_fixas e compras_parceladas por

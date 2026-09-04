@@ -100,10 +100,10 @@
     });
   }
 
-  async function zerarDados(confirmacao) {
+  async function zerarDados({ confirmacao, senha }) {
     return CadimusApi.fetch("/api/admin/zerar-dados", {
       method: "POST",
-      body: JSON.stringify({ confirmacao }),
+      body: JSON.stringify({ confirmacao, senha }),
     });
   }
 

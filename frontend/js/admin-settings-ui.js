@@ -468,44 +468,63 @@ function configurarZonaDePerigo() {
   const btnFechar = document.getElementById("btn-fechar-modal-zerar-dados");
   const btnConfirmar = document.getElementById("btn-confirmar-zerar-dados");
   const campoConfirmacao = document.getElementById("confirmacao-zerar-dados");
+  const campoSenha = document.getElementById("senha-zerar-dados");
+  const erroZerar = document.getElementById("erro-zerar-dados");
 
-  if (!btnAbrir || !modal || !btnFechar || !btnConfirmar || !campoConfirmacao) return;
+  if (!btnAbrir || !modal || !btnFechar || !btnConfirmar || !campoConfirmacao || !campoSenha) return;
 
-  btnAbrir.innerText = "Limpeza global desativada";
-  btnAbrir.title = "A limpeza global foi removida do fluxo normal por segurança.";
-  btnAbrir.addEventListener("click", async () => {
-    await mostrarAviso("A limpeza global de dados foi desativada por segurança. Para manutenção, use uma rotina administrativa isolada, com backup e auditoria.");
-  });
-  return;
+  function atualizarBotaoConfirmarZerar() {
+    btnConfirmar.disabled = campoConfirmacao.value !== FRASE_CONFIRMACAO_ZERAR || campoSenha.value.trim().length === 0;
+  }
+
+  function definirErroZerarDados(mensagem = "") {
+    if (!erroZerar) return;
+    erroZerar.textContent = mensagem;
+    erroZerar.style.display = mensagem ? "block" : "none";
+  }
 
   function fecharModalZerarDados() {
     modal.style.display = "none";
     liberarFoco();
     campoConfirmacao.value = "";
-    btnConfirmar.disabled = true;
+    campoSenha.value = "";
+    definirErroZerarDados();
+    atualizarBotaoConfirmarZerar();
   }
 
   btnAbrir.addEventListener("click", () => {
     campoConfirmacao.value = "";
-    btnConfirmar.disabled = true;
+    campoSenha.value = "";
+    definirErroZerarDados();
+    atualizarBotaoConfirmarZerar();
     modal.style.display = "flex";
     trapFoco(modal);
+    setTimeout(() => campoConfirmacao.focus(), 50);
   });
 
   btnFechar.addEventListener("click", fecharModalZerarDados);
 
   campoConfirmacao.addEventListener("input", () => {
-    btnConfirmar.disabled = campoConfirmacao.value !== FRASE_CONFIRMACAO_ZERAR;
+    definirErroZerarDados();
+    atualizarBotaoConfirmarZerar();
+  });
+  campoSenha.addEventListener("input", () => {
+    definirErroZerarDados();
+    atualizarBotaoConfirmarZerar();
   });
 
   btnConfirmar.addEventListener("click", async () => {
-    if (campoConfirmacao.value !== FRASE_CONFIRMACAO_ZERAR) return;
+    if (campoConfirmacao.value !== FRASE_CONFIRMACAO_ZERAR || !campoSenha.value.trim()) return;
 
     btnConfirmar.disabled = true;
     btnConfirmar.innerText = "Apagando...";
+    definirErroZerarDados();
 
     try {
-      const resposta = await CadimusAdminApi.zerarDados(campoConfirmacao.value);
+      const resposta = await CadimusAdminApi.zerarDados({
+        confirmacao: campoConfirmacao.value,
+        senha: campoSenha.value,
+      });
 
       if (tratarSessaoExpirada(resposta)) return;
 
@@ -526,14 +545,14 @@ function configurarZonaDePerigo() {
         }
       } else {
         const erro = await resposta.json();
-        await mostrarAviso(`Erro: ${erro.erro}`);
+        definirErroZerarDados(erro?.erro || "Não foi possível apagar os dados.");
       }
     } catch (erro) {
       console.error(erro);
-      await mostrarAviso("Erro de conexão ao apagar os dados.");
+      definirErroZerarDados("Erro de conexão ao apagar os dados.");
     } finally {
       btnConfirmar.innerText = "Apagar tudo permanentemente";
-      btnConfirmar.disabled = campoConfirmacao.value !== FRASE_CONFIRMACAO_ZERAR;
+      atualizarBotaoConfirmarZerar();
     }
   });
 }
