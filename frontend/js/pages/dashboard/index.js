@@ -1,7 +1,7 @@
 // pages/dashboard/index.js - Dependências da página principal/dashboard
 CadimusPageLoader.carregar([
   "modal-components.js?v=102",
-  "finance-modal-components.js?v=100",
+  "finance-modal-components.js?v=101",
   "api-client.js?v=101",
   "auth-api.js?v=100",
   "notifications-api.js?v=100",

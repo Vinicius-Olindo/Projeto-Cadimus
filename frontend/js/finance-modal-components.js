@@ -537,8 +537,13 @@ const FINANCE_MODAIS_HTML = String.raw`
 
 function montarComponentesModaisFinanceiros() {
   const raiz = document.getElementById("modal-components-root");
-  if (!raiz || document.getElementById("modal-carteira")) return;
-  raiz.insertAdjacentHTML("beforeend", FINANCE_MODAIS_HTML);
+  if (!raiz) return;
+
+  const template = document.createElement("template");
+  template.innerHTML = FINANCE_MODAIS_HTML;
+  template.content.querySelectorAll(".modal-overlay[id]").forEach((modal) => {
+    if (!document.getElementById(modal.id)) raiz.appendChild(modal);
+  });
 }
 
 montarComponentesModaisFinanceiros();
