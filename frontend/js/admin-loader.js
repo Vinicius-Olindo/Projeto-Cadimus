@@ -12,7 +12,7 @@ CadimusPageLoader.carregar([
   "ui-formatters.js?v=100",
   "money-utils.js?v=100",
   "money-ui.js?v=100",
-  "components.js?v=105",
+  "components.js?v=106",
   "ui-feedback.js?v=100",
   "ui-theme.js?v=100",
   "ui-pwa.js?v=100",
