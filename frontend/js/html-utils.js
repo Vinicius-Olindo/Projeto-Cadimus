@@ -1,5 +1,5 @@
 // ==========================================
-// components.js - Helpers HTML globais
+// html-utils.js - Helpers HTML globais
 // ==========================================
 
 function escaparHtml(texto) {

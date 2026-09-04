@@ -9,7 +9,7 @@ CadimusPageLoader.carregar([
   "auth.js?v=126",
   "ui-formatters.js?v=100",
   "money-utils.js?v=100",
-  "components.js?v=107",
+  "html-utils.js?v=100",
   "ui-feedback.js?v=100",
   "ui-theme.js?v=100",
   "ui-pwa.js?v=100",

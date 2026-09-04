@@ -21,7 +21,7 @@ CadimusPageLoader.carregar([
   "ui-formatters.js?v=100",
   "money-utils.js?v=100",
   "money-ui.js?v=100",
-  "components.js?v=107",
+  "html-utils.js?v=100",
   "author-colors-ui.js?v=100",
   "pages/entries/entries-list-empty-ui.js?v=100",
   "pages/entries/entries-row-components.js?v=100",
