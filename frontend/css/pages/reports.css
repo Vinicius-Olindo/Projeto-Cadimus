@@ -57,12 +57,13 @@
 .relatorio-periodo-resumo {
   width: fit-content;
   margin-top: 16px;
-  padding: 10px 12px;
+  padding: 10px 14px;
   display: inline-flex;
   align-items: center;
-  gap: 10px;
+  gap: 12px;
+  flex-wrap: wrap;
   border: 1px solid color-mix(in srgb, var(--cor-marca) 22%, var(--cor-pauta-fraca));
-  border-radius: 999px;
+  border-radius: 18px;
   background: color-mix(in srgb, var(--cor-superficie-alta) 62%, transparent);
 }
 
@@ -79,9 +80,34 @@
 }
 
 .relatorio-periodo-resumo strong {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
   color: var(--cor-texto);
+  font-family: var(--fonte-corpo);
+  font-size: 0.88rem;
+}
+
+.relatorio-periodo-resumo strong {
+  flex-wrap: wrap;
+}
+
+.relatorio-periodo-resumo .relatorio-periodo-nome {
+  color: var(--cor-texto);
+  font-size: 0.88rem;
+  font-weight: 800;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.relatorio-periodo-resumo .relatorio-periodo-intervalo {
+  color: var(--cor-texto-suave);
   font-family: var(--fonte-mono);
-  font-size: 0.82rem;
+  font-size: 0.78rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  white-space: nowrap;
 }
 
 .relatorio-hero-acoes {

@@ -194,7 +194,10 @@ function atualizarResumoPeriodoRelatorio(periodo) {
     personalizado: "Período personalizado",
   };
 
-  resumo.textContent = `${labels[periodo.tipo] || "Período"} · ${formatar(periodo.inicioDate)} até ${formatar(periodo.fimDate)}`;
+  resumo.innerHTML = `
+    <span class="relatorio-periodo-nome">${labels[periodo.tipo] || "Período"}</span>
+    <span class="relatorio-periodo-intervalo">${formatar(periodo.inicioDate)} — ${formatar(periodo.fimDate)}</span>
+  `;
 }
 
 async function carregarDadosRelatorio() {
