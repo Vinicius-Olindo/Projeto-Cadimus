@@ -287,7 +287,11 @@ async function executarImportacao() {
 // ==========================================
 // CONTROLE DO MODAL
 // ==========================================
+let modalImportacaoConfigurado = false;
+
 function configurarModalImportacao() {
+  if (modalImportacaoConfigurado) return;
+
   const modal = document.getElementById("modal-importar");
   const btnAbrir = document.getElementById("btn-importar-extrato");
   const btnFechar = document.getElementById("btn-fechar-modal-importar");
@@ -297,6 +301,7 @@ function configurarModalImportacao() {
   const btnConfirmar = document.getElementById("importar-confirmar");
 
   if (!modal || !btnAbrir || !btnFechar || !dropzone || !inputArquivo) return;
+  modalImportacaoConfigurado = true;
 
   function abrirModal() {
     importarTransacoes = [];
@@ -372,4 +377,8 @@ function processarArquivo(arquivo) {
   leitor.readAsText(arquivo);
 }
 
-document.addEventListener("DOMContentLoaded", configurarModalImportacao);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", configurarModalImportacao);
+} else {
+  configurarModalImportacao();
+}

@@ -205,7 +205,11 @@ async function executarExportacao() {
 // ==========================================
 // CONTROLE DO MODAL
 // ==========================================
+let modalExportacaoConfigurado = false;
+
 function configurarModalExportacao() {
+  if (modalExportacaoConfigurado) return;
+
   const modal = document.getElementById("modal-exportar");
   const btnAbrir = document.getElementById("btn-exportar-extrato");
   const btnFechar = document.getElementById("btn-fechar-modal-exportar");
@@ -216,6 +220,7 @@ function configurarModalExportacao() {
   const inputFim = document.getElementById("exportar-data-fim");
 
   if (!modal || !btnAbrir || !btnFechar) return;
+  modalExportacaoConfigurado = true;
 
   function abrirModal() {
     preencherFiltrosExportacao();
@@ -244,4 +249,8 @@ function configurarModalExportacao() {
   btnBaixar?.addEventListener("click", executarExportacao);
 }
 
-document.addEventListener("DOMContentLoaded", configurarModalExportacao);
+if (document.readyState === "loading") {
+  document.addEventListener("DOMContentLoaded", configurarModalExportacao);
+} else {
+  configurarModalExportacao();
+}

@@ -99,6 +99,7 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - Importação de extratos bancários (OFX e CSV)
 - Importação em lote com `Promise.allSettled` (batches de 10)
 - Exportação em CSV e OFX
+- Modais e scripts de importar/exportar carregados sob demanda no dashboard
 
 ### Configurações (Layout modular com sidebar)
 - **Perfil**: Foto, nome, email, telefone, salário, perfil, senha
@@ -169,6 +170,7 @@ PWA completa para controle financeiro pessoal e familiar. Construída com Cloudf
 - PWA com manifest e ícones maskable
 - Gráficos SVG (donut, line chart, bar chart)
 - Frontend modularizado por domínio (`*-api.js` e `*-ui.js`)
+- Loaders sob demanda para ações pesadas do dashboard, como cartões, importação e exportação
 - `main.js` mantido como mapa central/ponte para compatibilidade entre módulos
 
 ### Backend

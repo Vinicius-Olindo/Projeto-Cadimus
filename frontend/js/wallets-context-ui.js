@@ -76,7 +76,7 @@ async function carregarModuloOrcamentoCarteira() {
 }
 
 async function carregarModuloCartoesCreditoCarteira() {
-  await carregarScriptsCarteiras("cartoes-carteira", ["wallets-card-ui.js?v=100"]);
+  await carregarScriptsCarteiras("cartoes-carteira", ["cards-api.js?v=100", "wallets-card-ui.js?v=100"]);
   chamarInicializadorCadimus("configurarModalCartaoCredito");
 }
 
